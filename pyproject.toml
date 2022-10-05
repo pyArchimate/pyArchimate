@@ -2,7 +2,7 @@
 name = "pyArchimate"
 version = "0.9.1"
 authors = [
-  { name="Xavier Mayeur", email="xavier.mayeur@ing.be" },
+  { name="Xavier Mayeur", email="xavier.mayeur@ing.com" },
 ]
 description = "A library to create & manage Archimate files"
 readme = "README.md"
