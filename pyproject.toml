@@ -1,0 +1,22 @@
+[project]
+name = "pyArchimate"
+version = "0.9.1"
+authors = [
+  { name="Xavier Mayeur", email="xavier.mayeur@ing.be" },
+]
+description = "A library to create & manage Archimate files"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://dev.azure.com/INGCDaaS/IngOne/_git/P13596-pyArchimate"
+"Bug Tracker" = ""
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
