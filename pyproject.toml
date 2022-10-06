@@ -1,6 +1,6 @@
 [project]
 name = "pyArchimate"
-version = "0.9.1"
+version = "0.9.4"
 authors = [
   { name="Xavier Mayeur", email="xavier.mayeur@ing.com" },
 ]
@@ -15,7 +15,7 @@ classifiers = [
 
 [project.urls]
 "Homepage" = "https://dev.azure.com/INGCDaaS/IngOne/_git/P13596-pyArchimate"
-"Bug Tracker" = ""
+"Bug Tracker" = "https://dev.azure.com/INGCDaaS/IngOne/_git/P13596-pyArchimate"
 
 [build-system]
 requires = ["setuptools>=61.0"]

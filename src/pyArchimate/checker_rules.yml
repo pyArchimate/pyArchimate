@@ -2456,6 +2456,138 @@ archimate_rels:
         Grouping: afinortv
         ImplementationEvent: fiot
         Junction: afinortv
+        AndJunction: afinortv
+        OrJunction: afinortv
+        Location: fortv
+        Material: aior
+        Meaning: 'no'
+        Node: fiortv
+        Outcome: nor
+        Path: fortv
+        Plateau: fort
+        Principle: nor
+        Product: fortv
+        Relationship: ''
+        Representation: aor
+        Requirement: nor
+        Resource: fortv
+        Stakeholder: inor
+        SystemSoftware: fiortv
+        TechnologyCollaboration: fortv
+        TechnologyEvent: fiortv
+        TechnologyFunction: fiortv
+        TechnologyInteraction: fiortv
+        TechnologyInterface: fiortv
+        TechnologyProcess: fiortv
+        TechnologyService: fiortv
+        Value: 'no'
+        ValueStream: fiortv
+        WorkPackage: fiot
+    OrJunction:
+        ApplicationCollaboration: fortv
+        ApplicationComponent: fortv
+        ApplicationEvent: fiortv
+        ApplicationFunction: fiortv
+        ApplicationInteraction: fiortv
+        ApplicationInterface: fortv
+        ApplicationProcess: fiortv
+        ApplicationService: fiortv
+        Artifact: aior
+        Assessment: 'no'
+        BusinessActor: fiortv
+        BusinessCollaboration: fiortv
+        BusinessEvent: fiortv
+        BusinessFunction: fiortv
+        BusinessInteraction: fiortv
+        BusinessInterface: fiortv
+        BusinessObject: aor
+        BusinessProcess: fiortv
+        BusinessRole: fiortv
+        BusinessService: fiortv
+        Capability: fiortv
+        CommunicationNetwork: fortv
+        Constraint: nor
+        Contract: aor
+        CourseOfAction: fortv
+        DataObject: aor
+        Deliverable: aor
+        Device: fiortv
+        DistributionNetwork: fortv
+        Driver: 'no'
+        Equipment: fiortv
+        Facility: fiortv
+        Gap: o
+        Goal: nor
+        Grouping: afinortv
+        ImplementationEvent: fiot
+        Junction: afinortv
+        AndJunction: afinortv
+        OrJunction: afinortv
+        Location: fortv
+        Material: aior
+        Meaning: 'no'
+        Node: fiortv
+        Outcome: nor
+        Path: fortv
+        Plateau: fort
+        Principle: nor
+        Product: fortv
+        Relationship: ''
+        Representation: aor
+        Requirement: nor
+        Resource: fortv
+        Stakeholder: inor
+        SystemSoftware: fiortv
+        TechnologyCollaboration: fortv
+        TechnologyEvent: fiortv
+        TechnologyFunction: fiortv
+        TechnologyInteraction: fiortv
+        TechnologyInterface: fiortv
+        TechnologyProcess: fiortv
+        TechnologyService: fiortv
+        Value: 'no'
+        ValueStream: fiortv
+        WorkPackage: fiot
+    AndJunction:
+        ApplicationCollaboration: fortv
+        ApplicationComponent: fortv
+        ApplicationEvent: fiortv
+        ApplicationFunction: fiortv
+        ApplicationInteraction: fiortv
+        ApplicationInterface: fortv
+        ApplicationProcess: fiortv
+        ApplicationService: fiortv
+        Artifact: aior
+        Assessment: 'no'
+        BusinessActor: fiortv
+        BusinessCollaboration: fiortv
+        BusinessEvent: fiortv
+        BusinessFunction: fiortv
+        BusinessInteraction: fiortv
+        BusinessInterface: fiortv
+        BusinessObject: aor
+        BusinessProcess: fiortv
+        BusinessRole: fiortv
+        BusinessService: fiortv
+        Capability: fiortv
+        CommunicationNetwork: fortv
+        Constraint: nor
+        Contract: aor
+        CourseOfAction: fortv
+        DataObject: aor
+        Deliverable: aor
+        Device: fiortv
+        DistributionNetwork: fortv
+        Driver: 'no'
+        Equipment: fiortv
+        Facility: fiortv
+        Gap: o
+        Goal: nor
+        Grouping: afinortv
+        ImplementationEvent: fiot
+        Junction: afinortv
+        AndJunction: afinortv
+        OrJunction: afinortv
         Location: fortv
         Material: aior
         Meaning: 'no'
@@ -4056,82 +4188,6 @@ archimate_rels:
         Value: 'no'
         ValueStream: or
         WorkPackage: cfgost
-metamodel:
-    elements:
-    - ApplicationInterface
-    - ApplicationCollaboration
-    - BusinessService
-    - BusinessFunction
-    - BusinessProcess
-    - BusinessObject
-    - ApplicationFunction
-    - Capability
-    - DataObject
-    - Path
-    - ApplicationComponent
-    - BusinessActor
-    - BusinessRole
-    - Grouping
-    - Node
-    relationships:
-        ApplicationCollaboration:
-            ApplicationCollaboration: fv
-            ApplicationComponent: fgv
-            ApplicationFunction: i
-            BusinessObject: a
-            BusinessService: v
-            Grouping: f
-            Node: v
-        ApplicationComponent:
-            ApplicationCollaboration: f
-            ApplicationComponent: f
-            ApplicationFunction: v
-            ApplicationInterface: ctf
-            BusinessObject: a
-            DataObject: a
-        ApplicationFunction:
-            ApplicationFunction: f
-            BusinessFunction: r
-            BusinessObject: a
-            BusinessService: r
-            Capability: r
-        ApplicationInterface:
-            ApplicationComponent: f
-            DataObject: a
-        BusinessActor:
-            ApplicationCollaboration: o
-            BusinessProcess: i
-            BusinessRole: i
-            BusinessService: i
-        BusinessFunction:
-            BusinessFunction: s
-            BusinessService: r
-            Capability: r
-        BusinessObject:
-            BusinessObject: s
-        BusinessProcess:
-            BusinessService: r
-        BusinessRole:
-            BusinessProcess: i
-            BusinessService: i
-        BusinessService:
-            BusinessProcess: v
-            BusinessService: s
-            Capability: r
-        Capability:
-            Capability: g
-        DataObject:
-            BusinessObject: r
-        Grouping:
-            ApplicationCollaboration: cf
-            ApplicationComponent: c
-            ApplicationFunction: c
-            BusinessFunction: c
-            BusinessObject: c
-            BusinessService: c
-            Grouping: c
-        Node:
-            ApplicationComponent: r
 relationship_keys:
     Access: a
     Aggregation: g

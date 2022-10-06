@@ -229,9 +229,32 @@ class Point:
     """
 
     def __init__(self, x=0, y=0):
-        self.x = x
-        self.y = y
+        if x < 0:
+            x = 0
+        if y < 0:
+            y = 0
+        self._x = x
+        self._y = y
+        
+    @property
+    def x(self):
+        return self._x
+    
+    @x.setter
+    def x(self, val):
+        if val < 0:
+            val = 0
+        self._x = val
 
+    @property
+    def y(self):
+        return self._y
+
+    @y.setter
+    def y(self, val):
+        if val < 0:
+            val = 0
+        self._y = val
 
 class Position:
     """
@@ -1323,6 +1346,7 @@ class Node:
         self.label = label
         self.nodes_dict = defaultdict(Node)
         self._fill_color = _default_color(self.type)
+        self.line_color = '#000000'
         self.opacity = 100
         self.font_color = None
         self.font_name = 'Segoe UI'
@@ -1525,6 +1549,8 @@ class Node:
         :type val: int
 
         """
+        if val < 0:
+            val = 0
         for n in self.nodes():
             n.x += val - self._x
         self._x = int(val)
@@ -1544,11 +1570,14 @@ class Node:
     def cx(self, val):
         """
         Set the value of the centroid x coordinate
-        
+
         :param val: 
         :type val: float
 
         """
+        if val < 0:
+            val = 0
+
         self.x = int(val - self._w / 2 + 0.5)
         self._cx = val
 
@@ -1575,6 +1604,8 @@ class Node:
         :type value: int
 
         """
+        if value < 0:
+            value = 0
         if isinstance(self.parent, Node):
             self.x = self.parent.x + value
         else:
@@ -1600,6 +1631,8 @@ class Node:
         :type val: int
 
         """
+        if val < 0:
+            val = 0
         for n in self.nodes():
             n.y += val - self._y
         self._y = int(val)
@@ -1625,6 +1658,8 @@ class Node:
         :type val: float
 
         """
+        if val < 0:
+            val = 0
         self.y = int(val - self._h / 2 + 0.5)
         self._cy = val
 
@@ -1651,6 +1686,8 @@ class Node:
         :type value: int
 
         """
+        if value < 0:
+            value = 0
         if isinstance(self.parent, Node):
             self.y = self.parent.y + int(value)
         else:
@@ -3230,6 +3267,7 @@ class Model:
                 # set style
                 _s = Style()
                 _s.fill_color = n.fill_color
+                _s.line_color = n.line_color
                 _s.opacity = n.opacity
                 _s.font_color = n.font_color
                 _s.font_size = n.font_size
