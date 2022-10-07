@@ -71,7 +71,7 @@ def main():
         os.remove(os.path.join(tmpdir, "ARISAMLExport.xml"))
 
     if 'http' in args.file:
-        TMPFILE = os.path.join(tmpdir, '$parseAML.zip')
+        tmp_file = os.path.join(tmpdir, '$parseAML.zip')
         cacerts = os.path.join(os.environ['USERPROFILE'], '.ssh', 'certs.pem')
         # PROXY_URL = 'giba-proxy.wps.ing.net:8080'
         user = getuser()
@@ -82,9 +82,9 @@ def main():
         sleep(3)
         # while not os.path.exists(os.path.join(tmpdir, '$parseAML.zip')):
         #    sleep(1)
-        open(TMPFILE, 'wb').write(r.content)
+        open(tmp_file, 'wb').write(r.content)
 
-        with zipfile.ZipFile(TMPFILE, "r") as zip_ref:
+        with zipfile.ZipFile(tmp_file, "r") as zip_ref:
             zip_ref.extractall(tmpdir)
             args.file = os.path.join(tmpdir, "ARISAMLExport.xml")
 
@@ -100,8 +100,6 @@ def main():
                check_pattern=True if args.checkPattern else False
                )
     result = aris.convert()
-
-    # TODO Expand properties before writing the result
 
     if args.outputfile:
         result.write(args.outputfile)

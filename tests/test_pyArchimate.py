@@ -10,7 +10,6 @@ except:
     from src.pyArchimate.pyArchimate import *
 
 
-
 def create_model():
     """
     create a model
@@ -337,9 +336,6 @@ class MyTestCase(unittest.TestCase):
         rx1i = m.add_relationship(source=x1, target=i1, rel_type='Serving', uuid='id-d9c7f88b5e99428fb93655ca4a9115f0')
         ry1i = m.add_relationship(source=y1, target=i1, rel_type='Flow', uuid='id-4a629319011246a3acae5ac615bd8a27')
         rx1y1 = m.add_relationship(source=x1, target=y1, rel_type='Flow')
-
-        # create organization
-        # TODO
 
         # create view
         v = m.add(archi_type.View, name='View 1', uuid='id-958b9bef4e5445f9bfa296e3d0b9655f')
