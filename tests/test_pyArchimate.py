@@ -412,15 +412,15 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(pos.orientation, "B!")
 
         n2.x = 200
-        n2.y = -200
+        n2.y = 200
         pos = n1.get_obj_pos(n2)
-        self.assertTrue(44.8 < pos.angle < 45.2)
-        self.assertEqual(pos.gap_y, -145)
+        self.assertTrue(pos.angle==315)
+        self.assertEqual(pos.gap_y, 145)
         self.assertEqual(pos.gap_x, 80)
-        self.assertEqual(pos.orientation, "T")
+        self.assertEqual(pos.orientation, "B")
         del n1
         del n2
-        m.write()
+        m.write('out.xml')
         del m
 
     def test_point_pos(self):
@@ -430,9 +430,9 @@ class MyTestCase(unittest.TestCase):
                                   x=-50, y=-50, w=100, h=100,
                                   create_elem=True, create_node=True)
 
-        pt = Point(100, -100)
+        pt = Point(100, 100)
         pos = n1.get_point_pos(point=pt)
-        self.assertEqual(pos.angle, 45)
+        self.assertEqual(pos.angle, 315)
         self.assertEqual(pos.gap_x, 50)
 
         pt = Point(0, -25)
@@ -641,6 +641,40 @@ class MyTestCase(unittest.TestCase):
         m.write('out.xml')
         self.assertTrue(r.prop('Identifier') is not None)
 
+    def test_move_node(self):
+        m = Model('test')
+        v = m.add(archi_type.View, 'view')
+        n1 = v.get_or_create_node('APP1', archi_type.ApplicationComponent, 20, 20, create_elem=True, create_node=True)
+        n2 = v.get_or_create_node('APP2', archi_type.ApplicationComponent, 100, 100, create_elem=True, create_node=True)
+        m.add_relationship(archi_type.Aggregation, n1.concept, n2.concept)
+        n2.move(n1)
+        n1.resize()
+        self.assertTrue(n2.parent.uuid == n1.uuid)
+        self.assertTrue(n2.uuid in n1.nodes_dict)
+        self.assertFalse(n2.uuid in v.nodes_dict)
+        m.write('out.xml')
+
+    def test_default_rel(self):
+        m = Model('test')
+        e1 = m.add(archi_type.ApplicationCollaboration , "App")
+        e2 = m.add(archi_type.ApplicationFunction, 'Comp')
+        t = get_default_rel_type(archi_type.ApplicationComponent, archi_type.ApplicationComponent)
+
+    def test_model_validation(self):
+        m = Model('test')
+        v = m.add(archi_type.View, 'view')
+        n1 = v.get_or_create_node(elem='App1', elem_type=archi_type.ApplicationCollaboration,
+                                 create_node=True, create_elem=True)
+        n2 = v.get_or_create_node(elem='App2', elem_type=archi_type.ApplicationCollaboration,
+                                 create_node=True, create_elem=True)
+        c = v.get_or_create_connection(rel_type=archi_type.Flow, source=n1, target=n2)
+        m.check_invalid_nodes()
+        m.check_invalid_conn()
+        id = n1.uuid
+        e1=  m.elems_dict.pop(n1.concept.uuid)
+        inv_n = m.check_invalid_nodes()
+        inv_c = m.check_invalid_conn()
+        self.assertTrue(id in inv_n)
 
 if __name__ == '__main__':
     unittest.main()

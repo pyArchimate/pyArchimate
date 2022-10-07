@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd" identifier="_set_id-c55debb292504c9793fa01a933dccf8c">
+  <name xml:lang="en">(new model)</name>
+  <elements>
+    <element identifier="_set_id-458830c57ddf4afbbbeb0656f63c29da" xsi:type="ApplicationComponent">
+      <name xml:lang="en">Application Component</name>
+    </element>
+    <element identifier="_set_id-892167b510bc4bfebcb2d77efa10b14f" xsi:type="ApplicationService">
+      <name xml:lang="en">Application Service</name>
+      <properties>
+        <property propertyDefinitionRef="propid-1">
+          <value xml:lang="en">ohhh</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="_set_id-aab23d0c87b74deab8423cbc5678a8bd" xsi:type="Grouping">
+      <name xml:lang="en">Grouping</name>
+    </element>
+  </elements>
+  <relationships>
+    <relationship identifier="_set_id-1e246f7188ba4dbbbd1e57e72367ec98" source="_set_id-458830c57ddf4afbbbeb0656f63c29da" target="_set_id-892167b510bc4bfebcb2d77efa10b14f" xsi:type="Assignment">
+      <name xml:lang="en">serve</name>
+      <properties>
+        <property propertyDefinitionRef="propid-2">
+          <value xml:lang="en">0</value>
+        </property>
+      </properties>
+    </relationship>
+    <relationship identifier="_set_id-e10441626ccc4b7392d1afa74919a06d" source="_set_id-aab23d0c87b74deab8423cbc5678a8bd" target="_set_id-892167b510bc4bfebcb2d77efa10b14f" xsi:type="Composition" />
+  </relationships>
+  <propertyDefinitions>
+    <propertyDefinition identifier="propid-1" type="string">
+      <name>PBB</name>
+    </propertyDefinition>
+    <propertyDefinition identifier="propid-2" type="string">
+      <name>zOrder</name>
+    </propertyDefinition>
+  </propertyDefinitions>
+  <views>
+    <diagrams>
+      <view identifier="_set_id-9430083595b44f5abafd12c335340ce7" xsi:type="Diagram">
+        <name xml:lang="en">Default View</name>
+        <node identifier="_set_id-c63cfc2c319e40678295da4ca34c6706" elementRef="_set_id-aab23d0c87b74deab8423cbc5678a8bd" xsi:type="Element" x="216" y="48" w="265" h="157">
+          <style>
+            <fillColor r="255" g="255" b="255" a="100" />
+            <lineColor r="92" g="92" b="92" a="100" />
+            <font name="Segoe UI" size="9">
+              <color r="0" g="0" b="0" />
+            </font>
+          </style>
+          <node identifier="_set_id-293aa3b3dbca4221b302f09b75dc5268" elementRef="_set_id-892167b510bc4bfebcb2d77efa10b14f" xsi:type="Element" x="288" y="96" w="120" h="55">
+            <style>
+              <fillColor r="181" g="255" b="255" a="100" />
+              <lineColor r="92" g="92" b="92" a="100" />
+              <font name="Segoe UI" size="9">
+                <color r="0" g="0" b="0" />
+              </font>
+            </style>
+          </node>
+        </node>
+        <node identifier="_set_id-a13ef76baf5346d88e158cdd26eb4a1d" elementRef="_set_id-458830c57ddf4afbbbeb0656f63c29da" xsi:type="Element" x="516" y="288" w="120" h="55">
+          <style>
+            <fillColor r="181" g="255" b="255" a="100" />
+            <lineColor r="92" g="92" b="92" a="100" />
+            <font name="Segoe UI" size="9">
+              <color r="0" g="0" b="0" />
+            </font>
+          </style>
+        </node>
+        <connection identifier="_set_id-ac1c863fac0c45cda523415a8875191a" relationshipRef="_set_id-1e246f7188ba4dbbbd1e57e72367ec98" xsi:type="Relationship" source="_set_id-a13ef76baf5346d88e158cdd26eb4a1d" target="_set_id-293aa3b3dbca4221b302f09b75dc5268">
+          <style>
+            <lineColor r="0" g="0" b="255" />
+            <font name="Segoe UI" size="9">
+              <color r="0" g="0" b="0" />
+            </font>
+          </style>
+          <bendpoint x="348" y="318" />
+        </connection>
+      </view>
+    </diagrams>
+  </views>
+</model>

@@ -7,20 +7,26 @@ Version 0.1
 
 """
 import json
+import logging
 import math
+import os
 import re
 import sys
 from collections import defaultdict
 from enum import Enum
 from uuid import uuid4, UUID
-import logging
-import xmltodict
-import os
+
 import oyaml as yaml
+import xmltodict
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
 log = logging.getLogger()
+log.setLevel(logging.WARNING)
+formatter = logging.Formatter(
+    '%(asctime)s | %(name)s | %(levelname)s | %(message)s'
+)
 
 
 def _is_valid_uuid(uuid_to_test, version=4):
@@ -235,11 +241,11 @@ class Point:
             y = 0
         self._x = x
         self._y = y
-        
+
     @property
     def x(self):
         return self._x
-    
+
     @x.setter
     def x(self, val):
         if val < 0:
@@ -255,6 +261,7 @@ class Point:
         if val < 0:
             val = 0
         self._y = val
+
 
 class Position:
     """
@@ -2205,6 +2212,24 @@ class Node:
             i += 1
             r['r'].set_bendpoint(Point(r['bp'].x, r['bp'].y), r['bp'].idx)
 
+    def move(self, new_parent):
+        """
+        Move a Node to another Node on the same view or to its root view
+        :param new_parent: new parent object
+        :rtype new_parent: Node | View
+        """
+        if not isinstance(new_parent, View) and not isinstance(new_parent, Node):
+            log.error(f"Invalid target to move the node to. Expecting a View or a Node")
+            return
+
+        if new_parent.view.uuid != self.view.uuid:
+            log.error(f"Cannot move a node outside of its view")
+            return
+
+        del self.parent.nodes_dict[self.uuid]
+        self.parent = new_parent
+        new_parent.nodes_dict[self.uuid] = self
+
 
 class Connection:
     """
@@ -4080,10 +4105,13 @@ class Model:
     def check_invalid_conn(self):
         """
         Method to check the validity of a list of connections
-
         """
-        for c in self.conns_dict.values():
-            self.check_connection(c)
+        invalids = []
+
+        for id, c in self.conns_dict.items():
+            if self.check_connection(c):
+                invalids.append(id)
+        return invalids
 
     def check_connection(self, c):
         """
@@ -4104,8 +4132,14 @@ class Model:
         if c._source not in self.nodes_dict:
             log.error(f'Connection {c.uuid} has orphan source node {c._source}')
             _ok = False
+        if c.concept._source not in self.elems_dict:
+            log.error(f'Connection {c.uuid} has orphan source node concept {c.concept._source}')
+            _ok = False
         if c._target not in self.nodes_dict:
             log.error(f'Connection {c.uuid} has orphan target node {c._target}')
+            _ok = False
+        if c.concept._target not in self.elems_dict:
+            log.error(f'Connection {c.uuid} has orphan target node concept {c.concept._target}')
             _ok = False
         # Check source / target are nodes, not views
         if isinstance(c.target, View):
@@ -4126,6 +4160,17 @@ class Model:
             _ok = False
 
         return _ok
+
+    def check_invalid_nodes(self):
+        invalids = []
+        for id, n in self.nodes_dict.items():
+            if n.ref not in self.elems_dict:
+                invalids.append(id)
+                try:
+                    log.error(f'Orphan node "{n.name}" with id {n.uuid} refers to unknown {n.ref}')
+                except ArchimateConceptTypeError as exc:
+                    log.error(f'Orphan node with id {id}')
+        return invalids
 
 
 # Dictionary of valid Archimate relationships
@@ -4319,8 +4364,24 @@ def get_default_rel_type(source_type, target_type):
         raise ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
     rels = allowed_relationships[source_type][target_type]
     if len(rels) > 0:
-        # TODO Define default rel type for embedding - next statement does not work
-        return [k for k, v in relationship_keys.items() if v == rels[0]][0]
+        if 'g' in rels:
+            t = 'g'
+        elif 'r' in rels:
+            t = 'r'
+        elif 's' in rels:
+            t = 's'
+        elif 'a' in rels:
+            t = 'a'
+        elif 'c' in rels:
+            t = 'c'
+        elif 'o' in rels:
+            t = 'o'
+        elif 'v' in rels:
+            t = 'v'
+        else:
+            t = rels[0]
+
+        return [k for k, v in relationship_keys.items() if v == t][0]
 
 
 # Fetch model parameters during initialization of the module
@@ -4328,8 +4389,6 @@ if allowed_relationships == {}:
     data = None
     try:
         data = yaml.load(open(os.path.join(os.path.sep, __location__, "checker_rules.yml"), "r"), Loader=yaml.Loader)
-        metamodel_valid_rels = data['metamodel']['relationships']
-        metamodel_valid_elems = data['metamodel']['elements']
         allowed_relationships = data['archimate_rels']
         ARIS_type_map = data['ARIS_type_map']
         relationship_keys = data['relationship_keys']
