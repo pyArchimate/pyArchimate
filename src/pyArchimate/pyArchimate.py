@@ -15,9 +15,9 @@ import sys
 from collections import defaultdict
 from enum import Enum
 from uuid import uuid4, UUID
+import xmltodict
 
 import oyaml as yaml
-import xmltodict
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -27,6 +27,152 @@ log.setLevel(logging.WARNING)
 formatter = logging.Formatter(
     '%(asctime)s | %(name)s | %(levelname)s | %(message)s'
 )
+
+# Dictionary of valid Archimate relationships
+allowed_relationships = {}
+ARIS_type_map = {}
+relationship_keys = {}
+archi_category = {}
+
+
+class AccessType:
+    """
+    Enumeration of Access Relationship types
+    """
+
+    def __init__(self):
+        self.Access = 'Access'
+        self.Read = 'Read'
+        self.Write = 'Write'
+        self.ReadWrite = 'ReadWrite'
+
+
+access_type = AccessType()
+
+influenceStrength = {'+': '+', '++': '++', '-': '-', '--': '--', '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
+                     '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': '10'},
+
+
+class ArchiTypes:
+    """
+    Enumeration of Archimate Element & Relationships types
+    """
+
+    def __init__(self):
+        # Business Layer
+        self.BusinessActor = "BusinessActor"
+        self.BusinessRole = "BusinessRole"
+        self.BusinessCollaboration = "BusinessCollaboration"
+        self.BusinessInterface = "BusinessInterface"
+        self.BusinessProcess = "BusinessProcess"
+        self.BusinessFunction = "BusinessFunction"
+        self.BusinessInteraction = "BusinessInteraction"
+        self.BusinessEvent = "BusinessEvent"
+        self.BusinessService = "BusinessService"
+        self.BusinessObject = "BusinessObject"
+        self.Contract = "Contract"
+        self.Representation = "Representation"
+        self.Product = "Product"
+
+        # Application Layer
+
+        self.ApplicationComponent = "ApplicationComponent"
+        self.ApplicationInterface = "ApplicationInterface"
+        self.ApplicationCollaboration = "ApplicationCollaboration"
+        self.ApplicationFunction = "ApplicationFunction"
+        self.ApplicationProcess = "ApplicationProcess"
+        self.ApplicationEvent = "ApplicationEvent"
+        self.ApplicationService = "ApplicationService"
+        self.DataObject = "DataObject"
+
+        # Technology layer
+
+        self.Node = "Node"
+        self.Device = "Device"
+        self.Path = "Path"
+        self.CommunicationNetwork = "CommunicationNetwork"
+        self.SystemSoftware = "SystemSoftware"
+        self.TechnologyCollaboration = "TechnologyCollaboration"
+        self.TechnologyInterface = "TechnologyInterface"
+        self.TechnologyFunction = "TechnologyFunction"
+        self.TechnologyProcess = "TechnologyProcess"
+        self.TechnologyInteraction = "TechnologyInteraction"
+        self.TechnologyEvent = "TechnologyEvent"
+        self.TechnologyService = "TechnologyService"
+        self.Artifact = "Artifact"
+
+        # Physical elements
+
+        self.Equipment = "Equipment"
+        self.Facility = "Facility"
+        self.DistributionNetwork = "DistributionNetwork"
+        self.Material = "Material"
+
+        #  Motivation
+
+        self.Stakeholder = "Stakeholder"
+        self.Driver = "Driver"
+        self.Assessment = "Assessment"
+        self.Goal = "Goal"
+        self.Outcome = "Outcome"
+        self.Principle = "Principle"
+        self.Requirement = "Requirement"
+        self.Constraint = "Constraint"
+        self.Meaning = "Meaning"
+        self.Value = "Value"
+
+        # Strategy
+
+        self.Resource = "Resource"
+        self.Capability = "Capability"
+        self.CourseOfAction = "CourseOfAction"
+
+        # Implementation & Migration
+
+        self.WorkPackage = "WorkPackage"
+        self.Deliverable = "Deliverable"
+        self.ImplementationEvent = "ImplementationEvent"
+        self.Plateau = "Plateau"
+        self.Gap = "Gap"
+
+        # Other
+
+        self.Grouping = "Grouping"
+        self.Location = "Location"
+
+        # Junction
+
+        self.Junction = "Junction"
+        self.OrJunction = "OrJunction"
+        self.AndJunction = "AndJunction"
+
+        # Relationships
+
+        self.Association = "Association"
+        self.Assignment = "Assignment"
+        self.Realization = "Realization"
+        self.Serving = "Serving"
+        self.Composition = "Composition"
+        self.Aggregation = "Aggregation"
+        self.Access = "Access"
+        self.Influence = "Influence"
+        self.Triggering = "Triggering"
+        self.Flow = "Flow"
+        self.Specialization = "Specialization"
+
+        # Special
+        self.View = "View"
+
+
+archi_type = ArchiTypes()
+
+
+class ArchimateRelationshipError(Exception):
+    pass
+
+
+class ArchimateConceptTypeError(Exception):
+    pass
 
 
 def _is_valid_uuid(uuid_to_test, version=4):
@@ -56,7 +202,7 @@ def _is_valid_uuid(uuid_to_test, version=4):
     return str(uuid_obj) == uuid_to_test
 
 
-def _set_id(uuid=None):
+def set_id(uuid=None):
     """
     Function to create an identifier if none exists
 
@@ -74,64 +220,6 @@ def _set_id(uuid=None):
         if _id[:3] != 'id-':
             _id = 'id-' + _id
     return _id
-
-
-def _add_prop(o, key: str, value=None):
-    """
-    Add to- or return a property from- an object
-    if the value argument is omitted or is None, the property value is returned
-    else the property is updated with the new value
-
-    :param o:       an Element, Relationship, View, Model class object
-    :type o: Element
-    :param key:     property key
-    :type key: str
-    :param value:   property value
-    :type value: str
-    :return:        value of the property associated with the key or None if the key does not exist
-    :rtype: str
-
-    """
-    m = o if isinstance(o, Model) else o.model
-    if key not in o.props and value is not None:
-        # create prop
-        o.props[key] = value
-    else:
-        # retrieve the identifier and the record in the properties list
-        _id = m.property_def.get_id(key)
-        if _id is not None and key in o.props:
-            if 'properties' not in o.data:
-                o.data['properties'] = dict(property=[])
-            for p in o.data['properties']['property']:
-                if p['@propertyDefinitionRef'] == _id:
-                    if value is not None:
-                        # update the record
-                        p['value'] = value
-                        o.props[key] = value
-                        return value
-                    else:
-                        return o.props[key]
-        else:
-            return None
-
-
-def _remove_prop(o, key: str):
-    """
-    Remove a property from an object
-
-    :param o:       an Element, Relationship, View, Model class object
-    :param key:     the key of the property to remove
-    :return:        None
-
-    """
-    if key in o._properties:
-        _id = o.property_def.get_id(key) if isinstance(o, Model) else o.model.property_def.get_id(key)
-        if _id is not None:
-            for idx, p in enumerate(o.data['properties']['property']):
-                if p['@propertyDefinitionRef'] == _id:
-                    del o._properties[key]
-                    del o.data['properties']['property'][idx]
-                    break
 
 
 class DictMergeError(Exception):
@@ -183,7 +271,7 @@ def _data_merge(a: dict, b: dict) -> dict:
     return a
 
 
-def _get_str_attrib(key, d: dict) -> str:
+def get_str_attrib(key, d: dict) -> str:
     """
     Function to read a string attribute, skipping the language definition if any
 
@@ -218,12 +306,689 @@ def _default_color(elem_type) -> str:
         return default_colors[cat]
 
 
-class Reader(Enum):
+def archimate_reader(model, data: str, merge_flg=False):
     """
-    Enum class for Model.read(file, reader) reader options
+    Merge / initialize the model from XML Archimate OEF data
+
+    Used by Model.read(filepath) or Model.merge(filepath) methods
+    :param model: pyArchimate Model object
+    :type model: Model
+    :param data:    XML data to convert
+    :type data: str
+    :param merge_flg: if True, merge data into the provided model, else clear the model and read data into it
+    :type merge_flg: bool
+
     """
-    ARCHIMATE = 0
-    AML = 1
+
+    def _get_properties(model, o, obj):
+        """
+        Local function to extract properties from XML data
+
+        :param model:   model object
+        :param o:       xml properties tag with key/values pairs
+        :param obj:     target Element/Relationship/View/Model object in the model
+
+        """
+        if 'properties' in o and o['properties'] is not None:
+            props = o['properties']
+            if isinstance(props, dict):
+                props = [props]
+            for p in props:
+                if isinstance(p['property'], dict):
+                    p['property'] = [p['property']]
+                for q in p['property']:
+                    if q['value'] is not None:
+                        key = model.property_def.propertyDefinitions[q['@propertyDefinitionRef']]
+                        value = get_str_attrib('value', q)
+                        obj.prop(key, value)
+
+    def _update_keys(old_key, new_key, d):
+        """
+        local function to update a key in a complex dict of dict
+
+        :param old_key:
+        :param new_key:
+        :param d:
+
+        """
+        if isinstance(d, dict):
+            if old_key in d:
+                d[new_key] = d[old_key]
+                del d[old_key]
+            for key in d:
+                _update_keys(old_key, new_key, d[key])
+
+    # Convert the xml structure into XML string data
+    if "model" not in data:
+        log.error(
+            f"{__mod__}: Format error: not a valid Archimate OEF ")
+        return None
+    try:
+        xml_data = xmltodict.parse(data)
+    except Exception as _err:
+        log.error(_err)
+        # yaml.dump(model.xml, open('xml_error.yaml', 'w'), Dumper=yaml.Dumper)
+        return None
+
+    # Get merge option
+
+    # Initialize the model
+    m = xml_data["model"]
+
+    # Extract name (skipping language attributes from the tag)
+    model.name = get_str_attrib('name', m)
+
+    # Get property definitions (property keys translation)
+    if 'propertyDefinitions' in m:
+        pd = m['propertyDefinitions']['propertyDefinition']
+        if not isinstance(pd, list):
+            pd = [pd]
+        for k in pd:
+            if merge_flg and k['@identifier'] in model.property_def.propertyDefinitions \
+                    and k['name'] != model.property_def.propertyDefinitions[k['@identifier']]:
+                # When merging, key definitions can conflit and need resolution
+                new_key = model.property_def.add(k['@identifier'])
+                _update_keys(k['@identifier'], new_key, xml_data)
+                k['@identifier'] = new_key
+
+            if k['@identifier'] not in model.property_def.propertyDefinitions:
+                model.property_def.propertyDefinitions[k['@identifier']] = k['name']
+                model.property_def.propertyDefinitionsData.append(k)
+
+    # Get Model properties
+    _get_properties(model, m, model)
+
+    # get elements in the model
+    if 'elements' in m and m['elements'] is not None:
+        elems = m['elements']['element'] if isinstance(m['elements']['element'], list) else [
+            m['elements']['element']]
+        for e in elems:
+            # check whether to create or merge element
+            _uuid = e['@identifier']
+            if merge_flg and _uuid in model.elems_dict:
+                elem = model.elems_dict[_uuid]
+                elem.name = e['name']['#text']
+                elem.desc = e['documentation']['#text'] if ('documentation' in e
+                                                            and '#text' in e['documentation']) else None
+                _get_properties(model, e, elem)
+                # merge completed, loop on next element
+            else:
+                # else create a new element
+                elem = model.add(
+                    name=get_str_attrib('name', e),
+                    concept_type=e['@xsi:type'],
+                    uuid=e['@identifier'],
+                    desc=get_str_attrib('documentation', e)
+                )
+
+            # Get element properties
+            _get_properties(model, e, elem)
+
+            # Add the element in the dictionary
+            model.elems_dict[elem.uuid] = elem
+
+    # get relationships
+    if 'relationships' in m:
+        rels = m['relationships']['relationship']
+        if not isinstance(rels, list):
+            rels = [rels]
+        for r in rels:
+            # check whether to create or merge element
+            _uuid = r['@identifier']
+            if merge_flg and _uuid in model.rels_dict:
+                rel = model.rels_dict[_uuid]
+                rel.name = get_str_attrib('name', r)
+                rel.desc = get_str_attrib('documentation', r)
+                _get_properties(model, r, rel)
+                # merge completed, loop on next element
+            else:
+                # else create a new element
+                rel = model.add_relationship(
+                    source=r['@source'],
+                    target=r['@target'],
+                    rel_type=r['@xsi:type'],
+                    uuid=r['@identifier'],
+                    name=get_str_attrib('name', r),
+                    access_type=['@accessType'] if ('accessType' in r) else None,
+                    influence_strength=['@modifier'] if ('modifier' in r) else None,
+                    desc=get_str_attrib('documentation', r),
+                    is_directed=['@isDirected'] if ('isDirected' in r) else None,
+                )
+                _get_properties(model, r, rel)
+                model.rels_dict[rel.uuid] = rel
+
+    # Get views
+    if 'views' in m:
+        views = m['views']['diagrams']['view']
+        if not isinstance(views, list):
+            views = [views]
+        for v in views:
+            _uuid = v['@identifier']
+            if merge_flg:
+                if _uuid in model.views_dict:
+                    # Merged view replaces the original one
+                    _view = model.views_dict[_uuid]
+                    _view.delete()
+
+            _v = model.add(archi_type.View,
+                           name=get_str_attrib('name', v),
+                           uuid=_uuid,
+                           desc=get_str_attrib('documentation', v)
+                           )
+
+            _get_properties(model, v, _v)
+
+            # Get recursively nodes
+            def _add_node(o, data_node):
+                """
+                Local recursive function to add a node into a view or another node from the XML data
+
+                :param o:           target object in the model (View or Node)
+                :param data_node:   xml data about node and embded nodes
+                :return: Node
+
+                """
+                data_node = [data_node] if isinstance(data_node, dict) else data_node
+                for n_data in data_node:
+                    _uuid = n_data['@identifier']
+                    if merge_flg and _uuid in model.nodes_dict:
+                        _uuid = None
+                    if '@elementRef' in n_data:
+                        _n = o.add(
+                            uuid=_uuid,
+                            ref=n_data['@elementRef'],
+                            x=n_data['@x'],
+                            y=n_data['@y'],
+                            w=n_data['@w'],
+                            h=n_data['@h'],
+                            style=n_data['style'] if 'style' in n_data else None
+                        )
+                    else:
+                        _n = o.add(
+                            uuid=_uuid,
+                            ref=None,
+                            x=n_data['@x'],
+                            y=n_data['@y'],
+                            w=n_data['@w'],
+                            h=n_data['@h'],
+                            style=n_data['style'] if 'style' in n_data else None,
+                            node_type=n_data['@xsi:type'],
+                            label=get_str_attrib('label', n_data)
+                        )
+
+                    if 'node' in n_data:
+                        nodes = n_data['node']
+                        nodes = [nodes] if isinstance(nodes, dict) else nodes
+                        for sub_node in nodes:
+                            _sub_node = _add_node(_n, sub_node)
+                            _n.nodes_dict[_sub_node.uuid] = _sub_node
+                            o.model.nodes_dict[_sub_node.uuid] = _sub_node
+
+                    o.model.nodes_dict[n_data['@identifier']] = _n
+                    o.nodes_dict[n_data['@identifier']] = _n
+                    return _n
+
+            # Get Nodes in view
+            if 'node' in v:
+                nodes = v['node']
+                if isinstance(nodes, dict):
+                    nodes = [nodes]
+                for n in nodes:
+                    _add_node(_v, n)
+
+            # Get Connections
+            if 'connection' in v:
+                conns = v['connection'] if isinstance(v['connection'], list) else [v['connection']]
+                for c in conns:
+                    _uuid = c['@identifier']
+                    if merge_flg and _uuid in c['@identifier']:
+                        _uuid = None
+                    _c = _v.add_connection(
+                        ref=c['@relationshipRef'],
+                        source=c['@source'],
+                        target=c["@target"],
+                        style=c["style"] if 'style' in c else None,
+                        uuid=_uuid
+                    )
+
+                    if 'bendpoint' in c:
+                        bps = c['bendpoint'] if isinstance(c['bendpoint'], list) else [c['bendpoint']]
+                        for bp in bps:
+                            _c.add_bendpoint(Point(bp['@x'], bp['@y']))
+                        model.conns_dict[c['@identifier']] = _c
+
+            # Add view in the model
+            model.views_dict[_v.uuid] = _v
+
+    # # Get organizations
+    if 'organizations' in m:
+        _orgs = m['organizations']['item']
+        if isinstance(_orgs, dict):
+            _orgs = [_orgs]
+
+        def _walk_orgs(_orgs, path=None):
+            """
+            Local recursive function to walk through the xml organization structure
+            and assign folder path to referred View/Element/Relationship objects
+
+            :param _orgs:
+            :param path:
+
+            """
+            if path is None:
+                path = []
+            if isinstance(_orgs, dict):
+                _orgs = [_orgs]
+            prev_path = path.copy()
+            for o in _orgs:
+                path = prev_path.copy()
+                if 'label' in o:
+                    label = get_str_attrib('label', o)
+                    path.append(label)
+                if 'item' in o:
+                    _item = o['item']
+                    if isinstance(_item, dict):
+                        _item = [_item]
+                    for i in _item:
+                        if '@identifierRef' in i:
+                            uuid = i['@identifierRef']
+                            folder = '/' + '/'.join(path)
+                            if uuid in model.views_dict:
+                                model.views_dict[uuid].folder = folder
+                            elif uuid in model.elems_dict:
+                                model.elems_dict[uuid].folder = folder
+                            elif uuid in model.rels_dict:
+                                model.rels_dict[uuid].folder = folder
+                            model.orgs[folder].append(uuid)
+                        else:
+                            # prev_path = path.copy()
+                            # path = walk_orgs(i, path)
+                            _walk_orgs(i, path)
+
+            return path
+
+        # Extract organization structure from the model
+        _walk_orgs(_orgs, None)
+
+
+def archimate_writer(model) -> str:
+    """
+    Method to generate an Archimate XML Open Exchange File format structure as a string object
+
+    Used by Model.write(filepath) method
+
+    """
+    # Basic model structure
+    # Attribute starting with '@' are XML attributes, other are tags
+    # Note that the order of the tags may be important, so those ones are defined by default
+    # and removed afterward if empty (e.g. documentation or property tags)
+    root_xml = {
+        'model': {
+            '@xmlns': 'http://www.opengroup.org/xsd/archimate/3.0/',
+            '@xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+            '@xsi:schemaLocation': 'http://www.opengroup.org/xsd/archimate/3.0/ '
+                                   'http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd',
+            '@identifier': set_id(model.uuid),  # UUID
+            'name': {
+                '@xml:lang': 'en',
+                '#text': model.name,  # MODEL NAME
+            },
+            'documentation': {
+                '@xml:lang': 'en',
+                '#text': model.desc,  # MODEL NAME
+            },
+            'properties': {'property': []},
+            'elements': {'element': []},  # list of elements
+            'relationships': {'relationship': []},  # list of relationships
+            'organizations': {'item': []},
+            'propertyDefinitions': {'propertyDefinition': []},
+            # 'views': {'diagrams': {'view': []}}  # list of diagrams
+        }
+    }
+    _data = root_xml['model']
+
+    if model.desc is None:
+        del _data['documentation']
+
+    # Get model properties
+    _property_def = dict()
+
+    def _get_props(o, pdef):
+        """
+        Return the XML structure of the properties of an object
+
+        :param o:       object with properties
+        :type o: object
+        :param pdef:    Property definition structure
+        :type pdef: PropertyDefinitions
+        :return:        dict
+        :rtype: dict
+        """
+        p = []
+        for _key, _value in o.props.items():
+            if _key not in pdef:
+                pdef[_key] = 'propid-1' + str(len(pdef) + 1)
+            _id = pdef[_key]
+            p.append({
+                '@propertyDefinitionRef': _id,  # PROPERTY ID
+                'value': {
+                    '@xml:lang': 'en',
+                    '#text': _value  # PROPERTY VALUE
+                }
+            })
+        return p
+
+    def _add_organization_item(path=None, ref=None):
+        """
+        Method to add the referred object Identifier in the XML Organization structure
+
+        :param path:    Organization path (e.g. /View/folder1/folder2 or ['/', 'folder1', 'folder2']
+        :type path: str
+        :param ref:     Reference to  an Element/Relationship/View object
+        :type ref: Element|View|Relationship
+
+        """
+        refs = ref
+        orgs = _data['organizations']['item']
+
+        # org_list is a path e.g. /Business/MyOrg
+        if isinstance(path, str) and path[0] == "/":
+            path = path[1:].split('/')
+        # or is a list e.g. ["Business", "MyOrg"]
+        elif not isinstance(path, list):
+            path = [path]
+
+        def find(_o, _p):
+            """
+            Find the location of the path in the organization structure
+
+            :param _o:  organization structure
+            :param _p:  path to match
+            :return:    tuple (organization level where the path match, unmatch part of the path)
+                        or (None, None) if no match
+            """
+            if len(_o) == 0:
+                return _o, _p
+            for x in _o:
+                if 'label' not in x:
+                    continue
+                if _p[0] != x['label']['#text']:
+                    continue
+                # get next match
+                if len(_p) <= 1:
+                    return [x], _p
+                _p.pop(0)
+                if not isinstance(x['item'], list):
+                    x['item'] = [x['item']]
+                res, _ = find([x['item']], _p)
+                if res is None:
+                    return x, _p
+            return None, None
+
+        org, nxt_path = find(orgs, path)
+
+        # if no match, add to the orgs root
+        if org is None and nxt_path is None:
+            item = OrgItem(label=path[0], items=[], item_refs=refs).item
+            if 'item' not in orgs:
+                orgs.append(item)
+            else:
+                orgs['item'].append(item)
+            return
+
+        p = []
+        item = None
+
+        # Else create the item object that correspond to the remaining path to cover
+        for o in reversed(nxt_path):
+            item = OrgItem(label=o, items=p, item_refs=refs).item
+            refs = None
+            p = [item]
+        # And add to the organization tree
+        if item is not None:
+            if 'item' not in org:
+                org.append(item)
+            else:
+                o = org['item'] if isinstance(org['item'], list) else [org['item']]
+                for i in o:
+                    if 'label' in i and i['label']['#text'] == nxt_path[0]:
+                        i['item'] += item['item']
+                        return
+                o.append(item)
+
+    # check if model has properties
+    if len(model.props) > 0:
+        _data['properties'] = dict(property=[])
+        _data['properties']['property'] = _get_props(model, _property_def)
+
+    # Add all Elements
+    for _e in model.elems_dict.values():
+        _e_data = {
+            '@identifier': set_id(_e.uuid),  # UUID
+            '@xsi:type': _e.type,  # ELEMENT TYPE
+            'name': {
+                '@xml:lang': 'en',
+                '#text': _e.name,  # ELEMENT NAME
+            },
+            'documentation': {
+                '@xml:lang': 'en',
+                '#text': _e.desc
+            }
+        }
+        if _e.desc is None:
+            del _e_data['documentation']
+
+        if _e.folder is not None:
+            _add_organization_item(_e.folder, _e.uuid)
+        if len(_e.props) > 0:
+            _e_data['properties'] = dict(property=[])
+            _e_data['properties']['property'] = _get_props(_e, _property_def)
+
+        _data['elements']['element'].append(_e_data)
+
+    # Add all Relationships
+    for _r in model.rels_dict.values():
+        _r_data = {
+            '@identifier': set_id(_r.uuid),  # RELATIONSHIP UUID
+            '@source': _r.source.uuid,  # SOURCE UUID
+            '@target': _r.target.uuid,  # TARGET UUID
+            '@xsi:type': _r.type,  # RELATIONSHIP TYPE
+            'name': {
+                '@xml:lang': 'en',
+                '#text': _r.name,  # ELEMENT NAME
+            },
+            'documentation': {
+                '@xml:lang': 'en',
+                '#text': _r.desc
+            }
+        }
+
+        if _r.desc is None:
+            del _r_data['documentation']
+
+        # Add special relationship type attributes
+        if _r.access_type is not None:
+            _r_data['@accessType'] = _r.access_type
+
+        if _r.is_directed is not None:
+            _r_data['@isDirected'] = str(_r.is_directed).lower()
+
+        if _r.influence_strength is not None:
+            _r_data['@influenceStrenght'] = str(_r.influence_strength)
+
+        if _r.folder is not None:
+            _add_organization_item(_r.folder, _r.uuid)
+
+        # Add properties
+        if len(_r.props) > 0:
+            _r_data['properties'] = dict(property=[])
+            _r_data['properties']['property'] = _get_props(_r, _property_def)
+        _data['relationships']['relationship'].append(_r_data)
+
+    # Add all views
+    # create root xml structure
+    if len(model.views_dict) > 0:
+        _data['views'] = dict(diagrams=dict())
+        _data['views']['diagrams'] = dict(view=list())
+
+    # Add each view
+    for _v in model.views_dict.values():
+        _v_data = {
+            '@identifier': _v.uuid,
+            '@xsi:type': 'Diagram',
+            'name': {
+                '@xml:lang': 'en',
+                '#text': _v.name,
+            },
+            'documentation': {
+                '@xml:lang': 'en',
+                '#text': _v.desc
+            },
+            'properties': {'property': []},
+            'node': [],  # LIST OF NODES
+            'connection': [],  # LIST OF CONNECTIONS
+        }
+        if _v.desc is None:
+            del _v_data['documentation']
+
+        # Add all nodes
+        def _add_node(n: Node):
+            """
+            Local function to add nodes in xml view structure
+
+            :param n: Node object
+            :return: xml data structure
+            """
+            _n_data = {
+                '@identifier': n.uuid,  # NODE UUID
+                '@elementRef': n.ref,  # ELEMENT UUID
+                '@xsi:type': n.cat,
+                '@x': str(n.x),  # X CENTER POSITION
+                '@y': str(n.y),  # Y CENTER POSITION
+                '@w': str(n.w),  # ELEMENT WIDTH
+                '@h': str(n.h),  # ELEMENT HEIGHT
+                # 'style': None,  # STYLE
+                # 'node': model.node,  # EMBEDDED NODES
+            }
+
+            # Special setting for Labels & Containers that should not have element reference attributes
+            if n.cat != 'Element':
+                del _n_data['@elementRef']
+                _n_data['label'] = {'@xml:lang': 'en', '#text': n.label}
+
+            # set style
+            _s = Style()
+            _s.fill_color = n.fill_color
+            _s.line_color = n.line_color
+            _s.opacity = n.opacity
+            _s.font_color = n.font_color
+            _s.font_size = n.font_size
+            _s.font_name = n.font_name
+            _n_data['style'] = _s.data
+
+            # Recurse for all sub-nodes
+            if len(n.nodes()) > 0:
+                _n_data['node'] = list()
+                for sub_node in n.nodes():
+                    _n_data['node'].append(_add_node(sub_node))
+
+            # finally, return a node structure
+            return _n_data
+
+        # Add nodes in view xml structure
+        for _n in _v.nodes():
+            _v_data['node'].append(_add_node(_n))
+
+        # Add all connections
+        for _c in _v.conns_dict.values():
+            _c_data = {
+                '@identifier': _c.uuid,  # CONNECTION UUID
+                '@relationshipRef': _c.ref,  # RELATIONSHIP UUID
+                '@xsi:type': 'Relationship',
+                '@source': _c.source.uuid,  # SOURCE UUID
+                '@target': _c.target.uuid,  # TARGET UUID
+                'style': None
+                # 'bendpoint': None  # BENDPOINTS ABSOLUTE X,Y
+            }
+
+            # Add endpoints
+            bps = _c.get_all_bendpoints()
+            if len(bps) > 0:
+                _c_data['bendpoint'] = list()
+                for bp in bps:
+                    _c_data['bendpoint'].append(
+                        {
+                            '@x': str(int(bp.x)),
+                            '@y': str(int(bp.y))
+                        }
+                    )
+
+            # set style
+            s = Style()
+            s.line_color = _c.line_color
+            s.font_color = _c.font_color
+            s.font_size = _c.font_size
+            s.font_name = _c.font_name
+            _c_data['style'] = s.data
+
+            _v_data['connection'].append(_c_data)
+
+        # Add into organization structure
+        if _v.folder is not None:
+            _add_organization_item(_v.folder, _v.uuid)
+        # add properties
+        if len(_v.props) > 0:
+            _v_data['properties'] = dict(property=[])
+        _v_data['properties']['property'] = _get_props(model, _property_def)
+        # Add view in model structure
+        _data['views']['diagrams']['view'].append(_v_data)
+
+    # Finalize model structure
+    # Add property definitions to the model
+    for k, v in _property_def.items():
+        _data['propertyDefinitions']['propertyDefinition'].append({
+            '@identifier': v,
+            '@type': 'string',
+            'name': k
+        })
+
+    # Remove all empty tags
+    if len(_data['properties']['property']) == 0:
+        del _data['properties']
+
+    if len(_data['elements']['element']) == 0 and "relationships" in _data:
+        del _data['elements']
+
+    if len(_data['relationships']['relationship']) == 0 and "relationships" in _data:
+        del _data['relationships']
+
+    if 'organizations' in _data and len(_data['organizations']['item']) == 0:
+        del _data['organizations']
+        #
+    if 'views' in _data and \
+            ('view' not in _data['views']['diagrams'] or len(_data['views']['diagrams']['view']) == 0):
+        del _data['views']
+
+    if 'views' in _data and 'view' in _data['views']['diagrams']:
+        for v in _data['views']['diagrams']['view']:
+            if 'properties' in v and len(v['properties']['property']) == 0:
+                del v['properties']
+
+    if len(_data['propertyDefinitions']['propertyDefinition']) == 0:
+        del _data['propertyDefinitions']
+
+    if 'organizations' in _data and len(_data['organizations']['item']) == 0:
+        del _data['organizations']
+
+    # Convert the xml structure into XML string data
+    try:
+        xml_str = xmltodict.unparse(root_xml, pretty=True)
+    except Exception as _err:
+        log.error(_err)
+        # yaml.dump(model.xml, open('xml_error.yaml', 'w'), Dumper=yaml.Dumper)
+        return None
+
+    return xml_str
 
 
 class Point:
@@ -775,7 +1540,7 @@ class Element:
             raise ValueError('Element class parent should be a class Model instance!')
 
         # Attribute and data structure initialization
-        self._uuid = _set_id(uuid)
+        self._uuid = set_id(uuid)
         self.parent = parent
         self.model: Model = parent
         self.name = name
@@ -1046,7 +1811,7 @@ class Relationship:
         if self._target not in self.parent.elems_dict:
             raise ValueError(f'Invalid target reference "{target}')
 
-        self._uuid = _set_id(uuid)
+        self._uuid = set_id(uuid)
         self._type = rel_type
         self.name = name
         self.desc = desc
@@ -1339,7 +2104,7 @@ class Node:
         if self._ref is not None and self._ref not in self.model.elems_dict:
             raise ValueError(f'Invalid element reference "{self._ref}')
 
-        self._uuid = _set_id(uuid)
+        self._uuid = set_id(uuid)
 
         self._x = int(x)
         self._y = int(y)
@@ -2260,7 +3025,7 @@ class Connection:
             raise ArchimateConceptTypeError('Connection class parent should be a class View instance!')
         self.parent: View = parent
         self.view = self.parent
-        self._uuid = _set_id(uuid)
+        self._uuid = set_id(uuid)
         self.model: Model = self.parent.parent
 
         if isinstance(ref, Relationship):
@@ -2290,7 +3055,7 @@ class Connection:
         if self._target not in self.model.nodes_dict:
             raise ValueError(f'Invalid source reference "{self._target}')
 
-        self._uuid = _set_id(uuid)
+        self._uuid = set_id(uuid)
 
         self.bendpoints = list()
 
@@ -2588,7 +3353,7 @@ class View:
         self.parent = parent
         self.model = parent
         self.view = self  # the view points to itself - it is the root of the nodes in the diagram
-        self._uuid = _set_id(uuid)
+        self._uuid = set_id(uuid)
         self.name = name
         self.desc = desc
         self.unions = []
@@ -2888,7 +3653,7 @@ class Model:
 
     def __init__(self, name=None, uuid=None, desc=None):
 
-        self._uuid = _set_id()
+        self._uuid = set_id()
         self.name = name
         self.desc = desc
         self._properties = {}
@@ -3024,696 +3789,6 @@ class Model:
             del self._properties[key]
 
     @property
-    def archimate(self):
-        """
-        Method to generate an Archimate XML Open Exchange File format structure as a string object
-
-        Used by Model.write(filepath) method
-
-        """
-        # Basic model structure
-        # Attribute starting with '@' are XML attributes, other are tags
-        # Note that the order of the tags may be important, so those ones are defined by default
-        # and removed afterward if empty (e.g. documentation or property tags)
-        model = {
-            'model': {
-                '@xmlns': 'http://www.opengroup.org/xsd/archimate/3.0/',
-                '@xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-                '@xsi:schemaLocation': 'http://www.opengroup.org/xsd/archimate/3.0/ '
-                                       'http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd',
-                '@identifier': _set_id(self.uuid),  # UUID
-                'name': {
-                    '@xml:lang': 'en',
-                    '#text': self.name,  # MODEL NAME
-                },
-                'documentation': {
-                    '@xml:lang': 'en',
-                    '#text': self.desc,  # MODEL NAME
-                },
-                'properties': {'property': []},
-                'elements': {'element': []},  # list of elements
-                'relationships': {'relationship': []},  # list of relationships
-                'organizations': {'item': []},
-                'propertyDefinitions': {'propertyDefinition': []},
-                # 'views': {'diagrams': {'view': []}}  # list of diagrams
-            }
-        }
-        _data = model['model']
-
-        if self.desc is None:
-            del _data['documentation']
-
-        # Get model properties
-        _property_def = dict()
-
-        def _get_props(o, pdef):
-            """
-            Return the XML structure of the properties of an object
-
-            :param o:       object with properties
-            :type o: object
-            :param pdef:    Property definition structure
-            :type pdef: PropertyDefinitions
-            :return:        dict
-            :rtype: dict
-            """
-            p = []
-            for _key, _value in o.props.items():
-                if _key not in pdef:
-                    pdef[_key] = 'propid-1' + str(len(pdef) + 1)
-                _id = pdef[_key]
-                p.append({
-                    '@propertyDefinitionRef': _id,  # PROPERTY ID
-                    'value': {
-                        '@xml:lang': 'en',
-                        '#text': _value  # PROPERTY VALUE
-                    }
-                })
-            return p
-
-        def _add_organization_item(path=None, ref=None):
-            """
-            Method to add the referred object Identifier in the XML Organization structure
-
-            :param path:    Organization path (e.g. /View/folder1/folder2 or ['/', 'folder1', 'folder2']
-            :type path: str
-            :param ref:     Reference to  an Element/Relationship/View object
-            :type ref: Element|View|Relationship
-
-            """
-            refs = ref
-            orgs = _data['organizations']['item']
-
-            # org_list is a path e.g. /Business/MyOrg
-            if isinstance(path, str) and path[0] == "/":
-                path = path[1:].split('/')
-            # or is a list e.g. ["Business", "MyOrg"]
-            elif not isinstance(path, list):
-                path = [path]
-
-            def find(_o, _p):
-                """
-                Find the location of the path in the organization structure
-
-                :param _o:  organization structure
-                :param _p:  path to match
-                :return:    tuple (organization level where the path match, unmatch part of the path)
-                            or (None, None) if no match
-                """
-                if len(_o) == 0:
-                    return _o, _p
-                for x in _o:
-                    if 'label' not in x:
-                        continue
-                    if _p[0] != x['label']['#text']:
-                        continue
-                    # get next match
-                    if len(_p) <= 1:
-                        return [x], _p
-                    _p.pop(0)
-                    if not isinstance(x['item'], list):
-                        x['item'] = [x['item']]
-                    res, _ = find([x['item']], _p)
-                    if res is None:
-                        return x, _p
-                return None, None
-
-            org, nxt_path = find(orgs, path)
-
-            # if no match, add to the orgs root
-            if org is None and nxt_path is None:
-                item = OrgItem(label=path[0], items=[], item_refs=refs).item
-                if 'item' not in orgs:
-                    orgs.append(item)
-                else:
-                    orgs['item'].append(item)
-                return
-
-            p = []
-            item = None
-
-            # Else create the item object that correspond to the remaining path to cover
-            for o in reversed(nxt_path):
-                item = OrgItem(label=o, items=p, item_refs=refs).item
-                refs = None
-                p = [item]
-            # And add to the organization tree
-            if item is not None:
-                if 'item' not in org:
-                    org.append(item)
-                else:
-                    o = org['item'] if isinstance(org['item'], list) else [org['item']]
-                    for i in o:
-                        if 'label' in i and i['label']['#text'] == nxt_path[0]:
-                            i['item'] += item['item']
-                            return
-                    o.append(item)
-
-        # check if model has properties
-        if len(self.props) > 0:
-            _data['properties'] = dict(property=[])
-            _data['properties']['property'] = _get_props(self, _property_def)
-
-        # Add all Elements
-        for _e in self.elems_dict.values():
-            _e_data = {
-                '@identifier': _set_id(_e.uuid),  # UUID
-                '@xsi:type': _e.type,  # ELEMENT TYPE
-                'name': {
-                    '@xml:lang': 'en',
-                    '#text': _e.name,  # ELEMENT NAME
-                },
-                'documentation': {
-                    '@xml:lang': 'en',
-                    '#text': _e.desc
-                }
-            }
-            if _e.desc is None:
-                del _e_data['documentation']
-
-            if _e.folder is not None:
-                _add_organization_item(_e.folder, _e.uuid)
-            if len(_e.props) > 0:
-                _e_data['properties'] = dict(property=[])
-                _e_data['properties']['property'] = _get_props(_e, _property_def)
-
-            _data['elements']['element'].append(_e_data)
-
-        # Add all Relationships
-        for _r in self.rels_dict.values():
-            _r_data = {
-                '@identifier': _set_id(_r.uuid),  # RELATIONSHIP UUID
-                '@source': _r.source.uuid,  # SOURCE UUID
-                '@target': _r.target.uuid,  # TARGET UUID
-                '@xsi:type': _r.type,  # RELATIONSHIP TYPE
-                'name': {
-                    '@xml:lang': 'en',
-                    '#text': _r.name,  # ELEMENT NAME
-                },
-                'documentation': {
-                    '@xml:lang': 'en',
-                    '#text': _r.desc
-                }
-            }
-
-            if _r.desc is None:
-                del _r_data['documentation']
-
-            # Add special relationship type attributes
-            if _r.access_type is not None:
-                _r_data['@accessType'] = _r.access_type
-
-            if _r.is_directed is not None:
-                _r_data['@isDirected'] = str(_r.is_directed).lower()
-
-            if _r.influence_strength is not None:
-                _r_data['@influenceStrenght'] = str(_r.influence_strength)
-
-            if _r.folder is not None:
-                _add_organization_item(_r.folder, _r.uuid)
-
-            # Add properties
-            if len(_r.props) > 0:
-                _r_data['properties'] = dict(property=[])
-                _r_data['properties']['property'] = _get_props(_r, _property_def)
-            _data['relationships']['relationship'].append(_r_data)
-
-        # Add all views
-        # create root xml structure
-        if len(self.views_dict) > 0:
-            _data['views'] = dict(diagrams=dict())
-            _data['views']['diagrams'] = dict(view=list())
-
-        # Add each view
-        for _v in self.views_dict.values():
-            _v_data = {
-                '@identifier': _v.uuid,
-                '@xsi:type': 'Diagram',
-                'name': {
-                    '@xml:lang': 'en',
-                    '#text': _v.name,
-                },
-                'documentation': {
-                    '@xml:lang': 'en',
-                    '#text': _v.desc
-                },
-                'properties': {'property': []},
-                'node': [],  # LIST OF NODES
-                'connection': [],  # LIST OF CONNECTIONS
-            }
-            if _v.desc is None:
-                del _v_data['documentation']
-
-            # Add all nodes
-            def _add_node(n: Node):
-                """
-                Local function to add nodes in xml view structure
-
-                :param n: Node object
-                :return: xml data structure
-                """
-                _n_data = {
-                    '@identifier': n.uuid,  # NODE UUID
-                    '@elementRef': n.ref,  # ELEMENT UUID
-                    '@xsi:type': n.cat,
-                    '@x': str(n.x),  # X CENTER POSITION
-                    '@y': str(n.y),  # Y CENTER POSITION
-                    '@w': str(n.w),  # ELEMENT WIDTH
-                    '@h': str(n.h),  # ELEMENT HEIGHT
-                    # 'style': None,  # STYLE
-                    # 'node': self.node,  # EMBEDDED NODES
-                }
-
-                # Special setting for Labels & Containers that should not have element reference attributes
-                if n.cat != 'Element':
-                    del _n_data['@elementRef']
-                    _n_data['label'] = {'@xml:lang': 'en', '#text': n.label}
-
-                # set style
-                _s = Style()
-                _s.fill_color = n.fill_color
-                _s.line_color = n.line_color
-                _s.opacity = n.opacity
-                _s.font_color = n.font_color
-                _s.font_size = n.font_size
-                _s.font_name = n.font_name
-                _n_data['style'] = _s.data
-
-                # Recurse for all sub-nodes
-                if len(n.nodes()) > 0:
-                    _n_data['node'] = list()
-                    for sub_node in n.nodes():
-                        _n_data['node'].append(_add_node(sub_node))
-
-                # finally, return a node structure
-                return _n_data
-
-            # Add nodes in view xml structure
-            for _n in _v.nodes():
-                _v_data['node'].append(_add_node(_n))
-
-            # Add all connections
-            for _c in _v.conns_dict.values():
-                _c_data = {
-                    '@identifier': _c.uuid,  # CONNECTION UUID
-                    '@relationshipRef': _c.ref,  # RELATIONSHIP UUID
-                    '@xsi:type': 'Relationship',
-                    '@source': _c.source.uuid,  # SOURCE UUID
-                    '@target': _c.target.uuid,  # TARGET UUID
-                    'style': None
-                    # 'bendpoint': None  # BENDPOINTS ABSOLUTE X,Y
-                }
-
-                # Add endpoints
-                bps = _c.get_all_bendpoints()
-                if len(bps) > 0:
-                    _c_data['bendpoint'] = list()
-                    for bp in bps:
-                        _c_data['bendpoint'].append(
-                            {
-                                '@x': str(int(bp.x)),
-                                '@y': str(int(bp.y))
-                            }
-                        )
-
-                # set style
-                s = Style()
-                s.line_color = _c.line_color
-                s.font_color = _c.font_color
-                s.font_size = _c.font_size
-                s.font_name = _c.font_name
-                _c_data['style'] = s.data
-
-                _v_data['connection'].append(_c_data)
-
-            # Add into organization structure
-            if _v.folder is not None:
-                _add_organization_item(_v.folder, _v.uuid)
-            # add properties
-            if len(_v.props) > 0:
-                _v_data['properties'] = dict(property=[])
-            _v_data['properties']['property'] = _get_props(self, _property_def)
-            # Add view in model structure
-            _data['views']['diagrams']['view'].append(_v_data)
-
-        # Finalize model structure
-        # Add property definitions to the model
-        for k, v in _property_def.items():
-            _data['propertyDefinitions']['propertyDefinition'].append({
-                '@identifier': v,
-                '@type': 'string',
-                'name': k
-            })
-
-        # Remove all empty tags
-        if len(_data['properties']['property']) == 0:
-            del _data['properties']
-
-        if len(_data['elements']['element']) == 0 and "relationships" in _data:
-            del _data['elements']
-
-        if len(_data['relationships']['relationship']) == 0 and "relationships" in _data:
-            del _data['relationships']
-
-        if 'organizations' in _data and len(_data['organizations']['item']) == 0:
-            del _data['organizations']
-            #
-        if 'views' in _data and \
-                ('view' not in _data['views']['diagrams'] or len(_data['views']['diagrams']['view']) == 0):
-            del _data['views']
-
-        if 'views' in _data and 'view' in _data['views']['diagrams']:
-            for v in _data['views']['diagrams']['view']:
-                if 'properties' in v and len(v['properties']['property']) == 0:
-                    del v['properties']
-
-        if len(_data['propertyDefinitions']['propertyDefinition']) == 0:
-            del _data['propertyDefinitions']
-
-        if 'organizations' in _data and len(_data['organizations']['item']) == 0:
-            del _data['organizations']
-
-        # Convert the xml structure into XML string data
-        try:
-            xml_str = xmltodict.unparse(model, pretty=True)
-        except Exception as _err:
-            log.error(_err)
-            # yaml.dump(self.xml, open('xml_error.yaml', 'w'), Dumper=yaml.Dumper)
-            return None
-
-        return xml_str
-
-    @archimate.setter
-    def archimate(self, xml_data):
-        """
-        Merge / initialize the model from XML Archimate OEF data
-
-        Used by Model.read(filepath) or Model.merge(filepath) methods
-
-        :param xml_data:
-        :type xml_data: str
-
-        """
-
-        def _get_properties(model, o, obj):
-            """
-            Local function to extract properties from XML data
-
-            :param model:   model object
-            :param o:       xml properties tag with key/values pairs
-            :param obj:     target Element/Relationship/View/Model object in the model
-
-            """
-            if 'properties' in o and o['properties'] is not None:
-                props = o['properties']
-                if isinstance(props, dict):
-                    props = [props]
-                for p in props:
-                    if isinstance(p['property'], dict):
-                        p['property'] = [p['property']]
-                    for q in p['property']:
-                        if q['value'] is not None:
-                            key = model.property_def.propertyDefinitions[q['@propertyDefinitionRef']]
-                            value = _get_str_attrib('value', q)
-                            obj.prop(key, value)
-
-        def _update_keys(old_key, new_key, d):
-            """
-            local function to update a key in a complex dict of dict
-
-            :param old_key:
-            :param new_key:
-            :param d:
-
-            """
-            if isinstance(d, dict):
-                if old_key in d:
-                    d[new_key] = d[old_key]
-                    del d[old_key]
-                for key in d:
-                    _update_keys(old_key, new_key, d[key])
-
-        # Get merge option
-        merge_flg = ('@merge' in xml_data)
-        # Initialize the model
-        m = xml_data["model"]
-
-        # Extract name (skipping language attributes from the tag)
-        self.name = _get_str_attrib('name', m)
-
-        # Get property definitions (property keys translation)
-        if 'propertyDefinitions' in m:
-            pd = m['propertyDefinitions']['propertyDefinition']
-            if not isinstance(pd, list):
-                pd = [pd]
-            for k in pd:
-                if merge_flg and k['@identifier'] in self.property_def.propertyDefinitions \
-                        and k['name'] != self.property_def.propertyDefinitions[k['@identifier']]:
-                    # When merging, key definitions can conflit and need resolution
-                    new_key = self.property_def.add(k['@identifier'])
-                    _update_keys(k['@identifier'], new_key, xml_data)
-                    k['@identifier'] = new_key
-
-                if k['@identifier'] not in self.property_def.propertyDefinitions:
-                    self.property_def.propertyDefinitions[k['@identifier']] = k['name']
-                    self.property_def.propertyDefinitionsData.append(k)
-
-        # Get Model properties
-        _get_properties(self, m, self)
-
-        # get elements in the model
-        if 'elements' in m and m['elements'] is not None:
-            elems = m['elements']['element'] if isinstance(m['elements']['element'], list) else [
-                m['elements']['element']]
-            for e in elems:
-                # check whether to create or merge element
-                _uuid = e['@identifier']
-                if merge_flg and _uuid in self.elems_dict:
-                    elem = self.elems_dict[_uuid]
-                    elem.name = e['name']['#text']
-                    elem.desc = e['documentation']['#text'] if ('documentation' in e
-                                                                and '#text' in e['documentation']) else None
-                    _get_properties(self, e, elem)
-                    # merge completed, loop on next element
-                else:
-                    # else create a new element
-                    elem = self.add(
-                        name=_get_str_attrib('name', e),
-                        concept_type=e['@xsi:type'],
-                        uuid=e['@identifier'],
-                        desc=_get_str_attrib('documentation', e)
-                    )
-
-                # Get element properties
-                _get_properties(self, e, elem)
-
-                # Add the element in the dictionary
-                self.elems_dict[elem.uuid] = elem
-
-        # get relationships
-        if 'relationships' in m:
-            rels = m['relationships']['relationship']
-            if not isinstance(rels, list):
-                rels = [rels]
-            for r in rels:
-                # check whether to create or merge element
-                _uuid = r['@identifier']
-                if merge_flg and _uuid in self.rels_dict:
-                    rel = self.rels_dict[_uuid]
-                    rel.name = _get_str_attrib('name', r)
-                    rel.desc = _get_str_attrib('documentation', r)
-                    _get_properties(self, r, rel)
-                    # merge completed, loop on next element
-                else:
-                    # else create a new element
-                    rel = self.add_relationship(
-                        source=r['@source'],
-                        target=r['@target'],
-                        rel_type=r['@xsi:type'],
-                        uuid=r['@identifier'],
-                        name=_get_str_attrib('name', r),
-                        access_type=['@accessType'] if ('accessType' in r) else None,
-                        influence_strength=['@modifier'] if ('modifier' in r) else None,
-                        desc=_get_str_attrib('documentation', r),
-                        is_directed=['@isDirected'] if ('isDirected' in r) else None,
-                    )
-                    _get_properties(self, r, rel)
-                    self.rels_dict[rel.uuid] = rel
-
-        # Get views
-        if 'views' in m:
-            views = m['views']['diagrams']['view']
-            if not isinstance(views, list):
-                views = [views]
-            for v in views:
-                _uuid = v['@identifier']
-                if merge_flg:
-                    if _uuid in self.views_dict:
-                        # Merged view replaces the original one
-                        _view = self.views_dict[_uuid]
-                        _view.delete()
-
-                _v = self.add(archi_type.View,
-                              name=_get_str_attrib('name', v),
-                              uuid=_uuid,
-                              desc=_get_str_attrib('documentation', v)
-                              )
-
-                _get_properties(self, v, _v)
-
-                # Get recursively nodes
-                def _add_node(o, data_node):
-                    """
-                    Local recursive function to add a node into a view or another node from the XML data
-
-                    :param o:           target object in the model (View or Node)
-                    :param data_node:   xml data about node and embded nodes
-                    :return: Node
-
-                    """
-                    data_node = [data_node] if isinstance(data_node, dict) else data_node
-                    for n_data in data_node:
-                        _uuid = n_data['@identifier']
-                        if merge_flg and _uuid in self.nodes_dict:
-                            _uuid = None
-                        if '@elementRef' in n_data:
-                            _n = o.add(
-                                uuid=_uuid,
-                                ref=n_data['@elementRef'],
-                                x=n_data['@x'],
-                                y=n_data['@y'],
-                                w=n_data['@w'],
-                                h=n_data['@h'],
-                                style=n_data['style'] if 'style' in n_data else None
-                            )
-                        else:
-                            _n = o.add(
-                                uuid=_uuid,
-                                ref=None,
-                                x=n_data['@x'],
-                                y=n_data['@y'],
-                                w=n_data['@w'],
-                                h=n_data['@h'],
-                                style=n_data['style'] if 'style' in n_data else None,
-                                node_type=n_data['@xsi:type'],
-                                label=_get_str_attrib('label', n_data)
-                            )
-
-                        if 'node' in n_data:
-                            nodes = n_data['node']
-                            nodes = [nodes] if isinstance(nodes, dict) else nodes
-                            for sub_node in nodes:
-                                _sub_node = _add_node(_n, sub_node)
-                                _n.nodes_dict[_sub_node.uuid] = _sub_node
-                                o.model.nodes_dict[_sub_node.uuid] = _sub_node
-
-                        o.model.nodes_dict[n_data['@identifier']] = _n
-                        o.nodes_dict[n_data['@identifier']] = _n
-                        return _n
-
-                # Get Nodes in view
-                if 'node' in v:
-                    nodes = v['node']
-                    if isinstance(nodes, dict):
-                        nodes = [nodes]
-                    for n in nodes:
-                        _add_node(_v, n)
-
-                # Get Connections
-                if 'connection' in v:
-                    conns = v['connection'] if isinstance(v['connection'], list) else [v['connection']]
-                    for c in conns:
-                        _uuid = c['@identifier']
-                        if merge_flg and _uuid in c['@identifier']:
-                            _uuid = None
-                        _c = _v.add_connection(
-                            ref=c['@relationshipRef'],
-                            source=c['@source'],
-                            target=c["@target"],
-                            style=c["style"] if 'style' in c else None,
-                            uuid=_uuid
-                        )
-
-                        if 'bendpoint' in c:
-                            bps = c['bendpoint'] if isinstance(c['bendpoint'], list) else [c['bendpoint']]
-                            for bp in bps:
-                                _c.add_bendpoint(Point(bp['@x'], bp['@y']))
-                            self.conns_dict[c['@identifier']] = _c
-
-                # Add view in the model
-                self.views_dict[_v.uuid] = _v
-
-        # # Get organizations
-        if 'organizations' in m:
-            _orgs = m['organizations']['item']
-            if isinstance(_orgs, dict):
-                _orgs = [_orgs]
-
-            def _walk_orgs(_orgs, path=None):
-                """
-                Local recursive function to walk through the xml organization structure
-                and assign folder path to referred View/Element/Relationship objects
-
-                :param _orgs:
-                :param path:
-
-                """
-                if path is None:
-                    path = []
-                if isinstance(_orgs, dict):
-                    _orgs = [_orgs]
-                prev_path = path.copy()
-                for o in _orgs:
-                    path = prev_path.copy()
-                    if 'label' in o:
-                        label = _get_str_attrib('label', o)
-                        path.append(label)
-                    if 'item' in o:
-                        _item = o['item']
-                        if isinstance(_item, dict):
-                            _item = [_item]
-                        for i in _item:
-                            if '@identifierRef' in i:
-                                uuid = i['@identifierRef']
-                                folder = '/' + '/'.join(path)
-                                if uuid in self.views_dict:
-                                    self.views_dict[uuid].folder = folder
-                                elif uuid in self.elems_dict:
-                                    self.elems_dict[uuid].folder = folder
-                                elif uuid in self.rels_dict:
-                                    self.rels_dict[uuid].folder = folder
-                                self.orgs[folder].append(uuid)
-                            else:
-                                # prev_path = path.copy()
-                                # path = walk_orgs(i, path)
-                                _walk_orgs(i, path)
-
-                return path
-
-            # Extract organization structure from the model
-            _walk_orgs(_orgs, None)
-
-    @property
-    def aml(self):
-        """
-        Unused future Property - is write-only
-
-        """
-        return None
-
-    @aml.setter
-    def aml(self, data):
-        """
-        Get an ARIS AML data structure in this model
-
-        :param data:
-        :type data: str
-
-        """
-        # To be implemented from AMLparse refactoring
-        pass
-
-    @property
     def views(self):
         """
         Get the list of views in this model
@@ -3743,73 +3818,68 @@ class Model:
          """
         return self.rels_dict.values()
 
-    def write(self, file_path=None):
+    def write(self, file_path=None, writer=archimate_writer):
         """
         Method to write the file_path to an Archimate file
 
         :param file_path:
         :type file_path: str
-        :return: xml data structure
+        :param writer: a writer function converting the model into the desired output format - default: Archimate OEF XML
+        :type writer: function
+        :return:  data structure
         :rtype: str
         """
 
+        out_data = None
         if file_path is not None:
             try:
                 with open(file_path, 'w', encoding='utf-8') as fd:
-                    if self.archimate is not None:
-                        fd.write(self.archimate)
+                    if writer is not None:
+                        out_data = writer(self)
+                        fd.write(out_data)
                     else:
                         log.error('Empty content due to error - No file written')
             except IOError:
                 log.error(f'{__mod__} {self.__class__.__name__}.write: Cannot write to file "{file_path}')
-        return self.archimate
+        return out_data
 
-    def read(self, file_path, reader=Reader.ARCHIMATE):
+    def read(self, file_path, reader=archimate_reader):
         """
         Method to read an Archimate file
 
         :param file_path:
         :type file_path: str
-        :param reader: Reader option (default = ARCHIMATE OEF format, or ARIS)
-        :type reader: Reader
+        :param reader: Reader function (default = ARCHIMATE OEF format, or ARIS)
+        :type reader: function
 
         """
         try:
             with open(file_path, 'r', encoding='utf-8') as fd:
-                _data = xmltodict.parse(fd.read())
+                _data = fd.read()
         except IOError:
             log.error(f"{__mod__} {self.__class__.__name__}.read: Cannot open or read file '{file_path}'")
             sys.exit(1)
-        if "model" not in _data:
-            log.error(
-                f"{__mod__} {self.__class__.__name__}.read: File '{file_path}' is not a valid Archimate OEF file")
-            sys.exit(1)
-        if reader == Reader.ARCHIMATE:
-            self.archimate = _data
-        elif reader == Reader.AML:
-            self.aml = _data
 
-    def merge(self, file_path):
+        reader(self, _data)
+
+    def merge(self, file_path, reader=archimate_reader):
         """
         Method to merge an Archimate file into this model
 
         :param file_path:
         :type file_path: str
+        :param reader: Reader function (default = ARCHIMATE OEF format, or ARIS)
+        :type reader: function
 
         """
         try:
             with open(file_path, 'r', encoding='utf-8') as fd:
-                _data = xmltodict.parse(fd.read())
+                _data = fd.read()
         except IOError:
-            log.error(f"{__mod__} {self.__class__.__name__}.merge: Cannot open or read file '{file_path}'")
-            sys.exit(1)
-        if "model" not in _data:
-            log.error(
-                f"{__mod__} {self.__class__.__name__}.merge: File '{file_path}' is not a valid Archimate OEF file")
+            log.error(f"{__mod__} {self.__class__.__name__}.read: Cannot open or read file '{file_path}'")
             sys.exit(1)
 
-        _data['@merge'] = 'true'
-        self.archimate = _data
+        reader(self, _data, merge_flg=True)
 
     def filter_elements(self, fct):
         """
@@ -4173,153 +4243,6 @@ class Model:
         return invalids
 
 
-# Dictionary of valid Archimate relationships
-allowed_relationships = {}
-ARIS_type_map = {}
-relationship_keys = {}
-archi_category = {}
-
-
-class AccessType:
-    """
-    Enumeration of Access Relationship types
-    """
-
-    def __init__(self):
-        self.Access = 'Access'
-        self.Read = 'Read'
-        self.Write = 'Write'
-        self.ReadWrite = 'ReadWrite'
-
-
-access_type = AccessType()
-
-influenceStrength = {'+': '+', '++': '++', '-': '-', '--': '--', '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
-                     '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': '10'},
-
-
-class ArchiTypes:
-    """
-    Enumeration of Archimate Element & Relationships types
-    """
-
-    def __init__(self):
-        # Business Layer
-        self.BusinessActor = "BusinessActor"
-        self.BusinessRole = "BusinessRole"
-        self.BusinessCollaboration = "BusinessCollaboration"
-        self.BusinessInterface = "BusinessInterface"
-        self.BusinessProcess = "BusinessProcess"
-        self.BusinessFunction = "BusinessFunction"
-        self.BusinessInteraction = "BusinessInteraction"
-        self.BusinessEvent = "BusinessEvent"
-        self.BusinessService = "BusinessService"
-        self.BusinessObject = "BusinessObject"
-        self.Contract = "Contract"
-        self.Representation = "Representation"
-        self.Product = "Product"
-
-        # Application Layer
-
-        self.ApplicationComponent = "ApplicationComponent"
-        self.ApplicationInterface = "ApplicationInterface"
-        self.ApplicationCollaboration = "ApplicationCollaboration"
-        self.ApplicationFunction = "ApplicationFunction"
-        self.ApplicationProcess = "ApplicationProcess"
-        self.ApplicationEvent = "ApplicationEvent"
-        self.ApplicationService = "ApplicationService"
-        self.DataObject = "DataObject"
-
-        # Technology layer
-
-        self.Node = "Node"
-        self.Device = "Device"
-        self.Path = "Path"
-        self.CommunicationNetwork = "CommunicationNetwork"
-        self.SystemSoftware = "SystemSoftware"
-        self.TechnologyCollaboration = "TechnologyCollaboration"
-        self.TechnologyInterface = "TechnologyInterface"
-        self.TechnologyFunction = "TechnologyFunction"
-        self.TechnologyProcess = "TechnologyProcess"
-        self.TechnologyInteraction = "TechnologyInteraction"
-        self.TechnologyEvent = "TechnologyEvent"
-        self.TechnologyService = "TechnologyService"
-        self.Artifact = "Artifact"
-
-        # Physical elements
-
-        self.Equipment = "Equipment"
-        self.Facility = "Facility"
-        self.DistributionNetwork = "DistributionNetwork"
-        self.Material = "Material"
-
-        #  Motivation
-
-        self.Stakeholder = "Stakeholder"
-        self.Driver = "Driver"
-        self.Assessment = "Assessment"
-        self.Goal = "Goal"
-        self.Outcome = "Outcome"
-        self.Principle = "Principle"
-        self.Requirement = "Requirement"
-        self.Constraint = "Constraint"
-        self.Meaning = "Meaning"
-        self.Value = "Value"
-
-        # Strategy
-
-        self.Resource = "Resource"
-        self.Capability = "Capability"
-        self.CourseOfAction = "CourseOfAction"
-
-        # Implementation & Migration
-
-        self.WorkPackage = "WorkPackage"
-        self.Deliverable = "Deliverable"
-        self.ImplementationEvent = "ImplementationEvent"
-        self.Plateau = "Plateau"
-        self.Gap = "Gap"
-
-        # Other
-
-        self.Grouping = "Grouping"
-        self.Location = "Location"
-
-        # Junction
-
-        self.Junction = "Junction"
-        self.OrJunction = "OrJunction"
-        self.AndJunction = "AndJunction"
-
-        # Relationships
-
-        self.Association = "Association"
-        self.Assignment = "Assignment"
-        self.Realization = "Realization"
-        self.Serving = "Serving"
-        self.Composition = "Composition"
-        self.Aggregation = "Aggregation"
-        self.Access = "Access"
-        self.Influence = "Influence"
-        self.Triggering = "Triggering"
-        self.Flow = "Flow"
-        self.Specialization = "Specialization"
-
-        # Special
-        self.View = "View"
-
-
-archi_type = ArchiTypes()
-
-
-class ArchimateRelationshipError(Exception):
-    pass
-
-
-class ArchimateConceptTypeError(Exception):
-    pass
-
-
 def check_valid_relationship(rel_type, source_type, target_type):
     """
     Check if a relationship is used according to Archimate language or raise an exception
@@ -4382,6 +4305,7 @@ def get_default_rel_type(source_type, target_type):
             t = rels[0]
 
         return [k for k, v in relationship_keys.items() if v == t][0]
+
 
 
 # Fetch model parameters during initialization of the module

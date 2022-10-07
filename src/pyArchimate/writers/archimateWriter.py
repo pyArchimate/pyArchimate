@@ -1,1 +1,5 @@
-# TODO Import from pyArchimate
+
+from src.pyArchimate.pyArchimate import *
+
+
+

@@ -672,5 +672,6 @@ class MyTestCase(unittest.TestCase):
         inv_c = m.check_invalid_conn()
         self.assertTrue(id in inv_n)
 
+
 if __name__ == '__main__':
     unittest.main()
