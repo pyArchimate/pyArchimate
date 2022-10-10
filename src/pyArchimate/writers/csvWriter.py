@@ -51,9 +51,6 @@ class CSVWriter:
             writer.writerow(header)
             for key, value in self.model.props.items():
                 writer.writerow([self.model.uuid, key, value])
-            for v in self.model.views:
-                for key, value in v.props.items():
-                    writer.writerow([e.uuid, key, value])
             for e in self.model.elements:
                 for key, value in e.props.items():
                     writer.writerow([e.uuid, key, value])
