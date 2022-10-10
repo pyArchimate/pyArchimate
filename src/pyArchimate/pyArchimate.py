@@ -13,11 +13,10 @@ import os
 import re
 import sys
 from collections import defaultdict
-from enum import Enum
 from uuid import uuid4, UUID
-import xmltodict
 
 import oyaml as yaml
+import xmltodict
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -300,7 +299,7 @@ def _default_color(elem_type) -> str:
     """
     default_colors = {'strategy': '#F5DEAA', 'business': "#FFFFB5", 'application': "#B5FFFF", 'technology': "#C9E7B7",
                       'physical': "#C9E7B7", 'migration': "#FFE0E0", 'motivation': "#CCCCFF",
-                      'relationship': "#0000FF", 'other': '#FFFFFF'}
+                      'relationship': "#0000FF", 'other': '#FFFFFF', 'junction': '#000000'}
     if elem_type in archi_category:
         cat = archi_category[elem_type].lower()
         return default_colors[cat]
@@ -449,10 +448,10 @@ def archimate_reader(model, data: str, merge_flg=False):
                     rel_type=r['@xsi:type'],
                     uuid=r['@identifier'],
                     name=get_str_attrib('name', r),
-                    access_type=['@accessType'] if ('accessType' in r) else None,
-                    influence_strength=['@modifier'] if ('modifier' in r) else None,
+                    access_type=r['@accessType'] if ('@accessType' in r) else None,
+                    influence_strength=r['@modifier'] if ('@modifier' in r) else None,
                     desc=get_str_attrib('documentation', r),
-                    is_directed=['@isDirected'] if ('isDirected' in r) else None,
+                    is_directed=r['@isDirected'] if ('@isDirected' in r) else None,
                 )
                 _get_properties(model, r, rel)
                 model.rels_dict[rel.uuid] = rel
@@ -611,7 +610,7 @@ def archimate_reader(model, data: str, merge_flg=False):
         _walk_orgs(_orgs, None)
 
 
-def archimate_writer(model) -> str:
+def archimate_writer(model, file_path=None) -> str:
     """
     Method to generate an Archimate XML Open Exchange File format structure as a string object
 
@@ -622,6 +621,7 @@ def archimate_writer(model) -> str:
     # Attribute starting with '@' are XML attributes, other are tags
     # Note that the order of the tags may be important, so those ones are defined by default
     # and removed afterward if empty (e.g. documentation or property tags)
+
     root_xml = {
         'model': {
             '@xmlns': 'http://www.opengroup.org/xsd/archimate/3.0/',
@@ -988,6 +988,14 @@ def archimate_writer(model) -> str:
         # yaml.dump(model.xml, open('xml_error.yaml', 'w'), Dumper=yaml.Dumper)
         return None
 
+    if file_path is not None:
+        if file_path is not None:
+            try:
+                with open(file_path, 'w', encoding='utf-8') as fd:
+                    fd.write(xml_str)
+            except IOError:
+                log.error(f'{__mod__}.write: Cannot write to file "{file_path}')
+
     return xml_str
 
 
@@ -1000,6 +1008,8 @@ class Point:
     """
 
     def __init__(self, x=0, y=0):
+        x = int(x)
+        y = int(y)
         if x < 0:
             x = 0
         if y < 0:
@@ -2101,8 +2111,12 @@ class Node:
             else:
                 self._ref = ref.uuid
 
-        if self._ref is not None and self._ref not in self.model.elems_dict:
-            raise ValueError(f'Invalid element reference "{self._ref}')
+        if node_type == 'Element':
+            if self._ref is not None and self._ref not in self.model.elems_dict:
+                raise ValueError(f'Invalid element reference "{self._ref}')
+        elif node_type == "Label":
+            if self._ref is not None and self._ref not in self.model.labels_dict:
+                raise ValueError(f'Invalid element reference "{self._ref}')
 
         self._uuid = set_id(uuid)
 
@@ -3830,20 +3844,14 @@ class Model:
         :rtype: str
         """
 
-        out_data = None
-        if file_path is not None:
-            try:
-                with open(file_path, 'w', encoding='utf-8') as fd:
-                    if writer is not None:
-                        out_data = writer(self)
-                        fd.write(out_data)
-                    else:
-                        log.error('Empty content due to error - No file written')
-            except IOError:
-                log.error(f'{__mod__} {self.__class__.__name__}.write: Cannot write to file "{file_path}')
-        return out_data
+        if writer is not None:
+            out_data = writer(self, file_path)
+            return out_data
+        else:
+            log.error('Please specify a writer !')
+            return None
 
-    def read(self, file_path, reader=archimate_reader):
+    def read(self, file_path, reader=archimate_reader, *args, **kwargs):
         """
         Method to read an Archimate file
 
@@ -3860,7 +3868,7 @@ class Model:
             log.error(f"{__mod__} {self.__class__.__name__}.read: Cannot open or read file '{file_path}'")
             sys.exit(1)
 
-        reader(self, _data)
+        reader(self, _data, *args, **kwargs)
 
     def merge(self, file_path, reader=archimate_reader):
         """
@@ -4101,15 +4109,16 @@ class Model:
                     p[key] = val
                 for x in o.props.copy():
                     o.remove_prop(x)
-                o.prop('Identifier', '#properties = ' + json.dumps(p, indent=2) + '\n')
+                # o.prop('Identifier', '#properties = ' + json.dumps(p))
+                o.prop('Identifier', o.name)
 
             elif o.props != {} and (isinstance(o, View) or isinstance(o, Element) or isinstance(o, Model)):
                 # Else we embed properties art the end of the description field
-                pat = r'#properties\s*=\s*(\{[\s\S]*\})'
+                pat = r'[#]*properties\s*=\s*(\{[\s\S]*\})[;]*'
                 # Get the concept description and remove any existing embedded properties tag
                 desc = '' if o.desc is None else re.sub(pat, '', o.desc, re.DOTALL)
                 # add the properties tag in the concept desc
-                desc += desc.strip(' \n') + '\n\n#properties = ' + json.dumps(o.props, indent=2) + '\n'
+                desc += desc.strip(' \n') + '\n\nproperties = ' + json.dumps(o.props, indent=2) + '\n'
                 o.desc = desc
                 if remove_props:
                     for x in o.props.copy():
@@ -4129,30 +4138,32 @@ class Model:
 
         """
 
-        def _expand(o):
+        def _expand(o, clean_doc):
+            pat = r'[#]*properties\s*=\s*(\{[\s\S]*\})[;]*'
             if isinstance(o, Relationship):
                 if o.prop('Identifier') is not None:
-                    pat = r'#properties\s*=\s*(\{[\s\S]*\})'
                     p = o.prop('Identifier')
                     match = re.findall(pat, p, re.M)
-                    p = json.loads(match[0])
-                    o.remove_prop('Identifier')
-                    if p is not None:
-                        o.name = p['name'] if 'name' in p else None
-                        o.desc = p['documentation'] if 'documentation' in p else None
-                        if 'isDirected' in p and o.type == archi_type.Association:
-                            o.is_directed = True if p['isDirected'].lower() == 'true' else False
-                        if 'access' in p and o.type == archi_type.Access:
-                            o.access_type = p['access']
-                        if 'influence_strength' in p and o.type == archi_type.Influence:
-                            o.influence_strength = p['influence_strength']
-                        for key, val in p.items():
-                            o.prop(key, val)
+                    if len(match) > 0:
+                        p = json.loads(match[0])
+                        o.remove_prop('Identifier')
+                        if p is not None:
+                            o.name = p['name'] if 'name' in p else None
+                            o.desc = p['documentation'] if 'documentation' in p else None
+                            if 'isDirected' in p and o.type == archi_type.Association:
+                                o.is_directed = True if p['isDirected'].lower() == 'true' else False
+                            if 'access' in p and o.type == archi_type.Access:
+                                o.access_type = p['access']
+                            if 'influence_strength' in p and o.type == archi_type.Influence:
+                                o.influence_strength = p['influence_strength']
+                            for key, val in p.items():
+                                o.prop(key, val)
+                if clean_doc:
+                    o.desc = None if o.desc is None else re.sub(pat, '', o.desc, re.DOTALL)
 
             elif isinstance(o, View) or isinstance(o, Element) or isinstance(o, Model):
                 # Get the concept description and remove any existing embedded properties tag
                 if o.desc is not None:
-                    pat = r'#properties\s*=\s*(\{[\s\S]*\})'
                     match = re.findall(pat, o.desc, re.M)
                     if len(match) == 1:
                         # get the properties
@@ -4164,13 +4175,13 @@ class Model:
                         if clean_doc:
                             o.desc = None if o.desc is None else re.sub(pat, '', o.desc, re.DOTALL)
 
-        _expand(self)
+        _expand(self, clean_doc)
         for v in self.views_dict.values():
-            _expand(v)
+            _expand(v, clean_doc)
         for e in self.elems_dict.values():
-            _expand(e)
+            _expand(e, clean_doc)
         for r in self.rels_dict.values():
-            _expand(r)
+            _expand(r, clean_doc)
 
     def check_invalid_conn(self):
         """
@@ -4234,7 +4245,7 @@ class Model:
     def check_invalid_nodes(self):
         invalids = []
         for id, n in self.nodes_dict.items():
-            if n.ref not in self.elems_dict:
+            if n.ref not in self.elems_dict and n.cat == 'Element':
                 invalids.append(id)
                 try:
                     log.error(f'Orphan node "{n.name}" with id {n.uuid} refers to unknown {n.ref}')
@@ -4305,7 +4316,6 @@ def get_default_rel_type(source_type, target_type):
             t = rels[0]
 
         return [k for k, v in relationship_keys.items() if v == t][0]
-
 
 
 # Fetch model parameters during initialization of the module
