@@ -1,7 +1,6 @@
-xmltodict
 oyaml
 sphinx
 sphinx_rtd_theme
-jsonpath-ng
 pillow
 requests
+lxml

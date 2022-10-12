@@ -1,6 +1,6 @@
-import unittest
-import sys
 import os
+import sys
+import unittest
 
 try:
     sys.path.insert(0, os.path.abspath('../src/pyArchimate'))
@@ -410,7 +410,7 @@ class MyTestCase(unittest.TestCase):
         n2.x = 200
         n2.y = 200
         pos = n1.get_obj_pos(n2)
-        self.assertTrue(pos.angle==315)
+        self.assertTrue(pos.angle == 315)
         self.assertEqual(pos.gap_y, 145)
         self.assertEqual(pos.gap_x, 80)
         self.assertEqual(pos.orientation, "B")
@@ -543,8 +543,8 @@ class MyTestCase(unittest.TestCase):
         b = m.add(archi_type.BusinessObject, 'B')
         r = m.add_relationship(archi_type.Access, a, b, name='ACCESS', access_type=access_type.Write)
         m.embed_props()
-        self.assertTrue('#properties' in m.desc)
-        self.assertTrue('#properties' in r.prop('Identifier'))
+        self.assertTrue('properties' in m.desc)
+        self.assertTrue('properties' in r.prop('Identifier'))
         for p in m.props.copy():
             m.remove_prop(p)
         for p in r.props.copy():
@@ -555,7 +555,7 @@ class MyTestCase(unittest.TestCase):
         m.expand_props()
         self.assertEqual(m.prop('author'), 'Xavier')
         self.assertEqual(m.prop('version'), '1')
-        self.assertTrue('#properties' not in m.desc)
+        self.assertTrue('properties' not in m.desc)
         self.assertTrue(r.access_type == access_type.Write)
         self.assertEqual(r.name, 'ACCESS')
         m.write()
@@ -652,7 +652,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_default_rel(self):
         m = Model('test')
-        e1 = m.add(archi_type.ApplicationCollaboration , "App")
+        e1 = m.add(archi_type.ApplicationCollaboration, "App")
         e2 = m.add(archi_type.ApplicationFunction, 'Comp')
         t = get_default_rel_type(archi_type.ApplicationComponent, archi_type.ApplicationComponent)
 
@@ -660,17 +660,22 @@ class MyTestCase(unittest.TestCase):
         m = Model('test')
         v = m.add(archi_type.View, 'view')
         n1 = v.get_or_create_node(elem='App1', elem_type=archi_type.ApplicationCollaboration,
-                                 create_node=True, create_elem=True)
+                                  create_node=True, create_elem=True)
         n2 = v.get_or_create_node(elem='App2', elem_type=archi_type.ApplicationCollaboration,
-                                 create_node=True, create_elem=True)
+                                  create_node=True, create_elem=True)
         c = v.get_or_create_connection(rel_type=archi_type.Flow, source=n1, target=n2)
         m.check_invalid_nodes()
         m.check_invalid_conn()
         id = n1.uuid
-        e1=  m.elems_dict.pop(n1.concept.uuid)
+        e1 = m.elems_dict.pop(n1.concept.uuid)
         inv_n = m.check_invalid_nodes()
         inv_c = m.check_invalid_conn()
         self.assertTrue(id in inv_n)
+
+    def test_new_arch_reader(self):
+        m = Model('test')
+        m.read('MyModel.xml')
+        m.write('out.xml')
 
 
 if __name__ == '__main__':
