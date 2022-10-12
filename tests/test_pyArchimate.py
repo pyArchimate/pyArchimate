@@ -676,7 +676,9 @@ class MyTestCase(unittest.TestCase):
 
     def test_new_arch_reader(self):
         m = Model('test')
+
         m.read('MyModel.xml')
+        m.default_theme('aris')
         m.write('out.xml')
 
 

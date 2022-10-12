@@ -31,6 +31,7 @@ allowed_relationships = {}
 ARIS_type_map = {}
 relationship_keys = {}
 archi_category = {}
+default_theme = 'archi'
 
 
 class AccessType:
@@ -289,19 +290,34 @@ def get_str_attrib(key, d: dict) -> str:
             return ''
 
 
-def _default_color(elem_type) -> str:
+def _default_color(elem_type, theme=default_theme) -> str:
     """
     Get the default color of a Node, according to its type
 
-    :param elem_type:
+    :param elem_type:       archimate element type
+    :type elem_type: str
+    :param theme:  'archi' or 'aris' color theme - default = 'archi'
+    :type theme: dict
     :return: #Hex color str
     """
     default_colors = {'strategy': '#F5DEAA', 'business': "#FFFFB5", 'application': "#B5FFFF", 'technology': "#C9E7B7",
                       'physical': "#C9E7B7", 'migration': "#FFE0E0", 'motivation': "#CCCCFF",
                       'relationship': "#0000FF", 'other': '#FFFFFF', 'junction': '#000000'}
+    aris_colors = {'strategy': '#D38300', 'business': "#F5C800", 'application': "#00A0FF", 'technology': "#6BA50E",
+                      'physical': "#6BA50E", 'migration': "#FFE0E0", 'motivation': "#F099FF",
+                      'relationship': "#0000FF", 'other': '#FFFFFF', 'junction': '#000000'}
     if elem_type in archi_category:
         cat = archi_category[elem_type].lower()
-        return default_colors[cat]
+
+        if theme == 'archi' or theme is None:
+            return default_colors[cat]
+        if theme == 'aris':
+            return aris_colors[cat]
+        else:
+            try:
+                return theme[cat]
+            except KeyError:
+                return default_colors[cat]
 
 
 def archimate_reader(model, data: str, merge_flg=False):
@@ -1947,7 +1963,7 @@ class Node:
         self.cat = node_type
         self.label = label
         self.nodes_dict = defaultdict(Node)
-        self._fill_color = _default_color(self.type)
+        self._fill_color = _default_color(self.type, theme=default_theme)
         self.line_color = '#000000'
         self.opacity = 100
         self.font_color = None
@@ -3647,6 +3663,24 @@ class Model:
          """
         return self.rels_dict.values()
 
+    @property
+    def nodes(self):
+        """
+        Get the list of all nodes from the model
+        :return: Nodes
+        :rtype: list(Node)
+        """
+        return self.nodes_dict.values()
+
+    @property
+    def conns(self):
+        """
+        Get the list of all connections from the model
+        :return: Connections
+        :rtype: list(Connection)
+        """
+        return self.conns_dict.values()
+
     def write(self, file_path=None, writer=archimate_writer):
         """
         Method to write the file_path to an Archimate file
@@ -4076,6 +4110,12 @@ class Model:
                 except ArchimateConceptTypeError as exc:
                     log.error(f'Orphan node with id {id}')
         return invalids
+
+    def default_theme(self, theme=default_theme):
+        for e in self.nodes:
+            e.fill_color = _default_color(e.type, theme)
+        for r in self.conns:
+            r.line_color = _default_color('Relationship', default_theme)
 
 
 def check_valid_relationship(rel_type, source_type, target_type):
