@@ -176,7 +176,9 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(r.source.uuid, e.uuid)
         self.assertEqual(r.target.uuid, e2.uuid)
         self.assertTrue(r.uuid in m.rels_dict)
-        m.write()
+
+        # Try
+        m.write('out.xml')
 
     def test_del_rel(self):
         m = create_model()

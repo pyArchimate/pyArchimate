@@ -3858,10 +3858,14 @@ class Model:
             source = source.concept
         if isinstance(target, Node):
             target = target.concept
-
-        r = self.filter_relationships(lambda x: (x.type == rel_type
-                                                 and x.source.uuid == source.uuid
-                                                 and x.target.uuid == target.uuid))
+        if name is None:
+            r = self.filter_relationships(lambda x: (x.type == rel_type
+                                                     and x.source.uuid == source.uuid
+                                                     and x.target.uuid == target.uuid))
+        else:
+            r = self.filter_relationships(lambda x: (x.type == rel_type and x.name == name
+                                                     and x.source.uuid == source.uuid
+                                                     and x.target.uuid == target.uuid))
         if len(r) > 0:
             return r[0]
         if create_rel:
