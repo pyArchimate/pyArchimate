@@ -3803,7 +3803,7 @@ class Model:
                             o.name = p['name'] if 'name' in p else None
                             o.desc = p['documentation'] if 'documentation' in p else None
                             if 'isDirected' in p and o.type == archi_type.Association:
-                                o.is_directed = True if p['isDirected'].lower() == 'true' else False
+                                o.is_directed = True if str(p['isDirected']).lower() == 'true' else False
                             if 'access' in p and o.type == archi_type.Access:
                                 o.access_type = p['access']
                             if 'influence_strength' in p and o.type == archi_type.Influence:
