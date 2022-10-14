@@ -680,6 +680,18 @@ class MyTestCase(unittest.TestCase):
         m.read('MyModel.xml')
         m.default_theme('aris')
         m.write('out.xml')
+        from src.pyArchimate.writers.csvWriter import csv_writer
+        m.write('out.csv', writer=csv_writer)
+
+
+    def test_rel_with_rel(self):
+        m = Model('test')
+        app1 = m.add(archi_type.ApplicationComponent, 'App1')
+        app2 = m.add(archi_type.ApplicationComponent, 'App2')
+        bo = m.add(archi_type.BusinessObject, 'O')
+        r = m.add_relationship(archi_type.Flow, app1, app2, access_type='Read')
+        rr = m.add_relationship(archi_type.Association, bo, r)
+        m.write('out.xml')
 
 
 if __name__ == '__main__':

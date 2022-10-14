@@ -9,10 +9,10 @@
 
 import ctypes
 import platform
-import xml.etree.ElementTree as ElemTree
+import lxml.etree as ElemTree
 
-from src.pyArchimate.logger import *
-from src.pyArchimate.pyArchimate import *
+from ..logger import *
+from ..pyArchimate import *
 
 log_to_stderr()
 log.name = 'aml'
@@ -59,67 +59,22 @@ def _id_of(_id):
     return 'id-' + _id.split('.')[1]
 
 
-class ArisAmlWriter:
-    """Class to perform the parsing of ARIS AML data and to generate an Archimate model"""
+def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=False):
+    """
+    Class to perform the parsing of ARIS AML data and to generate an Archimate q
 
-    def __init__(self, model: Model, aml_data: str, name='aris_export', scale_x=0.3, scale_y=0.3, no_view=False):
-        """
+    :param model:       Model to read in
+    :type model:        Model
+    :param aml_data:    XML data in Aris Markup Language
+    :type aml_data:     str
+    :param scale_x:     X-Scaling factor in converting views
+    :type scale_x:      float
+    :param scale_y:     X-Scaling factor in converting views
+    :type scale_y:      float
+    :param no_view:     if true do not generate views
+    """
 
-        :param model:       Model to read in
-        :type model:        Model
-        :param aml_data:    XML data in Aris Markup Language
-        :type aml_data:     str
-        :param name:        Model name
-        :type name:         str
-        :param scale_x:     X-Scaling factor in converting views
-        :type scale_x:      float
-        :param scale_y:     X-Scaling factor in converting views
-        :type scale_y:      float
-        :param no_view:     if true do not generate views
-        """
-        # self.data = xmltodict.parse(open(aml_file, 'r').read())
-        self.root = ElemTree.fromstring(aml_data)
-
-        if self.root.tag != 'AML':
-            log.fatal(' Input file is not an ARIS AML file - Aborting')
-            sys.exit(1)
-        self.organizations = []
-        self.name = name
-        self.model = model
-        self.elements = []
-        self.relationships = []
-        self.scaleX = float(scale_x)
-        self.scaleY = float(scale_y)
-        self.no_view = no_view
-        self.convert()
-
-    def convert(self):
-        """ """
-
-        log.info('Parsing elements')
-        self._parse_elements()
-        log.info('Parsing relationships')
-        self._parse_relationships()
-
-        if not self.no_view:
-            log.info('Parsing Labels')
-            self._parse_labels()
-            log.info('Parsing Views')
-            self._parse_views()
-            self._clean_nested_conns()
-
-        self.model.expand_props(clean_doc=True)
-        log.info('Performing final model validation checks')
-        inv_c = self.model.check_invalid_conn()
-        inv_n = self.model.check_invalid_nodes()
-        if len(inv_n) > 0 or len(inv_c) > 0:
-            log.error("Errors found in the model")
-            print(inv_n)
-            print(inv_c)
-
-        return self.model
-
-    def _parse_elements(self, group=None, folder=''):
+    def _parse_elements(group=None, folder=''):
         """
 
         :param group:  (Default value = None)
@@ -127,7 +82,7 @@ class ArisAmlWriter:
 
         """
         if group is None:
-            group = self.root
+            group = root
 
         for g in group.findall('Group'):
             a = g.find('AttrDef')
@@ -157,7 +112,7 @@ class ArisAmlWriter:
                     key = attr.attrib['AttrDef.Type']
                     val = ''
                     for v in attr.iter('PlainText'):
-                        val += v.get('TextValue')
+                        val += v.get('TextValue') + '\n'
                     if key == 'AT_NAME':
                         o_name = val
                     elif key == 'AT_DESC':
@@ -165,19 +120,19 @@ class ArisAmlWriter:
                     else:
                         props[key] = val
 
-                self.model.add(concept_type=o_type, name=o_name, desc=o_desc, uuid=o_uuid, folder=folder)
+                model.add(concept_type=o_type, name=o_name, desc=o_desc, uuid=o_uuid, folder=folder)
 
-            self._parse_elements(g, folder)
+            _parse_elements(g, folder)
             folder = old_folder
 
-    def _parse_relationships(self, groups=None):
+    def _parse_relationships(groups=None):
         """
 
         :param groups:  (Default value = None)
 
         """
         if groups is None:
-            groups = self.root
+            groups = root
 
         # Relationships (CnxDef) are defined with each elements ObjDef
         # However, we needed to parse first all elements in order to detect relationships with
@@ -198,7 +153,7 @@ class ArisAmlWriter:
                     r_id = _id_of(rel.attrib['CxnDef.ID'])
                     # Check if the target is a known element
                     r_target = _id_of(rel.attrib.get('ToObjDef.IdRef'))
-                    if r_target in self.model.elems_dict:
+                    if r_target in model.elems_dict:
                         # Extract relationship properties, that will be globally handled  at the end of the
                         # conversion process, before returning the model
                         attrs = rel.findall('AttrDef')
@@ -207,29 +162,29 @@ class ArisAmlWriter:
                             key = attr.attrib['AttrDef.Type']
                             val = ''
                             for v in attr.iter('PlainText'):
-                                val += v.get('TextValue')
+                                val += v.get('TextValue') + '\n'
                             props[key] = val
 
                         try:
-                            r = self.model.add_relationship(
+                            r = model.add_relationship(
                                 rel_type=r_type, source=o_uuid, target=r_target, uuid=r_id
                             )
                         except ArchimateRelationshipError as exc:
-                            r_type = get_default_rel_type(self.model.elems_dict[o_uuid].type,
-                                                          self.model.elems_dict[r_target].type)
+                            r_type = get_default_rel_type(model.elems_dict[o_uuid].type,
+                                                          model.elems_dict[r_target].type)
                             log.warning(str(exc) + f' - Replacing by {r_type}')
-                            r = self.model.add_relationship(
+                            r = model.add_relationship(
                                 rel_type=r_type, source=o_uuid, target=r_target, uuid=r_id
                             )
                         if r is not None:
                             for key, value in props.items():
                                 r.prop(key, value)
 
-            self._parse_relationships(g)
+            _parse_relationships(g)
 
         return
 
-    def _parse_nodes(self, grp=None, view=None):
+    def _parse_nodes(grp=None, view=None):
         """
 
         :param grp:  (Default value = None)
@@ -249,25 +204,25 @@ class ArisAmlWriter:
 
             o_type = ARIS_type_map[o.attrib['SymbolNum']]
             o_id = _id_of(o.attrib['ObjOcc.ID'])
-            o_elem_ref = self.model.elems_dict[_id_of(o.attrib['ObjDef.IdRef'])].uuid
+            o_elem_ref = model.elems_dict[_id_of(o.attrib['ObjDef.IdRef'])].uuid
 
             pos = o.find('Position')
             size = o.find('Size')
             n = view.add(
                 ref=o_elem_ref,
-                x=int(pos.get('Pos.X')) * self.scaleX,
-                y=int(pos.get('Pos.Y')) * self.scaleY,
-                w=int(size.get('Size.dX')) * self.scaleX,
-                h=int(size.get('Size.dY')) * self.scaleY,
+                x=int(pos.get('Pos.X')) * scale_x,
+                y=int(pos.get('Pos.Y')) * scale_y,
+                w=int(size.get('Size.dX')) * scale_x,
+                h=int(size.get('Size.dY')) * scale_y,
                 uuid=o_id
             )
 
             if o_type == 'Grouping':
-                n.fill_color = "#000000"
-                n.opacity = 0
-        self._parse_nodes(grp)
+                n.fill_color = "#FFFFFF"
+                n.opacity = 100
+        _parse_nodes(grp)
 
-    def _parse_connections(self, grp=None, view=None):
+    def _parse_connections(grp=None, view=None):
         """
 
         :param grp:  (Default value = None)
@@ -295,14 +250,14 @@ class ArisAmlWriter:
                     # This gives validation errors when importing into archi...
                     # Swap therefore source and target if needed
                     try:
-                        # rel = self.model.rels_dict[c_rel_id]
+                        # rel = model.rels_dict[c_rel_id]
                         # x = rel.target
                         # check if the relationship target is the related data of the visual object and swap
-                        nt = self.model.nodes_dict[c_target]
-                        ns = self.model.nodes_dict[o_id]
+                        nt = model.nodes_dict[c_target]
+                        ns = model.nodes_dict[o_id]
                         # Embed the node
                         if not (
-                                nt.x >= ns.x and nt.y >= ns.x
+                                nt.x >= ns.x and nt.y >= ns.y
                                 and nt.x + nt.w <= ns.x + ns.w and nt.y + nt.h <= ns.y + ns.h
                         ):
                             #     log.warning(f"Inverting embedded nodes relationship '{rel.type}' ")
@@ -321,16 +276,16 @@ class ArisAmlWriter:
                         log.warning(exc)
                     except KeyError:
                         log.error(f'Orphan Connection with unrelated relationship {c_rel_id} ')
-                elif c_rel_id in self.model.rels_dict:
+                elif c_rel_id in model.rels_dict:
                     c = view.add_connection(ref=c_rel_id, source=o_id, target=c_target, uuid=c_id)
                     bps = conn.findall('Position')
                     for i in range(1, len(bps) - 1):
                         pos = bps[i]
                         bp_x = int(pos.get('Pos.X'))
                         bp_y = int(pos.get('Pos.Y'))
-                        c.add_bendpoint(Point(bp_x * self.scaleX, bp_y * self.scaleY))
+                        c.add_bendpoint(Point(bp_x * scale_x, bp_y * scale_y))
 
-    def _parse_containers(self, grp=None, view=None):
+    def _parse_containers(grp=None, view=None):
         """
 
         :param grp:  (Default value = None)
@@ -356,19 +311,19 @@ class ArisAmlWriter:
                     color_str = "#000000"
                 if pos is not None and size is not None:
                     n = view.add(ref=None,
-                                 x=self.scaleX * int(pos.get('Pos.X')),
-                                 y=self.scaleY * int(pos.get('Pos.Y')),
-                                 w=self.scaleX * int(size.get('Size.dX')),
-                                 h=self.scaleY * int(size.get('Size.dY')),
+                                 x=scale_x * int(pos.get('Pos.X')),
+                                 y=scale_y * int(pos.get('Pos.Y')),
+                                 w=scale_x * int(size.get('Size.dX')),
+                                 h=scale_y * int(size.get('Size.dY')),
                                  node_type='Container'
                                  )
                     n.line_color = f'#{int(color_str):0>6X}'
                     n.fill_color = "#FFFFFF"
-                    n.opacity = 0
+                    n.opacity = 100
 
-    def _parse_labels(self):
+    def _parse_labels():
         """ """
-        for o in self.root.findall('FFTextDef'):
+        for o in root.findall('FFTextDef'):
             o_id = _id_of(o.attrib['FFTextDef.ID'])
             if o.attrib['IsModelAttr'] == 'TEXT':
                 attrs = o.findall('AttrDef')
@@ -377,13 +332,13 @@ class ArisAmlWriter:
                     key = attr.attrib['AttrDef.Type']
                     val = ''
                     for v in attr.iter('PlainText'):
-                        val += v.get('TextValue')
+                        val += v.get('TextValue') + '\n'
                     if key == 'AT_NAME':
                         o_name = val
 
-                self.model.labels_dict[o_id] = o_name
+                model.labels_dict[o_id] = o_name
 
-    def _parse_labels_in_view(self, grp=None, view=None):
+    def _parse_labels_in_view(grp=None, view=None):
         """
 
         :param grp:  (Default value = None)
@@ -399,9 +354,9 @@ class ArisAmlWriter:
 
         for objs in grp.findall('FFTextOcc'):
             lbl_ref = _id_of(objs.attrib['FFTextDef.IdRef'])
-            if lbl_ref in self.model.labels_dict:
+            if lbl_ref in model.labels_dict:
                 # Extract Element properties
-                o_name = self.model.labels_dict[lbl_ref]
+                o_name = model.labels_dict[lbl_ref]
                 # calculate size in function of text
                 o = objs.find('Position')
                 if o is not None:
@@ -411,14 +366,14 @@ class ArisAmlWriter:
                     try:
                         n = view.add(
                             ref=lbl_ref,
-                            x=max(int(pos.get('Pos.X')) * self.scaleX, 0),
-                            y=max(int(pos.get('Pos.Y')) * self.scaleY, 0),
+                            x=max(int(pos.get('Pos.X')) * scale_x, 0),
+                            y=max(int(pos.get('Pos.Y')) * scale_y, 0),
                             w=w + 18,  # 13 * len(max(o_name.split('\n'))),
                             h=30 + (h * 1.5) * (o_name.count('\n') + 1),
                             node_type='Label', label=o_name
                         )
                         n.fill_color = "#FFFFFF"
-                        n.opacity = 0
+                        n.opacity = 100
                         n.line_color = '#000000'
                     except ValueError:
                         log.warning(f'Node {o_name} has unknown element reference {lbl_ref}'
@@ -426,7 +381,7 @@ class ArisAmlWriter:
                         continue
         return
 
-    def _parse_views(self, group=None, folder=''):
+    def _parse_views(group=None, folder=''):
         """
 
         :param group:  (Default value = None)
@@ -434,7 +389,7 @@ class ArisAmlWriter:
 
         """
         if group is None:
-            group = self.root
+            group = root
 
         for g in group.findall('Group'):
             a = g.find('AttrDef')
@@ -457,7 +412,7 @@ class ArisAmlWriter:
                     key = attr.attrib['AttrDef.Type']
                     val = ''
                     for v in attr.iter('PlainText'):
-                        val += v.get('TextValue')
+                        val += v.get('TextValue') +'\n'
                     if key == 'AT_NAME':
                         o_name = val
                     elif key == 'AT_DESC':
@@ -465,31 +420,68 @@ class ArisAmlWriter:
                     else:
                         props[key] = val
 
-                # self.model.name = view_name
-                view = self.model.add(concept_type=archi_type.View,
-                                      name=o_name, uuid=view_id, desc=o_desc)
+                # model.name = view_name
+                view = model.add(concept_type=archi_type.View,
+                                 name=o_name, uuid=view_id, desc=o_desc)
                 log.info('Parsing & adding nodes')
                 view.folder = folder
-                self._parse_nodes(o, view)
+                _parse_nodes(o, view)
 
                 log.info('Parsing & adding conns')
-                self._parse_connections(o, view)
+                _parse_connections(o, view)
                 log.info('Parsing and adding container groups')
-                self._parse_containers(o, view)
+                _parse_containers(o, view)
                 log.info('Parsing and adding labels')
-                self._parse_labels_in_view(o, view)
+                _parse_labels_in_view(o, view)
 
-            self._parse_views(g, folder)
+            _parse_views(g, folder)
             folder = old_folder
 
-    def _clean_nested_conns(self):
+    def _clean_nested_conns():
         """ """
         # Clean now all connections between a node and its embedding node parent
-        nested_conns = [x for x in self.model.conns_dict.values()
+        nested_conns = [x for x in model.conns_dict.values()
                         if x.source.uuid == x.parent.uuid and isinstance(x.parent, Node)]
         for c in nested_conns:
             c.delete()
-        nested_conns = [x for x in self.model.conns_dict.values() if
+        nested_conns = [x for x in model.conns_dict.values() if
                         x.target.uuid == x.parent.uuid and isinstance(x.parent, Node)]
         for c in nested_conns:
             c.delete()
+
+    def convert():
+        """ """
+
+        log.info('Parsing elements')
+        _parse_elements()
+        log.info('Parsing relationships')
+        _parse_relationships()
+
+        if not no_view:
+            log.info('Parsing Labels')
+            _parse_labels()
+            log.info('Parsing Views')
+            _parse_views()
+            _clean_nested_conns()
+
+        model.expand_props(clean_doc=True)
+        log.info('Performing final model validation checks')
+        inv_c = model.check_invalid_conn()
+        inv_n = model.check_invalid_nodes()
+        if len(inv_n) > 0 or len(inv_c) > 0:
+            log.error("Errors found in the model")
+            print(inv_n)
+            print(inv_c)
+
+        return model
+
+    root = ElemTree.fromstring(aml_data.encode())
+
+    if root.tag != 'AML':
+        log.fatal(' Input file is not an ARIS AML file - Aborting')
+        sys.exit(1)
+
+    scale_x = float(scale_x)
+    scale_y = float(scale_y)
+    no_view = no_view
+    convert()

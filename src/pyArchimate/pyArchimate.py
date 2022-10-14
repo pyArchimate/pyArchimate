@@ -14,6 +14,7 @@ import re
 import sys
 from collections import defaultdict
 from uuid import uuid4, UUID
+
 import lxml.etree as ET
 import oyaml as yaml
 
@@ -304,8 +305,8 @@ def _default_color(elem_type, theme=default_theme) -> str:
                       'physical': "#C9E7B7", 'migration': "#FFE0E0", 'motivation': "#CCCCFF",
                       'relationship': "#0000FF", 'other': '#FFFFFF', 'junction': '#000000'}
     aris_colors = {'strategy': '#D38300', 'business': "#F5C800", 'application': "#00A0FF", 'technology': "#6BA50E",
-                      'physical': "#6BA50E", 'migration': "#FFE0E0", 'motivation': "#F099FF",
-                      'relationship': "#0000FF", 'other': '#FFFFFF', 'junction': '#000000'}
+                   'physical': "#6BA50E", 'migration': "#FFE0E0", 'motivation': "#F099FF",
+                   'relationship': "#0000FF", 'other': '#FFFFFF', 'junction': '#000000'}
     if elem_type in archi_category:
         cat = archi_category[elem_type].lower()
 
@@ -654,10 +655,12 @@ def archimate_writer(model, file_path=None) -> str:
     elems = ET.SubElement(root, 'elements')
     for e in model.elements:
         elem = ET.SubElement(elems, 'element', {'identifier': e.uuid, xsi: e.type})
+        if e.name is None:
+            e.name = e.type
         if e.name is not None:
             e_name = ET.SubElement(elem, 'name')
             e_name.text = e.name
-        if e.desc is not None:
+        if e.desc is not None and e.desc != '':
             e_desc = ET.SubElement(elem, 'documentation')
             e_desc.text = e.desc
         if e.props != {}:
@@ -895,6 +898,73 @@ def archimate_writer(model, file_path=None) -> str:
     return xml_str.decode()
 
 
+def check_valid_relationship(rel_type, source_type, target_type):
+    """
+    Check if a relationship is used according to Archimate language or raise an exception
+
+    :param rel_type:        relationship type
+    :type rel_type: str
+    :param source_type:     source concept type
+    :type source_type: str
+    :param target_type:     target concept type
+    :type target_type: str
+
+    :raises ArchimateConceptTypeError: Exception raised on invalid object Archimate type
+    :raises ArchimateRelationshipError: Exception raised on invalid relationship between the source and target parent elements
+
+    """
+    if not hasattr(archi_type, rel_type) or archi_category[rel_type] != 'Relationship':
+        raise ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'")
+    if not hasattr(archi_type, source_type):  # or archi_category[source_type] == 'Relationship':
+        raise ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'")
+    if not hasattr(archi_type, target_type):  # or archi_category[target_type] == 'Relationship':
+        raise ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
+    if archi_category[source_type] == 'Relationship':
+        source_type = "Relationship"
+    if archi_category[target_type] == 'Relationship':
+        target_type = "Relationship"
+    if not relationship_keys[rel_type] in allowed_relationships[source_type][target_type]:
+        raise ArchimateRelationshipError(
+            f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' ")
+
+
+def get_default_rel_type(source_type, target_type):
+    """
+    Return the default valid relationship between two element types
+
+    :param source_type:
+    :type source_type: str
+    :param target_type:
+    :type target_type: str
+    :return: default relationship type
+    :rtype: str
+    """
+    if not hasattr(archi_type, source_type) or archi_category[source_type] == 'Relationship':
+        raise ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'")
+    if not hasattr(archi_type, target_type) or archi_category[target_type] == 'Relationship':
+        raise ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
+    rels = allowed_relationships[source_type][target_type]
+    if len(rels) > 0:
+        if 'g' in rels:
+            t = 'g'
+        elif 'r' in rels:
+            t = 'r'
+        elif 's' in rels:
+            t = 's'
+        elif 'a' in rels:
+            t = 'a'
+        elif 'c' in rels:
+            t = 'c'
+        elif 'o' in rels:
+            t = 'o'
+        elif 'v' in rels:
+            t = 'v'
+        else:
+            t = rels[0]
+
+        return [k for k, v in relationship_keys.items() if v == t][0]
+
+
 class Point:
     """
     A simple class to manage x, y coordinates of a point
@@ -962,114 +1032,6 @@ class Position:
             return math.sqrt(self.dx ** 2 + self.dy ** 2)
         else:
             return None
-
-
-# Dictionary with all artefact identifier keys & objects
-class PropertyDefinitions:
-    """
-    Define an PropertyDefinition object
-
-    """
-
-    def __init__(self):
-        self.propertyDefinitions = {}
-        self.propertyDefinitionsData = []
-
-    def add(self, key):
-        """
-        Add a new key in the dictionary
-
-        :param key: key to add
-        :return: the new key definition
-        """
-        _id = {
-            '@identifier': 'propid-1' + str(len(self.propertyDefinitions) + 1),
-            '@type': 'string',
-            'name': key
-        }
-        if _id['@identifier'] not in self.propertyDefinitions:
-            self.propertyDefinitions[_id['@identifier']] = key
-            self.propertyDefinitionsData.append(_id)
-        return _id['@identifier']
-
-    def get_id(self, key):
-        keys = [x for x in self.propertyDefinitions if self.propertyDefinitions[x] == key]
-        if len(keys) > 0:
-            return keys[0]
-
-
-class Property:
-    """
-    Define a Property
-    Property are key/value pair, where the key is also stored in a PropertyDefinition dictionnart
-    and referred by a 'propid' identifier
-
-    :param key: the property key
-    :param value: the value associated to the mkey
-    :raises ValueError: Exception raised if prodef is not a PropertyDefinition object
-    :param propdef: a property definition object
-
-    """
-
-    def __init__(self, key: str, value: str, propdef=None):
-        self.key = key
-        self.value = value
-        self.property = None
-        if not isinstance(propdef, PropertyDefinitions):
-            raise ValueError('"propdef" is not a PropertyDefinitions class.')
-        if key is not None and key != '' and value is not None:
-            ref = [k for k, v in propdef.propertyDefinitions.items() if v == key]
-            if len(ref) == 0:
-                _id = propdef.add(key)
-            else:
-                _id = ref[0]
-            self.property = {
-                '@propertyDefinitionRef': _id,  # PROPERTY ID
-                'value': {
-                    '@xml:lang': 'en',
-                    '#text': self.value  # PROPERTY VALUE
-                }
-            }
-
-
-class OrgItem:
-    """
-    An Organization items is a  folder in a folder hierarchy (or also called a group)
-    and may contain a list of reference to Concepts (Element, View or Relationship) objects
-    or a list of other sub-folders
-
-    :param label: the name of the folder
-    :param items: a list of other organization items
-    :param item_refs: a list of references to other concepts
-    """
-
-    def __init__(self, label=None, items=None, item_refs=None):
-        self.label = label
-        self.item = {}
-        # label attribute structure
-        if label is not None:
-            self.item['label'] = {
-                '@xml:lang': 'en',
-                '#text': self.label,  # Label NAME
-            }
-        # item list of references
-        if item_refs is not None and len(item_refs) > 0:
-            if not isinstance(item_refs, list):
-                item_refs = [item_refs]
-            if 'item' not in self.item:
-                self.item['item'] = []
-            for i in item_refs:
-                self.item['item'].append({
-                    "@identifierRef": i
-                })
-        # and/or list of sub-folders items
-        if items is not None:
-            if not isinstance(items, list):
-                items = [items]
-            if 'item' not in self.item:
-                self.item['item'] = []
-            for i in items:
-                self.item['item'].append(i)
 
 
 class RGBA:
@@ -1149,202 +1111,6 @@ class Font:
                 int(color_string[3:5], 16),
                 int(color_string[5:], 16)
             )
-
-
-class Style:
-    """
-    Class to manage Node or Connection style
-
-    :param fill_color: RGBA color for node background fill
-    :param line_color: RGBA color for connection line color
-    :param font:       Font class of node & connection font
-    :param line_width: Connection line width (normal=1-heavy=3)
-    """
-
-    def __init__(self, fill_color=None, line_color=None, font: Font = None, line_width=None):
-
-        if line_color is None:
-            self._lc = RGBA(0, 0, 0, 100)
-        elif isinstance(line_color, str):
-            self._lc = RGBA()
-            self._lc.color = line_color
-        else:
-            self._lc = line_color
-
-        if fill_color is None:
-            self._fc = RGBA(0, 0, 0, 100)
-        elif isinstance(fill_color, str):
-            self._fc = RGBA()
-            self._fc.color = fill_color
-        else:
-            self._fc = fill_color
-
-        self._f = font
-        self._line_width = line_width
-
-    @property
-    def fill_color(self):
-        """
-        Get #Hex fill color code
-
-        :return:   #Hex color string
-        """
-        if self._fc is not None:
-            return self._fc.color
-
-    @fill_color.setter
-    def fill_color(self, color_string: str):
-        """
-        Set #Hex fill color
-        :param color_string:
-
-        """
-        if self._fc is None:
-            self._fc = RGBA(0, 0, 0)
-        self._fc.color = color_string
-
-    @property
-    def opacity(self):
-        """
-        Get node  fill color opacity
-
-        :return: Opacity value 0-100
-        """
-        if self._fc is not None:
-            return self._fc.a
-
-    @opacity.setter
-    def opacity(self, val):
-        """
-        Set node fill color opacity
-
-        :param val: Opacity value 0-100
-        """
-        val = int(val)
-        if self._fc is None:
-            self._fc = RGBA(0, 0, 0)
-        self._fc.a = val if (0 <= val <= 100) else 0 if val <= 0 else 100
-
-    @property
-    def line_color(self):
-        """
-        Get line color Hex code
-
-        :return: #Hex color string
-        """
-        if self._lc is not None:
-            return self._lc.color
-
-    @line_color.setter
-    def line_color(self, color_string: str):
-        """
-        Set line color to #Hex value
-        :param color_string:
-
-        """
-        if self._lc is None:
-            self._lc = RGBA(0, 0, 0)
-        self._lc.color = color_string
-
-    @property
-    def font(self):
-        """
-        Get a font object
-        :return: Font object
-        """
-        return self._f
-
-    @font.setter
-    def font(self, font: Font):
-        """
-        Set font style
-        :param font:
-
-        """
-        if self._f is None:
-            self._f = Font()
-        self._f = font
-
-    @property
-    def font_color(self):
-        """
-        Get font color #Hex code
-
-        :return:    #Hex color str
-        """
-        return self._f.color
-
-    @font_color.setter
-    def font_color(self, color_string):
-        """
-        Set font color to #Hex code value
-
-        :param color_string:
-
-        """
-        if self._f is None:
-            self._f = Font()
-        self._f.color = color_string
-
-    @property
-    def font_name(self) -> str:
-        """
-        Get font name
-
-        :return: str font name
-        """
-        return self._f.name
-
-    @font_name.setter
-    def font_name(self, name):
-        """
-        Set font name
-
-        :param name:
-
-        """
-        if self._f is None:
-            self._f = Font()
-        self._f.name = name
-
-    @property
-    def font_size(self) -> int:
-        """
-        Get font size
-        :return:    font size
-        """
-        return int(self._f.size)
-
-    @font_size.setter
-    def font_size(self, size):
-        """
-        Set font size
-
-        :param size:
-
-        """
-        if self._f is None:
-            self._f = Font()
-        self._f.size = size
-
-    @property
-    def line_width(self):
-        """
-        Get line width
-
-        :return: Line width 1-3
-        """
-        return self._line_width
-
-    @line_width.setter
-    def line_width(self, line_width: int):
-        """
-        Set line width
-
-        :param line_width:
-
-        """
-        self._line_width = line_width if (1 < line_width < 4) else 1
 
 
 class Element:
@@ -1637,20 +1403,20 @@ class Relationship:
         # get source identifier as reference
         if isinstance(source, str):
             self._source = source
-        elif not isinstance(source, Element):
-            raise ValueError("'source' argument is not an instance of 'Element' class.")
+        elif not isinstance(source, Element) and not isinstance(source, Relationship):
+            raise ValueError("'source' argument is not an instance of 'Element or Relationship' class.")
         else:
             self._source = source.uuid
-        if self._source not in self.parent.elems_dict:
+        if self._source not in self.parent.elems_dict and self._source not in self.parent.rels_dict:
             raise ValueError(f'Invalid source reference "{self._source}')
         # get target identifier
         if isinstance(target, str):
             self._target = target
-        elif not isinstance(target, Element):
-            raise ValueError("'target' argument is not an instance of 'Element' class.")
+        elif not isinstance(target, Element) and not isinstance(target, Relationship):
+            raise ValueError("'target' argument is not an instance of 'Element/Relationship' class.")
         else:
             self._target = target.uuid
-        if self._target not in self.parent.elems_dict:
+        if self._target not in self.parent.elems_dict and self._target not in self.parent.rels_dict:
             raise ValueError(f'Invalid target reference "{target}')
 
         self._uuid = set_id(uuid)
@@ -1665,7 +1431,16 @@ class Relationship:
         self._is_directed = is_directed
 
         # check relationship validity (it also tests concept type validity) or raise exception
-        check_valid_relationship(self.type, self.source.type, self.target.type)
+        if self._source in self.model.elems_dict:
+            src_type = self.model.elems_dict[self._source].type
+        else:
+            src_type = self.model.rels_dict[self._source].type
+        if self._target in self.model.elems_dict:
+            dst_type = self.model.elems_dict[self._target].type
+        else:
+            dst_type = self.model.rels_dict[self._target].type
+
+        check_valid_relationship(self.type, src_type, dst_type)
 
         # Add the new relationship object in model's dictionaries
         self.parent.rels_dict[self.uuid] = self
@@ -1707,7 +1482,8 @@ class Relationship:
 
         """
         _id = self._source
-        return self.parent.elems_dict[_id] if _id in self.parent.elems_dict else None
+        return self.parent.elems_dict[_id] if _id in self.parent.elems_dict else self.parent.rels_dict[
+            _id] if _id in self.parent.rels_dict else None
 
     @source.setter
     def source(self, src):
@@ -1726,6 +1502,7 @@ class Relationship:
         else:
             self._source = src.uuid
 
+
     @property
     def target(self) -> Element:
         """
@@ -1735,7 +1512,9 @@ class Relationship:
         :rtype: Element
         """
         _id = self._target
-        return self.parent.elems_dict[_id] if _id in self.parent.elems_dict else None
+        return self.parent.elems_dict[_id] if _id in self.parent.elems_dict \
+            else self.parent.rels_dict[_id] if _id in self.parent.rels_dict else None
+
 
     @target.setter
     def target(self, dst):
@@ -1754,6 +1533,7 @@ class Relationship:
         else:
             self._target = dst.uuid
 
+
     @property
     def type(self):
         """
@@ -1763,6 +1543,7 @@ class Relationship:
         :rtype: str
         """
         return self._type
+
 
     @type.setter
     def type(self, new_type):
@@ -1779,6 +1560,7 @@ class Relationship:
         check_valid_relationship(new_type, self.source.type, self.target.type)
         self._type = new_type
 
+
     @property
     def props(self):
         """
@@ -1788,6 +1570,7 @@ class Relationship:
         :rtype: dict
         """
         return self._properties
+
 
     def prop(self, key, value=None):
         """
@@ -1807,6 +1590,7 @@ class Relationship:
             self._properties[key] = value
             return value
 
+
     def remove_prop(self, key):
         """
         Methode to remove a property by key
@@ -1818,6 +1602,7 @@ class Relationship:
         if key in self._properties:
             del self._properties[key]
 
+
     @property
     def access_type(self):
         """
@@ -1827,6 +1612,7 @@ class Relationship:
         :rtype: str
         """
         return self._access_type
+
 
     @access_type.setter
     def access_type(self, val):
@@ -1841,6 +1627,7 @@ class Relationship:
         if val is not None and self.type == archi_type.Access:
             self._access_type = val
 
+
     @property
     def is_directed(self):
         """
@@ -1850,6 +1637,7 @@ class Relationship:
         :rtype: boolean
         """
         return self._is_directed
+
 
     @is_directed.setter
     def is_directed(self, val: bool):
@@ -1863,6 +1651,7 @@ class Relationship:
         if val is not None and self.type == archi_type.Association:
             self._is_directed = "true" if val else "false"
 
+
     @property
     def influence_strength(self):
         """
@@ -1872,6 +1661,7 @@ class Relationship:
         :rtype: str
         """
         return self._influence_strength
+
 
     @influence_strength.setter
     def influence_strength(self, strength):
@@ -1885,6 +1675,7 @@ class Relationship:
         """
         if strength is not None and self.type == archi_type.Influence:
             self._influence_strength = str(strength)
+
 
     def remove_folder(self):
         """
@@ -2894,7 +2685,7 @@ class Connection:
             self._source = source
         else:
             raise ArchimateConceptTypeError("'source' is not an instance of 'Node' class.")
-        if self._source not in self.model.nodes_dict:
+        if self._source not in self.model.nodes_dict and self._source not in self.model.conns_dict:
             raise ValueError(f'Invalid source reference "{self._source}')
 
         if isinstance(target, Node):
@@ -2903,7 +2694,7 @@ class Connection:
             self._target = target
         else:
             raise ArchimateConceptTypeError("'target' is not an instance of 'Node' class.")
-        if self._target not in self.model.nodes_dict:
+        if self._target not in self.model.nodes_dict and self._target not in self.model.conns_dict:
             raise ValueError(f'Invalid source reference "{self._target}')
 
         self._uuid = set_id(uuid)
@@ -3001,6 +2792,8 @@ class Connection:
         """
         if self._source in self.model.nodes_dict:
             return self.model.nodes_dict[self._source]
+        elif self._source in self.model.conns_dict:
+            return self.model.rels_dict[self._source]
 
     @source.setter
     def source(self, elem):
@@ -3028,6 +2821,8 @@ class Connection:
         """
         if self._target in self.model.nodes_dict:
             return self.model.nodes_dict[self._target]
+        elif self._target in self.model.conns_dict:
+            return self.model.rels_dict[self._target]
 
     @target.setter
     def target(self, elem):
@@ -3501,7 +3296,6 @@ class Model:
         self.name = name
         self.desc = desc
         self._properties = {}
-        self.property_def = PropertyDefinitions()
         self.pdefs = {}
         self.elems_dict = defaultdict(Element)
         self.rels_dict = defaultdict(Relationship)
@@ -4118,75 +3912,12 @@ class Model:
             r.line_color = _default_color('Relationship', default_theme)
 
 
-def check_valid_relationship(rel_type, source_type, target_type):
-    """
-    Check if a relationship is used according to Archimate language or raise an exception
-
-    :param rel_type:        relationship type
-    :type rel_type: str
-    :param source_type:     source concept type
-    :type source_type: str
-    :param target_type:     target concept type
-    :type target_type: str
-
-    :raises ArchimateConceptTypeError: Exception raised on invalid object Archimate type
-    :raises ArchimateRelationshipError: Exception raised on invalid relationship between the source and target parent elements
-
-    """
-    if not hasattr(archi_type, rel_type) or archi_category[rel_type] != 'Relationship':
-        raise ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'")
-    if not hasattr(archi_type, source_type) or archi_category[source_type] == 'Relationship':
-        raise ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'")
-    if not hasattr(archi_type, target_type) or archi_category[target_type] == 'Relationship':
-        raise ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
-
-    if not relationship_keys[rel_type] in allowed_relationships[source_type][target_type]:
-        raise ArchimateRelationshipError(
-            f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' ")
-
-
-def get_default_rel_type(source_type, target_type):
-    """
-    Return the default valid relationship between two element types
-
-    :param source_type:
-    :type source_type: str
-    :param target_type:
-    :type target_type: str
-    :return: default relationship type
-    :rtype: str
-    """
-    if not hasattr(archi_type, source_type) or archi_category[source_type] == 'Relationship':
-        raise ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'")
-    if not hasattr(archi_type, target_type) or archi_category[target_type] == 'Relationship':
-        raise ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
-    rels = allowed_relationships[source_type][target_type]
-    if len(rels) > 0:
-        if 'g' in rels:
-            t = 'g'
-        elif 'r' in rels:
-            t = 'r'
-        elif 's' in rels:
-            t = 's'
-        elif 'a' in rels:
-            t = 'a'
-        elif 'c' in rels:
-            t = 'c'
-        elif 'o' in rels:
-            t = 'o'
-        elif 'v' in rels:
-            t = 'v'
-        else:
-            t = rels[0]
-
-        return [k for k, v in relationship_keys.items() if v == t][0]
-
-
 # Fetch model parameters during initialization of the module
 if allowed_relationships == {}:
     data = None
     try:
-        data = yaml.load(open(os.path.join(os.path.sep, __location__, "checker_rules.yml"), "r"), Loader=yaml.Loader)
+        with open(os.path.join(os.path.sep, __location__, "checker_rules.yml"), "r") as fd:
+            data = yaml.load(fd, Loader=yaml.Loader)
         allowed_relationships = data['archimate_rels']
         ARIS_type_map = data['ARIS_type_map']
         relationship_keys = data['relationship_keys']
