@@ -10,10 +10,8 @@
 import ctypes
 import platform
 import lxml.etree as ElemTree
-
 from ..logger import *
 from ..pyArchimate import *
-
 log_to_stderr()
 log.name = 'aml'
 
