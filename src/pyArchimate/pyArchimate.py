@@ -3689,11 +3689,15 @@ class Model:
         if name is None:
             r = self.filter_relationships(lambda x: (x.type == rel_type
                                                      and x.source.uuid == source.uuid
-                                                     and x.target.uuid == target.uuid))
+                                                     and x.target.uuid == target.uuid
+                                                     and x.access_type == access_type
+                                                     and x.is_directed == is_directed))
         else:
             r = self.filter_relationships(lambda x: (x.type == rel_type and x.name == name
                                                      and x.source.uuid == source.uuid
-                                                     and x.target.uuid == target.uuid))
+                                                     and x.target.uuid == target.uuid
+                                                     and x.access_type == access_type
+                                                     and x.is_directed == is_directed))
         if len(r) > 0:
             return r[0]
         if create_rel:
