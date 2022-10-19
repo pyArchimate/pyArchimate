@@ -149,6 +149,7 @@ archi_category:
     Triggering: Relationship
     Value: Motivation
     WorkPackage: Implementation & Migration
+    View: View
 archimate_rels:
     ApplicationCollaboration:
         ApplicationCollaboration: cfgostv

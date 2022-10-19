@@ -34,7 +34,6 @@ relationship_keys = {}
 archi_category = {}
 default_theme = 'archi'
 
-
 class AccessType:
     """
     Enumeration of Access Relationship types
@@ -491,11 +490,11 @@ def archimate_reader(model, data: str, merge_flg=False):
                     fc = style.find(ns + 'fillColor')
                     if fc is not None:
                         _n.fill_color = RGBA(fc.get('r'), fc.get('g'), fc.get('b')).color
-                        _n.opacity = fc.get('a')
+                        _n.opacity = int(fc.get('a'))
                     lc = style.find(ns + 'lineColor')
                     if lc is not None:
                         _n.line_color = RGBA(lc.get('r'), lc.get('g'), lc.get('b')).color
-                        _n.opacity = lc.get('a')
+                        _n.lc_opacity = int(lc.get('a'))
                     ft = style.find(ns + 'font')
                     if ft is not None:
                         _n.font_name = ft.get('name')
@@ -822,7 +821,7 @@ def archimate_writer(model, file_path=None) -> str:
                     lc.set('r', str(rgb.r))
                     lc.set('g', str(rgb.g))
                     lc.set('b', str(rgb.b))
-                    lc.set('a', '100' if n.opacity is None else str(n.opacity))
+                    lc.set('a', '100' if n.opacity is None else str(n.lc_opacity))
                 if n.fill_color is not None:
                     fc = ET.SubElement(style, 'fillColor')
                     rgb = RGBA()
@@ -923,6 +922,12 @@ def check_valid_relationship(rel_type, source_type, target_type):
         source_type = "Relationship"
     if archi_category[target_type] == 'Relationship':
         target_type = "Relationship"
+    if 'Junction' in rel_type:
+        rel_type = 'Junction'
+    if 'Junction' in source_type:
+        source_type = 'Junction'
+    if 'Junction' in target_type:
+        target_type = 'Junction'
     if not relationship_keys[rel_type] in allowed_relationships[source_type][target_type]:
         raise ArchimateRelationshipError(
             f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' ")
@@ -1393,7 +1398,7 @@ class Relationship:
 
     """
 
-    def __init__(self, rel_type='', source=None, target=None, uuid=None, name='',
+    def __init__(self, rel_type='', source=None, target=None, uuid=None, name=None,
                  access_type=None, influence_strength=None, desc=None, is_directed=None, parent=None):
 
         if not isinstance(parent, Model):
@@ -1754,9 +1759,10 @@ class Node:
         self.cat = node_type
         self.label = label
         self.nodes_dict = defaultdict(Node)
-        self._fill_color = _default_color(self.type, theme=default_theme)
+        self._fill_color = _default_color(self.type, theme=self.model.theme)
         self.line_color = '#000000'
         self.opacity = 100
+        self.lc_opacity = 100
         self.font_color = None
         self.font_name = 'Segoe UI'
         self.font_size = 9
@@ -2170,7 +2176,7 @@ class Node:
 
         """
         if color_str is None:
-            self._fill_color = _default_color(self.type)
+            self._fill_color = _default_color(self.type, self.model.theme)
         else:
             self._fill_color = color_str
 
@@ -3251,6 +3257,7 @@ class View:
                 r = self.model.add_relationship(source=source.ref, target=target.ref, rel_type=rel_type, name=name)
         elif isinstance(rel, Relationship):
             r = rel
+            rel_type = r.type
         else:
             return None
 
@@ -3304,6 +3311,7 @@ class Model:
         self.views_dict = defaultdict(View)
         self.labels_dict = defaultdict(Node)
         self.orgs = defaultdict(list)
+        self.theme = 'aris'
 
         # with open(os.path.join(__location__, 'archimate3_Diagram.xsd'), 'r') as _f:
         #     self.schemaD = _f.read()
@@ -3338,7 +3346,7 @@ class Model:
             self.elems_dict[_e.uuid] = _e
             return _e
 
-    def add_relationship(self, rel_type='', source=None, target=None, uuid=None, name='', access_type=None,
+    def add_relationship(self, rel_type='', source=None, target=None, uuid=None, name=None, access_type=None,
                          influence_strength=None, desc=None, is_directed=None) -> Relationship:
         """
         Method to add a new Relationship between two Element objects
@@ -3913,7 +3921,8 @@ class Model:
         for e in self.nodes:
             e.fill_color = _default_color(e.type, theme)
         for r in self.conns:
-            r.line_color = _default_color('Relationship', default_theme)
+            r.line_color = _default_color('Relationship', self.default_theme)
+        self.theme = theme
 
 
 # Fetch model parameters during initialization of the module
