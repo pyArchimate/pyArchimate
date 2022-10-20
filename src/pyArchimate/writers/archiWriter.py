@@ -113,8 +113,23 @@ def archi_writer(model: Model, file_path: str):
             'source': rel.source.uuid,
             'target': rel.target.uuid
         })
+
         if rel.name is not None:
             r.set('name', rel.name)
+
+        rel :Relationship = rel
+        if rel.access_type == "Read":
+            r.set("accessType", "1")
+        elif rel.access_type == "ReadWrite":
+            r.set("accessType", "3")
+        elif rel.access_type == "Access":
+            r.set("accessType", "2")
+
+        if rel.is_directed is not None:
+            r.set("directed", str(rel.is_directed).lower())
+
+        if rel.influence_strength is not None:
+            r.set("strength", rel.influence_strength)
 
         if rel.desc is not None:
             doc = ET.SubElement(r, 'documentation')
@@ -201,6 +216,8 @@ def archi_writer(model: Model, file_path: str):
                     c.set('font', f"1|{conn.font_name}|{size}.0|0|WINDOWS|1|0|0|0|0|0|0|0|0|1|0|0|0|0|{conn.font_name}")
                 if conn.font_color is not None:
                     c.set('fontColor', conn.font_color.lower())
+                if conn.line_color is not None:
+                    c.set('lineColor', conn.line_color.lower())
                 for bp in conn.bendpoints:
                     ET.SubElement(c, 'bendpoint',
                                   startX=str(int(bp.x-conn.source.x-conn.source.w/2)),
