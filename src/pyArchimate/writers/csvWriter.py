@@ -2,7 +2,7 @@
 
 """
 
-from ..pyArchimate import *
+from .. import *
 import os
 import csv
 

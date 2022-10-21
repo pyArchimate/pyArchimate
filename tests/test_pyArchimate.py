@@ -1,14 +1,12 @@
-import os
-import sys
+import logging
 import unittest
+from src.pyArchimate import *
 
-try:
-    sys.path.insert(0, os.path.abspath('../src/pyArchimate'))
-    from pyArchimate import *
+__mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-except:
-    from src.pyArchimate.pyArchimate import *
-
+log_to_stderr()
+log_set_level(logging.INFO)
 
 def create_model():
     """
@@ -73,6 +71,7 @@ def add_some_view(m):
 
 class MyTestCase(unittest.TestCase):
     def test_new_model(self):
+        log.name = "test_new_model"
         m = create_model()
         self.assertEqual(m.name, 'New Model')
         self.assertEqual(m.desc, 'This is my new Model')
@@ -83,6 +82,7 @@ class MyTestCase(unittest.TestCase):
         m.write('out.xml')
 
     def test_orgs(self):
+        log.name = "test_orgs"
         m = Model('test')
         v = m.add(archi_type.View, 'X')
         e = m.add(archi_type.ApplicationComponent, 'Bus App')
@@ -94,6 +94,7 @@ class MyTestCase(unittest.TestCase):
         m.write('out.xml')
 
     def test_crud_prop(self):
+        log.name = "test_crud_prop"
         m = Model('New Model')
         m.prop('version', '1.0')
         m.prop('author', 'xavier')
@@ -110,6 +111,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(m2.prop('author'), 'xavier')
 
     def test_add_elem(self):
+        log.name = "test_add_elem"
         m = create_model()
         try:
             e = m.add(name="coco", concept_type='bad_type')
@@ -131,6 +133,7 @@ class MyTestCase(unittest.TestCase):
         m.read('out.xml')
 
     def test_del_elem(self):
+        log.name = "test_del_elem"
         m = create_model()
         e = m.add(concept_type="ApplicationCollaboration", name='AIS', desc="New way to create Element")
         e.delete()
@@ -140,6 +143,7 @@ class MyTestCase(unittest.TestCase):
         m.write()
 
     def test_merge_elem(self):
+        log.name = "test_merge_elem"
         m = Model('test merge elem')
         v1 = m.add(archi_type.View, 'View 1')
         v2 = m.add(archi_type.View, 'View 2')
@@ -165,6 +169,7 @@ class MyTestCase(unittest.TestCase):
         m.write('out.xml')
 
     def test_add_rel(self):
+        log.name = "test_add_rel"
         m = create_model()
         e = m.add(concept_type="ApplicationCollaboration", name='AIS', desc="It's AIS")
         e2 = m.add(concept_type="ApplicationCollaboration", name='PAN', desc="it's PAN")
@@ -181,6 +186,7 @@ class MyTestCase(unittest.TestCase):
         m.write('out.xml')
 
     def test_del_rel(self):
+        log.name = "test_del_rel"
         m = create_model()
         e = m.add(concept_type="ApplicationCollaboration", name='AIS', desc="It's AIS")
         e2 = m.add(concept_type="ApplicationCollaboration", name='PAN', desc="it's PAN")
@@ -193,6 +199,7 @@ class MyTestCase(unittest.TestCase):
         m.write()
 
     def test_add_view(self):
+        log.name = "test_add_view"
         m = create_model()
         e, e2, rel = add_some_elems(m)
         v = m.add(archi_type.View, 'New View using new method')
@@ -204,6 +211,7 @@ class MyTestCase(unittest.TestCase):
         m.write()
 
     def test_add_node(self):
+        log.name = "test_add_node"
         m = create_model()
         e, e2, rel = add_some_elems(m)
         v = m.add(archi_type.View, 'New View using new method')
@@ -221,6 +229,7 @@ class MyTestCase(unittest.TestCase):
         m.write('out.xml')
 
     def test_del_node(self):
+        log.name = "test_del_node"
         m = Model('test')
         v = m.add(archi_type.View, 'View1')
         n1 = v.get_or_create_node(elem='APP', elem_type=archi_type.ApplicationComponent,
@@ -260,6 +269,7 @@ class MyTestCase(unittest.TestCase):
         m.write('out.xml')
 
     def test_add_conn(self):
+        log.name = "test_add_conn"
         m: Model = create_model()
         e, e2, rel = add_some_elems(m)
         r: m.add_relationship = m.add_relationship(source=e, target=e2, rel_type="Flow", name="Flows to")
@@ -283,6 +293,7 @@ class MyTestCase(unittest.TestCase):
         m.write('out.xml')
 
     def test_del_view(self):
+        log.name = "test_del_view"
         m = create_model()
         e, e2, rel = add_some_elems(m)
         r = m.add_relationship(source=e, target=e2, rel_type="Flow", name="Flows to")
@@ -314,6 +325,7 @@ class MyTestCase(unittest.TestCase):
         m.write()
 
     def test_export_import(self):
+        log.name = "test_export_import"
         # create model"id-d840874664824b20a456fcbdfb6769f5"
         m = Model('TEST MODEL')
         m.prop('key', 'val')
@@ -364,6 +376,7 @@ class MyTestCase(unittest.TestCase):
         # print(xml)
 
     def test_allowed_rel(self):
+        log.name = "test_allowed_rel"
         try:
             check_valid_relationship(archi_type.Access,
                                      archi_type.ApplicationCollaboration,
@@ -387,6 +400,7 @@ class MyTestCase(unittest.TestCase):
             pass
 
     def test_node_position(self):
+        log.name = "test_node_position"
         m = Model('test')
         v = m.add(archi_type.View, 'View1')
         n1 = v.get_or_create_node(elem='E1', elem_type=archi_type.ApplicationComponent,
@@ -422,6 +436,7 @@ class MyTestCase(unittest.TestCase):
         del m
 
     def test_point_pos(self):
+        log.name = "test_point_pos"
         m = Model('Test')
         v = m.add(archi_type.View, 'View1')
         n1 = v.get_or_create_node(elem='E1', elem_type=archi_type.ApplicationComponent,
@@ -440,6 +455,7 @@ class MyTestCase(unittest.TestCase):
         m.write()
 
     def test_distribute_conn(self):
+        log.name = "test_distribute_conn"
         m = Model('test')
         v = m.add(archi_type.View, 'View1')
         n = []
@@ -491,6 +507,7 @@ class MyTestCase(unittest.TestCase):
         del m
 
     def test_styles(self):
+        log.name = "test_styles"
         m: Model = Model('test')
         v = m.add(archi_type.View, 'View1')
         n1: Node = v.get_or_create_node(elem_type=archi_type.ApplicationCollaboration,
@@ -538,6 +555,7 @@ class MyTestCase(unittest.TestCase):
         m.write('out.xml')
 
     def test_embed_props(self):
+        log.name = "test_embed_props"
         m = Model('test')
         m.prop('author', 'Xavier')
         m.prop('version', '1')
@@ -564,6 +582,7 @@ class MyTestCase(unittest.TestCase):
         del m
 
     def test_get_or_create(self):
+        log.name = "test_get_or_create"
         m = Model('test')
         v = m.add(archi_type.View, 'view1')
         n1 = v.get_or_create_node(elem='Toto', elem_type=archi_type.ApplicationComponent,
@@ -577,6 +596,7 @@ class MyTestCase(unittest.TestCase):
         del m
 
     def test_center_resize(self):
+        log.name = "test_center_resize"
         m = Model('test')
         v = m.add(archi_type.View, 'View 1')
         gr = v.get_or_create_node(elem='GROUP', elem_type=archi_type.Grouping,
@@ -588,6 +608,7 @@ class MyTestCase(unittest.TestCase):
         m.write('out.xml')
 
     def test_xml_validation(self):
+        log.name = "test_xml_validation"
         m = Model()
         v = m.add(archi_type.View, 'View 1')
         e1 = v.get_or_create_node(elem='App1', elem_type=archi_type.ApplicationComponent,
@@ -606,6 +627,7 @@ class MyTestCase(unittest.TestCase):
         # xmlschema.validate(xml, m.schemaV)
 
     def test_merge_models(self):
+        log.name = "test_merge_models"
         m1 = Model('model1')
         v = m1.add(archi_type.View, 'View 1')
         n1 = v.get_or_create_node(elem='Elem1', elem_type=archi_type.ApplicationComponent,
@@ -631,6 +653,7 @@ class MyTestCase(unittest.TestCase):
         m2.write('out.xml')
 
     def test_rel_props(self):
+        log.name = "test_rel_props"
         m = Model('test')
         e1 = m.add(archi_type.ApplicationComponent, 'C1')
         e2 = m.add(archi_type.BusinessObject, 'O')
@@ -640,6 +663,7 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(r.prop('Identifier') is not None)
 
     def test_move_node(self):
+        log.name = "test_move_node"
         m = Model('test')
         v = m.add(archi_type.View, 'view')
         n1 = v.get_or_create_node('APP1', archi_type.ApplicationComponent, 20, 20, create_elem=True, create_node=True)
@@ -653,12 +677,14 @@ class MyTestCase(unittest.TestCase):
         m.write('out.xml')
 
     def test_default_rel(self):
+        log.name = "test_default_rel"
         m = Model('test')
         e1 = m.add(archi_type.ApplicationCollaboration, "App")
         e2 = m.add(archi_type.ApplicationFunction, 'Comp')
         t = get_default_rel_type(archi_type.ApplicationComponent, archi_type.ApplicationComponent)
 
     def test_model_validation(self):
+        log.name = "test_model_validation"
         m = Model('test')
         v = m.add(archi_type.View, 'view')
         n1 = v.get_or_create_node(elem='App1', elem_type=archi_type.ApplicationCollaboration,
@@ -673,8 +699,10 @@ class MyTestCase(unittest.TestCase):
         inv_n = m.check_invalid_nodes()
         inv_c = m.check_invalid_conn()
         self.assertTrue(id in inv_n)
+        log.info(f" Orphan Node with ID {id} effectively detected")
 
     def test_new_arch_reader(self):
+        log.name = "test_new_arch_reader"
         m = Model('test')
 
         m.read('MyModel.xml')
@@ -685,6 +713,7 @@ class MyTestCase(unittest.TestCase):
 
 
     def test_rel_with_rel(self):
+        log.name = "test_rel_with_rel"
         m = Model('test')
         app1 = m.add(archi_type.ApplicationComponent, 'App1')
         app2 = m.add(archi_type.ApplicationComponent, 'App2')

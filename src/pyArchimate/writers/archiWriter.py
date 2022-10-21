@@ -1,4 +1,5 @@
-from ..pyArchimate import *
+from .. import *
+
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -20,24 +21,24 @@ def archi_writer(model: Model, file_path: str):
     </archimate:model>
     """
 
-    tree = ET.fromstring(xml)
+    tree = et.fromstring(xml)
     root = tree
     nsp_url = 'http://www.archimatetool.com/archimate'
     xsi_url = 'http://www.w3.org/2001/XMLSchema-instance'
-    xsi = ET.QName(xsi_url, 'type')
+    xsi = et.QName(xsi_url, 'type')
     ns = {'archimate': nsp_url, 'xsi': xsi}
 
     # Create basic folder structure
-    f_strategy = ET.SubElement(root, 'folder', name="Strategy", id=set_id(), type="strategy")
-    f_business = ET.SubElement(root, 'folder', name="Business", id=set_id(), type="business")
-    f_application = ET.SubElement(root, 'folder', name="Application", id=set_id(), type="application")
-    f_technology = ET.SubElement(root, 'folder', name="Technology", id=set_id(), type="technology")
-    f_motivation = ET.SubElement(root, 'folder', name="Motivation", id=set_id(), type="motivation")
-    f_implementation = ET.SubElement(root, 'folder', name="Implementation", id=set_id(),
+    f_strategy = et.SubElement(root, 'folder', name="Strategy", id=set_id(), type="strategy")
+    f_business = et.SubElement(root, 'folder', name="Business", id=set_id(), type="business")
+    f_application = et.SubElement(root, 'folder', name="Application", id=set_id(), type="application")
+    f_technology = et.SubElement(root, 'folder', name="Technology", id=set_id(), type="technology")
+    f_motivation = et.SubElement(root, 'folder', name="Motivation", id=set_id(), type="motivation")
+    f_implementation = et.SubElement(root, 'folder', name="Implementation", id=set_id(),
                                      type="implementation_migration")
-    f_other = ET.SubElement(root, 'folder', name="Other", id=set_id(), type="other")
-    f_relations = ET.SubElement(root, 'folder', name="Relations", id=set_id(), type="relations")
-    f_views = ET.SubElement(root, 'folder', name="Views", id=set_id(), type="diagrams")
+    f_other = et.SubElement(root, 'folder', name="Other", id=set_id(), type="other")
+    f_relations = et.SubElement(root, 'folder', name="Relations", id=set_id(), type="relations")
+    f_views = et.SubElement(root, 'folder', name="Views", id=set_id(), type="diagrams")
 
     folders = {
         "/Strategy": f_strategy,
@@ -56,18 +57,19 @@ def archi_writer(model: Model, file_path: str):
     def _get_folder(_folders, _folder_str):
         """
         Get or define the folder according to the folder path
-        :param folders: a dictionary of folders tag
-        :param folder_str: a folder path e.g. /Views/myview/...
+        :param _folders: a dictionary of folders tag
+        :param _folder_str: a folder path e.g. /Views/myview/...
         :return: a folder XML tag
         """
         paths = _folder_str.split('/')[1:]
         prev_f = _folders['/' + paths[0]]  # this one should already exist (e.g. 'Stragegy', 'Application'...
         cur_path = ''
+        f = None
         for p in paths:
             cur_path += '/' + p
             f = _folders[cur_path] if cur_path in _folders else None
             if f is None:
-                f = ET.SubElement(prev_f, 'folder', name=p, id=set_id())
+                f = et.SubElement(prev_f, 'folder', name=p, id=set_id())
                 _folders[cur_path] = f
             prev_f = f
         return f
@@ -86,16 +88,16 @@ def archi_writer(model: Model, file_path: str):
         else:
             folder_path = '/' + cat + '/' + elem.folder
         folder = _get_folder(folders, folder_path)
-        e = ET.SubElement(folder, 'element', {
+        e = et.SubElement(folder, 'element', {
             xsi: 'archimate:' + elem.type,
             'name': elem.name,
             'id': elem.uuid
         })
         if elem.desc is not None:
-            doc = ET.SubElement(e, 'documentation')
+            doc = et.SubElement(e, 'documentation')
             doc.text = elem.desc
         for k, v in elem.props.items():
-            ET.SubElement(e, 'property', key=k, value=v)
+            et.SubElement(e, 'property', key=k, value=v)
 
     # Import relationships
     for rel in model.relationships:
@@ -107,7 +109,7 @@ def archi_writer(model: Model, file_path: str):
         else:
             folder_path = '/' + cat + '/' + rel.folder
         folder = _get_folder(folders, folder_path)
-        r = ET.SubElement(folder, 'element', {
+        r = et.SubElement(folder, 'element', {
             xsi: 'archimate:' + rel.type + 'Relationship',
             'id': rel.uuid,
             'source': rel.source.uuid,
@@ -117,7 +119,6 @@ def archi_writer(model: Model, file_path: str):
         if rel.name is not None:
             r.set('name', rel.name)
 
-        rel :Relationship = rel
         if rel.access_type == "Read":
             r.set("accessType", "1")
         elif rel.access_type == "ReadWrite":
@@ -132,10 +133,10 @@ def archi_writer(model: Model, file_path: str):
             r.set("strength", rel.influence_strength)
 
         if rel.desc is not None:
-            doc = ET.SubElement(r, 'documentation')
+            doc = et.SubElement(r, 'documentation')
             doc.text = rel.desc
         for k, v in rel.props.items():
-            ET.SubElement(r, 'property', key=k, value=v)
+            et.SubElement(r, 'property', key=k, value=v)
 
     # Import views
     for view in model.views:
@@ -148,7 +149,7 @@ def archi_writer(model: Model, file_path: str):
             folder_path = '/' + cat + '/' + view.folder
         folder = _get_folder(folders, folder_path)
 
-        e = ET.SubElement(folder, 'element', {
+        e = et.SubElement(folder, 'element', {
             xsi: 'archimate:ArchimateDiagramModel',
             'name': view.name,
             'id': view.uuid
@@ -157,7 +158,7 @@ def archi_writer(model: Model, file_path: str):
         # Add nodes
         def _add_node(parent, parent_tag, node):
 
-            child = ET.SubElement(parent_tag, 'child', {
+            child = et.SubElement(parent_tag, 'child', {
                 xsi: 'archimate:DiagramObject',
                 'id': node.uuid,
             })
@@ -180,19 +181,19 @@ def archi_writer(model: Model, file_path: str):
                 child.set('textAlignment', "1")
             else:
                 child.set(xsi, 'archimate:Note')
-                content = ET.SubElement(child, 'content')
+                content = et.SubElement(child, 'content')
                 content.text = node.label
                 child.set('textAlignment', "1")
 
             if isinstance(parent, View):
-                ET.SubElement(child, 'bounds',
+                et.SubElement(child, 'bounds',
                               x=str(node.x),
                               y=str(node.y),
                               width=str(node.w),
                               height=str(node.h)
                               )
             else:
-                ET.SubElement(child, 'bounds',
+                et.SubElement(child, 'bounds',
                               x=str(node.x-parent.x),
                               y=str(node.y-parent.y),
                               width=str(node.w),
@@ -201,7 +202,7 @@ def archi_writer(model: Model, file_path: str):
 
             # Add related connections for which node is source
             for conn in node.out_conns():
-                c = ET.SubElement(child, 'sourceConnection', {
+                c = et.SubElement(child, 'sourceConnection', {
                     xsi: "archimate:Connection",
                     'id': conn.uuid,
                     'lineWidth': "1",
@@ -219,7 +220,7 @@ def archi_writer(model: Model, file_path: str):
                 if conn.line_color is not None:
                     c.set('lineColor', conn.line_color.lower())
                 for bp in conn.bendpoints:
-                    ET.SubElement(c, 'bendpoint',
+                    et.SubElement(c, 'bendpoint',
                                   startX=str(int(bp.x-conn.source.x-conn.source.w/2)),
                                   startY=str(int(bp.y-conn.source.y-conn.source.h/2)),
                                   endX=str(int(bp.x-conn.target.x-conn.target.w/2)),
@@ -239,21 +240,21 @@ def archi_writer(model: Model, file_path: str):
             _add_node(view, e, n)
 
         if view.desc is not None:
-            doc = ET.SubElement(e, 'documentation')
+            doc = et.SubElement(e, 'documentation')
             doc.text = view.desc
         for k, v in view.props.items():
-            ET.SubElement(e, 'property', key=k, value=v)
+            et.SubElement(e, 'property', key=k, value=v)
 
     # Add model name, documentation & properties
     root.set('name', model.name)
     if model.desc is not None:
-        doc = ET.SubElement(root, 'purpose')
+        doc = et.SubElement(root, 'purpose')
         doc.text = model.desc
     for k, v in model.props.items():
-        ET.SubElement(root, 'property', key=k, value=v)
+        et.SubElement(root, 'property', key=k, value=v)
 
     # Convert the xml structure into XML string data
-    xml_str = ET.tostring(root, encoding='UTF-8', pretty_print=True)
+    xml_str = et.tostring(root, encoding='UTF-8', pretty_print=True)
 
     # Write  result to file
     if file_path is not None:

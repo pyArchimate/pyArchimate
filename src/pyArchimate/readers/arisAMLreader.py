@@ -6,14 +6,9 @@
 *
 *
 """
-
 import ctypes
 import platform
-import lxml.etree as ElemTree
-from ..logger import *
-from ..pyArchimate import *
-log_to_stderr()
-log.name = 'aml'
+from .. import *
 
 
 def get_text_size(text, points, font):
@@ -57,14 +52,14 @@ def _id_of(_id):
     return 'id-' + _id.split('.')[1]
 
 
-def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=False):
+def aris_reader(model: Model, root, scale_x=0.3, scale_y=0.3, no_view=False):
     """
     Class to perform the parsing of ARIS AML data and to generate an Archimate q
 
     :param model:       Model to read in
     :type model:        Model
-    :param aml_data:    XML data in Aris Markup Language
-    :type aml_data:     str
+    :param root:    XML data in Aris Markup Language
+    :type root:     str
     :param scale_x:     X-Scaling factor in converting views
     :type scale_x:      float
     :param scale_y:     X-Scaling factor in converting views
@@ -472,8 +467,6 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
             print(inv_c)
 
         return model
-
-    root = ElemTree.fromstring(aml_data.encode())
 
     if root.tag != 'AML':
         log.fatal(' Input file is not an ARIS AML file - Aborting')

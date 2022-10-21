@@ -8,4 +8,4 @@ out = r'out.archimate'
 
 m = Model('test')
 m.read(f)
-m.write(out, writer=archi_writer)
+m.write(out, writer=Writers.archimate)
