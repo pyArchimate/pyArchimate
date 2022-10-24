@@ -62,6 +62,13 @@ def archimate_writer(model, file_path=None) -> str:
     # Add all Elements
     elems = et.SubElement(root, 'elements')
     for e in model.elements:
+        cat = archi_category[e.type].split('-')[0]
+        if cat == "Junction":
+            cat = "Other"
+        elif cat == "Physical":
+            cat = 'Technology'
+        if e.folder is None:
+            e.folder = '/' + cat
         elem = et.SubElement(elems, 'element', {'identifier': e.uuid, xsi: e.type})
         if e.name is None:
             e.name = e.type

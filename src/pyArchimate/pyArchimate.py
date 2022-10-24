@@ -583,6 +583,7 @@ class Element:
         self.desc = desc
         self.folder = folder
         self._properties = {}
+        self.junction_type = None
 
     def delete(self) -> None:
         """

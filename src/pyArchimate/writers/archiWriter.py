@@ -87,6 +87,8 @@ def archi_writer(model: Model, file_path: str):
         else:
             folder_path = '/' + cat + elem.folder
         folder = _get_folder(folders, folder_path)
+        if elem.type == 'Junction':
+            elem.type = elem.junction_type.capitalize() + elem.type
         e = et.SubElement(folder, 'element', {
             xsi: 'archimate:' + elem.type,
             'name': elem.name,
@@ -97,6 +99,7 @@ def archi_writer(model: Model, file_path: str):
             doc.text = elem.desc
         for k, v in elem.props.items():
             et.SubElement(e, 'property', key=k, value=v)
+
 
     # Import relationships
     for rel in model.relationships:
@@ -237,7 +240,6 @@ def archi_writer(model: Model, file_path: str):
                 targets.append(conn.uuid)
             if len(targets) > 0:
                 child.set('targetConnections', ' '.join(targets))
-
 
             for n in node.nodes:
                 _add_node(node, child, n)

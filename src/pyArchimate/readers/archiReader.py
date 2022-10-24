@@ -55,10 +55,10 @@ def archi_reader(model, root, merge_flg=False):
                     elem.desc = e.text
                 for p in e.findall('property'):
                     elem.prop(p.get('key'), p.get('value'))
+                if type_e == 'Junction':
+                    elem.junction_type = e.get('type') if e.get('type') is not None else 'and'
 
         for f in tag.findall('folder'):
-            # Manage nodes
-            # manage connections
             _get_folders_elem(f, folder)
 
     def _get_folders_rel(tag, folder_path=''):
@@ -158,8 +158,14 @@ def archi_reader(model, root, merge_flg=False):
                 if sc.get('lineWidth') is not None:
                     conn.line_width = int(sc.get('lineWidth'))
                 conn.text_position = sc.get('textPosition')
-                source_node = parent.model.nodes_dict[sc.get('source')]
-                target_node = parent.model.nodes_dict[sc.get('target')]
+                if sc.get('source') in parent.model.nodes_dict:
+                    source_node = parent.model.nodes_dict[sc.get('source')]
+                else:
+                    source_node =  parent.model.conns_dict[sc.get('source')]
+                if sc.get('target') in  parent.model.nodes_dict:
+                    target_node = parent.model.nodes_dict[sc.get('target')]
+                else:
+                    target_node = parent.model.conns_dict[sc.get('target')]
                 for bp in sc.findall('bendpoint'):
                     _x = 0
                     _y = 0
