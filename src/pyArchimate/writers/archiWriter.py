@@ -1,6 +1,5 @@
 from .. import *
 
-
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
@@ -84,9 +83,9 @@ def archi_writer(model: Model, file_path: str):
         if elem.folder is None:
             folder_path = '/' + cat
         elif '/' + cat == elem.folder[:len(cat) + 1]:
-                folder_path = elem.folder
+            folder_path = elem.folder
         else:
-            folder_path = '/' + cat + '/' + elem.folder
+            folder_path = '/' + cat + elem.folder
         folder = _get_folder(folders, folder_path)
         e = et.SubElement(folder, 'element', {
             xsi: 'archimate:' + elem.type,
@@ -105,9 +104,9 @@ def archi_writer(model: Model, file_path: str):
         if rel.folder is None:
             folder_path = '/' + cat
         elif '/' + cat == rel.folder[:len(cat) + 1]:
-                folder_path = rel.folder
+            folder_path = rel.folder
         else:
-            folder_path = '/' + cat + '/' + rel.folder
+            folder_path = '/' + cat + rel.folder
         folder = _get_folder(folders, folder_path)
         r = et.SubElement(folder, 'element', {
             xsi: 'archimate:' + rel.type + 'Relationship',
@@ -146,7 +145,7 @@ def archi_writer(model: Model, file_path: str):
         elif '/' + cat == view.folder[:len(cat) + 1]:
             folder_path = view.folder
         else:
-            folder_path = '/' + cat + '/' + view.folder
+            folder_path = '/' + cat + view.folder
         folder = _get_folder(folders, folder_path)
 
         e = et.SubElement(folder, 'element', {
@@ -172,17 +171,21 @@ def archi_writer(model: Model, file_path: str):
             if node.fill_color is not None:
                 child.set('fillColor', node.fill_color.lower())
             if str(node.opacity) != '100':
-                child.set('alpha', str(int(2.55 * int(node.opacity)+0.5)))
+                child.set('alpha', str(int(255 * int(node.opacity)/100)))
+            if str(node.lc_opacity) != '100':
+                et.SubElement(child, 'feature', name='lineAlpha', value=str(int(255 * int(node.lc_opacity)/100)))
             if node.cat == 'Element':
                 child.set('archimateElement', node.ref)
             elif node.cat == "Container":
                 child.set(xsi, 'archimate:Group')
                 child.set('name', node.label)
-                child.set('textAlignment', "1")
             else:
                 child.set(xsi, 'archimate:Note')
                 content = et.SubElement(child, 'content')
                 content.text = node.label
+            if node.text_aligment is not None:
+                child.set('textAlignment', node.text_aligment)
+            else:
                 child.set('textAlignment', "1")
 
             if isinstance(parent, View):
@@ -194,8 +197,8 @@ def archi_writer(model: Model, file_path: str):
                               )
             else:
                 et.SubElement(child, 'bounds',
-                              x=str(node.x-parent.x),
-                              y=str(node.y-parent.y),
+                              x=str(node.x - parent.x),
+                              y=str(node.y - parent.y),
                               width=str(node.w),
                               height=str(node.h)
                               )
@@ -219,12 +222,14 @@ def archi_writer(model: Model, file_path: str):
                     c.set('fontColor', conn.font_color.lower())
                 if conn.line_color is not None:
                     c.set('lineColor', conn.line_color.lower())
+                if conn.text_position is not None:
+                    c.set('textPosition', conn.text_position)
                 for bp in conn.bendpoints:
                     et.SubElement(c, 'bendpoint',
-                                  startX=str(int(bp.x-conn.source.x-conn.source.w/2)),
-                                  startY=str(int(bp.y-conn.source.y-conn.source.h/2)),
-                                  endX=str(int(bp.x-conn.target.x-conn.target.w/2)),
-                                  endY=str(int(bp.y-conn.target.y-conn.target.h/2))
+                                  startX=str(int(bp.x - conn.source.cx)),
+                                  startY=str(int(bp.y - conn.source.cy)),
+                                  endX=str(int(bp.x - conn.target.cx)),
+                                  endY=str(int(bp.y - conn.target.cy))
                                   )
             # Add the references for which the node is target
             targets = []
@@ -232,6 +237,7 @@ def archi_writer(model: Model, file_path: str):
                 targets.append(conn.uuid)
             if len(targets) > 0:
                 child.set('targetConnections', ' '.join(targets))
+
 
             for n in node.nodes:
                 _add_node(node, child, n)
@@ -266,4 +272,3 @@ def archi_writer(model: Model, file_path: str):
                 log.error(f'{__mod__}.write: Cannot write to file "{file_path}')
 
     return xml_str.decode()
-

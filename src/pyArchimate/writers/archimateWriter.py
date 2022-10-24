@@ -230,7 +230,7 @@ def archimate_writer(model, file_path=None) -> str:
                     lc.set('r', str(rgb.r))
                     lc.set('g', str(rgb.g))
                     lc.set('b', str(rgb.b))
-                    lc.set('a', '100' if n.opacity is None else str(n.lc_opacity))
+                    lc.set('a', '100' if n.opacity is None else str(int(n.lc_opacity)))
                 if n.fill_color is not None:
                     fc = et.SubElement(style, 'fillColor')
                     rgb = RGBA()
@@ -238,7 +238,7 @@ def archimate_writer(model, file_path=None) -> str:
                     fc.set('r', str(rgb.r))
                     fc.set('g', str(rgb.g))
                     fc.set('b', str(rgb.b))
-                    fc.set('a', '100' if n.opacity is None else str(n.opacity))
+                    fc.set('a', '100' if n.opacity is None else str(int(n.opacity)))
                 if n.font_name is not None:
                     ft = et.SubElement(style, 'font', attrib={
                         'name': n.font_name,

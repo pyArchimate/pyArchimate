@@ -1167,13 +1167,14 @@ class Node:
         self.cat = node_type
         self.label = label
         self.nodes_dict = defaultdict(Node)
-        self._fill_color = _default_color(self.type, theme=self.model.theme)
+        self._fill_color = None
         self.line_color = '#000000'
         self.opacity = 100
         self.lc_opacity = 100
         self.font_color = None
         self.font_name = 'Segoe UI'
         self.font_size = 9
+        self.text_aligment = "0"
 
     def delete(self, recurse=True, delete_from_model=False):
         """
@@ -2121,6 +2122,7 @@ class Connection:
         self.font_name = 'Segoe UI'
         self.font_size = 9
         self.line_width = 1
+        self.text_position = "1"
 
     def delete(self):
         """
@@ -2915,11 +2917,14 @@ class Model:
     def read(self, file_path, *args, **kwargs):
         """
         Method to read an Archimate file
+        The method detects automagically and read the following formats:
+            - ARIS AML
+            - Open Group Open Exchange File
+            - Archi Tool
 
         :param file_path:
         :type file_path: str
-        :param reader: Reader function (default = ARCHIMATE OEF format, or ARIS)
-        :type reader: function
+
 
         """
         try:
