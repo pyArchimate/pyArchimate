@@ -239,13 +239,14 @@ def archimate_writer(model, file_path=None) -> str:
                     lc.set('b', str(rgb.b))
                     lc.set('a', '100' if n.opacity is None else str(int(n.lc_opacity)))
                 if n.fill_color is not None:
-                    fc = et.SubElement(style, 'fillColor')
-                    rgb = RGBA()
-                    rgb.color = n.fill_color
-                    fc.set('r', str(rgb.r))
-                    fc.set('g', str(rgb.g))
-                    fc.set('b', str(rgb.b))
-                    fc.set('a', '100' if n.opacity is None else str(int(n.opacity)))
+                    if n.fill_color != default_color(n.type, default_theme):
+                        fc = et.SubElement(style, 'fillColor')
+                        rgb = RGBA()
+                        rgb.color = n.fill_color
+                        fc.set('r', str(rgb.r))
+                        fc.set('g', str(rgb.g))
+                        fc.set('b', str(rgb.b))
+                        fc.set('a', '100' if n.opacity is None else str(int(n.opacity)))
                 if n.font_name is not None:
                     ft = et.SubElement(style, 'font', attrib={
                         'name': n.font_name,
@@ -278,12 +279,13 @@ def archimate_writer(model, file_path=None) -> str:
                 style = et.SubElement(c_elem, 'style')
                 style.set('lineWidth', str(c.line_width))
                 if c.line_color is not None:
-                    lc = et.SubElement(style, 'lineColor')
-                    rgb = RGBA()
-                    rgb.color = c.line_color
-                    lc.set('r', str(rgb.r))
-                    lc.set('g', str(rgb.g))
-                    lc.set('b', str(rgb.b))
+                    if c.line_color != default_color(c.type, default_theme):
+                        lc = et.SubElement(style, 'lineColor')
+                        rgb = RGBA()
+                        rgb.color = c.line_color
+                        lc.set('r', str(rgb.r))
+                        lc.set('g', str(rgb.g))
+                        lc.set('b', str(rgb.b))
                 if c.font_name is not None:
                     ft = et.SubElement(style, 'font', attrib={
                         'name': c.font_name,

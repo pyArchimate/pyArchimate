@@ -45,14 +45,14 @@ def add_some_view(m):
     :type m: OpenExchange
     :return:
     """
-    v = m.add(archi_type.View, name="My View", desc="It is a view")
+    v = m.add(ArchiType.View, name="My View", desc="It is a view")
     v.prop('version', '1.1')
     e = m.find_elements(name="AIP")[0]
     e2 = m.find_elements(name="PAN")[0]
     n = v.add(ref=e.uuid, x=40, y=40, w=120, h=55)
     n2 = v.add(ref=e2.uuid, x=40, y=200, w=120, h=55)
 
-    e3 = m.add(archi_type.ApplicationFunction)
+    e3 = m.add(ArchiType.ApplicationFunction)
     m.add_elements(e3)
     n3 = n.add(n2, x=60, y=220, w=60, h=30)
     r = m.add_relationship("Assignment", e, e3)
@@ -84,10 +84,10 @@ class MyTestCase(unittest.TestCase):
     def test_orgs(self):
         log.name = "test_orgs"
         m = Model('test')
-        v = m.add(archi_type.View, 'X')
-        e = m.add(archi_type.ApplicationComponent, 'Bus App')
+        v = m.add(ArchiType.View, 'X')
+        e = m.add(ArchiType.ApplicationComponent, 'Bus App')
         e.folder = '/Application/level1/level2'
-        e2 = m.add(archi_type.ApplicationComponent, "Bus App 2")
+        e2 = m.add(ArchiType.ApplicationComponent, "Bus App 2")
         e2.folder = '/Oops'
         e2.folder = None
         e2.folder = '/Application/level1'
@@ -103,7 +103,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(m.prop('version'), '2.0')
         m.remove_prop('version')
         self.assertTrue((m.prop('version') is None))
-        m.add(concept_type=archi_type.ApplicationComponent, name='coco')
+        m.add(concept_type=ArchiType.ApplicationComponent, name='coco')
         m.write('out.xml')
         m2 = Model('another model')
         m2.read('out.xml')
@@ -145,20 +145,20 @@ class MyTestCase(unittest.TestCase):
     def test_merge_elem(self):
         log.name = "test_merge_elem"
         m = Model('test merge elem')
-        v1 = m.add(archi_type.View, 'View 1')
-        v2 = m.add(archi_type.View, 'View 2')
-        n1 = v1.get_or_create_node(elem="App A", elem_type=archi_type.ApplicationCollaboration,
+        v1 = m.add(ArchiType.View, 'View 1')
+        v2 = m.add(ArchiType.View, 'View 2')
+        n1 = v1.get_or_create_node(elem="App A", elem_type=ArchiType.ApplicationCollaboration,
                                    x=20, y=20, create_node=True, create_elem=True)
-        n2 = v1.get_or_create_node(elem="App B", elem_type=archi_type.ApplicationCollaboration,
+        n2 = v1.get_or_create_node(elem="App B", elem_type=ArchiType.ApplicationCollaboration,
                                    x=200, y=100, create_node=True, create_elem=True)
-        n3 = v1.get_or_create_node(elem="App B.1", elem_type=archi_type.ApplicationComponent,
+        n3 = v1.get_or_create_node(elem="App B.1", elem_type=ArchiType.ApplicationComponent,
                                    x=400, y=100, create_node=True, create_elem=True)
-        n4 = v1.get_or_create_node(elem="App B.2", elem_type=archi_type.ApplicationComponent,
+        n4 = v1.get_or_create_node(elem="App B.2", elem_type=ArchiType.ApplicationComponent,
                                    x=400, y=200, create_node=True, create_elem=True)
         r23 = v1.get_or_create_connection(rel=None, name="r23", source=n3, target=n2,
-                                          rel_type=archi_type.Flow, create_conn=True)
+                                          rel_type=ArchiType.Flow, create_conn=True)
         r24 = v1.get_or_create_connection(rel=None, name="r24", source=n4, target=n2,
-                                          rel_type=archi_type.Flow, create_conn=True)
+                                          rel_type=ArchiType.Flow, create_conn=True)
 
         e1 = n1.concept
         e2 = n2.concept
@@ -202,7 +202,7 @@ class MyTestCase(unittest.TestCase):
         log.name = "test_add_view"
         m = create_model()
         e, e2, rel = add_some_elems(m)
-        v = m.add(archi_type.View, 'New View using new method')
+        v = m.add(ArchiType.View, 'New View using new method')
         v.prop("version", "2.1")
         self.assertEqual(v.prop('version'), '2.1')
         self.assertEqual(v.name, "New View using new method")
@@ -214,7 +214,7 @@ class MyTestCase(unittest.TestCase):
         log.name = "test_add_node"
         m = create_model()
         e, e2, rel = add_some_elems(m)
-        v = m.add(archi_type.View, 'New View using new method')
+        v = m.add(ArchiType.View, 'New View using new method')
         n = v.add(e, 100, 150)
         self.assertEqual(n.x, 100)
         self.assertEqual(n.y, 150)
@@ -231,29 +231,29 @@ class MyTestCase(unittest.TestCase):
     def test_del_node(self):
         log.name = "test_del_node"
         m = Model('test')
-        v = m.add(archi_type.View, 'View1')
-        n1 = v.get_or_create_node(elem='APP', elem_type=archi_type.ApplicationComponent,
+        v = m.add(ArchiType.View, 'View1')
+        n1 = v.get_or_create_node(elem='APP', elem_type=ArchiType.ApplicationComponent,
                                   create_node=True, create_elem=True
                                   )
         n2 = v.get_or_create_node(
-            elem='APP B', elem_type=archi_type.ApplicationComponent,
+            elem='APP B', elem_type=ArchiType.ApplicationComponent,
             x=200, w=240, h=110,
             create_node=True, create_elem=True
         )
         n3 = n2.get_or_create_node(
-            elem='APP C', elem_type=archi_type.ApplicationComponent,
+            elem='APP C', elem_type=ArchiType.ApplicationComponent,
             create_node=True, create_elem=True
         )
         e3 = n3.concept
 
         n4 = n2.get_or_create_node(
-            elem='APP D', elem_type=archi_type.ApplicationComponent,
+            elem='APP D', elem_type=ArchiType.ApplicationComponent,
             create_node=True, create_elem=True
         )
-        r23 = m.get_or_create_relationship(rel_type=archi_type.Composition, name='', source=n2.concept,
+        r23 = m.get_or_create_relationship(rel_type=ArchiType.Composition, name='', source=n2.concept,
                                            target=n3.concept,
                                            create_rel=True)
-        r13 = n1.view.get_or_create_connection(rel=None, name='Flow to', rel_type=archi_type.Flow, source=n3,
+        r13 = n1.view.get_or_create_connection(rel=None, name='Flow to', rel_type=ArchiType.Flow, source=n3,
                                                target=n1, create_conn=True)
         n2.resize()
         e2 = n2.concept
@@ -273,7 +273,7 @@ class MyTestCase(unittest.TestCase):
         m: Model = create_model()
         e, e2, rel = add_some_elems(m)
         r: m.add_relationship = m.add_relationship(source=e, target=e2, rel_type="Flow", name="Flows to")
-        v = m.add(archi_type.View, 'New View using new method')
+        v = m.add(ArchiType.View, 'New View using new method')
         n = v.add(e, 100, 150)
         n2 = v.add(e2, 40, 50)
         c = v.add_connection(r, n, n2)
@@ -284,10 +284,10 @@ class MyTestCase(unittest.TestCase):
         c.remove_all_bendpoints()
         bps = c.get_all_bendpoints()
         self.assertEqual(len(bps), 0)
-        n3 = n2.get_or_create_node(elem='New one', elem_type=archi_type.ApplicationComponent,
+        n3 = n2.get_or_create_node(elem='New one', elem_type=ArchiType.ApplicationComponent,
                                    create_elem=True, create_node=True)
         n2.resize()
-        c3 = v.get_or_create_connection(rel=None, rel_type=archi_type.Flow, name="flows to",
+        c3 = v.get_or_create_connection(rel=None, rel_type=ArchiType.Flow, name="flows to",
                                         source=n3, target=n,
                                         create_conn=True)
         m.write('out.xml')
@@ -297,8 +297,8 @@ class MyTestCase(unittest.TestCase):
         m = create_model()
         e, e2, rel = add_some_elems(m)
         r = m.add_relationship(source=e, target=e2, rel_type="Flow", name="Flows to")
-        v = m.add(archi_type.View, 'New View using new method')
-        v2 = m.add(archi_type.View, name="View 2")
+        v = m.add(ArchiType.View, 'New View using new method')
+        v2 = m.add(ArchiType.View, name="View 2")
         n = v.add(e, 100, 150)
         n2 = v.add(e2, 40, 50)
         c = v.add_connection(r, n, n2)
@@ -352,19 +352,19 @@ class MyTestCase(unittest.TestCase):
         rx1y1 = m.add_relationship(source=x1, target=y1, rel_type='Flow')
 
         # create view
-        v = m.add(archi_type.View, name='View 1', uuid='id-958b9bef4e5445f9bfa296e3d0b9655f')
+        v = m.add(ArchiType.View, name='View 1', uuid='id-958b9bef4e5445f9bfa296e3d0b9655f')
 
         # create nodes
         n_app_x = v.add(ref=app_x, x=144, y=96, w=428, h=212, uuid='id-f098babec7384b9d8f9d4cfe89760911')
-        nx1 = n_app_x.add(ref=x1, x=204, y=158, nested_rel_type=archi_type.Assignment)
-        nx2 = n_app_x.add(ref=x2, x=384, y=158, nested_rel_type=archi_type.Assignment)
+        nx1 = n_app_x.add(ref=x1, x=204, y=158, nested_rel_type=ArchiType.Assignment)
+        nx2 = n_app_x.add(ref=x2, x=384, y=158, nested_rel_type=ArchiType.Assignment)
         ni1 = nx1.add(ref=i1, x=420, y=182)
         ni1.rx = 20
         ni1.ry = 20
         nx1.resize(recurse=False)
 
         n_app_y = v.add(ref=app_y, x=780, y=84, w=277, h=224, uuid='id-382bdf60593c4ba19a4c93947989875f')
-        ny1 = n_app_y.add(ref=y1, x=861, y=172, nested_rel_type=archi_type.Assignment)
+        ny1 = n_app_y.add(ref=y1, x=861, y=172, nested_rel_type=ArchiType.Assignment)
 
         # Create.add_connections
         cx1y1 = v.add_connection(ref=rx1y1, source=nx1, target=ny1, uuid='id-867c07640ac749c9bb111804572fc828')
@@ -378,23 +378,23 @@ class MyTestCase(unittest.TestCase):
     def test_allowed_rel(self):
         log.name = "test_allowed_rel"
         try:
-            check_valid_relationship(archi_type.Access,
-                                     archi_type.ApplicationCollaboration,
-                                     archi_type.ApplicationCollaboration)
+            check_valid_relationship(ArchiType.Access,
+                                     ArchiType.ApplicationCollaboration,
+                                     ArchiType.ApplicationCollaboration)
             self.assertFalse(True)
         except ArchimateRelationshipError:
             pass
 
         try:
-            check_valid_relationship(archi_type.Flow,
-                                     archi_type.ApplicationCollaboration,
-                                     archi_type.ApplicationCollaboration)
+            check_valid_relationship(ArchiType.Flow,
+                                     ArchiType.ApplicationCollaboration,
+                                     ArchiType.ApplicationCollaboration)
         except:
             self.assertFalse(True)
         try:
-            check_valid_relationship("archi_type.Access",
-                                     archi_type.ApplicationCollaboration,
-                                     archi_type.ApplicationCollaboration)
+            check_valid_relationship("ArchiType.Access",
+                                     ArchiType.ApplicationCollaboration,
+                                     ArchiType.ApplicationCollaboration)
             self.assertFalse(True)
         except ArchimateConceptTypeError:
             pass
@@ -402,11 +402,11 @@ class MyTestCase(unittest.TestCase):
     def test_node_position(self):
         log.name = "test_node_position"
         m = Model('test')
-        v = m.add(archi_type.View, 'View1')
-        n1 = v.get_or_create_node(elem='E1', elem_type=archi_type.ApplicationComponent,
+        v = m.add(ArchiType.View, 'View1')
+        n1 = v.get_or_create_node(elem='E1', elem_type=ArchiType.ApplicationComponent,
                                   create_elem=True, create_node=True)
 
-        n2 = v.get_or_create_node(elem='E2', elem_type=archi_type.ApplicationComponent,
+        n2 = v.get_or_create_node(elem='E2', elem_type=ArchiType.ApplicationComponent,
                                   x=200, y=0, create_elem=True, create_node=True)
         n2.x = 200
         n2.y = 0
@@ -438,8 +438,8 @@ class MyTestCase(unittest.TestCase):
     def test_point_pos(self):
         log.name = "test_point_pos"
         m = Model('Test')
-        v = m.add(archi_type.View, 'View1')
-        n1 = v.get_or_create_node(elem='E1', elem_type=archi_type.ApplicationComponent,
+        v = m.add(ArchiType.View, 'View1')
+        n1 = v.get_or_create_node(elem='E1', elem_type=ArchiType.ApplicationComponent,
                                   x=-50, y=-50, w=100, h=100,
                                   create_elem=True, create_node=True)
 
@@ -457,11 +457,11 @@ class MyTestCase(unittest.TestCase):
     def test_distribute_conn(self):
         log.name = "test_distribute_conn"
         m = Model('test')
-        v = m.add(archi_type.View, 'View1')
+        v = m.add(ArchiType.View, 'View1')
         n = []
         r = []
         # create a node in the middle of the view
-        middle_node = v.get_or_create_node(elem_type=archi_type.ApplicationCollaboration,
+        middle_node = v.get_or_create_node(elem_type=ArchiType.ApplicationCollaboration,
                                            elem='App',
                                            x=500, y=500, w=100, h=100,
                                            create_node=True, create_elem=True
@@ -474,14 +474,14 @@ class MyTestCase(unittest.TestCase):
             x = int(middle_node.cx + dist * math.sin(theta))
             y = int(middle_node.cy + dist * math.cos(theta))
 
-            node = v.get_or_create_node(elem_type=archi_type.ApplicationComponent,
+            node = v.get_or_create_node(elem_type=ArchiType.ApplicationComponent,
                                         elem='App ' + str(i),
                                         x=x, y=y,
                                         create_node=True, create_elem=True
                                         )
             node.cx = x
             node.cy = y
-            c = v.get_or_create_connection(rel=None, rel_type=archi_type.Flow,
+            c = v.get_or_create_connection(rel=None, rel_type=ArchiType.Flow,
                                            name=str(i), source=middle_node, target=node, create_conn=True)
 
             angle = 360 * theta / (2 * math.pi)
@@ -509,22 +509,22 @@ class MyTestCase(unittest.TestCase):
     def test_styles(self):
         log.name = "test_styles"
         m: Model = Model('test')
-        v = m.add(archi_type.View, 'View1')
-        n1: Node = v.get_or_create_node(elem_type=archi_type.ApplicationCollaboration,
+        v = m.add(ArchiType.View, 'View1')
+        n1: Node = v.get_or_create_node(elem_type=ArchiType.ApplicationCollaboration,
                                         elem='App 1',
                                         create_node=True, create_elem=True
                                         )
-        n2: Node = v.get_or_create_node(elem_type=archi_type.ApplicationCollaboration,
+        n2: Node = v.get_or_create_node(elem_type=ArchiType.ApplicationCollaboration,
                                         elem='App 2',
                                         x=500, w=200, h=100,
                                         create_node=True, create_elem=True
                                         )
-        n3: Node = n2.get_or_create_node(elem_type=archi_type.ApplicationCollaboration,
+        n3: Node = n2.get_or_create_node(elem_type=ArchiType.ApplicationCollaboration,
                                          elem='App 3',
                                          x=550, y=40,
                                          create_node=True, create_elem=True
                                          )
-        conn = v.get_or_create_connection(rel=None, rel_type=archi_type.Flow,
+        conn = v.get_or_create_connection(rel=None, rel_type=ArchiType.Flow,
                                           name="Flows to", source=n1, target=n2, create_conn=True)
         n1.fill_color = "#FF0000"
         self.assertEqual(n1.fill_color, "#FF0000")
@@ -559,9 +559,9 @@ class MyTestCase(unittest.TestCase):
         m = Model('test')
         m.prop('author', 'Xavier')
         m.prop('version', '1')
-        a = m.add(archi_type.ApplicationComponent, 'A')
-        b = m.add(archi_type.BusinessObject, 'B')
-        r = m.add_relationship(archi_type.Access, a, b, name='ACCESS', access_type=access_type.Write)
+        a = m.add(ArchiType.ApplicationComponent, 'A')
+        b = m.add(ArchiType.BusinessObject, 'B')
+        r = m.add_relationship(ArchiType.Access, a, b, name='ACCESS', access_type=AccessType.Write)
         m.embed_props()
         self.assertTrue('properties' in m.desc)
         self.assertTrue('properties' in r.prop('Identifier'))
@@ -570,13 +570,13 @@ class MyTestCase(unittest.TestCase):
         for p in r.props.copy():
             if p != 'Identifier':
                 r.remove_prop(p)
-        r.access_type = access_type.Read
+        r.AccessType = AccessType.Read
         self.assertTrue(m.prop('author') is None)
         m.expand_props()
         self.assertEqual(m.prop('author'), 'Xavier')
         self.assertEqual(m.prop('version'), '1')
         self.assertTrue('properties' not in m.desc)
-        self.assertTrue(r.access_type == access_type.Write)
+        self.assertTrue(r.AccessType == AccessType.Write)
         self.assertEqual(r.name, 'ACCESS')
         m.write()
         del m
@@ -584,12 +584,12 @@ class MyTestCase(unittest.TestCase):
     def test_get_or_create(self):
         log.name = "test_get_or_create"
         m = Model('test')
-        v = m.add(archi_type.View, 'view1')
-        n1 = v.get_or_create_node(elem='Toto', elem_type=archi_type.ApplicationComponent,
+        v = m.add(ArchiType.View, 'view1')
+        n1 = v.get_or_create_node(elem='Toto', elem_type=ArchiType.ApplicationComponent,
                                   create_elem=True, create_node=True)
-        n2 = n1.get_or_create_node(elem='Coco', elem_type=archi_type.ApplicationComponent,
+        n2 = n1.get_or_create_node(elem='Coco', elem_type=ArchiType.ApplicationComponent,
                                    create_elem=True, create_node=True)
-        n3 = n1.get_or_create_node(elem='Coco', elem_type=archi_type.ApplicationComponent,
+        n3 = n1.get_or_create_node(elem='Coco', elem_type=ArchiType.ApplicationComponent,
                                    create_elem=True, create_node=True)
         self.assertEqual(n3.uuid, n2.uuid)
         m.write()
@@ -598,11 +598,11 @@ class MyTestCase(unittest.TestCase):
     def test_center_resize(self):
         log.name = "test_center_resize"
         m = Model('test')
-        v = m.add(archi_type.View, 'View 1')
-        gr = v.get_or_create_node(elem='GROUP', elem_type=archi_type.Grouping,
+        v = m.add(ArchiType.View, 'View 1')
+        gr = v.get_or_create_node(elem='GROUP', elem_type=ArchiType.Grouping,
                                   create_elem=True, create_node=True)
         for i in range(0, 10):
-            gr.get_or_create_node(elem='#' + str(i), elem_type=archi_type.ApplicationComponent,
+            gr.get_or_create_node(elem='#' + str(i), elem_type=ArchiType.ApplicationComponent,
                                   create_elem=True, create_node=True)
         gr.resize(max_in_row=4, justify='center', gap_x=70, recurse=False)
         m.write('out.xml')
@@ -610,12 +610,12 @@ class MyTestCase(unittest.TestCase):
     def test_xml_validation(self):
         log.name = "test_xml_validation"
         m = Model()
-        v = m.add(archi_type.View, 'View 1')
-        e1 = v.get_or_create_node(elem='App1', elem_type=archi_type.ApplicationComponent,
+        v = m.add(ArchiType.View, 'View 1')
+        e1 = v.get_or_create_node(elem='App1', elem_type=ArchiType.ApplicationComponent,
                                   create_node=True, create_elem=True)
-        e2 = v.get_or_create_node(elem='App2 ', elem_type=archi_type.ApplicationComponent,
+        e2 = v.get_or_create_node(elem='App2 ', elem_type=ArchiType.ApplicationComponent,
                                   create_node=True, create_elem=True)
-        r = v.get_or_create_connection(rel=None, rel_type=archi_type.Flow, name=None,
+        r = v.get_or_create_connection(rel=None, rel_type=ArchiType.Flow, name=None,
                                        source=e1, target=e2, create_conn=True)
         e1.fill_color = '#FF0000'
         e2.fill_color = '#00FF00'
@@ -629,23 +629,23 @@ class MyTestCase(unittest.TestCase):
     def test_merge_models(self):
         log.name = "test_merge_models"
         m1 = Model('model1')
-        v = m1.add(archi_type.View, 'View 1')
-        n1 = v.get_or_create_node(elem='Elem1', elem_type=archi_type.ApplicationComponent,
+        v = m1.add(ArchiType.View, 'View 1')
+        n1 = v.get_or_create_node(elem='Elem1', elem_type=ArchiType.ApplicationComponent,
                                   x=100, y=100, w=240, h=110,
                                   create_node=True, create_elem=True)
-        n11 = n1.get_or_create_node(elem='Elem1.1', elem_type=archi_type.ApplicationComponent,
+        n11 = n1.get_or_create_node(elem='Elem1.1', elem_type=ArchiType.ApplicationComponent,
                                     x=120, y=120, w=120, h=55,
                                     create_node=True, create_elem=True,
-                                    nested_rel_type=archi_type.Specialization)
+                                    nested_rel_type=ArchiType.Specialization)
         n1.resize(keep_kids_size=False, recurse=False)
         m1.write('out1.xml')
 
         m2 = Model('model1')
-        v2 = m2.add(archi_type.View, 'View 2')
-        n2 = v2.get_or_create_node(elem='Elem2', elem_type=archi_type.ApplicationComponent,
+        v2 = m2.add(ArchiType.View, 'View 2')
+        n2 = v2.get_or_create_node(elem='Elem2', elem_type=ArchiType.ApplicationComponent,
                                    x=100, y=100, w=240, h=110,
                                    create_node=True, create_elem=True)
-        n21 = n2.get_or_create_node(elem='Elem2.1', elem_type=archi_type.ApplicationComponent,
+        n21 = n2.get_or_create_node(elem='Elem2.1', elem_type=ArchiType.ApplicationComponent,
                                     create_node=True, create_elem=True)
         n2.resize(keep_kids_size=False)
 
@@ -655,9 +655,9 @@ class MyTestCase(unittest.TestCase):
     def test_rel_props(self):
         log.name = "test_rel_props"
         m = Model('test')
-        e1 = m.add(archi_type.ApplicationComponent, 'C1')
-        e2 = m.add(archi_type.BusinessObject, 'O')
-        r = m.add_relationship(archi_type.Access, e1, e2, access_type='Read')
+        e1 = m.add(ArchiType.ApplicationComponent, 'C1')
+        e2 = m.add(ArchiType.BusinessObject, 'O')
+        r = m.add_relationship(ArchiType.Access, e1, e2, access_type=AccessType.Read)
         m.embed_props()
         m.write('out.xml')
         self.assertTrue(r.prop('Identifier') is not None)
@@ -665,10 +665,10 @@ class MyTestCase(unittest.TestCase):
     def test_move_node(self):
         log.name = "test_move_node"
         m = Model('test')
-        v = m.add(archi_type.View, 'view')
-        n1 = v.get_or_create_node('APP1', archi_type.ApplicationComponent, 20, 20, create_elem=True, create_node=True)
-        n2 = v.get_or_create_node('APP2', archi_type.ApplicationComponent, 100, 100, create_elem=True, create_node=True)
-        m.add_relationship(archi_type.Aggregation, n1.concept, n2.concept)
+        v = m.add(ArchiType.View, 'view')
+        n1 = v.get_or_create_node('APP1', ArchiType.ApplicationComponent, 20, 20, create_elem=True, create_node=True)
+        n2 = v.get_or_create_node('APP2', ArchiType.ApplicationComponent, 100, 100, create_elem=True, create_node=True)
+        m.add_relationship(ArchiType.Aggregation, n1.concept, n2.concept)
         n2.move(n1)
         n1.resize()
         self.assertTrue(n2.parent.uuid == n1.uuid)
@@ -679,19 +679,19 @@ class MyTestCase(unittest.TestCase):
     def test_default_rel(self):
         log.name = "test_default_rel"
         m = Model('test')
-        e1 = m.add(archi_type.ApplicationCollaboration, "App")
-        e2 = m.add(archi_type.ApplicationFunction, 'Comp')
-        t = get_default_rel_type(archi_type.ApplicationComponent, archi_type.ApplicationComponent)
+        e1 = m.add(ArchiType.ApplicationCollaboration, "App")
+        e2 = m.add(ArchiType.ApplicationFunction, 'Comp')
+        t = get_default_rel_type(ArchiType.ApplicationComponent, ArchiType.ApplicationComponent)
 
     def test_model_validation(self):
         log.name = "test_model_validation"
         m = Model('test')
-        v = m.add(archi_type.View, 'view')
-        n1 = v.get_or_create_node(elem='App1', elem_type=archi_type.ApplicationCollaboration,
+        v = m.add(ArchiType.View, 'view')
+        n1 = v.get_or_create_node(elem='App1', elem_type=ArchiType.ApplicationCollaboration,
                                   create_node=True, create_elem=True)
-        n2 = v.get_or_create_node(elem='App2', elem_type=archi_type.ApplicationCollaboration,
+        n2 = v.get_or_create_node(elem='App2', elem_type=ArchiType.ApplicationCollaboration,
                                   create_node=True, create_elem=True)
-        c = v.get_or_create_connection(rel_type=archi_type.Flow, source=n1, target=n2)
+        c = v.get_or_create_connection(rel_type=ArchiType.Flow, source=n1, target=n2)
         m.check_invalid_nodes()
         m.check_invalid_conn()
         id = n1.uuid
@@ -715,11 +715,11 @@ class MyTestCase(unittest.TestCase):
     def test_rel_with_rel(self):
         log.name = "test_rel_with_rel"
         m = Model('test')
-        app1 = m.add(archi_type.ApplicationComponent, 'App1')
-        app2 = m.add(archi_type.ApplicationComponent, 'App2')
-        bo = m.add(archi_type.BusinessObject, 'O')
-        r = m.add_relationship(archi_type.Flow, app1, app2, access_type='Read')
-        rr = m.add_relationship(archi_type.Association, bo, r)
+        app1 = m.add(ArchiType.ApplicationComponent, 'App1')
+        app2 = m.add(ArchiType.ApplicationComponent, 'App2')
+        bo = m.add(ArchiType.BusinessObject, 'O')
+        r = m.add_relationship(ArchiType.Flow, app1, app2, access_type='Read')
+        rr = m.add_relationship(ArchiType.Association, bo, r)
         m.write('out.xml')
 
 

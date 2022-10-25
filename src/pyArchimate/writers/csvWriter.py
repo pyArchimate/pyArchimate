@@ -62,4 +62,3 @@ def csv_writer(model: Model, file_path: str):
     convert_relationships()
     convert_properties()
 
-

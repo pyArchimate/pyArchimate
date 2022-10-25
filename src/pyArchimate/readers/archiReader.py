@@ -77,7 +77,7 @@ def archi_reader(model, root, merge_flg=False):
                 elem.folder = folder
                 at = e.get('accessType')
                 if at is not None:
-                    elem.access_type = access_type.Read if at == "1" else access_type.ReadWrite if at == "3" else access_type.Access
+                    elem.access_type = AccessType.Read if at == "1" else AccessType.ReadWrite if at == "3" else AccessType.Access
                 if e.get('directed') is not None:
                     elem.is_directed = e.get('directed') == "true"
                 if e.get('strength') is not None:
@@ -187,7 +187,7 @@ def archi_reader(model, root, merge_flg=False):
         for e in tag.findall('element'):
             type_e = e.get(xsi + 'type').split(':')[1]
             if 'ArchimateDiagramModel' in type_e:
-                elem = model.add(concept_type=archi_type.View, name=e.get('name'), uuid=e.get('id'))
+                elem = model.add(concept_type=ArchiType.View, name=e.get('name'), uuid=e.get('id'))
                 elem.folder = folder
                 doc = e.find('documentation')
                 if doc is not None:

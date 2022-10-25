@@ -405,7 +405,7 @@ def aris_reader(model: Model, root, scale_x=0.3, scale_y=0.3, no_view=False):
                     key = attr.attrib['AttrDef.Type']
                     val = ''
                     for v in attr.iter('PlainText'):
-                        val += v.get('TextValue') +'\n'
+                        val += v.get('TextValue') + '\n'
                     if key == 'AT_NAME':
                         o_name = val
                     elif key == 'AT_DESC':
@@ -414,7 +414,7 @@ def aris_reader(model: Model, root, scale_x=0.3, scale_y=0.3, no_view=False):
                         props[key] = val
 
                 # model.name = view_name
-                view = model.add(concept_type=archi_type.View,
+                view = model.add(concept_type=ArchiType.View,
                                  name=o_name, uuid=view_id, desc=o_desc)
                 log.info('Parsing & adding nodes')
                 view.folder = folder

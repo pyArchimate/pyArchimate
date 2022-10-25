@@ -9,7 +9,6 @@ Version 0.1
 
 from . import *
 
-
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
@@ -38,145 +37,135 @@ class AccessType:
     Enumeration of Access Relationship types
     """
 
-    def __init__(self):
-        self.Access = 'Access'
-        self.Read = 'Read'
-        self.Write = 'Write'
-        self.ReadWrite = 'ReadWrite'
+    Access = 'Access'
+    Read = 'Read'
+    Write = 'Write'
+    ReadWrite = 'ReadWrite'
 
 
 class TextPosition:
-    def __init__(self):
-        self.Top = "0"
-        self.Middle = "1"
-        self.Bottom = "2"
+    Top = "0"
+    Middle = "1"
+    Bottom = "2"
 
 
 class TextAlignment:
-    def __init__(self):
-        self.Left = "0"
-        self.Center = "1"
-        self.Right = "2"
+    Left = "0"
+    Center = "1"
+    Right = "2"
 
-
-access_type = AccessType()
 
 influenceStrength = {'+': '+', '++': '++', '-': '-', '--': '--', '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
                      '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': '10'},
 
 
-class ArchiTypes:
+class ArchiType:
     """
     Enumeration of Archimate Element & Relationships types
     """
+    # Business Layer
+    BusinessActor = "BusinessActor"
+    BusinessRole = "BusinessRole"
+    BusinessCollaboration = "BusinessCollaboration"
+    BusinessInterface = "BusinessInterface"
+    BusinessProcess = "BusinessProcess"
+    BusinessFunction = "BusinessFunction"
+    BusinessInteraction = "BusinessInteraction"
+    BusinessEvent = "BusinessEvent"
+    BusinessService = "BusinessService"
+    BusinessObject = "BusinessObject"
+    Contract = "Contract"
+    Representation = "Representation"
+    Product = "Product"
 
-    def __init__(self):
-        # Business Layer
-        self.BusinessActor = "BusinessActor"
-        self.BusinessRole = "BusinessRole"
-        self.BusinessCollaboration = "BusinessCollaboration"
-        self.BusinessInterface = "BusinessInterface"
-        self.BusinessProcess = "BusinessProcess"
-        self.BusinessFunction = "BusinessFunction"
-        self.BusinessInteraction = "BusinessInteraction"
-        self.BusinessEvent = "BusinessEvent"
-        self.BusinessService = "BusinessService"
-        self.BusinessObject = "BusinessObject"
-        self.Contract = "Contract"
-        self.Representation = "Representation"
-        self.Product = "Product"
+    # Application Layer
 
-        # Application Layer
+    ApplicationComponent = "ApplicationComponent"
+    ApplicationInterface = "ApplicationInterface"
+    ApplicationCollaboration = "ApplicationCollaboration"
+    ApplicationFunction = "ApplicationFunction"
+    ApplicationProcess = "ApplicationProcess"
+    ApplicationEvent = "ApplicationEvent"
+    ApplicationService = "ApplicationService"
+    DataObject = "DataObject"
 
-        self.ApplicationComponent = "ApplicationComponent"
-        self.ApplicationInterface = "ApplicationInterface"
-        self.ApplicationCollaboration = "ApplicationCollaboration"
-        self.ApplicationFunction = "ApplicationFunction"
-        self.ApplicationProcess = "ApplicationProcess"
-        self.ApplicationEvent = "ApplicationEvent"
-        self.ApplicationService = "ApplicationService"
-        self.DataObject = "DataObject"
+    # Technology layer
 
-        # Technology layer
+    Node = "Node"
+    Device = "Device"
+    Path = "Path"
+    CommunicationNetwork = "CommunicationNetwork"
+    SystemSoftware = "SystemSoftware"
+    TechnologyCollaboration = "TechnologyCollaboration"
+    TechnologyInterface = "TechnologyInterface"
+    TechnologyFunction = "TechnologyFunction"
+    TechnologyProcess = "TechnologyProcess"
+    TechnologyInteraction = "TechnologyInteraction"
+    TechnologyEvent = "TechnologyEvent"
+    TechnologyService = "TechnologyService"
+    Artifact = "Artifact"
 
-        self.Node = "Node"
-        self.Device = "Device"
-        self.Path = "Path"
-        self.CommunicationNetwork = "CommunicationNetwork"
-        self.SystemSoftware = "SystemSoftware"
-        self.TechnologyCollaboration = "TechnologyCollaboration"
-        self.TechnologyInterface = "TechnologyInterface"
-        self.TechnologyFunction = "TechnologyFunction"
-        self.TechnologyProcess = "TechnologyProcess"
-        self.TechnologyInteraction = "TechnologyInteraction"
-        self.TechnologyEvent = "TechnologyEvent"
-        self.TechnologyService = "TechnologyService"
-        self.Artifact = "Artifact"
+    # Physical elements
 
-        # Physical elements
+    Equipment = "Equipment"
+    Facility = "Facility"
+    DistributionNetwork = "DistributionNetwork"
+    Material = "Material"
 
-        self.Equipment = "Equipment"
-        self.Facility = "Facility"
-        self.DistributionNetwork = "DistributionNetwork"
-        self.Material = "Material"
+    #  Motivation
 
-        #  Motivation
+    Stakeholder = "Stakeholder"
+    Driver = "Driver"
+    Assessment = "Assessment"
+    Goal = "Goal"
+    Outcome = "Outcome"
+    Principle = "Principle"
+    Requirement = "Requirement"
+    Constraint = "Constraint"
+    Meaning = "Meaning"
+    Value = "Value"
 
-        self.Stakeholder = "Stakeholder"
-        self.Driver = "Driver"
-        self.Assessment = "Assessment"
-        self.Goal = "Goal"
-        self.Outcome = "Outcome"
-        self.Principle = "Principle"
-        self.Requirement = "Requirement"
-        self.Constraint = "Constraint"
-        self.Meaning = "Meaning"
-        self.Value = "Value"
+    # Strategy
 
-        # Strategy
+    Resource = "Resource"
+    Capability = "Capability"
+    CourseOfAction = "CourseOfAction"
 
-        self.Resource = "Resource"
-        self.Capability = "Capability"
-        self.CourseOfAction = "CourseOfAction"
+    # Implementation & Migration
 
-        # Implementation & Migration
+    WorkPackage = "WorkPackage"
+    Deliverable = "Deliverable"
+    ImplementationEvent = "ImplementationEvent"
+    Plateau = "Plateau"
+    Gap = "Gap"
 
-        self.WorkPackage = "WorkPackage"
-        self.Deliverable = "Deliverable"
-        self.ImplementationEvent = "ImplementationEvent"
-        self.Plateau = "Plateau"
-        self.Gap = "Gap"
+    # Other
 
-        # Other
+    Grouping = "Grouping"
+    Location = "Location"
 
-        self.Grouping = "Grouping"
-        self.Location = "Location"
+    # Junction
 
-        # Junction
+    Junction = "Junction"
+    OrJunction = "OrJunction"
+    AndJunction = "AndJunction"
 
-        self.Junction = "Junction"
-        self.OrJunction = "OrJunction"
-        self.AndJunction = "AndJunction"
+    # Relationships
 
-        # Relationships
+    Association = "Association"
+    Assignment = "Assignment"
+    Realization = "Realization"
+    Serving = "Serving"
+    Composition = "Composition"
+    Aggregation = "Aggregation"
+    Access = "Access"
+    Influence = "Influence"
+    Triggering = "Triggering"
+    Flow = "Flow"
+    Specialization = "Specialization"
 
-        self.Association = "Association"
-        self.Assignment = "Assignment"
-        self.Realization = "Realization"
-        self.Serving = "Serving"
-        self.Composition = "Composition"
-        self.Aggregation = "Aggregation"
-        self.Access = "Access"
-        self.Influence = "Influence"
-        self.Triggering = "Triggering"
-        self.Flow = "Flow"
-        self.Specialization = "Specialization"
-
-        # Special
-        self.View = "View"
-
-
-archi_type = ArchiTypes()
+    # Special
+    View = "View"
 
 
 class ArchimateRelationshipError(Exception):
@@ -234,76 +223,7 @@ def set_id(uuid=None):
     return _id
 
 
-class DictMergeError(Exception):
-    """
-    An empty class used to return specific class of error in dictionary merge
-    """
-    pass
-
-
-def _data_merge(a: dict, b: dict) -> dict:
-    """
-    Deep (recursive)  merge of b into a and return merged result
-    NOTE: tuples and arbitrary objects are not handled as it is totally ambiguous what should happen
-
-    :param a: the dictionary object to merge into
-    :param b:  the dictionary object to merge into a
-    :raises DictMergeError: Merge error
-    :return: an object
-
-    """
-    key = None
-
-    try:
-        if a is None or isinstance(a, str) or isinstance(a, int) or isinstance(a, float):
-            # border case for first run or if a is a primitive
-            a = b
-        elif isinstance(a, list):
-            # lists can be only appended
-            if isinstance(b, list):
-                # merge lists
-                a.extend(b)
-            else:
-                # append to list
-                a.append(b)
-        elif isinstance(a, dict):
-            # dicts must be merged
-            if isinstance(b, dict):
-                for key in b:
-                    if key in a:
-                        a[key] = _data_merge(a[key], b[key])
-                    else:
-                        a[key] = b[key]
-            else:
-                raise DictMergeError('Cannot merge non-dict "%s" into dict "%s"' % (b, a))
-        else:
-            raise DictMergeError('NOT IMPLEMENTED "%s" into "%s"' % (b, a))
-    except TypeError as _err:
-        raise DictMergeError('TypeError "%s" in key "%s" when merging "%s" into "%s"' % (_err, key, b, a))
-    return a
-
-
-def get_str_attrib(key, d: dict) -> str:
-    """
-    Function to read a string attribute, skipping the language definition if any
-
-    Used in converting from xml data structure by the model reader
-
-    :param key: the name of the attribute
-    :param d:   the object containing the attribute
-    :return:    text tag
-
-    """
-    if d is not None and key in d:
-        if '#text' in d[key]:
-            return d[key]['#text']
-        elif '@xml:lang' not in d[key]:
-            return d[key]
-        else:
-            return ''
-
-
-def _default_color(elem_type, theme=default_theme) -> str:
+def default_color(elem_type, theme=default_theme) -> str:
     """
     Get the default color of a Node, according to its type
 
@@ -315,10 +235,10 @@ def _default_color(elem_type, theme=default_theme) -> str:
     """
     default_colors = {'strategy': '#F5DEAA', 'business': "#FFFFB5", 'application': "#B5FFFF", 'technology': "#C9E7B7",
                       'physical': "#C9E7B7", 'migration': "#FFE0E0", 'motivation': "#CCCCFF",
-                      'relationship': "#0000FF", 'other': '#FFFFFF', 'junction': '#000000'}
+                      'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
     aris_colors = {'strategy': '#D38300', 'business': "#F5C800", 'application': "#00A0FF", 'technology': "#6BA50E",
                    'physical': "#6BA50E", 'migration': "#FFE0E0", 'motivation': "#F099FF",
-                   'relationship': "#0000FF", 'other': '#FFFFFF', 'junction': '#000000'}
+                   'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
     if elem_type in archi_category:
         cat = archi_category[elem_type].lower()
 
@@ -348,11 +268,11 @@ def check_valid_relationship(rel_type, source_type, target_type):
     :raises ArchimateRelationshipError: Exception raised on invalid relationship between the source and target parent elements
 
     """
-    if not hasattr(archi_type, rel_type) or archi_category[rel_type] != 'Relationship':
+    if not hasattr(ArchiType, rel_type) or archi_category[rel_type] != 'Relationship':
         raise ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'")
-    if not hasattr(archi_type, source_type):  # or archi_category[source_type] == 'Relationship':
+    if not hasattr(ArchiType, source_type):  # or archi_category[source_type] == 'Relationship':
         raise ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'")
-    if not hasattr(archi_type, target_type):  # or archi_category[target_type] == 'Relationship':
+    if not hasattr(ArchiType, target_type):  # or archi_category[target_type] == 'Relationship':
         raise ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
     if archi_category[source_type] == 'Relationship':
         source_type = "Relationship"
@@ -380,9 +300,9 @@ def get_default_rel_type(source_type, target_type):
     :return: default relationship type
     :rtype: str
     """
-    if not hasattr(archi_type, source_type) or archi_category[source_type] == 'Relationship':
+    if not hasattr(ArchiType, source_type) or archi_category[source_type] == 'Relationship':
         raise ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'")
-    if not hasattr(archi_type, target_type) or archi_category[target_type] == 'Relationship':
+    if not hasattr(ArchiType, target_type) or archi_category[target_type] == 'Relationship':
         raise ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
     rels = allowed_relationships[source_type][target_type]
     if len(rels) > 0:
@@ -581,7 +501,7 @@ class Element:
     def __init__(self, elem_type=None, name=None, uuid=None, desc=None, folder=None, parent=None):
 
         # Check validity of arguments according to Archimate standard
-        if elem_type is None or not hasattr(archi_type, elem_type):
+        if elem_type is None or not hasattr(ArchiType, elem_type):
             raise ArchimateConceptTypeError(f"Invalid Element type '{elem_type}'")
         if archi_category[elem_type] == 'Relationship':
             raise ArchimateConceptTypeError(f"Element type '{elem_type}' cannot be a Relationship type")
@@ -725,7 +645,7 @@ class Element:
             if elem.desc != self.desc:
                 self.desc += '\n----\n' + elem.desc
 
-        # Re-assign othe element related node references to the this element (merge target)
+        # Re-assign othe element related node references to this element (merge target)
         for n in [self.model.nodes_dict[x] for x in self.model.nodes_dict if self.model.nodes_dict[x].ref == elem.uuid]:
             n.ref = self.uuid
 
@@ -1057,7 +977,7 @@ class Relationship:
 
         """
         self._access_type = val
-        if val is not None and self.type == archi_type.Access:
+        if val is not None and self.type == ArchiType.Access:
             self._access_type = val
 
     @property
@@ -1079,7 +999,7 @@ class Relationship:
         :type val: bool
 
         """
-        if val is not None and self.type == archi_type.Association:
+        if val is not None and self.type == ArchiType.Association:
             self._is_directed = "true" if val else "false"
 
     @property
@@ -1102,7 +1022,7 @@ class Relationship:
         :type strength: str
 
         """
-        if strength is not None and self.type == archi_type.Influence:
+        if strength is not None and self.type == ArchiType.Influence:
             self._influence_strength = str(strength)
 
     def remove_folder(self):
@@ -1183,7 +1103,7 @@ class Node:
         self.label = label
         self.nodes_dict = defaultdict(Node)
         self._fill_color = None
-        self.line_color = '#000000'
+        self.line_color = None
         self.opacity = 100
         self.lc_opacity = 100
         self.font_color = None
@@ -1226,7 +1146,7 @@ class Node:
             e = self.concept
             e.delete()
 
-    def add(self, ref=None, x=0, y=0, w=120, h=55, style=None, uuid=None, node_type='Element',
+    def add(self, ref=None, x=0, y=0, w=120, h=55, uuid=None, node_type='Element',
             label=None, nested_rel_type=None):
         """
         Method to create a node embedded in this node
@@ -1241,8 +1161,6 @@ class Node:
         :type w: int
         :param h:       height of the node
         :type h: int
-        :param style:   Style object with fill_color and font attributes
-        :type style: Style
         :param uuid:    Node identifier
         :type uuid: str
         :param node_type: Node type ['Element' | 'Label' | 'Container']
@@ -1270,7 +1188,7 @@ class Node:
         #         if len(rels) == 0:
         #             # same types => Specialization
         #             if embed_rel_type == self.type:
-        #                 self.model.add_relationship(embed_rel_type=archi_type.Specialization, source=n.concept, target=self.concept)
+        #                 self.model.add_relationship(embed_rel_type=ArchiTypes.Specialization, source=n.concept, target=self.concept)
         #             elif embed_rel_type is None:
         #                 # take the default one
         #                 embed_rel_type = get_default_rel_type(n.type, self.type)
@@ -1601,7 +1519,7 @@ class Node:
 
         """
         if color_str is None:
-            self._fill_color = _default_color(self.type, self.model.theme)
+            self._fill_color = default_color(self.type, self.model.theme)
         else:
             self._fill_color = color_str
 
@@ -1734,6 +1652,8 @@ class Node:
         :type justify: str
         :param recurse:             recurse  & resize embedded nodes
         :type recurse: bool
+        :param sort:                one of 'asc' | 'desc' | 'none'
+        :type sort: str
 
         """
         max_w = w
@@ -1745,10 +1665,10 @@ class Node:
 
         n = 1
         row = 0
-        if 'asc' in sort.lower()  :
-            nodes = sorted(self.nodes, key=lambda x: x.w*x.h, reverse=False)
-        elif 'desc' in sort.lower()  :
-            nodes = sorted(self.nodes, key=lambda x: x.w*x.h, reverse=True)
+        if 'asc' in sort.lower():
+            nodes = sorted(self.nodes, key=lambda x: x.w * x.h, reverse=False)
+        elif 'desc' in sort.lower():
+            nodes = sorted(self.nodes, key=lambda x: x.w * x.h, reverse=True)
         else:
             nodes = self.nodes
 
@@ -2141,7 +2061,7 @@ class Connection:
         self.bendpoints = list()
 
         # set default style
-        self.line_color = "#000000"
+        self.line_color = None
         self.font_color = None
         self.font_name = 'Segoe UI'
         self.font_size = 9
@@ -2497,7 +2417,7 @@ class View:
         self.model.nodes_dict[n.uuid] = n
         return n
 
-    def add_connection(self, ref=None, source=None, target=None, style=None, uuid=None):
+    def add_connection(self, ref=None, source=None, target=None, uuid=None):
         """
         Method to add a connection between two nodes in this view
 
@@ -2507,8 +2427,6 @@ class View:
         :type source: [str|Node]
         :param target:          Target node of the connection
         :type target: [str|Node]
-        :param style:           connection's style (line width, line color, font)
-        :type style: Style
         :param uuid:            Identifier of the connection
         :type uuid: str
         :return:                Connection object
@@ -2771,7 +2689,7 @@ class Model:
         :return:                Element or View class object
         :rtype: Element|View
         """
-        if concept_type == archi_type.View:
+        if concept_type == ArchiType.View:
             v = View(name, uuid, desc, folder, parent=self)
             self.views_dict[v.uuid] = v
             return v
@@ -2988,9 +2906,11 @@ class Model:
         root = et.fromstring(_data.encode())
         from .readers.archimateReader import archimate_reader
         from .readers.archiReader import archi_reader
-        from .readers.arisAMLreader import aris_reader
+        # self from .readers.arisAMLreader import aris_reader
         if 'opengroup' in root.tag:
             archimate_reader(self, root, merge_flg=True)
+        elif 'archimate' in root.tag:
+            archi_reader(self, merge_flg=True)
         else:
             log.error('Unsupported input format for merge operation')
 
@@ -3185,7 +3105,7 @@ class Model:
             if len(v) > 0:
                 v = v[0]
             elif create_view:
-                v = self.add(archi_type.View, view)
+                v = self.add(ArchiType.View, view)
             else:
                 v = None
         else:
@@ -3210,25 +3130,24 @@ class Model:
 
             """
             if isinstance(o, Relationship):
-                # For relationship we embed all properties in a single one called 'Identifier'
+                # For relationship, we embed all properties in a single one called 'Identifier'
                 # to cope with ARIS limitation
                 p = {}
                 if o.name is not None:
                     p['name'] = o.name
                 if o.desc is not None:
                     p['documentation'] = o.desc
-                if o.type == archi_type.Association:
+                if o.type == ArchiType.Association:
                     p['isDirected'] = o.is_directed
-                elif o.type == archi_type.Access:
+                elif o.type == ArchiType.Access:
                     p['access'] = o.access_type
-                elif o.type == archi_type.Influence:
+                elif o.type == ArchiType.Influence:
                     p['influence_strength'] = o.influence_strength
                 for key, val in o.props.items():
                     p[key] = val
                 for x in o.props.copy():
                     o.remove_prop(x)
                 o.prop('Identifier', 'properties = ' + json.dumps(p))
-
 
             elif o.props != {} and (isinstance(o, View) or isinstance(o, Element) or isinstance(o, Model)):
                 # Else we embed properties art the end of the description field
@@ -3268,11 +3187,11 @@ class Model:
                         if p is not None:
                             o.name = p['name'] if 'name' in p else None
                             o.desc = p['documentation'] if 'documentation' in p else None
-                            if 'isDirected' in p and o.type == archi_type.Association:
+                            if 'isDirected' in p and o.type == ArchiType.Association:
                                 o.is_directed = True if str(p['isDirected']).lower() == 'true' else False
-                            if 'access' in p and o.type == archi_type.Access:
+                            if 'access' in p and o.type == ArchiType.Access:
                                 o.access_type = p['access']
-                            if 'influence_strength' in p and o.type == archi_type.Influence:
+                            if 'influence_strength' in p and o.type == ArchiType.Influence:
                                 o.influence_strength = p['influence_strength']
                             for key, val in p.items():
                                 o.prop(key, val)
@@ -3367,15 +3286,15 @@ class Model:
                 invalids.append(id)
                 try:
                     log.error(f'Orphan node "{n.name}" with id {n.uuid} refers to unknown {n.ref}')
-                except ArchimateConceptTypeError as exc:
+                except ArchimateConceptTypeError:
                     log.error(f'Orphan node with id {id}')
         return invalids
 
     def default_theme(self, theme=default_theme):
         for e in self.nodes:
-            e.fill_color = _default_color(e.type, theme)
+            e.fill_color = default_color(e.type, theme)
         for r in self.conns:
-            r.line_color = _default_color('Relationship', self.default_theme)
+            r.line_color = default_color('Relationship', self.default_theme)
         self.theme = theme
 
 

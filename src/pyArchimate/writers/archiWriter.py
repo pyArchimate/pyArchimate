@@ -98,7 +98,7 @@ def archi_writer(model: Model, file_path: str):
             doc = et.SubElement(e, 'documentation')
             doc.text = elem.desc
         for k, v in elem.props.items():
-            et.SubElement(e, 'property', key=k, value=v)
+            et.SubElement(e, 'property', key=k, value=str(v))
 
 
     # Import relationships
@@ -138,7 +138,7 @@ def archi_writer(model: Model, file_path: str):
             doc = et.SubElement(r, 'documentation')
             doc.text = rel.desc
         for k, v in rel.props.items():
-            et.SubElement(r, 'property', key=k, value=v)
+            et.SubElement(r, 'property', key=k, value=str(v))
 
     # Import views
     for view in model.views:
@@ -251,7 +251,7 @@ def archi_writer(model: Model, file_path: str):
             doc = et.SubElement(e, 'documentation')
             doc.text = view.desc
         for k, v in view.props.items():
-            et.SubElement(e, 'property', key=k, value=v)
+            et.SubElement(e, 'property', key=k, value=str(v))
 
     # Add model name, documentation & properties
     root.set('name', model.name)
@@ -259,7 +259,7 @@ def archi_writer(model: Model, file_path: str):
         doc = et.SubElement(root, 'purpose')
         doc.text = model.desc
     for k, v in model.props.items():
-        et.SubElement(root, 'property', key=k, value=v)
+        et.SubElement(root, 'property', key=k, value=str(v))
 
     # Convert the xml structure into XML string data
     xml_str = et.tostring(root, encoding='UTF-8', pretty_print=True)
