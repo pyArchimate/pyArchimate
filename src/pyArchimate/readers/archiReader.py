@@ -140,6 +140,7 @@ def archi_reader(model, root, merge_flg=False):
                 if ft.get('name') == 'lineAlpha':
                     node.lc_opacity = 100 * int(ft.get('value')) / 255
             node.text_alignment = child.get('textAlignment')
+            node.text_position = child.get('textPosition')
             # recurse on child's children
             _get_node(child, node)
 

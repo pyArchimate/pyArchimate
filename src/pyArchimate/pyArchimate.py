@@ -45,6 +45,20 @@ class AccessType:
         self.ReadWrite = 'ReadWrite'
 
 
+class TextPosition:
+    def __init__(self):
+        self.Top = "0"
+        self.Middle = "1"
+        self.Bottom = "2"
+
+
+class TextAlignment:
+    def __init__(self):
+        self.Left = "0"
+        self.Center = "1"
+        self.Right = "2"
+
+
 access_type = AccessType()
 
 influenceStrength = {'+': '+', '++': '++', '-': '-', '--': '--', '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
@@ -1175,7 +1189,8 @@ class Node:
         self.font_color = None
         self.font_name = 'Segoe UI'
         self.font_size = 9
-        self.text_aligment = "0"
+        self.text_aligment = None
+        self.text_position = None
 
     def delete(self, recurse=True, delete_from_model=False):
         """
@@ -1729,7 +1744,7 @@ class Node:
 
         n = 1
         row = 0
-        for _e in self.nodes:
+        for _e in sorted(self.nodes, key=lambda x: x.w*x.h, reverse=False)::
             if recurse:
                 _e.resize(max_in_row=3, keep_kids_size=True, w=120, h=55, gap_x=20, gap_y=20)
             min_w = _e.w if (w == -1 or keep_kids_size) else w
@@ -2379,7 +2394,7 @@ class Connection:
             bp2 = Point(bp1.x, t_xy.y - self.target.h * (0.5 - weight2))
         else:
             bp1 = Point(s_xy.x - self.source.w * (0.5 - weight_x),
-                        s_xy.y + dy / 2 - self.source.h * (0.5 - weight_y) / 2)
+                        s_xy.y + dy * weight_y)
             bp2 = Point(t_xy.x - self.target.w * (0.5 - weight2), bp1.y)
 
         if not self.source.is_inside(point=bp1) \
