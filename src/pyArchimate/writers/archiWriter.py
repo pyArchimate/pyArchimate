@@ -188,8 +188,8 @@ def archi_writer(model: Model, file_path: str):
                 content.text = node.label
             if node.text_aligment is not None:
                 child.set('textAlignment', node.text_aligment)
-            else:
-                child.set('textAlignment', "1")
+            if node.text_position is not None:
+                child.set('textPosition', node.text_position)
 
             if isinstance(parent, View):
                 et.SubElement(child, 'bounds',
