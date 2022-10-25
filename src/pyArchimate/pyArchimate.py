@@ -1713,7 +1713,8 @@ class Node:
         return (self.cx - self.w / 2 < x < self.cx + self.w / 2
                 and self.cy - self.h / 2 < y < self.cy + self.h / 2)
 
-    def resize(self, max_in_row=3, keep_kids_size=True, w=120, h=55, gap_x=20, gap_y=20, justify='left', recurse=True):
+    def resize(self, max_in_row=3, keep_kids_size=True, w=120, h=55, gap_x=20, gap_y=20, justify='left',
+               recurse=True, sort="asc"):
         """
         Resize the node, to fit all embedded nodes, recursively
 
@@ -1744,7 +1745,14 @@ class Node:
 
         n = 1
         row = 0
-        for _e in sorted(self.nodes, key=lambda x: x.w*x.h, reverse=False):
+        if 'asc' in sort.lower()  :
+            nodes = sorted(self.nodes, key=lambda x: x.w*x.h, reverse=False)
+        elif 'desc' in sort.lower()  :
+            nodes = sorted(self.nodes, key=lambda x: x.w*x.h, reverse=True)
+        else:
+            nodes = self.nodes
+
+        for _e in nodes:
             if recurse:
                 _e.resize(max_in_row=3, keep_kids_size=True, w=120, h=55, gap_x=20, gap_y=20)
             min_w = _e.w if (w == -1 or keep_kids_size) else w
