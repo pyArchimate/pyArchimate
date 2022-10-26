@@ -234,14 +234,13 @@ class MyTestCase(unittest.TestCase):
         log.name = "test_del_node"
         m = Model('test')
         v = m.add(ArchiType.View, 'View1')
+        v2 = m.add(ArchiType.View, 'View2')
         n1 = v.get_or_create_node(elem='APP', elem_type=ArchiType.ApplicationComponent,
-                                  create_node=True, create_elem=True
-                                  )
+                                  create_node=True, create_elem=True)
         n2 = v.get_or_create_node(
             elem='APP B', elem_type=ArchiType.ApplicationComponent,
             x=200, w=240, h=110,
-            create_node=True, create_elem=True
-        )
+            create_node=True, create_elem=True)
         n3 = n2.get_or_create_node(
             elem='APP C', elem_type=ArchiType.ApplicationComponent,
             create_node=True, create_elem=True
@@ -250,8 +249,7 @@ class MyTestCase(unittest.TestCase):
 
         n4 = n2.get_or_create_node(
             elem='APP D', elem_type=ArchiType.ApplicationComponent,
-            create_node=True, create_elem=True
-        )
+            create_node=True, create_elem=True)
         r23 = m.get_or_create_relationship(rel_type=ArchiType.Composition, name='', source=n2.concept,
                                            target=n3.concept,
                                            create_rel=True)
@@ -259,7 +257,13 @@ class MyTestCase(unittest.TestCase):
                                                target=n1, create_conn=True)
         n2.resize()
         e2 = n2.concept
-        n2.delete(delete_from_model=True)
+        n2b = v2.get_or_create_node(
+            elem=e2, x=200, w=240, h=110, create_node=True)
+        n3b = n2b.get_or_create_node(elem=n3.concept, create_node=True)
+        n4b = n2b.get_or_create_node(elem=n4.concept, create_node=True)
+        v2.get_or_create_connection(source=n3b, target=n4b, rel_type=ArchiType.Flow, create_conn=True)
+        n2b.resize()
+        n2.delete(delete_from_model=True, recurse=False)
         # e2.delete()
         # n3.delete(delete_from_model=True)
         e4 = n4.concept
@@ -268,7 +272,7 @@ class MyTestCase(unittest.TestCase):
         # self.assertTrue(e4.uuid not in m.elems_dict)
         m.check_invalid_conn()
 
-        m.write('out.xml')
+        m.write('out.archimate', writer=Writers.archi)
 
     def test_add_conn(self):
         log.name = "test_add_conn"
@@ -730,9 +734,14 @@ class MyTestCase(unittest.TestCase):
                                  create_node=True)
         b = v.get_or_create_node(elem='B', elem_type=ArchiType.ApplicationComponent, x=20, y=20, create_elem=True,
                                  create_node=True)
-        c = v.get_or_create_connection(rel_type=ArchiType.Flow, target=a, source=b, name='I am flowing to', create_conn=True)
+        c = v.get_or_create_connection(rel_type=ArchiType.Flow, target=a, source=b, name='I am flowing to',
+                                       create_conn=True)
         c.show_label = False
         m.write('out.archimate', writer=Writers.archi)
+        m2 = Model('test2')
+        m2.read('out.archimate')
+        for c in m.conns:
+            self.assertFalse(c.show_label)
 
 
 if __name__ == '__main__':

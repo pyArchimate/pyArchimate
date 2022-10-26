@@ -1135,15 +1135,18 @@ class Node:
                 n.delete()
             else:
                 # re-assign nodes ref to this node's parent
-                n.parent = self.parent
-                self.parent.nodes_dict[n._ref] = n
+                n.move(self.parent)
 
         if self._uuid in self.parent.nodes_dict:
             del self.parent.nodes_dict[self._uuid]
         del self.model.nodes_dict[self._uuid]
 
         if delete_from_model:
+            # find if nodes in other views are referring to this element
             e = self.concept
+            related_nodes = [n for n in self.model.nodes if n.ref == e.uuid]
+            for n in related_nodes:
+                n.delete(recurse)
             e.delete()
 
     def add(self, ref=None, x=0, y=0, w=120, h=55, uuid=None, node_type='Element',
@@ -1545,7 +1548,7 @@ class Node:
 
     @property
     def nodes(self):
-        return self.nodes_dict.values()
+        return list(self.nodes_dict.values())
 
     def getnodes(self, elem_type=None):
         """
@@ -1556,7 +1559,7 @@ class Node:
 
         """
         if elem_type is None:
-            return self.nodes_dict.values()
+            return list(self.nodes_dict.values())
         else:
             return [x for x in self.nodes_dict.values() if x.type == elem_type]
 
@@ -2201,6 +2204,18 @@ class Connection:
         if new_ref in self.model.nodes_dict:
             self._target = new_ref
 
+    @property
+    def access_type(self):
+        return self.concept.access_type
+
+    @property
+    def is_directed(self):
+        return self.concept.is_directed
+
+    @property
+    def influence_strength(self):
+        return self.concept.influence_strength
+
     def add_bendpoint(self, *bendpoints: Point):
         """
         Method to add one or multiple bendpoints x-y Point to shape the connection
@@ -2500,11 +2515,11 @@ class View:
 
     @property
     def nodes(self):
-        return self.nodes_dict.values()
+        return list(self.nodes_dict.values())
 
     @property
     def conns(self):
-        return self.conns_dict.values()
+        return list(self.conns_dict.values())
 
     def remove_folder(self):
         """
@@ -2796,7 +2811,7 @@ class Model:
         :return: [View]
         :rtype: list
         """
-        return self.views_dict.values()
+        return list(self.views_dict.values())
 
     @property
     def elements(self):
@@ -2806,7 +2821,7 @@ class Model:
         :return: [Element]
         :rtype: list
         """
-        return self.elems_dict.values()
+        return list(self.elems_dict.values())
 
     @property
     def relationships(self):
@@ -2816,7 +2831,7 @@ class Model:
         :return: [Relationship]
         :rtype: list
          """
-        return self.rels_dict.values()
+        return list(self.rels_dict.values())
 
     @property
     def nodes(self):
@@ -2825,7 +2840,7 @@ class Model:
         :return: Nodes
         :rtype: list(Node)
         """
-        return self.nodes_dict.values()
+        return list(self.nodes_dict.values())
 
     @property
     def conns(self):
@@ -2834,7 +2849,7 @@ class Model:
         :return: Connections
         :rtype: list(Connection)
         """
-        return self.conns_dict.values()
+        return list(self.conns_dict.values())
 
     def write(self, file_path=None, writer=Writers.archimate):
         """
@@ -2944,7 +2959,7 @@ class Model:
         elif elem_type and name:
             return [e for e in self.elems_dict.values() if e.name == name and e.type == elem_type]
         else:
-            return self.elems_dict.values()
+            return list(self.elems_dict.values())
 
     def find_relationships(self, rel_type, elem, direction='both'):
         """

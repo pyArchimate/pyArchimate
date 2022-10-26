@@ -78,6 +78,8 @@ def archi_reader(model, root, merge_flg=False):
                 at = e.get('accessType')
                 if at is not None:
                     elem.access_type = AccessType.Read if at == "1" else AccessType.ReadWrite if at == "3" else AccessType.Access
+                else:
+                    elem.access_type = AccessType.Write
                 if e.get('directed') is not None:
                     elem.is_directed = e.get('directed') == "true"
                 if e.get('strength') is not None:
