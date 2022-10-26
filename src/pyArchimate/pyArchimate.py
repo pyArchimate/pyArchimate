@@ -2926,7 +2926,7 @@ class Model:
         if 'opengroup' in root.tag:
             archimate_reader(self, root, merge_flg=True)
         elif 'archimate' in root.tag:
-            archi_reader(self, merge_flg=True)
+            archi_reader(self, root, merge_flg=True)
         else:
             log.error('Unsupported input format for merge operation')
 

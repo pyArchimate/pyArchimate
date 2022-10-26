@@ -70,7 +70,10 @@ def archi_reader(model, root, merge_flg=False):
                 type_e = type_e[:-len("Relationship")]
                 elem = None
                 if merge_flg:
-                    elem = model.get_or_create_relationship(rel_type=type_e, name=e.get('name'))
+                    src = model.elems_dict[e.get('source')]
+                    dst = model.elems_dict[e.get('target')]
+                    elem = model.get_or_create_relationship(rel_type=type_e, name=e.get('name'),
+                                                            source=src, target=dst)
                 if elem is None:
                     elem = model.add_relationship(rel_type=type_e, name=e.get('name'), uuid=e.get('id'),
                                                   source=e.get('source'), target=e.get('target'))
