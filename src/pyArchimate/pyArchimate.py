@@ -2067,6 +2067,7 @@ class Connection:
         self.font_size = 9
         self.line_width = 1
         self.text_position = "1"
+        self.show_label = True
 
     def delete(self):
         """

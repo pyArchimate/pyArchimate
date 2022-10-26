@@ -167,6 +167,10 @@ def archi_reader(model, root, merge_flg=False):
                     target_node = parent.model.nodes_dict[sc.get('target')]
                 else:
                     target_node = parent.model.conns_dict[sc.get('target')]
+                ft = sc.find('feature')
+                if ft is not None:
+                    if ft.get('name') == 'nameVisible':
+                        conn.show_label = bool(ft.get('value'))
                 for bp in sc.findall('bendpoint'):
                     _x = 0
                     _y = 0

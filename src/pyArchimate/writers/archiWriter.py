@@ -4,6 +4,7 @@ __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
+
 def archi_writer(model: Model, file_path: str):
     """
     The CSV writer generates three output files:
@@ -99,7 +100,6 @@ def archi_writer(model: Model, file_path: str):
             doc.text = elem.desc
         for k, v in elem.props.items():
             et.SubElement(e, 'property', key=k, value=str(v))
-
 
     # Import relationships
     for rel in model.relationships:
@@ -216,6 +216,8 @@ def archi_writer(model: Model, file_path: str):
                     'target': conn.target.uuid,
                     'archimateRelationship': conn.ref
                 })
+                if not conn.show_label:
+                    et.SubElement(c, 'feature', name='nameVisible', value=str(conn.show_label).lower())
                 if conn.line_width is not None:
                     c.set('lineWidth', str(conn.line_width))
                 if conn.font_name is not None and conn.font_size is not None:

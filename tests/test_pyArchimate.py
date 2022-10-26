@@ -1,12 +1,14 @@
 import logging
 import unittest
-from src.pyArchimate import *
+
+from src.pyArchimate.pyArchimate import *
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 log_to_stderr()
 log_set_level(logging.INFO)
+
 
 def create_model():
     """
@@ -711,7 +713,6 @@ class MyTestCase(unittest.TestCase):
         from src.pyArchimate.writers.csvWriter import csv_writer
         m.write('out.csv', writer=csv_writer)
 
-
     def test_rel_with_rel(self):
         log.name = "test_rel_with_rel"
         m = Model('test')
@@ -721,6 +722,17 @@ class MyTestCase(unittest.TestCase):
         r = m.add_relationship(ArchiType.Flow, app1, app2, access_type='Read')
         rr = m.add_relationship(ArchiType.Association, bo, r)
         m.write('out.xml')
+
+    def test_conn_labels(self):
+        m = Model('test')
+        v = m.add(ArchiType.View, 'view')
+        a = v.get_or_create_node(elem='A', elem_type=ArchiType.ApplicationComponent, x=20, y=20, create_elem=True,
+                                 create_node=True)
+        b = v.get_or_create_node(elem='B', elem_type=ArchiType.ApplicationComponent, x=20, y=20, create_elem=True,
+                                 create_node=True)
+        c = v.get_or_create_connection(rel_type=ArchiType.Flow, target=a, source=b, name='I am flowing to', create_conn=True)
+        c.show_label = False
+        m.write('out.archimate', writer=Writers.archi)
 
 
 if __name__ == '__main__':
