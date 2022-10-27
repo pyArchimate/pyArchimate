@@ -75,8 +75,6 @@ def archimate_reader(model, root, merge_flg=False):
                     _id = pdef_merge_map[p.get('propertyDefinitionRef')]
                     val = p.find(ns + 'value').text
                     elem.prop(model.pdefs[_id], val)
-            # Add the element in the dictionary
-            # model.elems_dict[elem.uuid] = elem
 
     # get relationships
     if root.find(ns + 'relationships') is not None:

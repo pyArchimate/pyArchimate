@@ -177,6 +177,8 @@ def archi_writer(model: Model, file_path: str):
                 child.set('alpha', str(int(255 * int(node.opacity)/100)))
             if str(node.lc_opacity) != '100':
                 et.SubElement(child, 'feature', name='lineAlpha', value=str(int(255 * int(node.lc_opacity)/100)))
+            if node.label_expression is not None:
+                et.SubElement(child, 'feature', name='labelExpression', value=node.label_expression)
             if node.cat == 'Element':
                 child.set('archimateElement', node.ref)
             elif node.cat == "Container":
@@ -186,8 +188,8 @@ def archi_writer(model: Model, file_path: str):
                 child.set(xsi, 'archimate:Note')
                 content = et.SubElement(child, 'content')
                 content.text = node.label
-            if node.text_aligment is not None:
-                child.set('textAlignment', node.text_aligment)
+            if node.text_alignment is not None:
+                child.set('textAlignment', node.text_alignment)
             if node.text_position is not None:
                 child.set('textPosition', node.text_position)
 

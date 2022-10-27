@@ -69,14 +69,21 @@ def archi_reader(model, root, merge_flg=False):
             if 'Relationship' in type_e:
                 type_e = type_e[:-len("Relationship")]
                 elem = None
-                if merge_flg:
+                if e.get('source') in model.elems_dict and e.get('target') in model.elems_dict:
                     src = model.elems_dict[e.get('source')]
                     dst = model.elems_dict[e.get('target')]
-                    elem = model.get_or_create_relationship(rel_type=type_e, name=e.get('name'),
-                                                            source=src, target=dst)
-                if elem is None:
-                    elem = model.add_relationship(rel_type=type_e, name=e.get('name'), uuid=e.get('id'),
-                                                  source=e.get('source'), target=e.get('target'))
+                    if merge_flg:
+                        elem = model.get_or_create_relationship(rel_type=type_e, name=e.get('name'),
+                                                                source=src, target=dst)
+                    if elem is None:
+                        elem = model.add_relationship(rel_type=type_e, name=e.get('name'), uuid=e.get('id'),
+                                                          source=src, target=dst)
+                    if elem is None:
+                        log.warning(f'Invalid {src.uuid} or {dst.uuid}')
+                        continue
+                else:
+                    log.warning(f"Invalid {e.get('source')} or {e.get('target')}")
+                    continue
                 elem.folder = folder
                 at = e.get('accessType')
                 if at is not None:
@@ -106,15 +113,19 @@ def archi_reader(model, root, merge_flg=False):
         for child in tag.findall('child'):
             # Get a child and its attributes
             node = None
-            type = child.get(xsi + 'type').split(':')[1]
-            if type == 'DiagramObject':
+            type_n = child.get(xsi + 'type').split(':')[1]
+            if type_n == 'DiagramObject':
                 node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'))
-            elif type == 'Group':
+            elif type_n == 'Group':
                 node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'), node_type='Container',
                                   label=child.get('name'))
-            elif type == 'Note':
+            elif type_n == 'Note':
                 node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'), node_type='Label')
                 node.label = child.find('content').text if child.find('content') is not None else None
+
+            if node is None:
+                log.warning(f"Invalid node {child.get('id')} with type {type_n}")
+                continue
 
             bounds = child.find('bounds')
             if isinstance(parent, Node):
@@ -124,8 +135,11 @@ def archi_reader(model, root, merge_flg=False):
                 x = 0
                 y = 0
 
-            node.x = int(bounds.get('x')) + x
-            node.y = int(bounds.get('y')) + y
+            nx = 0 if bounds.get('x') is None else bounds.get('x')
+            ny = 0 if bounds.get('y') is None else bounds.get('y')
+
+            node.x = int(nx) + x
+            node.y = int(ny) + y
             node.w = int(bounds.get('width'))
             node.h = int(bounds.get('height'))
             if child.get('font') is not None:
@@ -140,19 +154,31 @@ def archi_reader(model, root, merge_flg=False):
                 node.fill_color = child.get('fillColor')
             if child.get('alpha') is not None:
                 node.opacity = 100 * int(child.get('alpha')) / 255
-            ft = child.find('feature')
-            if ft is not None:
-                if ft.get('name') == 'lineAlpha':
+            fts = child.findall('feature')
+            for ft in fts:
+                ft_name = ft.get('name')
+                if ft_name == 'lineAlpha':
                     node.lc_opacity = 100 * int(ft.get('value')) / 255
+                elif ft_name == 'labelExpression':
+                    node.label_expression = ft.get('value')
+
             node.text_alignment = child.get('textAlignment')
             node.text_position = child.get('textPosition')
+
+            if node.concept.prop('label') is not None:
+                node.label_expression = node.concept.prop('label')
+
             # recurse on child's children
             _get_node(child, node)
 
     def _get_connection(tag, parent: View):
         for child in tag.findall('child'):
             for sc in child.findall('sourceConnection'):
-                conn = parent.add_connection(ref=sc.get('archimateRelationship'),
+                ref = sc.get('archimateRelationship')
+                if ref not in parent.model.rels_dict:
+                    log.warning(f'Unknown connection ref {ref}')
+                    continue
+                conn = parent.add_connection(ref=ref,
                                              source=sc.get('source'),
                                              target=sc.get('target'),
                                              uuid=sc.get('id')
@@ -167,8 +193,8 @@ def archi_reader(model, root, merge_flg=False):
                 if sc.get('source') in parent.model.nodes_dict:
                     source_node = parent.model.nodes_dict[sc.get('source')]
                 else:
-                    source_node =  parent.model.conns_dict[sc.get('source')]
-                if sc.get('target') in  parent.model.nodes_dict:
+                    source_node = parent.model.conns_dict[sc.get('source')]
+                if sc.get('target') in parent.model.nodes_dict:
                     target_node = parent.model.nodes_dict[sc.get('target')]
                 else:
                     target_node = parent.model.conns_dict[sc.get('target')]

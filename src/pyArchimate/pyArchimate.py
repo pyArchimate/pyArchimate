@@ -1109,8 +1109,9 @@ class Node:
         self.font_color = None
         self.font_name = 'Segoe UI'
         self.font_size = 9
-        self.text_aligment = None
+        self.text_alignment = None
         self.text_position = None
+        self.label_expression = None
 
     def delete(self, recurse=True, delete_from_model=False):
         """
@@ -2912,7 +2913,7 @@ class Model:
         :type file_path: str
 
         """
-        # TODO implement the merge function in all readers
+
         try:
             with open(file_path, 'r', encoding='utf-8') as fd:
                 _data = fd.read()

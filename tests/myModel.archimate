@@ -74,6 +74,7 @@
                        font="1|Segoe UI|9.0|0|WINDOWS|1|0|0|0|0|0|0|0|0|1|0|0|0|0|Segoe UI" fontColor="#000000"
                        lineColor="#5c5c5c" fillColor="#B5FFFF" archimateElement="id-abfd9d83db174c9eb400abe5d029492d">
                     <bounds x="672" y="156" width="194" height="158"/>
+                    <feature name="labelExpression" value="${name}\n${documentation}&#xD;&#xA;"/>
                     <sourceConnection xsi:type="archimate:Connection" id="id-14bf767499ef40c2999936745596fca5"
                                       source="id-1a00114ddb6b4874807429b60e984c15"
                                       target="id-d8db0c54e481487e990ccb8d4736282a"
