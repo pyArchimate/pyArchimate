@@ -1,6 +1,6 @@
 import logging
 import unittest
-
+from src.pyArchimate.logger import *
 from src.pyArchimate.pyArchimate import *
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
@@ -582,7 +582,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(m.prop('author'), 'Xavier')
         self.assertEqual(m.prop('version'), '1')
         self.assertTrue('properties' not in m.desc)
-        self.assertTrue(r.AccessType == AccessType.Write)
+        self.assertTrue(r.AccessType == AccessType.Read)
         self.assertEqual(r.name, 'ACCESS')
         m.write()
         del m

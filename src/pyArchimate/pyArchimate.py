@@ -6,8 +6,20 @@ Date: Aug 2022
 Version 0.1
 
 """
+import lxml.etree as et
+from enum import Enum
+import sys
+import os
+import json
+import math
+import re
+from collections import defaultdict
+from uuid import uuid4, UUID
+import oyaml as yaml
+from enum import Enum
+from os import path
+from .logger import log, log_set_level, log_to_stderr, log_to_file
 
-from . import *
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -2877,9 +2889,9 @@ class Model:
         """
         Method to read an Archimate file
         The method detects automagically and read the following formats:
-            - ARIS AML
-            - Open Group Open Exchange File
-            - Archi Tool
+        - ARIS AML
+        - Open Group Open Exchange File
+        - Archi Tool
 
         :param file_path:
         :type file_path: str
