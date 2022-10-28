@@ -44,10 +44,9 @@ def archi_reader(model, root, merge_flg=False):
         for e in tag.findall('element'):
             type_e = e.get(xsi + 'type').split(':')[1]
             if 'Relationship' not in type_e and 'ArchimateDiagramModel' not in type_e:
-                elem = None
-                if merge_flg:
-                    elem = model.get_or_create_element(elem_type=type_e, elem=e.get('name'))
-                if elem is None:
+                if merge_flg and e.get('id') in model.elems_dict:
+                    elem = model.elems_dict[e.get('id')]
+                else:
                     elem = model.add(concept_type=type_e, name=e.get('name'), uuid=e.get('id'))
                 elem.folder = folder
                 doc = e.find('documentation')
@@ -69,21 +68,28 @@ def archi_reader(model, root, merge_flg=False):
             if 'Relationship' in type_e:
                 type_e = type_e[:-len("Relationship")]
                 elem = None
-                if e.get('source') in model.elems_dict and e.get('target') in model.elems_dict:
-                    src = model.elems_dict[e.get('source')]
-                    dst = model.elems_dict[e.get('target')]
-                    if merge_flg:
-                        elem = model.get_or_create_relationship(rel_type=type_e, name=e.get('name'),
-                                                                source=src, target=dst)
-                    if elem is None:
+                if (e.get('source') not in model.elems_dict and e.get('source') not in model.rels_dict) \
+                        or (e.get('target') not in model.elems_dict and e.get('target') not in model.rels_dict):
+                    log.warning(f"Invalid {e.get('source')} or {e.get('target')}")
+                    continue
+                else:
+                    if e.get('source') in model.elems_dict:
+                        src = model.elems_dict[e.get('source')]
+                    else:
+                        src = model.rels_dict[e.get('source')]
+                    if e.get('target') in model.elems_dict:
+                        dst = model.elems_dict[e.get('target')]
+                    else:
+                        dst = model.rels_dict[e.get('target')]
+                    
+                    if merge_flg and e.get('id') in model.rels_dict:
+                        elem = model.rels_dict(e.get('id'))
+                    else:
                         elem = model.add_relationship(rel_type=type_e, name=e.get('name'), uuid=e.get('id'),
-                                                          source=src, target=dst)
+                                                      source=src, target=dst)
                     if elem is None:
                         log.warning(f'Invalid {src.uuid} or {dst.uuid}')
                         continue
-                else:
-                    log.warning(f"Invalid {e.get('source')} or {e.get('target')}")
-                    continue
                 elem.folder = folder
                 at = e.get('accessType')
                 if at is not None:
@@ -116,9 +122,13 @@ def archi_reader(model, root, merge_flg=False):
             type_n = child.get(xsi + 'type').split(':')[1]
             if type_n == 'DiagramObject':
                 node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'))
+                if node.concept.prop('label') is not None:
+                    node.label_expression = node.concept.prop('label')
             elif type_n == 'Group':
                 node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'), node_type='Container',
                                   label=child.get('name'))
+                if child.get('borderType'):
+                    node.border_type = child.get('borderType')
             elif type_n == 'Note':
                 node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'), node_type='Label')
                 node.label = child.find('content').text if child.find('content') is not None else None
@@ -164,9 +174,6 @@ def archi_reader(model, root, merge_flg=False):
 
             node.text_alignment = child.get('textAlignment')
             node.text_position = child.get('textPosition')
-
-            if node.concept.prop('label') is not None:
-                node.label_expression = node.concept.prop('label')
 
             # recurse on child's children
             _get_node(child, node)

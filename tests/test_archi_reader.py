@@ -2,7 +2,7 @@
 from src.pyArchimate.pyArchimate import *
 
 
-f = r'C:\Users\XY56RE\PycharmProjects\createModel\createModel\config\LAA.archimate'
+f = r'C:\Users\XY56RE\PycharmProjects\createModel\createModel\output\CADP MF App Decomm.archimate'
 out = r'out.archimate'
 
 

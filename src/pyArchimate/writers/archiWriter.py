@@ -192,7 +192,10 @@ def archi_writer(model: Model, file_path: str):
                 child.set('textAlignment', node.text_alignment)
             if node.text_position is not None:
                 child.set('textPosition', node.text_position)
-
+            if node.border_type is not None:
+                child.set('borderType', node.border_type)
+            if node.type == ArchiType.Grouping and node.fill_color is None:
+                node.opacity = 0
             if isinstance(parent, View):
                 et.SubElement(child, 'bounds',
                               x=str(node.x),

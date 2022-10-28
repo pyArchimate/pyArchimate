@@ -67,6 +67,12 @@ class TextAlignment:
     Right = "2"
 
 
+class BorderType:
+    DogEar = "0"
+    Rectangle = "1"
+    NoBorder = "2"
+
+
 influenceStrength = {'+': '+', '++': '++', '-': '-', '--': '--', '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
                      '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': '10'},
 
@@ -1124,6 +1130,7 @@ class Node:
         self.text_alignment = None
         self.text_position = None
         self.label_expression = None
+        self.border_type = None
 
     def delete(self, recurse=True, delete_from_model=False):
         """
@@ -2312,17 +2319,20 @@ class Connection:
         t_cx = self.target.cx
         t_cy = self.target.cy
 
+        dx = s_cx - t_cx
+        dy = s_cy - t_cy
+
         if direction == 0 and not self.source.is_inside(t_cx, s_cy) \
                 and not self.target.is_inside(t_cx, s_cy):
             self.add_bendpoint(
-                Point(t_cx + self.target.w * (0.5 - weight_x), s_cy + self.source.h * (0.5 - weight_y))
+                Point(t_cx + dx * weight_x, s_cy + self.source.h * (0.5 - weight_y))
             )
 
         elif direction == 1 and not self.source.is_inside(s_cx, t_cy) \
                 and not self.target.is_inside(s_cx, t_cy):
             self.add_bendpoint(
                 Point(s_cx - self.source.w * (0.5 - weight_x),
-                      t_cy + self.target.h * (0.5 - weight_y))
+                      t_cy + dy *weight_y)
             )
 
     def s_shape(self, direction=0, weight_x=0.5, weight_y=0.5, weight2=0.5):

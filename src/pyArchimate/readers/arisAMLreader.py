@@ -294,7 +294,7 @@ def aris_reader(model: Model, root, scale_x=0.3, scale_y=0.3, no_view=False):
             raise ArchimateConceptTypeError("'view' is not an instance of class 'View'")
 
         for objs in grp.findall('GfxObj'):
-            for o in objs.find('RoundedRectangle'):
+            for o in objs.findall('RoundedRectangle'):
                 pos = o.find('Position')
                 size = o.find('Size')
                 brush = o.find('Brush')
