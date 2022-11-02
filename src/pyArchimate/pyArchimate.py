@@ -1648,7 +1648,7 @@ class Node:
                 and self.cy - self.h / 2 < y < self.cy + self.h / 2)
 
     def resize(self, max_in_row=3, keep_kids_size=True, w=120, h=55, gap_x=20, gap_y=20, justify='left',
-               recurse=True, sort="asc"):
+               recurse=False, sort="asc"):
         """
         Resize the node, to fit all embedded nodes, recursively
 
@@ -1690,19 +1690,13 @@ class Node:
 
         for _e in nodes:
             if recurse:
-                _e.resize(max_in_row=max_in_row, keep_kids_size=keep_kids_size, w=w, h=h, gap_x=gap_x, gap_y=gap_y, justify=justify,
-                          sort=sort)
+                _e.resize(max_in_row=max_in_row, keep_kids_size=keep_kids_size, w=w, h=h, gap_x=gap_x, gap_y=gap_y,
+                          justify=justify, sort=sort)
 
             min_w = _e.w if (w == -1 or keep_kids_size) else w
             min_h = _e.h if (h == -1 or keep_kids_size) else h
 
-            if justify == 'left':
-                _e.rx = ba_x
-            elif justify == 'center':
-                _e.rx = ba_x
-            else:
-                _e.rx = max(ba_x, max_w - min_w - gap_x)
-
+            _e.rx = ba_x
             _e.ry = ba_y
             _e.w = min_w
             _e.h = min_h
@@ -1725,6 +1719,14 @@ class Node:
         self.w = max_w
         self.h = max_h
 
+        if justify == 'right':
+            for i in range(len(nodes), len(nodes) - len(nodes) % max_in_row, -1):
+                _e = nodes[i-1]
+                _e.rx = max_w - _e.w - gap_x
+                max_w = _e.rx
+            if max_in_row == 1:
+                for _e in nodes:
+                    _e.rx = max_w - _e.w - gap_x
     def conns(self, rel_type=None):
         """
         List all connections of the given type connected to the node

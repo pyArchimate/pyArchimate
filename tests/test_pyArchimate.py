@@ -607,11 +607,12 @@ class MyTestCase(unittest.TestCase):
         v = m.add(ArchiType.View, 'View 1')
         gr = v.get_or_create_node(elem='GROUP', elem_type=ArchiType.Grouping,
                                   create_elem=True, create_node=True)
-        for i in range(0, 10):
+        for i in range(0, 12):
             gr.get_or_create_node(elem='#' + str(i), elem_type=ArchiType.ApplicationComponent,
                                   create_elem=True, create_node=True)
-        gr.resize(max_in_row=4, justify='center', gap_x=70, recurse=False)
-        m.write('out.xml')
+        gr.resize(max_in_row=3, justify='right', gap_x=20, recurse=False, w=60, h=60/math.e, keep_kids_size=False)
+        m.write('out.archimate', writer=Writers.archi)
+
 
     def test_xml_validation(self):
         log.name = "test_xml_validation"
