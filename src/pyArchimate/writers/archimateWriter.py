@@ -96,11 +96,11 @@ def archimate_writer(model, file_path=None) -> str:
             xsi: e.type
         })
         e: Relationship = e
-        if e.access_type is not None:
+        if e.access_type is not None and e.type == ArchiType.Access:
             elem.set('accessType', e.access_type)
-        if e.is_directed is not None:
+        if e.is_directed is not None and e.type == ArchiType.Association:
             elem.set('isDirected', "true")
-        if e.influence_strength is not None:
+        if e.influence_strength is not None and e.type == ArchiType.Influence:
             elem.set('influenceStrength', e.influence_strength)
         if e.name is not None:
             e_name = et.SubElement(elem, 'name')
@@ -108,14 +108,13 @@ def archimate_writer(model, file_path=None) -> str:
         if e.desc is not None:
             e_desc = et.SubElement(elem, 'documentation')
             e_desc.text = e.desc
-        if e.props != {}:
+        if len(e.props.keys()) > 0:
             pp = et.SubElement(elem, 'properties')
             for k, v in e.props.items():
                 id = _get_prop_def_id(k)
                 if len(id) == 0:
                     id = 'propid-' + str(len(model.pdefs) + 1)
                     model.pdefs[id] = k
-
                 p = et.SubElement(pp, 'property', propertyDefinitionRef=id)
                 pv = et.SubElement(p, 'value')
                 pv.text = v

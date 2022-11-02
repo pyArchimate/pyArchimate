@@ -6,20 +6,19 @@ Date: Aug 2022
 Version 0.1
 
 """
-import lxml.etree as et
-from enum import Enum
-import sys
-import os
 import json
 import math
+import os
 import re
+import sys
 from collections import defaultdict
-from uuid import uuid4, UUID
-import oyaml as yaml
 from enum import Enum
-from os import path
-from .logger import log, log_set_level, log_to_stderr, log_to_file
+from uuid import uuid4, UUID
 
+import lxml.etree as et
+import oyaml as yaml
+
+from .logger import log
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -65,12 +64,6 @@ class TextAlignment:
     Left = "0"
     Center = "1"
     Right = "2"
-
-
-class BorderType:
-    DogEar = "0"
-    Rectangle = "1"
-    NoBorder = "2"
 
 
 influenceStrength = {'+': '+', '++': '++', '-': '-', '--': '--', '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
@@ -226,7 +219,7 @@ def set_id(uuid=None):
     Function to create an identifier if none exists
 
     Parameters
-    ----------   
+    ----------
     :param uuid: a uuid
     :cat uuid: str
     :return: a formatted identifier
@@ -1697,7 +1690,9 @@ class Node:
 
         for _e in nodes:
             if recurse:
-                _e.resize(max_in_row=3, keep_kids_size=True, w=120, h=55, gap_x=20, gap_y=20)
+                _e.resize(max_in_row=max_in_row, keep_kids_size=keep_kids_size, w=w, h=h, gap_x=gap_x, gap_y=gap_y, justify=justify,
+                          sort=sort)
+
             min_w = _e.w if (w == -1 or keep_kids_size) else w
             min_h = _e.h if (h == -1 or keep_kids_size) else h
 
@@ -2325,14 +2320,14 @@ class Connection:
         if direction == 0 and not self.source.is_inside(t_cx, s_cy) \
                 and not self.target.is_inside(t_cx, s_cy):
             self.add_bendpoint(
-                Point(t_cx + dx * weight_x, s_cy + self.source.h * (0.5 - weight_y))
+                Point(t_cx + self.target.w * (0.5 - weight_x), s_cy + self.source.h * (0.5 - weight_y))
             )
 
         elif direction == 1 and not self.source.is_inside(s_cx, t_cy) \
                 and not self.target.is_inside(s_cx, t_cy):
             self.add_bendpoint(
                 Point(s_cx - self.source.w * (0.5 - weight_x),
-                      t_cy + dy *weight_y)
+                      t_cy + self.target.h * (0.5 - weight_y))
             )
 
     def s_shape(self, direction=0, weight_x=0.5, weight_y=0.5, weight2=0.5):
@@ -3173,20 +3168,18 @@ class Model:
                 # to cope with ARIS limitation
                 p = {}
                 if o.name is not None:
-                    p['name'] = o.name
-                if o.desc is not None:
-                    p['documentation'] = o.desc
-                if o.type == ArchiType.Association:
-                    p['isDirected'] = o.is_directed
-                elif o.type == ArchiType.Access:
-                    p['access'] = o.access_type
-                elif o.type == ArchiType.Influence:
-                    p['influence_strength'] = o.influence_strength
-                for key, val in o.props.items():
-                    p[key] = val
-                for x in o.props.copy():
-                    o.remove_prop(x)
-                o.prop('Identifier', 'properties = ' + json.dumps(p))
+                    o.prop('Identifier', o.name)
+                # if o.desc is not None:
+                #     p['documentation'] = o.desc
+                # if o.type == ArchiType.Association:
+                #     p['isDirected'] = o.is_directed
+                # elif o.type == ArchiType.Access:
+                #     p['access'] = o.access_type
+                # elif o.type == ArchiType.Influence:
+                #     p['influence_strength'] = o.influence_strength
+                # for key, val in o.props.items():
+                #     p[key] = val
+                # o.prop('Identifier', o.name)
 
             elif o.props != {} and (isinstance(o, View) or isinstance(o, Element) or isinstance(o, Model)):
                 # Else we embed properties art the end of the description field
