@@ -1987,13 +1987,13 @@ class Node:
             r['r'].set_bendpoint(Point(r['bp'].x, r['bp'].y), r['bp'].idx)
 
         i = 1
-        for r in sorted(bottom, key=lambda d: d['order']):
+        for r in sorted(top, key=lambda d: d['order']):
             r['bp'].x = obj1.cx - obj1.w * (0.5 - (i / (len(top) + 1)))
             i += 1
             r['r'].set_bendpoint(Point(r['bp'].x, r['bp'].y), r['bp'].idx)
 
         i = 1
-        for r in sorted(top, key=lambda d: d['order']):
+        for r in sorted(bottom, key=lambda d: d['order']):
             r['bp'].x = obj1.cx - obj1.w * (0.5 - (i / (len(bottom) + 1)))
             i += 1
             r['r'].set_bendpoint(Point(r['bp'].x, r['bp'].y), r['bp'].idx)
