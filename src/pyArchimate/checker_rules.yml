@@ -148,6 +148,7 @@ archi_category:
     TechnologyService: Technology
     Triggering: Relationship
     Value: Motivation
+    ValueStream: Strategy
     WorkPackage: Implementation & Migration
     View: View
 archimate_rels:

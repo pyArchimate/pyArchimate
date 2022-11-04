@@ -141,6 +141,7 @@ class ArchiType:
     Resource = "Resource"
     Capability = "Capability"
     CourseOfAction = "CourseOfAction"
+    ValueStream = "ValueStream"
 
     # Implementation & Migration
 

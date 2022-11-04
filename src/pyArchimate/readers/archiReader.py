@@ -132,6 +132,8 @@ def archi_reader(model, root, merge_flg=False):
             elif type_n == 'Note':
                 node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'), node_type='Label')
                 node.label = child.find('content').text if child.find('content') is not None else None
+            elif type_n == 'DiagramModelReference':
+                node = parent.add(ref=child.get('model'), uuid=child.get('id'), node_type="Model")
 
             if node is None:
                 log.warning(f"Invalid node {child.get('id')} with type {type_n}")

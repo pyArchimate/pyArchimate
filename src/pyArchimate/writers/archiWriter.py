@@ -184,10 +184,13 @@ def archi_writer(model: Model, file_path: str):
             elif node.cat == "Container":
                 child.set(xsi, 'archimate:Group')
                 child.set('name', node.label)
-            else:
+            elif node.cat == "Label":
                 child.set(xsi, 'archimate:Note')
                 content = et.SubElement(child, 'content')
                 content.text = node.label
+            elif node.cat == "Model":
+                child.set(xsi, 'archimate:DiagramModelReference')
+                child.set('model', node.ref)
             if node.text_alignment is not None:
                 child.set('textAlignment', node.text_alignment)
             if node.text_position is not None:
