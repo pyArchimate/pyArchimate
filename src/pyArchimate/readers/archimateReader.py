@@ -141,7 +141,6 @@ def archimate_reader(model, root, merge_flg=False):
                 :return: Node
 
                 """
-
                 _uuid = node.get('identifier')
                 if merge_flg and _uuid in model.nodes_dict:
                     _uuid = None
@@ -155,14 +154,21 @@ def archimate_reader(model, root, merge_flg=False):
                         h=node.get('h'),
                     )
                 else:
+                    view_ref = node.find(ns + 'viewRef')
+                    if view_ref is not None:
+                        ref = view_ref.get('ref')
+                        cat = "Model"
+                    else:
+                        ref = None
+                        cat = node.get(xsi + 'type')
                     _n = o.add(
                         uuid=_uuid,
-                        ref=None,
+                        ref=ref,
                         x=node.get('x'),
                         y=node.get('y'),
                         w=node.get('w'),
                         h=node.get('h'),
-                        node_type=node.get(xsi + 'type'),
+                        node_type=cat,
                         label=None if node.find(ns + 'label') is None else node.find(ns + 'label').text
                     )
 
@@ -183,6 +189,7 @@ def archimate_reader(model, root, merge_flg=False):
                         _n.font_size = ft.get('size')
                         ftc = ft.find(ns + 'color')
                         _n.font_color = RGBA(ftc.get('r'), ftc.get('g'), ftc.get('b')).color
+
 
                 # Recurse on embedded nodes
                 if node.find(ns + 'node') is not None:

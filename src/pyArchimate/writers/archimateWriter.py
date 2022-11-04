@@ -257,6 +257,10 @@ def archimate_writer(model, file_path=None) -> str:
                     ftc.set('r', str(rgb.r))
                     ftc.set('g', str(rgb.g))
                     ftc.set('b', str(rgb.b))
+
+                if n.cat == 'Model':
+                    et.SubElement(n_elem, 'viewRef', ref=n.ref)
+                    n_elem.set(xsi, 'Label')
                 # recurse in embedded nodes if any
                 for sub_n in n.nodes:
                     _add_node(n_elem, sub_n)
@@ -276,7 +280,8 @@ def archimate_writer(model, file_path=None) -> str:
                 })
 
                 style = et.SubElement(c_elem, 'style')
-                style.set('lineWidth', str(c.line_width))
+                if c.line_width is not None:
+                    style.set('lineWidth', str(c.line_width))
                 if c.line_color is not None:
                     if c.line_color != default_color(c.type, default_theme):
                         lc = et.SubElement(style, 'lineColor')

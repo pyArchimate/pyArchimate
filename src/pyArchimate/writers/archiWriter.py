@@ -179,6 +179,10 @@ def archi_writer(model: Model, file_path: str):
                 et.SubElement(child, 'feature', name='lineAlpha', value=str(int(255 * int(node.lc_opacity)/100)))
             if node.label_expression is not None:
                 et.SubElement(child, 'feature', name='labelExpression', value=node.label_expression)
+            if node.iconColor is not None:
+                et.SubElement(child, 'feature', name='iconColor', value=node.iconColor)
+            if node.gradient is not None:
+                et.SubElement(child, 'feature', name='gradient', value=node.gradient)
             if node.cat == 'Element':
                 child.set('archimateElement', node.ref)
             elif node.cat == "Container":

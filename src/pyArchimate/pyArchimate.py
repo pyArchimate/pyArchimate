@@ -1125,6 +1125,8 @@ class Node:
         self.text_position = None
         self.label_expression = None
         self.border_type = None
+        self.iconColor = None
+        self.gradient = None
 
     def delete(self, recurse=True, delete_from_model=False):
         """

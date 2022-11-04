@@ -173,6 +173,10 @@ def archi_reader(model, root, merge_flg=False):
                     node.lc_opacity = 100 * int(ft.get('value')) / 255
                 elif ft_name == 'labelExpression':
                     node.label_expression = ft.get('value')
+                elif ft_name == 'iconColor':
+                    node.iconColor = ft.get('value')
+                elif ft_name == 'gradient':
+                    node.gradient = ft.get('value')
 
             node.text_alignment = child.get('textAlignment')
             node.text_position = child.get('textPosition')
