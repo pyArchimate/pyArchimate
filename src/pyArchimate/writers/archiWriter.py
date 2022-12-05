@@ -4,7 +4,6 @@ __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
-
 def archi_writer(model: Model, file_path: str):
     """
     The CSV writer generates three output files:
@@ -92,9 +91,10 @@ def archi_writer(model: Model, file_path: str):
             elem.type = elem.junction_type.capitalize() + elem.type
         e = et.SubElement(folder, 'element', {
             xsi: 'archimate:' + elem.type,
-            'name': elem.name,
             'id': elem.uuid
         })
+        if elem.name is not None:
+            e.set('name', elem.name)
         if elem.desc is not None:
             doc = et.SubElement(e, 'documentation')
             doc.text = elem.desc
