@@ -90,6 +90,8 @@ def aris_reader(model: Model, root, scale_x=0.3, scale_y=0.3, no_view=False):
             # Get Element (ObjDef)
             objs = g.findall('ObjDef')
             for o in objs:
+                if 'SymbolNum' not in o.attrib:
+                    continue
                 o_type = ARIS_type_map[o.attrib['SymbolNum']]
                 if o_type == '':
                     continue
@@ -368,6 +370,8 @@ def aris_reader(model: Model, root, scale_x=0.3, scale_y=0.3, no_view=False):
                         n.fill_color = "#FFFFFF"
                         n.opacity = 100
                         n.line_color = '#000000'
+                        n.border_type = "2"
+                        n.text_alignment = TextAlignment.Left
                     except ValueError:
                         log.warning(f'Node {o_name} has unknown element reference {lbl_ref}'
                                     f' - ignoring')
