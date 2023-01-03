@@ -2881,7 +2881,7 @@ class Model:
         :param file_path:
         :type file_path: str
         :param writer: a writer function converting the model into the desired output format, default: Archimate OEF XML
-        :type writer: function
+        :type writer: Writers
         :return:  data structure
         :rtype: str
         """

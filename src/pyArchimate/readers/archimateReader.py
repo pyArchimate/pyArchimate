@@ -190,7 +190,6 @@ def archimate_reader(model, root, merge_flg=False):
                         ftc = ft.find(ns + 'color')
                         _n.font_color = RGBA(ftc.get('r'), ftc.get('g'), ftc.get('b')).color
 
-
                 # Recurse on embedded nodes
                 if node.find(ns + 'node') is not None:
                     for sub_node in node.findall(ns + 'node'):

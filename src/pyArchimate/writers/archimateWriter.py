@@ -1,6 +1,5 @@
 from .. import *
 
-
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
@@ -271,6 +270,16 @@ def archimate_writer(model, file_path=None) -> str:
 
             # Add Connections
             for c in _v.conns:
+                def is_embedded(n1: Node, n2: Node) -> bool:
+                    """
+                    Define whether n2 is embedded into n1
+                    :param n1: a Node object
+                    :param n2: another Node object
+                    :return: True is n2 is embedded into n1
+                    """
+                    return (n1.x < n2.x < n1.x + n1.w) and (n1.y < n2.y < n1.y + n1.h)
+                if is_embedded(c.source, c.target) or is_embedded(c.target, c.source):
+                    continue
                 c_elem = et.SubElement(view, 'connection', attrib={
                     'identifier': c.uuid,
                     'relationshipRef': c.ref,
@@ -305,6 +314,10 @@ def archimate_writer(model, file_path=None) -> str:
                 for bp in c.get_all_bendpoints():
                     et.SubElement(c_elem, 'bendpoint', x=str(bp.x), y=str(bp.y))
 
+    # suppress empty propertydef
+    pd = root.find('propertyDefinitions')
+    if pd.find('propertyDefinition') is None:
+        root.remove(pd)
     # Convert the xml structure into XML string data
     xml_str = et.tostring(root, encoding='UTF-8', pretty_print=True)
 
@@ -317,4 +330,3 @@ def archimate_writer(model, file_path=None) -> str:
                 log.error(f'{__mod__}.write: Cannot write to file "{file_path}')
 
     return xml_str.decode()
-
