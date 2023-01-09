@@ -49,10 +49,11 @@ def _id_of(_id):
     :param _id: original identifier
     :returns: identifier starting with 'id-'
     """
-    return 'id-' + _id.split('.')[1]
+    # return 'id-' + _id.split('.')[1]
+    return _id
 
 
-def aris_reader(model: Model, root, scale_x=0.3, scale_y=0.3, no_view=False):
+def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_view=False):
     """
     Class to perform the parsing of ARIS AML data and to generate an Archimate q
 
@@ -97,7 +98,8 @@ def aris_reader(model: Model, root, scale_x=0.3, scale_y=0.3, no_view=False):
                     continue
                 o_id = o.attrib['ObjDef.ID']
                 o_uuid = _id_of(o_id)
-
+                # Extract GUID
+                guid = o.find('GUID').text
                 # Extract Element properties
                 attrs = o.findall('AttrDef')
                 props = {}
@@ -114,8 +116,10 @@ def aris_reader(model: Model, root, scale_x=0.3, scale_y=0.3, no_view=False):
                         o_desc = val
                     else:
                         props[key] = val
-
-                model.add(concept_type=o_type, name=o_name, desc=o_desc, uuid=o_uuid, folder=folder)
+                props['GUID']=guid
+                elem = model.add(concept_type=o_type, name=o_name, desc=o_desc, uuid=o_uuid, folder=folder)
+                for k,v in props.items():
+                    elem.prop(k, v)
 
             _parse_elements(g, folder)
             folder = old_folder
