@@ -166,7 +166,7 @@ def archi_writer(model: Model, file_path: str):
             })
             if node.font_name is not None and node.font_size is not None:
                 size = str(float(node.font_size))
-                child.set('font', f"1|{node.font_name}|{size}.0|0|WINDOWS|1|0|0|0|0|0|0|0|0|1|0|0|0|0|{node.font_name}")
+                child.set('font', f"1|{node.font_name}|{size}|0|WINDOWS|1|0|0|0|0|0|0|0|0|1|0|0|0|0|{node.font_name}")
             if node.font_color is not None:
                 child.set('fontColor', node.font_color.lower())
             if node.line_color is not None:
@@ -234,7 +234,7 @@ def archi_writer(model: Model, file_path: str):
                     c.set('lineWidth', str(conn.line_width))
                 if conn.font_name is not None and conn.font_size is not None:
                     size = str(int(conn.font_size))
-                    c.set('font', f"1|{conn.font_name}|{size}.0|0|WINDOWS|1|0|0|0|0|0|0|0|0|1|0|0|0|0|{conn.font_name}")
+                    c.set('font', f"1|{conn.font_name}|{size}|0|WINDOWS|1|0|0|0|0|0|0|0|0|1|0|0|0|0|{conn.font_name}")
                 if conn.font_color is not None:
                     c.set('fontColor', conn.font_color.lower())
                 if conn.line_color is not None:

@@ -265,7 +265,7 @@ def default_color(elem_type, theme=default_theme) -> str:
                 return default_colors[cat]
 
 
-def check_valid_relationship(rel_type, source_type, target_type):
+def check_valid_relationship(rel_type, source_type, target_type, raise_flg=False):
     """
     Check if a relationship is used according to Archimate language or raise an exception
 
@@ -275,17 +275,30 @@ def check_valid_relationship(rel_type, source_type, target_type):
     :type source_type: str
     :param target_type:     target concept type
     :type target_type: str
+    :param raise_flg: Throw an exception instead of logging an error
 
     # :raises ArchimateConceptTypeError: Exception raised on invalid object Archimate type
     # :raises ArchimateRelationshipError: Exception raised on invalid relationship between the source and target parent elements
 
     """
     if not hasattr(ArchiType, rel_type) or archi_category[rel_type] != 'Relationship':
-        log.error(ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'"))
+        msg = ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'")
+        if raise_flg:
+            raise msg
+        else:
+            log.error(ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'"))
     if not hasattr(ArchiType, source_type):  # or archi_category[source_type] == 'Relationship':
-        log.error(ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'"))
+        msg = ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'")
+        if raise_flg:
+            raise msg
+        else:
+            log.error(ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'"))
     if not hasattr(ArchiType, target_type):  # or archi_category[target_type] == 'Relationship':
-        log.error(ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'"))
+        msg = ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
+        if raise_flg:
+            raise msg
+        else:
+            log.error(ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'"))
     if archi_category[source_type] == 'Relationship':
         source_type = "Relationship"
     if archi_category[target_type] == 'Relationship':
@@ -297,9 +310,11 @@ def check_valid_relationship(rel_type, source_type, target_type):
     if 'Junction' in target_type:
         target_type = 'Junction'
     if not relationship_keys[rel_type] in allowed_relationships[source_type][target_type]:
-        log.error(ArchimateRelationshipError(
-            f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' "))
-
+        msg = ArchimateRelationshipError(f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' ")
+        if raise_flg:
+            raise msg
+        else:
+            log.error(ArchimateRelationshipError(f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' "))
 
 def get_default_rel_type(source_type, target_type):
     """

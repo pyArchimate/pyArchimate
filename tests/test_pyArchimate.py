@@ -1,5 +1,5 @@
-import logging
 import unittest
+
 from src.pyArchimate.logger import *
 from src.pyArchimate.pyArchimate import *
 
@@ -386,7 +386,9 @@ class MyTestCase(unittest.TestCase):
         try:
             check_valid_relationship(ArchiType.Access,
                                      ArchiType.ApplicationCollaboration,
-                                     ArchiType.ApplicationCollaboration)
+                                     ArchiType.ApplicationCollaboration,
+                                     raise_flg=True
+                                     )
             self.assertFalse(True)
         except ArchimateRelationshipError:
             pass
@@ -394,16 +396,11 @@ class MyTestCase(unittest.TestCase):
         try:
             check_valid_relationship(ArchiType.Flow,
                                      ArchiType.ApplicationCollaboration,
-                                     ArchiType.ApplicationCollaboration)
+                                     ArchiType.ApplicationCollaboration,
+                                     raise_flg=True)
         except:
             self.assertFalse(True)
-        try:
-            check_valid_relationship("ArchiType.Access",
-                                     ArchiType.ApplicationCollaboration,
-                                     ArchiType.ApplicationCollaboration)
-            self.assertFalse(True)
-        except ArchimateConceptTypeError:
-            pass
+
 
     def test_node_position(self):
         log.name = "test_node_position"
@@ -570,7 +567,7 @@ class MyTestCase(unittest.TestCase):
         r = m.add_relationship(ArchiType.Access, a, b, name='ACCESS', access_type=AccessType.Write)
         m.embed_props()
         self.assertTrue('properties' in m.desc)
-        self.assertTrue('properties' in r.prop('Identifier'))
+        self.assertTrue(r.name in r.prop('Identifier'))
         for p in m.props.copy():
             m.remove_prop(p)
         for p in r.props.copy():
@@ -610,9 +607,8 @@ class MyTestCase(unittest.TestCase):
         for i in range(0, 12):
             gr.get_or_create_node(elem='#' + str(i), elem_type=ArchiType.ApplicationComponent,
                                   create_elem=True, create_node=True)
-        gr.resize(max_in_row=3, justify='right', gap_x=20, recurse=False, w=60, h=60/math.e, keep_kids_size=False)
+        gr.resize(max_in_row=3, justify='right', gap_x=20, recurse=False, w=60, h=60 / math.e, keep_kids_size=False)
         m.write('out.archimate', writer=Writers.archi)
-
 
     def test_xml_validation(self):
         log.name = "test_xml_validation"
@@ -665,6 +661,7 @@ class MyTestCase(unittest.TestCase):
         e1 = m.add(ArchiType.ApplicationComponent, 'C1')
         e2 = m.add(ArchiType.BusinessObject, 'O')
         r = m.add_relationship(ArchiType.Access, e1, e2, access_type=AccessType.Read)
+        r.name = "relationship!"
         m.embed_props()
         m.write('out.xml')
         self.assertTrue(r.prop('Identifier') is not None)

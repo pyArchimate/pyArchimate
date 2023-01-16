@@ -34,15 +34,16 @@ def archimate_reader(model, root, merge_flg=False):
     # Get the property definitions dictionary
     pdefs = root.find(ns + 'propertyDefinitions')
     pdef_merge_map = {}
-    for p in pdefs.findall(ns + 'propertyDefinition'):
-        _id = p.get('identifier')
-        val = p.find(ns + 'name').text
-        pdef_merge_map[_id] = _id
-        if merge_flg:
-            if _id in model.pdefs and model.pdefs[_id] != val:
-                pdef_merge_map[_id] = 'propid-' + str(len(model.pdefs) + 1)
-                _id = pdef_merge_map[_id]
-        model.pdefs[_id] = val
+    if pdefs is not None:
+        for p in pdefs.findall(ns + 'propertyDefinition'):
+            _id = p.get('identifier')
+            val = p.find(ns + 'name').text
+            pdef_merge_map[_id] = _id
+            if merge_flg:
+                if _id in model.pdefs and model.pdefs[_id] != val:
+                    pdef_merge_map[_id] = 'propid-' + str(len(model.pdefs) + 1)
+                    _id = pdef_merge_map[_id]
+            model.pdefs[_id] = val
     # Get model properties
     if root.find(ns + 'properties') is not None:
         for p in root.find(ns + 'properties').findall(ns + 'property'):
