@@ -178,17 +178,20 @@ def archimate_reader(model, root, merge_flg=False):
                     fc = style.find(ns + 'fillColor')
                     if fc is not None:
                         _n.fill_color = RGBA(fc.get('r'), fc.get('g'), fc.get('b')).color
-                        _n.opacity = int(fc.get('a'))
+                        if fc.get('a') is not None:
+                            _n.opacity = int(fc.get('a'))
                     lc = style.find(ns + 'lineColor')
                     if lc is not None:
                         _n.line_color = RGBA(lc.get('r'), lc.get('g'), lc.get('b')).color
-                        _n.lc_opacity = int(lc.get('a'))
+                        if lc.get('a') is not None:
+                            _n.lc_opacity = int(lc.get('a'))
                     ft = style.find(ns + 'font')
                     if ft is not None:
                         _n.font_name = ft.get('name')
                         _n.font_size = ft.get('size')
                         ftc = ft.find(ns + 'color')
-                        _n.font_color = RGBA(ftc.get('r'), ftc.get('g'), ftc.get('b')).color
+                        if ftc is not None:
+                            _n.font_color = RGBA(ftc.get('r'), ftc.get('g'), ftc.get('b')).color
 
                 # Recurse on embedded nodes
                 if node.find(ns + 'node') is not None:

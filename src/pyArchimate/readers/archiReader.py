@@ -81,7 +81,7 @@ def archi_reader(model, root, merge_flg=False):
                         dst = model.elems_dict[e.get('target')]
                     else:
                         dst = model.rels_dict[e.get('target')]
-                    
+
                     if merge_flg and e.get('id') in model.rels_dict:
                         elem = model.rels_dict(e.get('id'))
                     else:

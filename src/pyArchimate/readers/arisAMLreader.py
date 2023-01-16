@@ -49,8 +49,8 @@ def _id_of(_id):
     :param _id: original identifier
     :returns: identifier starting with 'id-'
     """
-    # return 'id-' + _id.split('.')[1]
-    return _id
+    return 'id-' + _id.split('.')[1]
+
 
 
 def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_view=False):
@@ -59,8 +59,8 @@ def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_vi
 
     :param model:       Model to read in
     :type model:        Model
-    :param root:    XML data in Aris Markup Language
-    :type root:     str
+    :param root:        XML data in Aris Markup Language
+    :type root:         str
     :param scale_x:     X-Scaling factor in converting views
     :type scale_x:      float
     :param scale_y:     X-Scaling factor in converting views
@@ -97,9 +97,9 @@ def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_vi
                 if o_type == '':
                     continue
                 o_id = o.attrib['ObjDef.ID']
-                o_uuid = _id_of(o_id)
                 # Extract GUID
                 guid = o.find('GUID').text
+                o_uuid = _id_of(guid)
                 # Extract Element properties
                 attrs = o.findall('AttrDef')
                 props = {}
@@ -116,7 +116,7 @@ def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_vi
                         o_desc = val
                     else:
                         props[key] = val
-                props['GUID']=guid
+                props['GUID'] = guid
                 elem = model.add(concept_type=o_type, name=o_name, desc=o_desc, uuid=o_uuid, folder=folder)
                 for k,v in props.items():
                     elem.prop(k, v)
@@ -133,9 +133,9 @@ def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_vi
         if groups is None:
             groups = root
 
-        # Relationships (CnxDef) are defined with each elements ObjDef
+        # Relationships (CnxDef) are defined to relate ObjDef elements together
         # However, we needed to parse first all elements in order to detect relationships with
-        # target to elements not provided in this Aris model. Those relationship will be skipped
+        # target to elements not defined in this Aris model. Those relationship will be skipped
         # We also do not classify relationships in folder. there is no real reason for that
 
         for g in groups.findall('Group'):

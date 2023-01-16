@@ -276,16 +276,16 @@ def check_valid_relationship(rel_type, source_type, target_type):
     :param target_type:     target concept type
     :type target_type: str
 
-    :raises ArchimateConceptTypeError: Exception raised on invalid object Archimate type
-    :raises ArchimateRelationshipError: Exception raised on invalid relationship between the source and target parent elements
+    # :raises ArchimateConceptTypeError: Exception raised on invalid object Archimate type
+    # :raises ArchimateRelationshipError: Exception raised on invalid relationship between the source and target parent elements
 
     """
     if not hasattr(ArchiType, rel_type) or archi_category[rel_type] != 'Relationship':
-        raise ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'")
+        log.error(ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'"))
     if not hasattr(ArchiType, source_type):  # or archi_category[source_type] == 'Relationship':
-        raise ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'")
+        log.error(ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'"))
     if not hasattr(ArchiType, target_type):  # or archi_category[target_type] == 'Relationship':
-        raise ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
+        log.error(ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'"))
     if archi_category[source_type] == 'Relationship':
         source_type = "Relationship"
     if archi_category[target_type] == 'Relationship':
@@ -297,8 +297,8 @@ def check_valid_relationship(rel_type, source_type, target_type):
     if 'Junction' in target_type:
         target_type = 'Junction'
     if not relationship_keys[rel_type] in allowed_relationships[source_type][target_type]:
-        raise ArchimateRelationshipError(
-            f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' ")
+        log.error(ArchimateRelationshipError(
+            f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' "))
 
 
 def get_default_rel_type(source_type, target_type):
@@ -1724,12 +1724,13 @@ class Node:
 
         if justify == 'right':
             for i in range(len(nodes), len(nodes) - len(nodes) % max_in_row, -1):
-                _e = nodes[i-1]
+                _e = nodes[i - 1]
                 _e.rx = max_w - _e.w - gap_x
                 max_w = _e.rx
             if max_in_row == 1:
                 for _e in nodes:
                     _e.rx = max_w - _e.w - gap_x
+
     def conns(self, rel_type=None):
         """
         List all connections of the given type connected to the node
@@ -2914,7 +2915,8 @@ class Model:
         except IOError:
             log.error(f"{__mod__} {self.__class__.__name__}.read: Cannot open or read file '{file_path}'")
             sys.exit(1)
-        root = et.fromstring(_data.encode())
+        parser = et.XMLParser(recover=True)
+        root = et.fromstring(_data.encode(), parser=parser)
         from .readers.archimateReader import archimate_reader
         from .readers.archiReader import archi_reader
         from .readers.arisAMLreader import aris_reader
