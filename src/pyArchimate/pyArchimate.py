@@ -34,12 +34,21 @@ default_theme = 'archi'
 
 
 class Writers(Enum):
+    """
+    Enumeration for Writers drivers
+
+    """
+
     archi = 0
     csv = 1
     archimate = 2
 
 
 class Readers(Enum):
+    """
+    Enumaration for Readers drivers
+    """
+
     archi = 0
     aris = 1
     archimate = 2
@@ -57,12 +66,20 @@ class AccessType:
 
 
 class TextPosition:
+    """
+    Enumaration for Text vertical position
+    """
+
     Top = "0"
     Middle = "1"
     Bottom = "2"
 
 
 class TextAlignment:
+    """
+    Enumeration for text horizontal position
+    """
+
     Left = "0"
     Center = "1"
     Right = "2"
@@ -76,6 +93,7 @@ class ArchiType:
     """
     Enumeration of Archimate Element & Relationships types
     """
+
     # Business Layer
     BusinessActor = "BusinessActor"
     BusinessRole = "BusinessRole"
@@ -194,8 +212,6 @@ def _is_valid_uuid(uuid_to_test, version=4):
     """
     Check if uuid_to_test is a valid UUID.
 
-    Parameters
-    ----------
     :param uuid_to_test: uuid string
     :param version: {1, 2, 3, 4}
     :return: True if uuid_to_test is a valid UUID, otherwise `False`.
@@ -221,8 +237,6 @@ def set_id(uuid=None):
     """
     Function to create an identifier if none exists
 
-    Parameters
-    ----------
     :param uuid: a uuid
     :cat uuid: str
     :return: a formatted identifier
@@ -244,7 +258,7 @@ def default_color(elem_type, theme=default_theme) -> str:
     :param elem_type:       archimate element type
     :type elem_type: str
     :param theme:  'archi' or 'aris' color theme - default = 'archi'
-    :type theme: dict
+    :type theme: str
     :return: #Hex color str
     """
     default_colors = {'strategy': '#F5DEAA', 'business': "#FFFFB5", 'application': "#B5FFFF", 'technology': "#C9E7B7",
@@ -318,13 +332,14 @@ def check_valid_relationship(rel_type, source_type, target_type, raise_flg=False
         else:
             log.error(ArchimateRelationshipError(f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' "))
 
+
 def get_default_rel_type(source_type, target_type):
     """
     Return the default valid relationship between two element types
 
-    :param source_type:
+    :param source_type:     source element type
     :type source_type: str
-    :param target_type:
+    :param target_type:     target element type
     :type target_type: str
     :return: default relationship type
     :rtype: str
@@ -375,20 +390,44 @@ class Point:
 
     @property
     def x(self):
+        """
+        x-coordinate getter
+        :return: x-coordinate
+        """
+
         return self._x
 
     @x.setter
     def x(self, val):
+        """
+        x-coordinate setter
+        Set x-coordinate to zero if negative value is passed
+
+        :param val: new x-coordinate
+        """
+
         if val < 0:
             val = 0
         self._x = val
 
     @property
     def y(self):
+        """
+        y-coordinate getter
+        :return: y-coordinate
+        """
+
         return self._y
 
     @y.setter
     def y(self, val):
+        """
+        y-coordinate setter
+        Set y-coordinate to zero if negative value is passed
+
+        :param val: new x-coordinate
+        """
+
         if val < 0:
             val = 0
         self._y = val
@@ -396,7 +435,7 @@ class Point:
 
 class Position:
     """
-    A class to manage positional parameters of a node wrt to another one
+    A class to manage positional parameters of a node with respect to to another one
         dx: horizontal distance between the two nodes centres
         dy: vertical distance between the two node centres
         gap_x: horizontal distance between the adjacent vertical edges of the two nodes
@@ -418,6 +457,12 @@ class Position:
 
     @property
     def dist(self):
+        """
+        Calculate the distance between the two nodes
+        :return: absolute value of the distance
+        :rtype: float
+        """
+
         if self.dx is not None and self.dy is not None:
             return math.sqrt(self.dx ** 2 + self.dy ** 2)
         else:
@@ -2556,10 +2601,20 @@ class View:
 
     @property
     def nodes(self):
+        """
+        Get the list of nodes objects, defined in this view
+        :return:list of nodes
+        :rtype:  list(Node)
+        """
         return list(self.nodes_dict.values())
 
     @property
     def conns(self):
+        """
+        Get the list of connections objects defined in this view
+        :return: list of connections
+        :rtype: list(Connection)
+        """
         return list(self.conns_dict.values())
 
     def remove_folder(self):
@@ -2790,7 +2845,7 @@ class Model:
     @property
     def uuid(self):
         """
-        Ge the Model Identifier
+        Get the Model Identifier
 
         :return: Identifer
         :rtype: str
@@ -3336,6 +3391,11 @@ class Model:
         return _ok
 
     def check_invalid_nodes(self):
+        """
+        Check and get the list of nodes that are orphans (without known related Element)
+        :return: list of orphan nodes
+        :rtype: list(Node)
+        """
         invalids = []
         for id, n in self.nodes_dict.items():
             if n.ref not in self.elems_dict and n.cat == 'Element':
@@ -3347,13 +3407,18 @@ class Model:
         return invalids
 
     def default_theme(self, theme=default_theme):
+        """
+        Set the default color theme for the model
+        :param theme: default theme reference
+        :return: nothing
+        """
         for e in self.nodes:
             e.fill_color = default_color(e.type, theme)
         for r in self.conns:
             r.line_color = default_color('Relationship', self.default_theme)
         self.theme = theme
 
-
+# Library initialization code
 # Fetch model parameters during initialization of the module
 if allowed_relationships == {}:
     data = None

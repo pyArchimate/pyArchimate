@@ -1,4 +1,5 @@
 import sys
+
 try:
     from .. import *
 except:
@@ -38,6 +39,7 @@ def archimate_writer(model, file_path=None) -> str:
     def _get_prop_def_id(k):
         """
         Get the property definition id for the provided key, or create a new one
+
         :param k: key to map
         :type k: str
         :return: propertydek id
@@ -54,6 +56,7 @@ def archimate_writer(model, file_path=None) -> str:
     if model.desc is not None:
         doc = et.SubElement(root, 'documentation')
         doc.text = model.desc
+
     # get model properties
     if model.props != {}:
         view_props = et.SubElement(root, 'properties')
@@ -165,7 +168,6 @@ def archimate_writer(model, file_path=None) -> str:
         p_name.text = v
 
     # Add all views
-    #
     if len(model.views) > 0:
         views = et.SubElement(root, 'views')
         diag = et.SubElement(views, 'diagrams')
@@ -195,13 +197,6 @@ def archimate_writer(model, file_path=None) -> str:
                     p = et.SubElement(pp, 'property', propertyDefinitionRef=id)
                     pv = et.SubElement(p, 'value')
                     pv.text = v
-
-            # Add all nodes
-            # TODO remove the 4 next lines
-            _n_data = None
-            _v_data = None
-            _data = None
-            root_xml = None
 
             def _add_node(parent, n: Node):
                 """
@@ -240,7 +235,7 @@ def archimate_writer(model, file_path=None) -> str:
                     lc.set('r', str(rgb.r))
                     lc.set('g', str(rgb.g))
                     lc.set('b', str(rgb.b))
-                    lc.set('a', '100' if n.opacity is None else str(int(n.lc_opacity)))
+                    lc.set('a', '100' if n.opacity is None else str(n.lc_opacity))
                 if n.fill_color is not None:
                     if n.fill_color != default_color(n.type, default_theme):
                         fc = et.SubElement(style, 'fillColor')
@@ -249,7 +244,7 @@ def archimate_writer(model, file_path=None) -> str:
                         fc.set('r', str(rgb.r))
                         fc.set('g', str(rgb.g))
                         fc.set('b', str(rgb.b))
-                        fc.set('a', '100' if n.opacity is None else str(int(n.opacity)))
+                        fc.set('a', '100' if n.opacity is None else str(n.opacity))
                 if n.font_name is not None:
                     ft = et.SubElement(style, 'font', attrib={
                         'name': n.font_name,
@@ -283,6 +278,7 @@ def archimate_writer(model, file_path=None) -> str:
                     :return: True is n2 is embedded into n1
                     """
                     return (n1.x < n2.x < n1.x + n1.w) and (n1.y < n2.y < n1.y + n1.h)
+
                 if is_embedded(c.source, c.target) or is_embedded(c.target, c.source):
                     continue
                 c_elem = et.SubElement(view, 'connection', attrib={

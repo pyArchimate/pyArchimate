@@ -14,6 +14,7 @@ def archimate_reader(model, root, merge_flg=False):
     Merge / initialize the model from XML Archi tool data
 
     Used by Model.read(filepath) or Model.merge(filepath) methods
+
     :param model: pyArchimate Model object
     :type model: Model
     :param root:    XML data to convert
@@ -33,10 +34,11 @@ def archimate_reader(model, root, merge_flg=False):
     ns = root.tag.split('model')[0]
     xsi = '{http://www.w3.org/2001/XMLSchema-instance}'
 
+    # Get model attributes
     model.name = None if root.find(ns + 'name') is None else root.find(ns + 'name').text
     model.desc = None if root.find(ns + 'documentation') is None else root.find(ns + 'documentation').text
 
-    # Get the property definitions dictionary
+    # Get the property definitions dictionary if any
     pdefs = root.find(ns + 'propertyDefinitions')
     pdef_merge_map = {}
     if pdefs is not None:
@@ -49,6 +51,7 @@ def archimate_reader(model, root, merge_flg=False):
                     pdef_merge_map[_id] = 'propid-' + str(len(model.pdefs) + 1)
                     _id = pdef_merge_map[_id]
             model.pdefs[_id] = val
+
     # Get model properties
     if root.find(ns + 'properties') is not None:
         for p in root.find(ns + 'properties').findall(ns + 'property'):
@@ -56,6 +59,7 @@ def archimate_reader(model, root, merge_flg=False):
             val = p.find(ns + 'value').text
             model.prop(model.pdefs[_id], val)
 
+    # Get all elements
     if root.find(ns + 'elements') is not None:
         for e in root.find(ns + 'elements').findall(ns + 'element'):
 
@@ -66,7 +70,6 @@ def archimate_reader(model, root, merge_flg=False):
                 elem = model.elems_dict[_uuid]
                 elem.name = None if e.find(ns + 'name') is None else e.find(ns + 'name').text
                 elem.desc = None if e.find(ns + 'documentation') is None else e.find(ns + 'documentation').text
-                # merge completed, loop on next element
             else:
                 # else create a new element
                 elem = model.add(
@@ -106,7 +109,7 @@ def archimate_reader(model, root, merge_flg=False):
                 )
                 if r.get('isDirected') == "true":
                     rel.is_directed = True
-                # model.rels_dict[rel.uuid] = rel
+
                 # Get element properties
                 if r.find(ns + 'properties') is not None:
                     for p in r.find(ns + 'properties').findall(ns + 'property'):
@@ -206,8 +209,6 @@ def archimate_reader(model, root, merge_flg=False):
                         _n.nodes_dict[_sub_node.uuid] = _sub_node
                         _n.model.nodes_dict[_sub_node.uuid] = _sub_node
 
-                # o.model.nodes_dict[node.get('identifier')] = _n
-                # o.nodes_dict[node.get('identifier')] = _n
                 return _n
 
             # Get Nodes in view
@@ -243,11 +244,6 @@ def archimate_reader(model, root, merge_flg=False):
                     # Add Bendpoints
                     for bp in c.findall(ns + 'bendpoint'):
                         _c.add_bendpoint(Point(bp.get('x'), bp.get('y')))
-                    # and update the dictionary
-                    # model.conns_dict[c['@identifier']] = _c
-
-            # Add view in the model
-            # model.views_dict[_v.uuid] = _v
 
     # # Get organizations
     orgs = root.find(ns + 'organizations')

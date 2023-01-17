@@ -16,6 +16,7 @@ def archi_writer(model: Model, file_path: str):
     - one for all relationships
     - one for all properties
     The file path is postfixed accordingly to the output file type
+
     :param model:
     :param file_path:
     """

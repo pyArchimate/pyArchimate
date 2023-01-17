@@ -46,9 +46,14 @@ def archi_reader(model, root, merge_flg=False):
         for p in root.findall('property'):
             model.prop(p.get('key'), p.get('value'))
 
-    # Loop on folder (recursive) structure
-
     def _get_folders_elem(tag, folder_path=''):
+        """
+        Get recursively all elements from a folder path
+
+        :param tag:     XML folder tag
+        :param folder_path: folder_path to scan for elements
+        :return:        nothing
+        """
         folder = folder_path + '/' + tag.get('name')
         # Get folders items that are not folder
         for e in tag.findall('element'):
@@ -66,11 +71,18 @@ def archi_reader(model, root, merge_flg=False):
                     elem.prop(p.get('key'), p.get('value'))
                 if type_e == 'Junction':
                     elem.junction_type = e.get('type') if e.get('type') is not None else 'and'
-
+        # recurse into the next level
         for f in tag.findall('folder'):
             _get_folders_elem(f, folder)
 
     def _get_folders_rel(tag, folder_path=''):
+        """
+        Get recursively all relationships from a folder path
+
+        :param tag:     XML folder tag
+        :param folder_path: folder_path to scan for elements
+        :return:        nothing
+        """
         folder = folder_path + '/' + tag.get('name')
         # Get folders items that are not folder
         for e in tag.findall('element'):
@@ -116,15 +128,16 @@ def archi_reader(model, root, merge_flg=False):
                 for p in e.findall('property'):
                     elem.prop(p.get('key'), p.get('value'))
 
+        # recurse into the next level
         for f in tag.findall('folder'):
             _get_folders_rel(f, folder)
 
     def _get_node(tag, parent):
         """
-        Get recursively children from parent tag (view or child)
+        Get recursively children nodes from parent tag (view or child)
         :param tag: XMLtag with children
         :param parent: archimate model View or Node parent
-        :return:
+        :return: nothing
         """
         for child in tag.findall('child'):
             # Get a child and its attributes
@@ -195,6 +208,12 @@ def archi_reader(model, root, merge_flg=False):
             _get_node(child, node)
 
     def _get_connection(tag, parent: View):
+        """
+        Get recursively children connections from parent tag (view or child)
+        :param tag: XMLtag with children
+        :param parent: archimate model View or Node parent
+        :return: nothing
+        """
         for child in tag.findall('child'):
             for sc in child.findall('sourceConnection'):
                 ref = sc.get('archimateRelationship')
@@ -240,6 +259,12 @@ def archi_reader(model, root, merge_flg=False):
             _get_connection(child, parent)
 
     def _get_folders_view(tag, folder_path=''):
+        """
+        Get recursively children views from parent tag (view or child)
+        :param tag: XMLtag with children
+        :param parent: archimate model View or Node parent
+        :return: nothing
+        """
         folder = folder_path + '/' + tag.get('name')
         # Get folders items that are not folder
         for e in tag.findall('element'):
@@ -259,6 +284,7 @@ def archi_reader(model, root, merge_flg=False):
         for f in tag.findall('folder'):
             _get_folders_view(f, folder_path)
 
+    # Scan the input file and populate the model
     for f in root.findall('folder'):
         _get_folders_elem(f, '')
     for f in root.findall('folder'):
