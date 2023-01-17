@@ -2,7 +2,13 @@
 
 """
 
-from .. import *
+import sys
+try:
+    from .. import *
+except:
+    sys.path.insert(0, "..")
+    from pyArchimate import *
+
 import os
 import csv
 

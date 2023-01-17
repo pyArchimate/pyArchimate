@@ -8,7 +8,12 @@
 """
 import ctypes
 import platform
-from .. import *
+import sys
+try:
+    from .. import *
+except:
+    sys.path.insert(0, "..")
+    from pyArchimate import *
 
 
 def get_text_size(text, points, font):
@@ -49,7 +54,10 @@ def _id_of(_id):
     :param _id: original identifier
     :returns: identifier starting with 'id-'
     """
-    return 'id-' + _id.split('.')[1]
+    if '.' in _id:
+        return 'id-' + _id.split('.')[1]
+    else:
+        return 'id-'+_id
 
 
 
@@ -99,7 +107,7 @@ def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_vi
                 o_id = o.attrib['ObjDef.ID']
                 # Extract GUID
                 guid = o.find('GUID').text
-                o_uuid = _id_of(guid)
+                o_uuid = _id_of(o_id)
                 # Extract Element properties
                 attrs = o.findall('AttrDef')
                 props = {}

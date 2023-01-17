@@ -17,8 +17,10 @@ from uuid import uuid4, UUID
 
 import lxml.etree as et
 import oyaml as yaml
-
-from .logger import log
+try:
+    from .logger import log
+except:
+    from logger import log
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
