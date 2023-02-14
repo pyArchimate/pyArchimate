@@ -2,7 +2,8 @@
 name = "pyArchimate"
 version = "0.9.64"
 authors = [
-  { name="Xavier Mayeur", email="xavier.mayeur@ing.com" },
+  { name="Xavier Mayeur", email="xavier@mayeur.be" },
+    { name="Serge Cordon", email="serge.cordon@ing.com" }
 ]
 description = "A library to create & manage Archimate files"
 readme = "README.md"
@@ -14,8 +15,8 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://dev.azure.com/INGCDaaS/IngOne/_git/P13596-pyArchimate"
-"Bug Tracker" = "https://dev.azure.com/INGCDaaS/IngOne/_git/P13596-pyArchimate"
+"Homepage" = "https://github.com/pyArchimate/pyArchimate"
+"Bug Tracker" = "https://github.com/pyArchimate/pyArchimate/issues"
 
 [build-system]
 requires = ["setuptools>=61.0"]
