@@ -2,8 +2,7 @@
 name = "pyArchimate"
 version = "0.9.64"
 authors = [
-  { name="Xavier Mayeur", email="xavier@mayeur.be" },
-    { name="Serge Cordon", email="serge.cordon@ing.com" }
+  { name="Xavier Mayeur", email="xavier@mayeur.be" }
 ]
 description = "A library to create & manage Archimate files"
 readme = "README.md"
@@ -13,6 +12,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = ['lxml', 'oyaml', 'pillow']
 
 [project.urls]
 "Homepage" = "https://github.com/pyArchimate/pyArchimate"

@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'pyArchimate'
-copyright = '2022, ING Bank Belgium'
+# copyright = ''
 author = 'Xavier Mayeur'
 version = "1"
 release = '1.0.0'
