@@ -1,16 +1,14 @@
-# pyArchimate package
-
-https://pypi.org/project/pyArchimate/0.9.64/
-
-
-pyArchimate is a Python library to manage [Open Group Archimate ](https://www.opengroup.org/xsd/archimate/) files.
+pyArchimate Package
+===================
 
 It enables to:
 
-* Read or write a file in Archimate xml format
+* Read or write a file in Archimate and Archi Tool xml formats
 * create new models
 * Create, update and delete Archimate artefacts
 * Create, update and delete diagrams
+* Import files from ARIS AML format
+* Export model's elements, properties & relationships to CSV
 
 The following artefacts are implemented as per the metamodel here below:
 
@@ -21,4 +19,13 @@ The following artefacts are implemented as per the metamodel here below:
 * Node: the visual representation of an Element in a View
 * Connection: the visual representation of a Relationship in a View
 
-![](docs/metaModel.png)
+.. toctree::
+   :maxdepth: 4
+
+   pyArchimate
+   archiReader
+   archimateReader
+   arisAMLReader
+   archiWriter
+   archimateWriter
+   csvWriter

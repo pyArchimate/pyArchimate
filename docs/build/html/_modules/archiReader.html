@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>archiReader &mdash; pyArchimate 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../src.html" class="icon icon-home">
+            pyArchimate
+          </a>
+              <div class="version">
+                1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../pyArchimate.html">pyArchimate Library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../archiReader.html">Archimate tool file reader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../archimateReader.html">Archimate AMEFF file reader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../arisAMLReader.html">ARIS AML markup Language file reader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../archiWriter.html">Archimate Tool file writer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../archimateWriter.html">Archimate AMEFF file writer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csvWriter.html">CSV file writer</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../src.html">pyArchimate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../src.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">archiReader</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for archiReader</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">File reader for native Archimate Tool .archimate file format</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">pyArchimate</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="fm">__mod__</span> <span class="o">=</span> <span class="vm">__name__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="nb">len</span><span class="p">(</span><span class="vm">__name__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">__location__</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))</span>
+
+
+<div class="viewcode-block" id="archi_reader">
+<a class="viewcode-back" href="../archiReader.html#archiReader.archi_reader">[docs]</a>
+<span class="k">def</span> <span class="nf">archi_reader</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">merge_flg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Merge / initialize the model from XML Archimate OEF data</span>
+
+<span class="sd">    Used by Model.read(filepath) or Model.merge(filepath) methods</span>
+
+<span class="sd">    :param model: pyArchimate Model object</span>
+<span class="sd">    :type model: Model</span>
+<span class="sd">    :param root:    XML data to convert</span>
+<span class="sd">    :type root:</span>
+<span class="sd">    :param merge_flg: if True, merge data into the provided model, else clear the model and read data into it</span>
+<span class="sd">    :type merge_flg: bool</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Convert the xml structure into XML object</span>
+    <span class="c1"># root = et.fromstring(data.encode())</span>
+
+    <span class="k">if</span> <span class="s1">&#39;archimate&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">tag</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">fatal</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="fm">__mod__</span><span class="si">}</span><span class="s1">: Input file is not an Open Group Archimate file - Aborting&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">xsi</span> <span class="o">=</span> <span class="s1">&#39;{http://www.w3.org/2001/XMLSchema-instance}&#39;</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;purpose&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;purpose&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+    <span class="c1"># Get model properties</span>
+    <span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;property&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;property&#39;</span><span class="p">):</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">prop</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">),</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_folders_elem</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get recursively all elements from a folder path</span>
+
+<span class="sd">        :param tag:     XML folder tag</span>
+<span class="sd">        :param folder_path: folder_path to scan for elements</span>
+<span class="sd">        :return:        nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">folder</span> <span class="o">=</span> <span class="n">folder_path</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">tag</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+        <span class="c1"># Get folders items that are not folder</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">tag</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;element&#39;</span><span class="p">):</span>
+            <span class="n">type_e</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">xsi</span> <span class="o">+</span> <span class="s1">&#39;type&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;Relationship&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">type_e</span> <span class="ow">and</span> <span class="s1">&#39;ArchimateDiagramModel&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">type_e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">merge_flg</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">:</span>
+                    <span class="n">elem</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">elem</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">concept_type</span><span class="o">=</span><span class="n">type_e</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span> <span class="n">uuid</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
+                <span class="n">elem</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="n">folder</span>
+                <span class="n">doc</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;documentation&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">elem</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">text</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;property&#39;</span><span class="p">):</span>
+                    <span class="n">elem</span><span class="o">.</span><span class="n">prop</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">),</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">type_e</span> <span class="o">==</span> <span class="s1">&#39;Junction&#39;</span><span class="p">:</span>
+                    <span class="n">elem</span><span class="o">.</span><span class="n">junction_type</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;and&#39;</span>
+        <span class="c1"># recurse into the next level</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">tag</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;folder&#39;</span><span class="p">):</span>
+            <span class="n">_get_folders_elem</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">folder</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_folders_rel</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get recursively all relationships from a folder path</span>
+
+<span class="sd">        :param tag:     XML folder tag</span>
+<span class="sd">        :param folder_path: folder_path to scan for elements</span>
+<span class="sd">        :return:        nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">folder</span> <span class="o">=</span> <span class="n">folder_path</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">tag</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+        <span class="c1"># Get folders items that are not folder</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">tag</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;element&#39;</span><span class="p">):</span>
+            <span class="n">type_e</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">xsi</span> <span class="o">+</span> <span class="s1">&#39;type&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;Relationship&#39;</span> <span class="ow">in</span> <span class="n">type_e</span><span class="p">:</span>
+                <span class="n">type_e</span> <span class="o">=</span> <span class="n">type_e</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;Relationship&quot;</span><span class="p">)]</span>
+                <span class="n">elem</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">elems_dict</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">rels_dict</span><span class="p">)</span> \
+                        <span class="ow">or</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;target&#39;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">elems_dict</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;target&#39;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">rels_dict</span><span class="p">):</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> or </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;target&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">:</span>
+                        <span class="n">src</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">src</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">rels_dict</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)]</span>
+                    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;target&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">:</span>
+                        <span class="n">dst</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;target&#39;</span><span class="p">)]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">dst</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">rels_dict</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;target&#39;</span><span class="p">)]</span>
+
+                    <span class="k">if</span> <span class="n">merge_flg</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">rels_dict</span><span class="p">:</span>
+                        <span class="n">elem</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">rels_dict</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">elem</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_relationship</span><span class="p">(</span><span class="n">rel_type</span><span class="o">=</span><span class="n">type_e</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span> <span class="n">uuid</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span>
+                                                      <span class="n">source</span><span class="o">=</span><span class="n">src</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">dst</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">elem</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Invalid </span><span class="si">{</span><span class="n">src</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s1"> or </span><span class="si">{</span><span class="n">dst</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                        <span class="k">continue</span>
+                <span class="n">elem</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="n">folder</span>
+                <span class="n">at</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;accessType&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">elem</span><span class="o">.</span><span class="n">access_type</span> <span class="o">=</span> <span class="n">AccessType</span><span class="o">.</span><span class="n">Read</span> <span class="k">if</span> <span class="n">at</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span> <span class="k">else</span> <span class="n">AccessType</span><span class="o">.</span><span class="n">ReadWrite</span> <span class="k">if</span> <span class="n">at</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span> <span class="k">else</span> <span class="n">AccessType</span><span class="o">.</span><span class="n">Access</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">elem</span><span class="o">.</span><span class="n">access_type</span> <span class="o">=</span> <span class="n">AccessType</span><span class="o">.</span><span class="n">Write</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;directed&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">elem</span><span class="o">.</span><span class="n">is_directed</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;directed&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;strength&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">elem</span><span class="o">.</span><span class="n">influence_strength</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;strength&quot;</span><span class="p">)</span>
+                <span class="n">doc</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;documentation&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">elem</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">text</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;property&#39;</span><span class="p">):</span>
+                    <span class="n">elem</span><span class="o">.</span><span class="n">prop</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">),</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
+
+        <span class="c1"># recurse into the next level</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">tag</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;folder&#39;</span><span class="p">):</span>
+            <span class="n">_get_folders_rel</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">folder</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_node</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get recursively children nodes from parent tag (view or child)</span>
+<span class="sd">        :param tag: XMLtag with children</span>
+<span class="sd">        :param parent: archimate model View or Node parent</span>
+<span class="sd">        :return: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">tag</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;child&#39;</span><span class="p">):</span>
+            <span class="c1"># Get a child and its attributes</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">type_n</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">xsi</span> <span class="o">+</span> <span class="s1">&#39;type&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">type_n</span> <span class="o">==</span> <span class="s1">&#39;DiagramObject&#39;</span><span class="p">:</span>
+                <span class="n">node</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;archimateElement&#39;</span><span class="p">),</span> <span class="n">uuid</span><span class="o">=</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">concept</span><span class="o">.</span><span class="n">prop</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">label_expression</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">concept</span><span class="o">.</span><span class="n">prop</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">type_n</span> <span class="o">==</span> <span class="s1">&#39;Group&#39;</span><span class="p">:</span>
+                <span class="n">node</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;archimateElement&#39;</span><span class="p">),</span> <span class="n">uuid</span><span class="o">=</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span> <span class="n">node_type</span><span class="o">=</span><span class="s1">&#39;Container&#39;</span><span class="p">,</span>
+                                  <span class="n">label</span><span class="o">=</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;borderType&#39;</span><span class="p">):</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">border_type</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;borderType&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">type_n</span> <span class="o">==</span> <span class="s1">&#39;Note&#39;</span><span class="p">:</span>
+                <span class="n">node</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;archimateElement&#39;</span><span class="p">),</span> <span class="n">uuid</span><span class="o">=</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span> <span class="n">node_type</span><span class="o">=</span><span class="s1">&#39;Label&#39;</span><span class="p">)</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;content&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span> <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;content&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">elif</span> <span class="n">type_n</span> <span class="o">==</span> <span class="s1">&#39;DiagramModelReference&#39;</span><span class="p">:</span>
+                <span class="n">node</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">),</span> <span class="n">uuid</span><span class="o">=</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span> <span class="n">node_type</span><span class="o">=</span><span class="s2">&quot;Model&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">node</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid node </span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> with type </span><span class="si">{</span><span class="n">type_n</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">bounds</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;bounds&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">Node</span><span class="p">):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">x</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">y</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="n">nx</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">bounds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">bounds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+            <span class="n">ny</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">bounds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">bounds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+
+            <span class="n">node</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ny</span><span class="p">)</span> <span class="o">+</span> <span class="n">y</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">bounds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">))</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">bounds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">font_param</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">font_name</span> <span class="o">=</span> <span class="n">font_param</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">font_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">font_param</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fontColor&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">font_color</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fontColor&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lineColor&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">line_color</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lineColor&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fillColor&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">fill_color</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fillColor&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">opacity</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">))</span> <span class="o">/</span> <span class="mi">255</span>
+            <span class="n">fts</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;feature&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ft</span> <span class="ow">in</span> <span class="n">fts</span><span class="p">:</span>
+                <span class="n">ft_name</span> <span class="o">=</span> <span class="n">ft</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ft_name</span> <span class="o">==</span> <span class="s1">&#39;lineAlpha&#39;</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">lc_opacity</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">ft</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span> <span class="o">/</span> <span class="mi">255</span>
+                <span class="k">elif</span> <span class="n">ft_name</span> <span class="o">==</span> <span class="s1">&#39;labelExpression&#39;</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">label_expression</span> <span class="o">=</span> <span class="n">ft</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">ft_name</span> <span class="o">==</span> <span class="s1">&#39;iconColor&#39;</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">iconColor</span> <span class="o">=</span> <span class="n">ft</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">ft_name</span> <span class="o">==</span> <span class="s1">&#39;gradient&#39;</span><span class="p">:</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="n">ft</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+
+            <span class="n">node</span><span class="o">.</span><span class="n">text_alignment</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;textAlignment&#39;</span><span class="p">)</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">text_position</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;textPosition&#39;</span><span class="p">)</span>
+
+            <span class="c1"># recurse on child&#39;s children</span>
+            <span class="n">_get_node</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_connection</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">View</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get recursively children connections from parent tag (view or child)</span>
+<span class="sd">        :param tag: XMLtag with children</span>
+<span class="sd">        :param parent: archimate model View or Node parent</span>
+<span class="sd">        :return: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">tag</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;child&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">sc</span> <span class="ow">in</span> <span class="n">child</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;sourceConnection&#39;</span><span class="p">):</span>
+                <span class="n">ref</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;archimateRelationship&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">parent</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">rels_dict</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unknown connection ref </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="n">conn</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">add_connection</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span>
+                                             <span class="n">source</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">),</span>
+                                             <span class="n">target</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;target&#39;</span><span class="p">),</span>
+                                             <span class="n">uuid</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+                                             <span class="p">)</span>
+                <span class="k">if</span> <span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fontColor&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">font_color</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fontColor&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lineColor&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">line_color</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lineColor&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lineWidth&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">line_width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lineWidth&#39;</span><span class="p">))</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">text_position</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;textPosition&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">parent</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nodes_dict</span><span class="p">:</span>
+                    <span class="n">source_node</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nodes_dict</span><span class="p">[</span><span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">source_node</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">conns_dict</span><span class="p">[</span><span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;target&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">parent</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nodes_dict</span><span class="p">:</span>
+                    <span class="n">target_node</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nodes_dict</span><span class="p">[</span><span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;target&#39;</span><span class="p">)]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">target_node</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">conns_dict</span><span class="p">[</span><span class="n">sc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;target&#39;</span><span class="p">)]</span>
+                <span class="n">ft</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;feature&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ft</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">ft</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;nameVisible&#39;</span><span class="p">:</span>
+                        <span class="n">conn</span><span class="o">.</span><span class="n">show_label</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">ft</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">bp</span> <span class="ow">in</span> <span class="n">sc</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;bendpoint&#39;</span><span class="p">):</span>
+                    <span class="n">_x</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">_y</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">if</span> <span class="n">bp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;startX&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">_x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;startX&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">source_node</span><span class="o">.</span><span class="n">cx</span>
+                    <span class="k">if</span> <span class="n">bp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;startY&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">_y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;startY&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">source_node</span><span class="o">.</span><span class="n">cy</span>
+                    <span class="k">if</span> <span class="n">bp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;endX&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">_x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;endX&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">target_node</span><span class="o">.</span><span class="n">cx</span>
+                    <span class="k">if</span> <span class="n">bp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;endY&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">_y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;endY&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">target_node</span><span class="o">.</span><span class="n">cy</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">add_bendpoint</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="n">_x</span><span class="p">,</span> <span class="n">_y</span><span class="p">))</span>
+            <span class="n">_get_connection</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_folders_view</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get recursively children views from parent tag (view or child)</span>
+<span class="sd">        :param tag: XMLtag with children</span>
+<span class="sd">        :param parent: archimate model View or Node parent</span>
+<span class="sd">        :return: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">folder</span> <span class="o">=</span> <span class="n">folder_path</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">tag</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+        <span class="c1"># Get folders items that are not folder</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">tag</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;element&#39;</span><span class="p">):</span>
+            <span class="n">type_e</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">xsi</span> <span class="o">+</span> <span class="s1">&#39;type&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;ArchimateDiagramModel&#39;</span> <span class="ow">in</span> <span class="n">type_e</span><span class="p">:</span>
+                <span class="n">elem</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">concept_type</span><span class="o">=</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">View</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span> <span class="n">uuid</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
+                <span class="n">elem</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="n">folder</span>
+                <span class="n">doc</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;documentation&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">elem</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">text</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;property&#39;</span><span class="p">):</span>
+                    <span class="n">elem</span><span class="o">.</span><span class="n">prop</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">),</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
+                <span class="c1"># Manage nodes</span>
+                <span class="n">_get_node</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">elem</span><span class="p">)</span>
+                <span class="c1"># manage connections</span>
+                <span class="n">_get_connection</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">elem</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">tag</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;folder&#39;</span><span class="p">):</span>
+            <span class="n">_get_folders_view</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">)</span>
+
+    <span class="c1"># Scan the input file and populate the model</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;folder&#39;</span><span class="p">):</span>
+        <span class="n">_get_folders_elem</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;folder&#39;</span><span class="p">):</span>
+        <span class="n">_get_folders_rel</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;folder&#39;</span><span class="p">):</span>
+        <span class="n">_get_folders_view</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, ING Bank Belgium.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
