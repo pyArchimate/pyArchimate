@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyArchimate &mdash; pyArchimate 1.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=8d563738"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="src.html" class="icon icon-home">
+            pyArchimate
+          </a>
+              <div class="version">
+                1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="pyArchimate.html">pyArchimate Library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="archiReader.html">Archimate tool file reader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="archimateReader.html">Archimate AMEFF file reader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arisAMLReader.html">ARIS AML markup Language file reader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="archiWriter.html">Archimate Tool file writer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="archimateWriter.html">Archimate AMEFF file writer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csvWriter.html">CSV file writer</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="src.html">pyArchimate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="src.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">pyArchimate</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pyarchimate">
+<h1>pyArchimate<a class="headerlink" href="#pyarchimate" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pyArchimate.html">pyArchimate Library</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pyArchimate.html#module-pyArchimate">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.AccessType"><code class="docutils literal notranslate"><span class="pre">AccessType</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.AccessType.Access"><code class="docutils literal notranslate"><span class="pre">AccessType.Access</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.AccessType.Read"><code class="docutils literal notranslate"><span class="pre">AccessType.Read</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.AccessType.ReadWrite"><code class="docutils literal notranslate"><span class="pre">AccessType.ReadWrite</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.AccessType.Write"><code class="docutils literal notranslate"><span class="pre">AccessType.Write</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType"><code class="docutils literal notranslate"><span class="pre">ArchiType</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Access"><code class="docutils literal notranslate"><span class="pre">ArchiType.Access</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Aggregation"><code class="docutils literal notranslate"><span class="pre">ArchiType.Aggregation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.AndJunction"><code class="docutils literal notranslate"><span class="pre">ArchiType.AndJunction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.ApplicationCollaboration"><code class="docutils literal notranslate"><span class="pre">ArchiType.ApplicationCollaboration</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.ApplicationComponent"><code class="docutils literal notranslate"><span class="pre">ArchiType.ApplicationComponent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.ApplicationEvent"><code class="docutils literal notranslate"><span class="pre">ArchiType.ApplicationEvent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.ApplicationFunction"><code class="docutils literal notranslate"><span class="pre">ArchiType.ApplicationFunction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.ApplicationInterface"><code class="docutils literal notranslate"><span class="pre">ArchiType.ApplicationInterface</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.ApplicationProcess"><code class="docutils literal notranslate"><span class="pre">ArchiType.ApplicationProcess</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.ApplicationService"><code class="docutils literal notranslate"><span class="pre">ArchiType.ApplicationService</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Artifact"><code class="docutils literal notranslate"><span class="pre">ArchiType.Artifact</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Assessment"><code class="docutils literal notranslate"><span class="pre">ArchiType.Assessment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Assignment"><code class="docutils literal notranslate"><span class="pre">ArchiType.Assignment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Association"><code class="docutils literal notranslate"><span class="pre">ArchiType.Association</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.BusinessActor"><code class="docutils literal notranslate"><span class="pre">ArchiType.BusinessActor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.BusinessCollaboration"><code class="docutils literal notranslate"><span class="pre">ArchiType.BusinessCollaboration</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.BusinessEvent"><code class="docutils literal notranslate"><span class="pre">ArchiType.BusinessEvent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.BusinessFunction"><code class="docutils literal notranslate"><span class="pre">ArchiType.BusinessFunction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.BusinessInteraction"><code class="docutils literal notranslate"><span class="pre">ArchiType.BusinessInteraction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.BusinessInterface"><code class="docutils literal notranslate"><span class="pre">ArchiType.BusinessInterface</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.BusinessObject"><code class="docutils literal notranslate"><span class="pre">ArchiType.BusinessObject</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.BusinessProcess"><code class="docutils literal notranslate"><span class="pre">ArchiType.BusinessProcess</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.BusinessRole"><code class="docutils literal notranslate"><span class="pre">ArchiType.BusinessRole</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.BusinessService"><code class="docutils literal notranslate"><span class="pre">ArchiType.BusinessService</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Capability"><code class="docutils literal notranslate"><span class="pre">ArchiType.Capability</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.CommunicationNetwork"><code class="docutils literal notranslate"><span class="pre">ArchiType.CommunicationNetwork</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Composition"><code class="docutils literal notranslate"><span class="pre">ArchiType.Composition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Constraint"><code class="docutils literal notranslate"><span class="pre">ArchiType.Constraint</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Contract"><code class="docutils literal notranslate"><span class="pre">ArchiType.Contract</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.CourseOfAction"><code class="docutils literal notranslate"><span class="pre">ArchiType.CourseOfAction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.DataObject"><code class="docutils literal notranslate"><span class="pre">ArchiType.DataObject</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Deliverable"><code class="docutils literal notranslate"><span class="pre">ArchiType.Deliverable</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Device"><code class="docutils literal notranslate"><span class="pre">ArchiType.Device</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.DistributionNetwork"><code class="docutils literal notranslate"><span class="pre">ArchiType.DistributionNetwork</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Driver"><code class="docutils literal notranslate"><span class="pre">ArchiType.Driver</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Equipment"><code class="docutils literal notranslate"><span class="pre">ArchiType.Equipment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Facility"><code class="docutils literal notranslate"><span class="pre">ArchiType.Facility</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Flow"><code class="docutils literal notranslate"><span class="pre">ArchiType.Flow</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Gap"><code class="docutils literal notranslate"><span class="pre">ArchiType.Gap</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Goal"><code class="docutils literal notranslate"><span class="pre">ArchiType.Goal</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Grouping"><code class="docutils literal notranslate"><span class="pre">ArchiType.Grouping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.ImplementationEvent"><code class="docutils literal notranslate"><span class="pre">ArchiType.ImplementationEvent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Influence"><code class="docutils literal notranslate"><span class="pre">ArchiType.Influence</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Junction"><code class="docutils literal notranslate"><span class="pre">ArchiType.Junction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Location"><code class="docutils literal notranslate"><span class="pre">ArchiType.Location</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Material"><code class="docutils literal notranslate"><span class="pre">ArchiType.Material</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Meaning"><code class="docutils literal notranslate"><span class="pre">ArchiType.Meaning</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Node"><code class="docutils literal notranslate"><span class="pre">ArchiType.Node</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.OrJunction"><code class="docutils literal notranslate"><span class="pre">ArchiType.OrJunction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Outcome"><code class="docutils literal notranslate"><span class="pre">ArchiType.Outcome</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Path"><code class="docutils literal notranslate"><span class="pre">ArchiType.Path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Plateau"><code class="docutils literal notranslate"><span class="pre">ArchiType.Plateau</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Principle"><code class="docutils literal notranslate"><span class="pre">ArchiType.Principle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Product"><code class="docutils literal notranslate"><span class="pre">ArchiType.Product</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Realization"><code class="docutils literal notranslate"><span class="pre">ArchiType.Realization</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Representation"><code class="docutils literal notranslate"><span class="pre">ArchiType.Representation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Requirement"><code class="docutils literal notranslate"><span class="pre">ArchiType.Requirement</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Resource"><code class="docutils literal notranslate"><span class="pre">ArchiType.Resource</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Serving"><code class="docutils literal notranslate"><span class="pre">ArchiType.Serving</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Specialization"><code class="docutils literal notranslate"><span class="pre">ArchiType.Specialization</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Stakeholder"><code class="docutils literal notranslate"><span class="pre">ArchiType.Stakeholder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.SystemSoftware"><code class="docutils literal notranslate"><span class="pre">ArchiType.SystemSoftware</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.TechnologyCollaboration"><code class="docutils literal notranslate"><span class="pre">ArchiType.TechnologyCollaboration</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.TechnologyEvent"><code class="docutils literal notranslate"><span class="pre">ArchiType.TechnologyEvent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.TechnologyFunction"><code class="docutils literal notranslate"><span class="pre">ArchiType.TechnologyFunction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.TechnologyInteraction"><code class="docutils literal notranslate"><span class="pre">ArchiType.TechnologyInteraction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.TechnologyInterface"><code class="docutils literal notranslate"><span class="pre">ArchiType.TechnologyInterface</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.TechnologyProcess"><code class="docutils literal notranslate"><span class="pre">ArchiType.TechnologyProcess</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.TechnologyService"><code class="docutils literal notranslate"><span class="pre">ArchiType.TechnologyService</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Triggering"><code class="docutils literal notranslate"><span class="pre">ArchiType.Triggering</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.Value"><code class="docutils literal notranslate"><span class="pre">ArchiType.Value</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.ValueStream"><code class="docutils literal notranslate"><span class="pre">ArchiType.ValueStream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.View"><code class="docutils literal notranslate"><span class="pre">ArchiType.View</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchiType.WorkPackage"><code class="docutils literal notranslate"><span class="pre">ArchiType.WorkPackage</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchimateConceptTypeError"><code class="docutils literal notranslate"><span class="pre">ArchimateConceptTypeError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.ArchimateRelationshipError"><code class="docutils literal notranslate"><span class="pre">ArchimateRelationshipError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection"><code class="docutils literal notranslate"><span class="pre">Connection</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.access_type"><code class="docutils literal notranslate"><span class="pre">Connection.access_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.add_bendpoint"><code class="docutils literal notranslate"><span class="pre">Connection.add_bendpoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.concept"><code class="docutils literal notranslate"><span class="pre">Connection.concept</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.del_bendpoint"><code class="docutils literal notranslate"><span class="pre">Connection.del_bendpoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.delete"><code class="docutils literal notranslate"><span class="pre">Connection.delete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.get_all_bendpoints"><code class="docutils literal notranslate"><span class="pre">Connection.get_all_bendpoints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.get_bendpoint"><code class="docutils literal notranslate"><span class="pre">Connection.get_bendpoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.influence_strength"><code class="docutils literal notranslate"><span class="pre">Connection.influence_strength</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.is_directed"><code class="docutils literal notranslate"><span class="pre">Connection.is_directed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.l_shape"><code class="docutils literal notranslate"><span class="pre">Connection.l_shape()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.name"><code class="docutils literal notranslate"><span class="pre">Connection.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.ref"><code class="docutils literal notranslate"><span class="pre">Connection.ref</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.remove_all_bendpoints"><code class="docutils literal notranslate"><span class="pre">Connection.remove_all_bendpoints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.s_shape"><code class="docutils literal notranslate"><span class="pre">Connection.s_shape()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.set_bendpoint"><code class="docutils literal notranslate"><span class="pre">Connection.set_bendpoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.source"><code class="docutils literal notranslate"><span class="pre">Connection.source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.target"><code class="docutils literal notranslate"><span class="pre">Connection.target</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.type"><code class="docutils literal notranslate"><span class="pre">Connection.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Connection.uuid"><code class="docutils literal notranslate"><span class="pre">Connection.uuid</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.Element"><code class="docutils literal notranslate"><span class="pre">Element</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Element.delete"><code class="docutils literal notranslate"><span class="pre">Element.delete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Element.in_rels"><code class="docutils literal notranslate"><span class="pre">Element.in_rels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Element.merge"><code class="docutils literal notranslate"><span class="pre">Element.merge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Element.out_rels"><code class="docutils literal notranslate"><span class="pre">Element.out_rels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Element.prop"><code class="docutils literal notranslate"><span class="pre">Element.prop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Element.props"><code class="docutils literal notranslate"><span class="pre">Element.props</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Element.rels"><code class="docutils literal notranslate"><span class="pre">Element.rels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Element.remove_folder"><code class="docutils literal notranslate"><span class="pre">Element.remove_folder()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Element.remove_prop"><code class="docutils literal notranslate"><span class="pre">Element.remove_prop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Element.type"><code class="docutils literal notranslate"><span class="pre">Element.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Element.uuid"><code class="docutils literal notranslate"><span class="pre">Element.uuid</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.Font"><code class="docutils literal notranslate"><span class="pre">Font</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Font.color"><code class="docutils literal notranslate"><span class="pre">Font.color</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.add"><code class="docutils literal notranslate"><span class="pre">Model.add()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.add_relationship"><code class="docutils literal notranslate"><span class="pre">Model.add_relationship()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.check_connection"><code class="docutils literal notranslate"><span class="pre">Model.check_connection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.check_invalid_conn"><code class="docutils literal notranslate"><span class="pre">Model.check_invalid_conn()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.check_invalid_nodes"><code class="docutils literal notranslate"><span class="pre">Model.check_invalid_nodes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.conns"><code class="docutils literal notranslate"><span class="pre">Model.conns</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.default_theme"><code class="docutils literal notranslate"><span class="pre">Model.default_theme()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.elements"><code class="docutils literal notranslate"><span class="pre">Model.elements</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.embed_props"><code class="docutils literal notranslate"><span class="pre">Model.embed_props()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.expand_props"><code class="docutils literal notranslate"><span class="pre">Model.expand_props()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.filter_elements"><code class="docutils literal notranslate"><span class="pre">Model.filter_elements()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.filter_relationships"><code class="docutils literal notranslate"><span class="pre">Model.filter_relationships()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.filter_views"><code class="docutils literal notranslate"><span class="pre">Model.filter_views()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.find_elements"><code class="docutils literal notranslate"><span class="pre">Model.find_elements()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.find_relationships"><code class="docutils literal notranslate"><span class="pre">Model.find_relationships()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.find_views"><code class="docutils literal notranslate"><span class="pre">Model.find_views()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.get_or_create_element"><code class="docutils literal notranslate"><span class="pre">Model.get_or_create_element()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.get_or_create_relationship"><code class="docutils literal notranslate"><span class="pre">Model.get_or_create_relationship()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.get_or_create_view"><code class="docutils literal notranslate"><span class="pre">Model.get_or_create_view()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.merge"><code class="docutils literal notranslate"><span class="pre">Model.merge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.nodes"><code class="docutils literal notranslate"><span class="pre">Model.nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.prop"><code class="docutils literal notranslate"><span class="pre">Model.prop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.props"><code class="docutils literal notranslate"><span class="pre">Model.props</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.read"><code class="docutils literal notranslate"><span class="pre">Model.read()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.relationships"><code class="docutils literal notranslate"><span class="pre">Model.relationships</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.remove_prop"><code class="docutils literal notranslate"><span class="pre">Model.remove_prop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.type"><code class="docutils literal notranslate"><span class="pre">Model.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.uuid"><code class="docutils literal notranslate"><span class="pre">Model.uuid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.views"><code class="docutils literal notranslate"><span class="pre">Model.views</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Model.write"><code class="docutils literal notranslate"><span class="pre">Model.write()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node"><code class="docutils literal notranslate"><span class="pre">Node</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.add"><code class="docutils literal notranslate"><span class="pre">Node.add()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.concept"><code class="docutils literal notranslate"><span class="pre">Node.concept</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.conns"><code class="docutils literal notranslate"><span class="pre">Node.conns()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.cx"><code class="docutils literal notranslate"><span class="pre">Node.cx</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.cy"><code class="docutils literal notranslate"><span class="pre">Node.cy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.delete"><code class="docutils literal notranslate"><span class="pre">Node.delete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.desc"><code class="docutils literal notranslate"><span class="pre">Node.desc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.distribute_connections"><code class="docutils literal notranslate"><span class="pre">Node.distribute_connections()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.fill_color"><code class="docutils literal notranslate"><span class="pre">Node.fill_color</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.get_obj_pos"><code class="docutils literal notranslate"><span class="pre">Node.get_obj_pos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.get_or_create_node"><code class="docutils literal notranslate"><span class="pre">Node.get_or_create_node()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.get_point_pos"><code class="docutils literal notranslate"><span class="pre">Node.get_point_pos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.getnodes"><code class="docutils literal notranslate"><span class="pre">Node.getnodes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.h"><code class="docutils literal notranslate"><span class="pre">Node.h</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.in_conns"><code class="docutils literal notranslate"><span class="pre">Node.in_conns()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.is_inside"><code class="docutils literal notranslate"><span class="pre">Node.is_inside()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.model"><code class="docutils literal notranslate"><span class="pre">Node.model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.move"><code class="docutils literal notranslate"><span class="pre">Node.move()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.name"><code class="docutils literal notranslate"><span class="pre">Node.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.nodes"><code class="docutils literal notranslate"><span class="pre">Node.nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.out_conns"><code class="docutils literal notranslate"><span class="pre">Node.out_conns()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.ref"><code class="docutils literal notranslate"><span class="pre">Node.ref</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.resize"><code class="docutils literal notranslate"><span class="pre">Node.resize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.rx"><code class="docutils literal notranslate"><span class="pre">Node.rx</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.ry"><code class="docutils literal notranslate"><span class="pre">Node.ry</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.type"><code class="docutils literal notranslate"><span class="pre">Node.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.uuid"><code class="docutils literal notranslate"><span class="pre">Node.uuid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.view"><code class="docutils literal notranslate"><span class="pre">Node.view</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.w"><code class="docutils literal notranslate"><span class="pre">Node.w</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.x"><code class="docutils literal notranslate"><span class="pre">Node.x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Node.y"><code class="docutils literal notranslate"><span class="pre">Node.y</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.Point"><code class="docutils literal notranslate"><span class="pre">Point</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Point.x"><code class="docutils literal notranslate"><span class="pre">Point.x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Point.y"><code class="docutils literal notranslate"><span class="pre">Point.y</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.Position"><code class="docutils literal notranslate"><span class="pre">Position</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Position.dist"><code class="docutils literal notranslate"><span class="pre">Position.dist</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.RGBA"><code class="docutils literal notranslate"><span class="pre">RGBA</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.RGBA.color"><code class="docutils literal notranslate"><span class="pre">RGBA.color</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.Readers"><code class="docutils literal notranslate"><span class="pre">Readers</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Readers.archi"><code class="docutils literal notranslate"><span class="pre">Readers.archi</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Readers.archimate"><code class="docutils literal notranslate"><span class="pre">Readers.archimate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Readers.aris"><code class="docutils literal notranslate"><span class="pre">Readers.aris</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship"><code class="docutils literal notranslate"><span class="pre">Relationship</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship.access_type"><code class="docutils literal notranslate"><span class="pre">Relationship.access_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship.delete"><code class="docutils literal notranslate"><span class="pre">Relationship.delete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship.influence_strength"><code class="docutils literal notranslate"><span class="pre">Relationship.influence_strength</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship.is_directed"><code class="docutils literal notranslate"><span class="pre">Relationship.is_directed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship.prop"><code class="docutils literal notranslate"><span class="pre">Relationship.prop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship.props"><code class="docutils literal notranslate"><span class="pre">Relationship.props</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship.remove_folder"><code class="docutils literal notranslate"><span class="pre">Relationship.remove_folder()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship.remove_prop"><code class="docutils literal notranslate"><span class="pre">Relationship.remove_prop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship.source"><code class="docutils literal notranslate"><span class="pre">Relationship.source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship.target"><code class="docutils literal notranslate"><span class="pre">Relationship.target</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship.type"><code class="docutils literal notranslate"><span class="pre">Relationship.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Relationship.uuid"><code class="docutils literal notranslate"><span class="pre">Relationship.uuid</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.TextAlignment"><code class="docutils literal notranslate"><span class="pre">TextAlignment</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.TextAlignment.Center"><code class="docutils literal notranslate"><span class="pre">TextAlignment.Center</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.TextAlignment.Left"><code class="docutils literal notranslate"><span class="pre">TextAlignment.Left</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.TextAlignment.Right"><code class="docutils literal notranslate"><span class="pre">TextAlignment.Right</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.TextPosition"><code class="docutils literal notranslate"><span class="pre">TextPosition</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.TextPosition.Bottom"><code class="docutils literal notranslate"><span class="pre">TextPosition.Bottom</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.TextPosition.Middle"><code class="docutils literal notranslate"><span class="pre">TextPosition.Middle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.TextPosition.Top"><code class="docutils literal notranslate"><span class="pre">TextPosition.Top</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.View"><code class="docutils literal notranslate"><span class="pre">View</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.add"><code class="docutils literal notranslate"><span class="pre">View.add()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.add_connection"><code class="docutils literal notranslate"><span class="pre">View.add_connection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.conns"><code class="docutils literal notranslate"><span class="pre">View.conns</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.delete"><code class="docutils literal notranslate"><span class="pre">View.delete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.get_or_create_connection"><code class="docutils literal notranslate"><span class="pre">View.get_or_create_connection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.get_or_create_node"><code class="docutils literal notranslate"><span class="pre">View.get_or_create_node()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.nodes"><code class="docutils literal notranslate"><span class="pre">View.nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.prop"><code class="docutils literal notranslate"><span class="pre">View.prop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.props"><code class="docutils literal notranslate"><span class="pre">View.props</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.remove_folder"><code class="docutils literal notranslate"><span class="pre">View.remove_folder()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.remove_prop"><code class="docutils literal notranslate"><span class="pre">View.remove_prop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.type"><code class="docutils literal notranslate"><span class="pre">View.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.View.uuid"><code class="docutils literal notranslate"><span class="pre">View.uuid</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.Writers"><code class="docutils literal notranslate"><span class="pre">Writers</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Writers.archi"><code class="docutils literal notranslate"><span class="pre">Writers.archi</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Writers.archimate"><code class="docutils literal notranslate"><span class="pre">Writers.archimate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyArchimate.html#pyArchimate.Writers.csv"><code class="docutils literal notranslate"><span class="pre">Writers.csv</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.check_valid_relationship"><code class="docutils literal notranslate"><span class="pre">check_valid_relationship()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.default_color"><code class="docutils literal notranslate"><span class="pre">default_color()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.get_default_rel_type"><code class="docutils literal notranslate"><span class="pre">get_default_rel_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html#pyArchimate.set_id"><code class="docutils literal notranslate"><span class="pre">set_id()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="archiReader.html">Archimate tool file reader</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="archiReader.html#module-archiReader">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="archiReader.html#archiReader.archi_reader"><code class="docutils literal notranslate"><span class="pre">archi_reader()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="archimateReader.html">Archimate AMEFF file reader</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="archimateReader.html#module-archimateReader">archimateReader Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="archimateReader.html#archimateReader.archimate_reader"><code class="docutils literal notranslate"><span class="pre">archimate_reader()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="arisAMLReader.html">ARIS AML markup Language file reader</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="arisAMLReader.html#module-arisAMLreader">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="arisAMLReader.html#arisAMLreader.aris_reader"><code class="docutils literal notranslate"><span class="pre">aris_reader()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="arisAMLReader.html#arisAMLreader.get_text_size"><code class="docutils literal notranslate"><span class="pre">get_text_size()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="archiWriter.html">Archimate Tool file writer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="archiWriter.html#module-archiWriter">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="archiWriter.html#archiWriter.archi_writer"><code class="docutils literal notranslate"><span class="pre">archi_writer()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="archimateWriter.html">Archimate AMEFF file writer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="archimateWriter.html#module-archimateWriter">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="archimateWriter.html#archimateWriter.archimate_writer"><code class="docutils literal notranslate"><span class="pre">archimate_writer()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="csvWriter.html">CSV file writer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="csvWriter.html#module-csvWriter">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="csvWriter.html#csvWriter.csv_writer"><code class="docutils literal notranslate"><span class="pre">csv_writer()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

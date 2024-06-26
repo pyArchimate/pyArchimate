@@ -6,19 +6,20 @@
 *
 *
 """
-
 import ctypes
 import platform
-import lxml.etree as ElemTree
-from ..logger import *
-from ..pyArchimate import *
-log_to_stderr()
-log.name = 'aml'
+import sys
+try:
+    from .. import *
+except:
+    sys.path.insert(0, "..")
+    from pyArchimate import *
 
 
 def get_text_size(text, points, font):
     """
     Get the size of a text, based on the font type & size
+
     :param text:    text
     :param points:  font size
     :param font:    font name
@@ -51,20 +52,27 @@ def get_text_size(text, points, font):
 def _id_of(_id):
     """
     Return an Archimate Identifier
+
     :param _id: original identifier
     :returns: identifier starting with 'id-'
     """
-    return 'id-' + _id.split('.')[1]
+    if '.' in _id:
+        return 'id-' + _id.split('.')[1]
+    else:
+        return 'id-' + _id
 
 
-def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=False):
+def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_view=False):
     """
-    Class to perform the parsing of ARIS AML data and to generate an Archimate q
+    Class to perform the parsing of ARIS AML data and to generate an Archimate model
+
+    Note: Normally, the GUID of each aris objects should be used to generate the Archimate id attributes,
+    so that archimate models could be re-imported into ARIS and merged with known objects, instead of creating new ones
+    Unfortunately, ARIS AML export file does not include all GUIDs. So, the native Aris IDs are used.
 
     :param model:       Model to read in
     :type model:        Model
-    :param aml_data:    XML data in Aris Markup Language
-    :type aml_data:     str
+    :param root:        XML data in Aris Markup Language
     :param scale_x:     X-Scaling factor in converting views
     :type scale_x:      float
     :param scale_y:     X-Scaling factor in converting views
@@ -74,7 +82,6 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
 
     def _parse_elements(group=None, folder=''):
         """
-
         :param group:  (Default value = None)
         :param folder:  (Default value = '')
 
@@ -95,12 +102,16 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
             # Get Element (ObjDef)
             objs = g.findall('ObjDef')
             for o in objs:
+                if 'SymbolNum' not in o.attrib:
+                    continue
                 o_type = ARIS_type_map[o.attrib['SymbolNum']]
                 if o_type == '':
                     continue
                 o_id = o.attrib['ObjDef.ID']
-                o_uuid = _id_of(o_id)
+                # Extract GUID
+                guid = o.find('GUID').text
 
+                o_uuid = _id_of(o_id)
                 # Extract Element properties
                 attrs = o.findall('AttrDef')
                 props = {}
@@ -117,8 +128,10 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
                         o_desc = val
                     else:
                         props[key] = val
-
-                model.add(concept_type=o_type, name=o_name, desc=o_desc, uuid=o_uuid, folder=folder)
+                props['GUID'] = guid
+                elem = model.add(concept_type=o_type, name=o_name, desc=o_desc, uuid=o_uuid, folder=folder)
+                for k, v in props.items():
+                    elem.prop(k, v)
 
             _parse_elements(g, folder)
             folder = old_folder
@@ -132,9 +145,9 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
         if groups is None:
             groups = root
 
-        # Relationships (CnxDef) are defined with each elements ObjDef
+        # Relationships (CnxDef) are defined to relate ObjDef elements together
         # However, we needed to parse first all elements in order to detect relationships with
-        # target to elements not provided in this Aris model. Those relationship will be skipped
+        # target to elements not defined in this Aris model. Those relationship will be skipped
         # We also do not classify relationships in folder. there is no real reason for that
 
         for g in groups.findall('Group'):
@@ -208,10 +221,10 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
             size = o.find('Size')
             n = view.add(
                 ref=o_elem_ref,
-                x=int(pos.get('Pos.X')) * scale_x,
-                y=int(pos.get('Pos.Y')) * scale_y,
-                w=int(size.get('Size.dX')) * scale_x,
-                h=int(size.get('Size.dY')) * scale_y,
+                x=int(pos.get('Pos.X') * scale_x),
+                y=int(pos.get('Pos.Y') * scale_y),
+                w=int(size.get('Size.dX') * scale_x),
+                h=int(size.get('Size.dY') * scale_y),
                 uuid=o_id
             )
 
@@ -285,6 +298,7 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
 
     def _parse_containers(grp=None, view=None):
         """
+        Parse group for containers (grouping boxes) in views
 
         :param grp:  (Default value = None)
         :param view:  (Default value = None)
@@ -299,7 +313,7 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
             raise ArchimateConceptTypeError("'view' is not an instance of class 'View'")
 
         for objs in grp.findall('GfxObj'):
-            for o in objs.find('RoundedRectangle'):
+            for o in objs.findall('RoundedRectangle'):
                 pos = o.find('Position')
                 size = o.find('Size')
                 brush = o.find('Brush')
@@ -309,10 +323,10 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
                     color_str = "#000000"
                 if pos is not None and size is not None:
                     n = view.add(ref=None,
-                                 x=scale_x * int(pos.get('Pos.X')),
-                                 y=scale_y * int(pos.get('Pos.Y')),
-                                 w=scale_x * int(size.get('Size.dX')),
-                                 h=scale_y * int(size.get('Size.dY')),
+                                 x=int(pos.get('Pos.X') * scale_x),
+                                 y=int(pos.get('Pos.Y') * scale_y),
+                                 w=int(size.get('Size.dX') * scale_x),
+                                 h=int(size.get('Size.dY') * scale_y),
                                  node_type='Container'
                                  )
                     n.line_color = f'#{int(color_str):0>6X}'
@@ -320,7 +334,9 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
                     n.opacity = 100
 
     def _parse_labels():
-        """ """
+        """
+        Parse model for labels definitions
+        """
         for o in root.findall('FFTextDef'):
             o_id = _id_of(o.attrib['FFTextDef.ID'])
             if o.attrib['IsModelAttr'] == 'TEXT':
@@ -338,6 +354,7 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
 
     def _parse_labels_in_view(grp=None, view=None):
         """
+        Parse views for labels occurrences
 
         :param grp:  (Default value = None)
         :param view:  (Default value = None)
@@ -364,8 +381,8 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
                     try:
                         n = view.add(
                             ref=lbl_ref,
-                            x=max(int(pos.get('Pos.X')) * scale_x, 0),
-                            y=max(int(pos.get('Pos.Y')) * scale_y, 0),
+                            x=max(int(pos.get('Pos.X') * scale_x), 0),
+                            y=max(int(pos.get('Pos.Y') * scale_y), 0),
                             w=w + 18,  # 13 * len(max(o_name.split('\n'))),
                             h=30 + (h * 1.5) * (o_name.count('\n') + 1),
                             node_type='Label', label=o_name
@@ -373,6 +390,8 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
                         n.fill_color = "#FFFFFF"
                         n.opacity = 100
                         n.line_color = '#000000'
+                        n.border_type = "2"
+                        n.text_alignment = TextAlignment.Left
                     except ValueError:
                         log.warning(f'Node {o_name} has unknown element reference {lbl_ref}'
                                     f' - ignoring')
@@ -410,7 +429,7 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
                     key = attr.attrib['AttrDef.Type']
                     val = ''
                     for v in attr.iter('PlainText'):
-                        val += v.get('TextValue') +'\n'
+                        val += v.get('TextValue') + '\n'
                     if key == 'AT_NAME':
                         o_name = val
                     elif key == 'AT_DESC':
@@ -419,7 +438,7 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
                         props[key] = val
 
                 # model.name = view_name
-                view = model.add(concept_type=archi_type.View,
+                view = model.add(concept_type=ArchiType.View,
                                  name=o_name, uuid=view_id, desc=o_desc)
                 log.info('Parsing & adding nodes')
                 view.folder = folder
@@ -436,8 +455,11 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
             folder = old_folder
 
     def _clean_nested_conns():
-        """ """
-        # Clean now all connections between a node and its embedding node parent
+        """
+        Clean now all connections between a node and its embedding node parent
+
+        """
+
         nested_conns = [x for x in model.conns_dict.values()
                         if x.source.uuid == x.parent.uuid and isinstance(x.parent, Node)]
         for c in nested_conns:
@@ -448,7 +470,10 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
             c.delete()
 
     def convert():
-        """ """
+        """
+        Convert the AML file into Archimate model
+
+        """
 
         log.info('Parsing elements')
         _parse_elements()
@@ -473,13 +498,11 @@ def aris_reader(model: Model, aml_data: str, scale_x=0.3, scale_y=0.3, no_view=F
 
         return model
 
-    root = ElemTree.fromstring(aml_data.encode())
-
+    # Convert the AML file into Archimate model
     if root.tag != 'AML':
         log.fatal(' Input file is not an ARIS AML file - Aborting')
         sys.exit(1)
 
     scale_x = float(scale_x)
     scale_y = float(scale_y)
-    no_view = no_view
     convert()

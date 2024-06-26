@@ -2,7 +2,13 @@
 
 """
 
-from ..pyArchimate import *
+import sys
+try:
+    from .. import *
+except:
+    sys.path.insert(0, "..")
+    from pyArchimate import *
+
 import os
 import csv
 
@@ -14,6 +20,7 @@ def csv_writer(model: Model, file_path: str):
     - one for all relationships
     - one for all properties
     The file path is postfixed accordingly to the output file type
+
     :param model:
     :param file_path:
     """
@@ -61,5 +68,4 @@ def csv_writer(model: Model, file_path: str):
     convert_elements()
     convert_relationships()
     convert_properties()
-
 

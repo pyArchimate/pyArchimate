@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="(new model)" id="id-47f9da2c975d41b4a5befec256d82e03" version="5.0.0">
+  <folder name="Strategy" id="id-987bfb94e885494bb36dc672afb97a38" type="strategy"/>
+  <folder name="Business" id="id-b3bab71aecef4317998ab3a30c1386a6" type="business"/>
+  <folder name="Application" id="id-cad8ae9b91e24c7386c1b32cd4eb2996" type="application">
+    <element xsi:type="archimate:ApplicationFunction" name="Application Function" id="id-afb4454080a64ab7bbfd3da9a5536cf1"/>
+    <element xsi:type="archimate:ApplicationFunction" name="1" id="id-24d3ad5819cf4746bbdbe091513bc794"/>
+    <element xsi:type="archimate:ApplicationFunction" name="2" id="id-4b532b4b8a7e4c44901468e93db51d67"/>
+    <element xsi:type="archimate:ApplicationFunction" name="3" id="id-f3c8249c316e4cefbd181aa057cb63cc"/>
+  </folder>
+  <folder name="Technology &amp; Physical" id="id-e80d19ae3faf49b183bcd88dc89ea39b" type="technology"/>
+  <folder name="Motivation" id="id-3fdf693f70e34c64813979561eb569a9" type="motivation"/>
+  <folder name="Implementation &amp; Migration" id="id-e2c2a1b27af3405cbf44d5447b8428af" type="implementation_migration"/>
+  <folder name="Other" id="id-c6a7e96a796d4a6ab474cfc6bddafac6" type="other"/>
+  <folder name="Relations" id="id-8c38b0b2c3fd4038b19b9a00637c0560" type="relations">
+    <element xsi:type="archimate:SpecializationRelationship" id="id-6f7d7efede89403ea1241187b5d450bf" source="id-24d3ad5819cf4746bbdbe091513bc794" target="id-afb4454080a64ab7bbfd3da9a5536cf1"/>
+    <element xsi:type="archimate:SpecializationRelationship" id="id-352d42edfefb4d1ba834da3b24a66e8c" source="id-4b532b4b8a7e4c44901468e93db51d67" target="id-afb4454080a64ab7bbfd3da9a5536cf1"/>
+    <element xsi:type="archimate:SpecializationRelationship" id="id-73c8a499e1f54ee5acecd99228cf107f" source="id-f3c8249c316e4cefbd181aa057cb63cc" target="id-afb4454080a64ab7bbfd3da9a5536cf1"/>
+  </folder>
+  <folder name="Views" id="id-4790e83d4fbc4856858f2d7ecc20003c" type="diagrams">
+    <element xsi:type="archimate:ArchimateDiagramModel" name="Default View" id="id-d6f8f8312f2648749ebe27342111db25">
+      <child xsi:type="archimate:DiagramObject" id="id-1191742fd30245ca9eb6e4de6d8431a1" targetConnections="id-da22def4f1074d85baafc8803bad655c id-1e7e96eaee8347b4beab01c9dcab873c id-87dbaeeadab24f2c93dd2611d2e883f2" archimateElement="id-afb4454080a64ab7bbfd3da9a5536cf1">
+        <bounds x="144" y="72" width="889" height="228"/>
+        <child xsi:type="archimate:DiagramObject" id="id-6cbd8dfe4f3c4068a8c00508bce07b96" archimateElement="id-24d3ad5819cf4746bbdbe091513bc794">
+          <bounds x="65" y="68" width="120" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-da22def4f1074d85baafc8803bad655c" source="id-6cbd8dfe4f3c4068a8c00508bce07b96" target="id-1191742fd30245ca9eb6e4de6d8431a1" archimateRelationship="id-6f7d7efede89403ea1241187b5d450bf"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="id-fb8280c1f15a4a6097d639d68c508934" archimateElement="id-4b532b4b8a7e4c44901468e93db51d67">
+          <bounds x="272" y="88" width="120" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-1e7e96eaee8347b4beab01c9dcab873c" source="id-fb8280c1f15a4a6097d639d68c508934" target="id-1191742fd30245ca9eb6e4de6d8431a1" archimateRelationship="id-352d42edfefb4d1ba834da3b24a66e8c"/>
+        </child>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-b64aa3535a7f4a95ac57cfc0b344d6ab" archimateElement="id-f3c8249c316e4cefbd181aa057cb63cc">
+        <bounds x="312" y="372" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-87dbaeeadab24f2c93dd2611d2e883f2" source="id-b64aa3535a7f4a95ac57cfc0b344d6ab" target="id-1191742fd30245ca9eb6e4de6d8431a1" archimateRelationship="id-73c8a499e1f54ee5acecd99228cf107f"/>
+      </child>
+    </element>
+  </folder>
+</archimate:model>
