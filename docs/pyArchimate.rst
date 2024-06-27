@@ -11,6 +11,8 @@ pyArchimate is a Python library to manage Archimate based models
 
 Module contents
 ---------------
+.. toctree::
+   :maxdepth: 4
 
 .. automodule:: pyArchimate
    :members:
