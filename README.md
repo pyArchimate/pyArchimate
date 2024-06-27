@@ -1,7 +1,8 @@
 # pyArchimate package
 
-https://pypi.org/project/pyArchimate/0.9.64/
+Package: [PyPI.org](https://pypi.org/project/pyArchimate/0.9.64/)
 
+Documentation: [readthedocs.org](https://pyarchimate.readthedocs.io)
 
 pyArchimate is a Python library to manage [Open Group Archimate ](https://www.opengroup.org/xsd/archimate/) files.
 
