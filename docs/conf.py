@@ -10,7 +10,7 @@ project = 'pyArchimate'
 # copyright = ''
 author = 'Xavier Mayeur'
 version = "1"
-release = '1.0.0'
+release = '1.0.1'
 
 import os
 import sys
