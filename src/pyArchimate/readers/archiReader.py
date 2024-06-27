@@ -3,6 +3,7 @@ File reader for native Archimate Tool .archimate file format
 """
 
 import sys
+import lxml.etree as et
 try:
     from .. import *
 except:

@@ -9,6 +9,7 @@
 import ctypes
 import platform
 import sys
+import lxml.etree as et
 try:
     from .. import *
 except:
