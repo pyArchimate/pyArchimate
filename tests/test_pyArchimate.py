@@ -33,10 +33,10 @@ def add_some_elems(m):
     :type m: OpenExchange
     :return:
     """
-    e = m.add(concept_type="ApplicationCollaboration", name="AIP", desc="AIP MF Cobol App")
-    e.prop('Architect', 'Kathy Mottet')
-    e2 = m.add(name='PAN', concept_type='ApplicationCollaboration')
-    rel = m.add_relationship(source=e, target=e2, rel_type='Flow', name='Account Agreement')
+    e = m.add(concept_type=ArchiType.ApplicationCollaboration, name="App 1", desc="An Application 1")
+    e.prop('Architect', 'Harry Potter')
+    e2 = m.add(name='App 2', concept_type=ArchiType.ApplicationCollaboration)
+    rel = m.add_relationship(source=e, target=e2, rel_type=ArchiType.Flow, name='Flow to')
     return e, e2, rel
 
 
@@ -49,8 +49,8 @@ def add_some_view(m):
     """
     v = m.add(ArchiType.View, name="My View", desc="It is a view")
     v.prop('version', '1.1')
-    e = m.find_elements(name="AIP")[0]
-    e2 = m.find_elements(name="PAN")[0]
+    e = m.find_elements(name="PIA")[0]
+    e2 = m.find_elements(name="NAP")[0]
     n = v.add(ref=e.uuid, x=40, y=40, w=120, h=55)
     n2 = v.add(ref=e2.uuid, x=40, y=200, w=120, h=55)
 
@@ -120,11 +120,11 @@ class MyTestCase(unittest.TestCase):
             self.assertFalse(True)
         except ArchimateConceptTypeError:
             # Oops!
-            e = m.add(concept_type="ApplicationCollaboration", name='AIS', desc="New way to create Element")
+            e = m.add(concept_type="ApplicationCollaboration", name='SIA', desc="New way to create Element")
         self.assertTrue(e.uuid in m.elems_dict)
         e.prop('cmdb', '12345')
         self.assertEqual(e.prop('cmdb'), '12345')
-        self.assertEqual(e.name, "AIS")
+        self.assertEqual(e.name, "SIA")
         self.assertEqual(e.type, "ApplicationCollaboration")
         self.assertEqual(e.desc, "New way to create Element")
         # self.assertTrue(e.uuid in m.names_dict[e.name])
@@ -137,7 +137,7 @@ class MyTestCase(unittest.TestCase):
     def test_del_elem(self):
         log.name = "test_del_elem"
         m = create_model()
-        e = m.add(concept_type="ApplicationCollaboration", name='AIS', desc="New way to create Element")
+        e = m.add(concept_type="ApplicationCollaboration", name='SIA', desc="New way to create Element")
         e.delete()
         del e
         self.assertEqual(len(m.elems_dict), 0)
@@ -173,8 +173,8 @@ class MyTestCase(unittest.TestCase):
     def test_add_rel(self):
         log.name = "test_add_rel"
         m = create_model()
-        e = m.add(concept_type="ApplicationCollaboration", name='AIS', desc="It's AIS")
-        e2 = m.add(concept_type="ApplicationCollaboration", name='PAN', desc="it's PAN")
+        e = m.add(concept_type="ApplicationCollaboration", name='SIA', desc="It's AIS")
+        e2 = m.add(concept_type="ApplicationCollaboration", name='NAP', desc="it's PAN")
         r: m.add_relationship = m.add_relationship(source=e, target=e2, rel_type="Flow", name="Flows to")
         r.prop("data", "agreement")
         self.assertEqual(r.prop("data"), "agreement")
@@ -190,8 +190,8 @@ class MyTestCase(unittest.TestCase):
     def test_del_rel(self):
         log.name = "test_del_rel"
         m = create_model()
-        e = m.add(concept_type="ApplicationCollaboration", name='AIS', desc="It's AIS")
-        e2 = m.add(concept_type="ApplicationCollaboration", name='PAN', desc="it's PAN")
+        e = m.add(concept_type="ApplicationCollaboration", name='SIA', desc="It's SIA")
+        e2 = m.add(concept_type="ApplicationCollaboration", name='NAP', desc="it's NAP")
         r: m.add_relationship = m.add_relationship(source=e, target=e2, rel_type="Flow", name="Flows to")
         r.prop("data", "agreement")
         r.delete()
@@ -663,7 +663,7 @@ class MyTestCase(unittest.TestCase):
         r = m.add_relationship(ArchiType.Access, e1, e2, access_type=AccessType.Read)
         r.name = "relationship!"
         m.embed_props()
-        m.write('out.xml')
+        m.write('MyModel.xml')
         self.assertTrue(r.prop('Identifier') is not None)
 
     def test_move_node(self):
@@ -708,7 +708,6 @@ class MyTestCase(unittest.TestCase):
     def test_new_arch_reader(self):
         log.name = "test_new_arch_reader"
         m = Model('test')
-
         m.read('MyModel.xml')
         m.default_theme('aris')
         m.write('out.xml')
