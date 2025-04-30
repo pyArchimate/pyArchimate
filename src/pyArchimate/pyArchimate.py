@@ -3066,6 +3066,12 @@ class Model:
         self._profiles_dict[p.uuid] = p
         return p
 
+    def get_profile(self, name):
+        for p in self.profiles:
+            if p.name == name:
+                return p
+        return None
+
     @property
     def props(self):
         """

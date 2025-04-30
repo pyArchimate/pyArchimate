@@ -754,6 +754,8 @@ class MyTestCase(unittest.TestCase):
 
         e = m.elements[0]
         e.set_profile('test')
+        p = m.get_profile('test')
+        self.assertTrue(p.name == 'test')
 
         # remove profile names 'test'
         for p in m.profiles:
