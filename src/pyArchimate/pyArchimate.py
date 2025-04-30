@@ -564,6 +564,8 @@ class Element:
     :type folder: str
     :param parent: reference to the parent Model object
     :type parent: Model
+    :param profile: element profile identifier
+    :type profile: str
 
     :raises ArchimateConceptTypeError: Exception raised on elem_type or parent tyme error
 
@@ -661,15 +663,13 @@ class Element:
     @property
     def profile_name(self):
         """
-        @property
-        def profile_name(self):
-            Retrieve the name of the profile associated with the current object. This is done
-            by checking if the profile attribute exists and matches a profile in the model's
-            profiles. If no matching profile is found or the profile attribute is None, the
-            method returns None.
+        Retrieve the name of the profile associated with the current object. This is done
+        by checking if the profile attribute exists and matches a profile in the model's
+        profiles. If no matching profile is found or the profile attribute is None, the
+        method returns None.
 
-            Returns:
-                str or None: The name of the associated profile if it exists, otherwise None.
+        Returns:
+            str or None: The name of the associated profile if it exists, otherwise None.
         """
         pn = [x.name for x in self.model.profiles if x.uuid == self._profile]
         if len(pn) == 1:
@@ -885,6 +885,8 @@ class Relationship:
     :type desc: str
     :param is_directed:      boolean flag for association relationship
     :type is_directed: bool
+    :param profile:          relationship profile identifier
+    :type profile: str
     :param parent:           parent Model object
     :type parent: Model
 
@@ -1056,15 +1058,14 @@ class Relationship:
     @property
     def profile_name(self):
         """
-        @property
-        def profile_name(self):
-            Retrieve the name of the profile associated with the current object. This is done
-            by checking if the profile attribute exists and matches a profile in the model's
-            profiles. If no matching profile is found or the profile attribute is None, the
-            method returns None.
 
-            Returns:
-                str or None: The name of the associated profile if it exists, otherwise None.
+        Retrieve the name of the profile associated with the current object. This is done
+        by checking if the profile attribute exists and matches a profile in the model's
+        profiles. If no matching profile is found or the profile attribute is None, the
+        method returns None.
+
+        Returns:
+            str or None: The name of the associated profile if it exists, otherwise None.
         """
         pn = [x.name for x in self.model.profiles if x.uuid == self._profile]
         if len(pn) == 1:
