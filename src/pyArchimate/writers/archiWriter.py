@@ -106,6 +106,8 @@ def archi_writer(model: Model, file_path: str):
             doc.text = elem.desc
         for k, v in elem.props.items():
             et.SubElement(e, 'property', key=k, value=str(v))
+        if elem.profile_id is not None:
+           e.set('profiles', elem.profile_id)
 
     # Import relationships
     for rel in model.relationships:
@@ -280,6 +282,10 @@ def archi_writer(model: Model, file_path: str):
         doc.text = model.desc
     for k, v in model.props.items():
         et.SubElement(root, 'property', key=k, value=str(v))
+
+    # Add profiles list
+    for p in model.profiles.values():
+        et.SubElement(root, 'profile', name=p.name, id=p.uuid, conceptType=p.concept)
 
     # Convert the xml structure into XML string data
     xml_str = et.tostring(root, encoding='UTF-8', pretty_print=True)

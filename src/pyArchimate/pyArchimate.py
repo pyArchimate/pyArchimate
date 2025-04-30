@@ -676,6 +676,20 @@ class Element:
         else:
             return None
 
+    @property
+    def profile_id(self):
+        """
+        Gets the profile ID if the current profile is valid and exists in the associated
+        model's profiles. Returns None if either there is no current profile or it does
+        not exist in the model's profiles.
+
+        Returns:
+            int or None: The ID of the current profile if it exists, otherwise None.
+        """
+        if self._profile is not None and self._profile in self.model.profiles:
+            return self._profile
+        else:
+            return None
 
     @property
     def props(self):
