@@ -572,7 +572,7 @@ class Element:
 
     """
 
-    def __init__(self, elem_type=None, name=None, uuid=None, desc=None, folder=None, parent=None):
+    def __init__(self, elem_type=None, name=None, uuid=None, desc=None, folder=None, parent=None, profile=None):
 
         # Check validity of arguments according to Archimate standard
         if elem_type is None or not hasattr(ArchiType, elem_type):
@@ -591,6 +591,7 @@ class Element:
         self.desc = desc
         self.folder = folder
         self._properties = {}
+        self._profile  = profile
         self.junction_type = None
 
     def delete(self) -> None:
@@ -656,6 +657,25 @@ class Element:
             if value not in archi_category or archi_category[value] == 'Relationship':
                 raise ValueError('Invalid Archimate element type')
             self._type = value
+
+    @property
+    def profile_name(self):
+        """
+        @property
+        def profile_name(self):
+            Retrieve the name of the profile associated with the current object. This is done
+            by checking if the profile attribute exists and matches a profile in the model's
+            profiles. If no matching profile is found or the profile attribute is None, the
+            method returns None.
+
+            Returns:
+                str or None: The name of the associated profile if it exists, otherwise None.
+        """
+        if self._profile is not None and self._profile in self.model.profiles:
+            return self.model.profiles[self._profile].name
+        else:
+            return None
+
 
     @property
     def props(self):
@@ -1105,6 +1125,34 @@ class Relationship:
 
         """
         self.folder = None
+
+class Profile:
+
+    def __init__(self, name=None, uuid=None, concept=None):
+        if not name:
+            raise ValueError('Name of Profile must be present.')
+        if not concept:
+            raise ValueError('concept of Profile must be specified as a class of type: Element')
+
+        self.name = name
+        self._uuid = set_id(uuid)
+        if not hasattr(ArchiType, concept):
+            raise ArchimateConceptTypeError("'concept' argument is not an instance of 'ArchiType' class.")
+        if concept == 'View':
+            raise ValueError("The concept type cannot be a View for a Profile")
+        self.concept = concept
+
+    @property
+    def uuid(self) -> str:
+        """
+        Get the identifier of the node.
+
+        :return: Identifier string
+        :rtype: str
+
+        """
+        return self._uuid
+
 
 
 class Node:
@@ -2768,6 +2816,7 @@ class Model:
         self.desc = desc
         self._properties = {}
         self.pdefs = {}
+        self._profiles_dict = defaultdict(Profile)
         self.elems_dict = defaultdict(Element)
         self.rels_dict = defaultdict(Relationship)
         self.nodes_dict = defaultdict(Node)
@@ -2784,7 +2833,7 @@ class Model:
         # with open(os.path.join(__location__, 'archimate3_View.xsd'), 'r') as _f:
         #     self.schemaV = _f.read()
 
-    def add(self, concept_type=None, name=None, uuid=None, desc=None, folder=None):
+    def add(self, concept_type=None, name=None, uuid=None, desc=None, folder=None, profile=None):
         """
         Method to add a new Element in this model
 
@@ -2797,6 +2846,7 @@ class Model:
         :param desc:            Element's documentation
         :type desc: str
         :param folder:          Element's organization path
+        :param profile: str     Archimate Element profile name
         :type folder: str
         :return:                Element or View class object
         :rtype: Element|View
@@ -2806,7 +2856,7 @@ class Model:
             self.views_dict[v.uuid] = v
             return v
         else:
-            _e = Element(concept_type, name, uuid, desc, folder, parent=self)
+            _e = Element(concept_type, name, uuid, desc, folder, parent=self, profile=profile)
             self.elems_dict[_e.uuid] = _e
             return _e
 
@@ -2860,6 +2910,24 @@ class Model:
         :rtype: str
         """
         return 'Model'
+
+    @property
+    def profiles(self):
+        """
+        Property to access the profiles.
+
+        This property provides access to the `_profiles` attribute of the class
+        instance. It allows getting the internal profiles data which is encapsulated
+        within the class.
+
+        Returns:
+            The value of the `_profiles` attribute.
+        """
+        return self._profiles_dict
+
+    def add_profile(self, name=None, uuid=None, concept=None):
+        p = Profile(name=name, uuid=uuid, concept=concept)
+        self._profiles_dict[p.uuid] = p
 
     @property
     def props(self):
