@@ -51,7 +51,10 @@ def archi_reader(model, root, merge_flg=False):
     # get model Profiles list
     if root.find('profile') is not None:
         for p in root.findall('profile'):
-            model.add_profile(p.get('name'), p.get('id'), p.get('conceptType'))
+            concept_type = p.get('conceptType')
+            if 'Relationship' in concept_type:
+                concept_type = concept_type[:-len("Relationship")]
+            model.add_profile(p.get('name'), p.get('id'), concept_type)
 
     def _get_folders_elem(tag, folder_path=''):
         """
@@ -117,7 +120,7 @@ def archi_reader(model, root, merge_flg=False):
                         elem = model.rels_dict(e.get('id'))
                     else:
                         elem = model.add_relationship(rel_type=type_e, name=e.get('name'), uuid=e.get('id'),
-                                                      source=src, target=dst)
+                                                      source=src, target=dst,  profile=e.get('profiles'))
                     if elem is None:
                         log.warning(f'Invalid {src.uuid} or {dst.uuid}')
                         continue

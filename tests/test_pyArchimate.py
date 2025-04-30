@@ -746,9 +746,10 @@ class MyTestCase(unittest.TestCase):
         m.write('out.archimate', writer=Writers.archi)
         m.read('out.archimate')
         for p in m.profiles:
+            self.assertTrue(len(m.profiles) == 4)
             self.assertTrue(m.profiles[p].name is not None)
         self.assertTrue(len([x.profile_name for x in m.elements if x.profile_name is not None]) == 2)
-
+        self.assertTrue(len([x.profile_name for x in m.relationships if x.profile_name is not None]) == 1)
 
 if __name__ == '__main__':
     unittest.main()

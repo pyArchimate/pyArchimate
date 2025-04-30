@@ -864,7 +864,7 @@ class Relationship:
     """
 
     def __init__(self, rel_type='', source=None, target=None, uuid=None, name=None,
-                 access_type=None, influence_strength=None, desc=None, is_directed=None, parent=None):
+                 access_type=None, influence_strength=None, desc=None, is_directed=None, profile=None, parent=None):
 
         if not isinstance(parent, Model):
             raise ValueError('Relationship class parent should be a class Model instance!')
@@ -895,7 +895,7 @@ class Relationship:
         self.desc = desc
         self._properties = {}
         self.folder = None
-
+        self._profile = profile
         self._access_type = access_type
         self._influence_strength = influence_strength
         self._is_directed = is_directed
@@ -1025,6 +1025,39 @@ class Relationship:
         # Raise an exception is the new relationship type is not compatible with the source & target ones
         check_valid_relationship(new_type, self.source.type, self.target.type)
         self._type = new_type
+
+    @property
+    def profile_name(self):
+        """
+        @property
+        def profile_name(self):
+            Retrieve the name of the profile associated with the current object. This is done
+            by checking if the profile attribute exists and matches a profile in the model's
+            profiles. If no matching profile is found or the profile attribute is None, the
+            method returns None.
+
+            Returns:
+                str or None: The name of the associated profile if it exists, otherwise None.
+        """
+        if self._profile is not None and self._profile in self.model.profiles:
+            return self.model.profiles[self._profile].name
+        else:
+            return None
+
+    @property
+    def profile_id(self):
+        """
+        Gets the profile ID if the current profile is valid and exists in the associated
+        model's profiles. Returns None if either there is no current profile or it does
+        not exist in the model's profiles.
+
+        Returns:
+            int or None: The ID of the current profile if it exists, otherwise None.
+        """
+        if self._profile is not None and self._profile in self.model.profiles:
+            return self._profile
+        else:
+            return None
 
     @property
     def props(self):
@@ -2875,7 +2908,7 @@ class Model:
             return _e
 
     def add_relationship(self, rel_type='', source=None, target=None, uuid=None, name=None, access_type=None,
-                         influence_strength=None, desc=None, is_directed=None) -> Relationship:
+                         influence_strength=None, desc=None, is_directed=None, profile=None) -> Relationship:
         """
         Method to add a new Relationship between two Element objects
 
@@ -2901,7 +2934,7 @@ class Model:
         :rtype: Relationship
         """
         r = Relationship(rel_type, source, target, uuid, name, access_type, influence_strength, desc,
-                         is_directed,
+                         is_directed, profile,
                          parent=self)
         self.rels_dict[r.uuid] = r
         return r

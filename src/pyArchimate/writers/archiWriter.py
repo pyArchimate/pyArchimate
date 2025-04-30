@@ -148,6 +148,9 @@ def archi_writer(model: Model, file_path: str):
         for k, v in rel.props.items():
             et.SubElement(r, 'property', key=k, value=str(v))
 
+        if rel.profile_id is not None:
+           r.set('profiles', rel.profile_id)
+
     # Import views
     for view in model.views:
         cat = 'Views'
