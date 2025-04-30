@@ -671,8 +671,9 @@ class Element:
             Returns:
                 str or None: The name of the associated profile if it exists, otherwise None.
         """
-        if self._profile is not None and self._profile in self.model.profiles:
-            return self.model.profiles[self._profile].name
+        pn = [x.name for x in self.model.profiles if x.uuid == self._profile]
+        if len(pn) == 1:
+            return pn[0]
         else:
             return None
 
@@ -686,10 +687,36 @@ class Element:
         Returns:
             int or None: The ID of the current profile if it exists, otherwise None.
         """
-        if self._profile is not None and self._profile in self.model.profiles:
-            return self._profile
+        pn = [x.uuid for x in self.model.profiles if x.uuid == self._profile]
+        if len(pn) == 1:
+            return pn[0]
         else:
             return None
+
+    def set_profile(self, profile_name):
+        """
+        Sets the current profile for an instance. If the specified profile name already
+        exists in the model, it sets the profile to the matching profile. Otherwise,
+        a new profile is created, added to the model, and set as the current profile.
+
+        Parameters:
+            profile_name (str): The name of the profile to set. If it exists in the
+            model, it will be used directly. If not, a new profile with this name
+            will be created and used.
+
+        Raises:
+            No exceptions are explicitly raised in this method.
+        """
+        n = [x.name for x in self.model.profiles if x.name == profile_name]
+        if len(n) == 1:
+            self._profile = n[0]
+        else:
+            # add a new profile to the model
+            p = self.model.add_profile(name=profile_name, concept=self.type)
+            self._profile = p.uuid
+
+    def reset_profile(self):
+        self._profile = None
 
     @property
     def props(self):
@@ -1039,8 +1066,9 @@ class Relationship:
             Returns:
                 str or None: The name of the associated profile if it exists, otherwise None.
         """
-        if self._profile is not None and self._profile in self.model.profiles:
-            return self.model.profiles[self._profile].name
+        pn = [x.name for x in self.model.profiles if x.uuid == self._profile]
+        if len(pn) == 1:
+            return pn[0]
         else:
             return None
 
@@ -1054,10 +1082,38 @@ class Relationship:
         Returns:
             int or None: The ID of the current profile if it exists, otherwise None.
         """
-        if self._profile is not None and self._profile in self.model.profiles:
-            return self._profile
+        pn = [x.uuid for x in self.model.profiles if x.uuid == self._profile]
+        if len(pn) == 1:
+            return pn[0]
         else:
             return None
+
+    def set_profile(self, profile_name):
+        """
+        Sets or updates the profile for the current instance based on the provided
+        profile name. If the profile name exists in the model's profile collection,
+        it is set as the current profile. Otherwise, a new profile is created and
+        added to the model, and its unique identifier is set for the current profile.
+
+        Args:
+            profile_name (str): The name of the profile to set. If it does not exist,
+                a new profile is created with this name.
+
+        Raises:
+            ValueError: If the profile name is invalid or cannot be processed.
+        """
+
+        n = [x.name for x in self.model.profiles if x.name == profile_name]
+        if len(n) == 1:
+            self._profile = n[0]
+        else:
+            # add a new profile to the model
+            p = self.model.add_profile(name=profile_name, concept=self.type)
+            self._profile = p.uuid
+
+    def reset_profile(self):
+        self._profile = None
+
 
     @property
     def props(self):
@@ -1175,7 +1231,7 @@ class Relationship:
 
 class Profile:
 
-    def __init__(self, name=None, uuid=None, concept=None):
+    def __init__(self, name=None, uuid=None, concept=None, model=None):
         if not name:
             raise ValueError('Name of Profile must be present.')
         if not concept:
@@ -1188,6 +1244,23 @@ class Profile:
         if concept == 'View':
             raise ValueError("The concept type cannot be a View for a Profile")
         self.concept = concept
+        self.model = model
+
+    def delete(self):
+        """
+        Deletes the profile by removing all references to it from elements and relationships
+        within the model and deleting it from the profile registry.
+
+        Raises:
+            KeyError: If the profile is not found in the profiles registry.
+        """
+        #  Remove all references from elements and relationships
+        for x in [e for e in self.model.elements if e.profile_id== self.uuid]:
+            x.reset_profile()
+        for x in [r for r in self.model.relationships if r.profile_id== self.uuid]:
+            x.reset_profile()
+        if self.uuid in self.model.profiles:
+            del self.model.profiles[self.uuid]
 
     @property
     def uuid(self) -> str:
@@ -2970,11 +3043,28 @@ class Model:
         Returns:
             The value of the `_profiles` attribute.
         """
-        return self._profiles_dict
+        return list(self._profiles_dict.values())
 
     def add_profile(self, name=None, uuid=None, concept=None):
-        p = Profile(name=name, uuid=uuid, concept=concept)
+        """
+        Adds a new profile to the profiles dictionary and associates it with this model.
+
+        This method creates an instance of the Profile class using the provided arguments
+        and stores it in the internal dictionary, keyed by its unique identifier (UUID).
+        If no UUID or name is provided, the default values will be used. This method also
+        returns the newly created Profile instance.
+
+        Args:
+            name (str, optional): The name of the profile being added.
+            uuid (str, optional): The unique identifier for the profile.
+            concept (Any, optional): A concept object associated with the profile.
+
+        Returns:
+            Profile: The newly created Profile object.
+        """
+        p = Profile(name=name, uuid=uuid, concept=concept, model=self)
         self._profiles_dict[p.uuid] = p
+        return p
 
     @property
     def props(self):

@@ -72,6 +72,7 @@ def archi_reader(model, root, merge_flg=False):
                 if merge_flg and e.get('id') in model.elems_dict:
                     elem = model.elems_dict[e.get('id')]
                 else:
+                    x = e.get('profiles')
                     elem = model.add(concept_type=type_e, name=e.get('name'), uuid=e.get('id'),
                                      profile=e.get('profiles'))
 

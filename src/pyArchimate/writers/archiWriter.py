@@ -145,6 +145,7 @@ def archi_writer(model: Model, file_path: str):
         if rel.desc is not None:
             doc = et.SubElement(r, 'documentation')
             doc.text = rel.desc
+
         for k, v in rel.props.items():
             et.SubElement(r, 'property', key=k, value=str(v))
 
@@ -287,7 +288,7 @@ def archi_writer(model: Model, file_path: str):
         et.SubElement(root, 'property', key=k, value=str(v))
 
     # Add profiles list
-    for p in model.profiles.values():
+    for p in model.profiles:
         et.SubElement(root, 'profile', name=p.name, id=p.uuid, conceptType=p.concept)
 
     # Convert the xml structure into XML string data
