@@ -4,6 +4,7 @@ File reader for native Archimate Tool .archimate file format
 
 import sys
 import lxml.etree as et
+
 try:
     from .. import *
 except:
@@ -47,6 +48,14 @@ def archi_reader(model, root, merge_flg=False):
         for p in root.findall('property'):
             model.prop(p.get('key'), p.get('value'))
 
+    # get model Profiles list
+    if root.find('profile') is not None:
+        for p in root.findall('profile'):
+            concept_type = p.get('conceptType')
+            if 'Relationship' in concept_type:
+                concept_type = concept_type[:-len("Relationship")]
+            model.add_profile(p.get('name'), p.get('id'), concept_type)
+
     def _get_folders_elem(tag, folder_path=''):
         """
         Get recursively all elements from a folder path
@@ -63,7 +72,10 @@ def archi_reader(model, root, merge_flg=False):
                 if merge_flg and e.get('id') in model.elems_dict:
                     elem = model.elems_dict[e.get('id')]
                 else:
-                    elem = model.add(concept_type=type_e, name=e.get('name'), uuid=e.get('id'))
+                    x = e.get('profiles')
+                    elem = model.add(concept_type=type_e, name=e.get('name'), uuid=e.get('id'),
+                                     profile=e.get('profiles'))
+
                 elem.folder = folder
                 doc = e.find('documentation')
                 if doc is not None:
@@ -109,7 +121,7 @@ def archi_reader(model, root, merge_flg=False):
                         elem = model.rels_dict(e.get('id'))
                     else:
                         elem = model.add_relationship(rel_type=type_e, name=e.get('name'), uuid=e.get('id'),
-                                                      source=src, target=dst)
+                                                      source=src, target=dst,  profile=e.get('profiles'))
                     if elem is None:
                         log.warning(f'Invalid {src.uuid} or {dst.uuid}')
                         continue

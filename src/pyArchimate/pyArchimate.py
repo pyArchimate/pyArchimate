@@ -564,6 +564,8 @@ class Element:
     :type folder: str
     :param parent: reference to the parent Model object
     :type parent: Model
+    :param profile: element profile identifier
+    :type profile: str
 
     :raises ArchimateConceptTypeError: Exception raised on elem_type or parent tyme error
 
@@ -572,7 +574,7 @@ class Element:
 
     """
 
-    def __init__(self, elem_type=None, name=None, uuid=None, desc=None, folder=None, parent=None):
+    def __init__(self, elem_type=None, name=None, uuid=None, desc=None, folder=None, parent=None, profile=None):
 
         # Check validity of arguments according to Archimate standard
         if elem_type is None or not hasattr(ArchiType, elem_type):
@@ -591,6 +593,7 @@ class Element:
         self.desc = desc
         self.folder = folder
         self._properties = {}
+        self._profile  = profile
         self.junction_type = None
 
     def delete(self) -> None:
@@ -656,6 +659,64 @@ class Element:
             if value not in archi_category or archi_category[value] == 'Relationship':
                 raise ValueError('Invalid Archimate element type')
             self._type = value
+
+    @property
+    def profile_name(self):
+        """
+        Retrieve the name of the profile associated with the current object. This is done
+        by checking if the profile attribute exists and matches a profile in the model's
+        profiles. If no matching profile is found or the profile attribute is None, the
+        method returns None.
+
+        Returns:
+            str or None: The name of the associated profile if it exists, otherwise None.
+        """
+        pn = [x.name for x in self.model.profiles if x.uuid == self._profile]
+        if len(pn) == 1:
+            return pn[0]
+        else:
+            return None
+
+    @property
+    def profile_id(self):
+        """
+        Gets the profile ID if the current profile is valid and exists in the associated
+        model's profiles. Returns None if either there is no current profile or it does
+        not exist in the model's profiles.
+
+        Returns:
+            int or None: The ID of the current profile if it exists, otherwise None.
+        """
+        pn = [x.uuid for x in self.model.profiles if x.uuid == self._profile]
+        if len(pn) == 1:
+            return pn[0]
+        else:
+            return None
+
+    def set_profile(self, profile_name):
+        """
+        Sets the current profile for an instance. If the specified profile name already
+        exists in the model, it sets the profile to the matching profile. Otherwise,
+        a new profile is created, added to the model, and set as the current profile.
+
+        Parameters:
+            profile_name (str): The name of the profile to set. If it exists in the
+            model, it will be used directly. If not, a new profile with this name
+            will be created and used.
+
+        Raises:
+            No exceptions are explicitly raised in this method.
+        """
+        n = [x.name for x in self.model.profiles if x.name == profile_name]
+        if len(n) == 1:
+            self._profile = n[0]
+        else:
+            # add a new profile to the model
+            p = self.model.add_profile(name=profile_name, concept=self.type)
+            self._profile = p.uuid
+
+    def reset_profile(self):
+        self._profile = None
 
     @property
     def props(self):
@@ -824,13 +885,15 @@ class Relationship:
     :type desc: str
     :param is_directed:      boolean flag for association relationship
     :type is_directed: bool
+    :param profile:          relationship profile identifier
+    :type profile: str
     :param parent:           parent Model object
     :type parent: Model
 
     """
 
     def __init__(self, rel_type='', source=None, target=None, uuid=None, name=None,
-                 access_type=None, influence_strength=None, desc=None, is_directed=None, parent=None):
+                 access_type=None, influence_strength=None, desc=None, is_directed=None, profile=None, parent=None):
 
         if not isinstance(parent, Model):
             raise ValueError('Relationship class parent should be a class Model instance!')
@@ -861,7 +924,7 @@ class Relationship:
         self.desc = desc
         self._properties = {}
         self.folder = None
-
+        self._profile = profile
         self._access_type = access_type
         self._influence_strength = influence_strength
         self._is_directed = is_directed
@@ -993,6 +1056,67 @@ class Relationship:
         self._type = new_type
 
     @property
+    def profile_name(self):
+        """
+
+        Retrieve the name of the profile associated with the current object. This is done
+        by checking if the profile attribute exists and matches a profile in the model's
+        profiles. If no matching profile is found or the profile attribute is None, the
+        method returns None.
+
+        Returns:
+            str or None: The name of the associated profile if it exists, otherwise None.
+        """
+        pn = [x.name for x in self.model.profiles if x.uuid == self._profile]
+        if len(pn) == 1:
+            return pn[0]
+        else:
+            return None
+
+    @property
+    def profile_id(self):
+        """
+        Gets the profile ID if the current profile is valid and exists in the associated
+        model's profiles. Returns None if either there is no current profile or it does
+        not exist in the model's profiles.
+
+        Returns:
+            int or None: The ID of the current profile if it exists, otherwise None.
+        """
+        pn = [x.uuid for x in self.model.profiles if x.uuid == self._profile]
+        if len(pn) == 1:
+            return pn[0]
+        else:
+            return None
+
+    def set_profile(self, profile_name):
+        """
+        Sets or updates the profile for the current instance based on the provided
+        profile name. If the profile name exists in the model's profile collection,
+        it is set as the current profile. Otherwise, a new profile is created and
+        added to the model, and its unique identifier is set for the current profile.
+
+        Args:
+            profile_name (str): The name of the profile to set. If it does not exist,
+                a new profile is created with this name.
+
+        Raises:
+            ValueError: If the profile name is invalid or cannot be processed.
+        """
+
+        n = [x.name for x in self.model.profiles if x.name == profile_name]
+        if len(n) == 1:
+            self._profile = n[0]
+        else:
+            # add a new profile to the model
+            p = self.model.add_profile(name=profile_name, concept=self.type)
+            self._profile = p.uuid
+
+    def reset_profile(self):
+        self._profile = None
+
+
+    @property
     def props(self):
         """
         Return the properties of this relationship
@@ -1105,6 +1229,51 @@ class Relationship:
 
         """
         self.folder = None
+
+class Profile:
+
+    def __init__(self, name=None, uuid=None, concept=None, model=None):
+        if not name:
+            raise ValueError('Name of Profile must be present.')
+        if not concept:
+            raise ValueError('concept of Profile must be specified as a class of type: Element')
+
+        self.name = name
+        self._uuid = set_id(uuid)
+        if not hasattr(ArchiType, concept):
+            raise ArchimateConceptTypeError("'concept' argument is not an instance of 'ArchiType' class.")
+        if concept == 'View':
+            raise ValueError("The concept type cannot be a View for a Profile")
+        self.concept = concept
+        self.model = model
+
+    def delete(self):
+        """
+        Deletes the profile by removing all references to it from elements and relationships
+        within the model and deleting it from the profile registry.
+
+        Raises:
+            KeyError: If the profile is not found in the profiles registry.
+        """
+        #  Remove all references from elements and relationships
+        for x in [e for e in self.model.elements if e.profile_id== self.uuid]:
+            x.reset_profile()
+        for x in [r for r in self.model.relationships if r.profile_id== self.uuid]:
+            x.reset_profile()
+        if self.uuid in self.model.profiles:
+            del self.model.profiles[self.uuid]
+
+    @property
+    def uuid(self) -> str:
+        """
+        Get the identifier of the node.
+
+        :return: Identifier string
+        :rtype: str
+
+        """
+        return self._uuid
+
 
 
 class Node:
@@ -2768,6 +2937,7 @@ class Model:
         self.desc = desc
         self._properties = {}
         self.pdefs = {}
+        self._profiles_dict = defaultdict(Profile)
         self.elems_dict = defaultdict(Element)
         self.rels_dict = defaultdict(Relationship)
         self.nodes_dict = defaultdict(Node)
@@ -2784,7 +2954,7 @@ class Model:
         # with open(os.path.join(__location__, 'archimate3_View.xsd'), 'r') as _f:
         #     self.schemaV = _f.read()
 
-    def add(self, concept_type=None, name=None, uuid=None, desc=None, folder=None):
+    def add(self, concept_type=None, name=None, uuid=None, desc=None, folder=None, profile=None):
         """
         Method to add a new Element in this model
 
@@ -2797,6 +2967,7 @@ class Model:
         :param desc:            Element's documentation
         :type desc: str
         :param folder:          Element's organization path
+        :param profile: str     Archimate Element profile name
         :type folder: str
         :return:                Element or View class object
         :rtype: Element|View
@@ -2806,12 +2977,12 @@ class Model:
             self.views_dict[v.uuid] = v
             return v
         else:
-            _e = Element(concept_type, name, uuid, desc, folder, parent=self)
+            _e = Element(concept_type, name, uuid, desc, folder, parent=self, profile=profile)
             self.elems_dict[_e.uuid] = _e
             return _e
 
     def add_relationship(self, rel_type='', source=None, target=None, uuid=None, name=None, access_type=None,
-                         influence_strength=None, desc=None, is_directed=None) -> Relationship:
+                         influence_strength=None, desc=None, is_directed=None, profile=None) -> Relationship:
         """
         Method to add a new Relationship between two Element objects
 
@@ -2837,7 +3008,7 @@ class Model:
         :rtype: Relationship
         """
         r = Relationship(rel_type, source, target, uuid, name, access_type, influence_strength, desc,
-                         is_directed,
+                         is_directed, profile,
                          parent=self)
         self.rels_dict[r.uuid] = r
         return r
@@ -2860,6 +3031,47 @@ class Model:
         :rtype: str
         """
         return 'Model'
+
+    @property
+    def profiles(self):
+        """
+        Property to access the profiles.
+
+        This property provides access to the `_profiles` attribute of the class
+        instance. It allows getting the internal profiles data which is encapsulated
+        within the class.
+
+        Returns:
+            The value of the `_profiles` attribute.
+        """
+        return list(self._profiles_dict.values())
+
+    def add_profile(self, name=None, uuid=None, concept=None):
+        """
+        Adds a new profile to the profiles dictionary and associates it with this model.
+
+        This method creates an instance of the Profile class using the provided arguments
+        and stores it in the internal dictionary, keyed by its unique identifier (UUID).
+        If no UUID or name is provided, the default values will be used. This method also
+        returns the newly created Profile instance.
+
+        Args:
+            name (str, optional): The name of the profile being added.
+            uuid (str, optional): The unique identifier for the profile.
+            concept (Any, optional): A concept object associated with the profile.
+
+        Returns:
+            Profile: The newly created Profile object.
+        """
+        p = Profile(name=name, uuid=uuid, concept=concept, model=self)
+        self._profiles_dict[p.uuid] = p
+        return p
+
+    def get_profile(self, name):
+        for p in self.profiles:
+            if p.name == name:
+                return p
+        return None
 
     @property
     def props(self):

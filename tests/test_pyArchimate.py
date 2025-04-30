@@ -740,6 +740,36 @@ class MyTestCase(unittest.TestCase):
         for c in m.conns:
             self.assertFalse(c.show_label)
 
+    def test_profile(self):
+        m = Model('test')
+        m.read('profile.archimate') # model already include profiles
+        x = m.elements[0].profile_name # check the fist one
+        m.write('out.archimate', writer=Writers.archi) # write out
+        m.read('out.archimate') # and read back to ensure profiles are kept on elements
+        for p in m.profiles: # check
+            self.assertTrue(len(m.profiles) == 4)
+            self.assertTrue(p.name is not None)
+        self.assertTrue(len([x.profile_name for x in m.elements if x.profile_name is not None]) == 2)
+        self.assertTrue(len([x.profile_name for x in m.relationships if x.profile_name is not None]) == 1)
+
+        # get the first element
+        e = m.elements[0]
+        # set a new profile & test
+        e.set_profile('test')
+        p = m.get_profile('test')
+        self.assertTrue(p.name == 'test')
+
+        # remove profile names 'test'
+        for p in m.profiles:
+            if p.name == 'test':
+                p.delete()
+                break
+        self.assertTrue(e.profile_name is None)
+
+        # set it back and only remove it from the selected element
+        e.set_profile('test')
+        e.reset_profile()
+        self.assertTrue(e.profile_name is None)
 
 if __name__ == '__main__':
     unittest.main()
