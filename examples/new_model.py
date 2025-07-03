@@ -22,8 +22,8 @@ def main():
     )
     # Add another one
     n_app_comp = v.get_or_create_node(
-        "Application Component",
-        pa.ArchiType.ApplicationComponent,
+        "Application Interaction",
+        pa.ArchiType.ApplicationInterface,
         x=200,
         y=20,
         create_elem=True,

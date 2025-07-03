@@ -562,6 +562,10 @@ class MyTestCase(unittest.TestCase):
         m = Model('test')
         m.prop('author', 'Xavier')
         m.prop('version', '1')
+        m.prop('empty', '')
+        m.prop('none', None)
+        m.prop ('empty1', None)
+
         a = m.add(ArchiType.ApplicationComponent, 'A')
         b = m.add(ArchiType.BusinessObject, 'B')
         r = m.add_relationship(ArchiType.Access, a, b, name='ACCESS', access_type=AccessType.Write)
@@ -581,7 +585,7 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue('properties' not in m.desc)
         self.assertTrue(r.AccessType == AccessType.Read)
         self.assertEqual(r.name, 'ACCESS')
-        m.write()
+        m.write("test.archimate", 1)  # writer=Writers.archi)
         del m
 
     def test_get_or_create(self):

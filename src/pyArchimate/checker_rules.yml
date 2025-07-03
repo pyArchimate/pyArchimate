@@ -84,6 +84,7 @@ archi_category:
     ApplicationComponent: Application
     ApplicationEvent: Application
     ApplicationFunction: Application
+    ApplicationInteraction: Application
     ApplicationInterface: Application
     ApplicationProcess: Application
     ApplicationService: Application
@@ -95,7 +96,7 @@ archi_category:
     BusinessCollaboration: Business
     BusinessEvent: Business
     BusinessFunction: Business
-    BusinessInteraction: Business
+    # BusinessInteraction: Business
     BusinessInterface: Business
     BusinessObject: Business
     BusinessProcess: Business

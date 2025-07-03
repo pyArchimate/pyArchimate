@@ -54,7 +54,7 @@ class Readers(Enum):
     archimate = 2
 
 
-class AccessType:
+class AccessType(str, Enum):
     """
     Enumeration of Access Relationship types
     """
@@ -65,7 +65,7 @@ class AccessType:
     ReadWrite = 'ReadWrite'
 
 
-class TextPosition:
+class TextPosition(str, Enum):
     """
     Enumaration for Text vertical position
     """
@@ -75,7 +75,7 @@ class TextPosition:
     Bottom = "2"
 
 
-class TextAlignment:
+class TextAlignment(str, Enum):
     """
     Enumeration for text horizontal position
     """
@@ -86,10 +86,10 @@ class TextAlignment:
 
 
 influenceStrength = {'+': '+', '++': '++', '-': '-', '--': '--', '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
-                     '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': '10'},
+                     '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': '10'}
 
 
-class ArchiType:
+class ArchiType(str, Enum):
     """
     Enumeration of Archimate Element & Relationships types
     """
@@ -113,6 +113,7 @@ class ArchiType:
 
     ApplicationComponent = "ApplicationComponent"
     ApplicationInterface = "ApplicationInterface"
+    ApplicationInteraction = "ApplicationInteraction"
     ApplicationCollaboration = "ApplicationCollaboration"
     ApplicationFunction = "ApplicationFunction"
     ApplicationProcess = "ApplicationProcess"

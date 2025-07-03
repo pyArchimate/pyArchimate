@@ -7,7 +7,7 @@ out = r'out.archimate'
 
 
 m = Model('test')
-m.read('in.xml')
+m.read('test.archimate', reader=Readers.archi)
 m.check_invalid_conn()
 m.check_invalid_nodes()
 m.write(out, writer=Writers.archi)
