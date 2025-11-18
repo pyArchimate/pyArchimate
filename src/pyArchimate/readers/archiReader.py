@@ -79,7 +79,7 @@ def archi_reader(model, root, merge_flg=False):
                 elem.folder = folder
                 doc = e.find('documentation')
                 if doc is not None:
-                    elem.desc = e.text
+                    elem.desc = doc.text
                 for p in e.findall('property'):
                     elem.prop(p.get('key'), p.get('value'))
                 if type_e == 'Junction':
