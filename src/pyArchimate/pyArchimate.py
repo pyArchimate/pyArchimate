@@ -743,7 +743,15 @@ class Element:
         if value is None:
             return self._properties[key] if key in self._properties else None
         else:
-            self._properties[key] = value
+            if key not in self._properties:
+                self._properties[key] = value
+            else:
+                existing_value = self._properties[key]
+                if not isinstance(existing_value, list):
+                    existing_value = [existing_value]
+                if value not in existing_value:
+                    existing_value.append(value)
+                self._properties[key] = existing_value
             return value
 
     def remove_prop(self, key):
