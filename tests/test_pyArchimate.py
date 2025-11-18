@@ -112,6 +112,40 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(m.prop('author'), m2.prop('author'))
         self.assertEqual(m2.prop('author'), 'xavier')
 
+    def test_elem_props(self):
+        log.name = "test_elem_props"
+        m = create_model()
+        m.read('/Users/xavier/PycharmProjects/pyArchimate/tests/prop-list.archimate')
+        e = m.add(concept_type="ApplicationCollaboration", name='SIA', desc="It's AIS")
+        # e.prop('version', 1)
+        e.prop('author', 'xavier')
+        # self.assertEqual(e.prop('version'), 1)
+        self.assertEqual(e.prop('author'), 'xavier')
+        e.prop('version', 1)
+        self.assertEqual(e.prop('version'), True)
+        # e.prop('list', ['a', 'b', 'c'])
+        # self.assertEqual(e.prop('list'), ['a', 'b', 'c'])
+        # e.prop('list', ['a', 'b', 'c', 'd'])
+        # self.assertEqual(e.prop('list'), ['a', 'b', 'c', 'd'])
+        m.write('out.archimate')
+
+    def test_node_label(self):
+        log.name = "test_node_label"
+        m = create_model()
+        v = m.get_or_create_view('Default View', create_view=True)
+        n = v.get_or_create_node(elem='Data Object', elem_type=ArchiType.DataObject,     create_node=True, create_elem=True)
+        n.label_expression = '${name}\n________'
+        m.write('/Users/xavier/PycharmProjects/pyArchimate/tests/out.archimate', writer=Writers.archi)
+        return
+        e, e2, rel = add_some_elems(m)
+        v = m.add(ArchiType.View, 'New View using new method')
+        n = v.add(e, 100, 150)
+        n2 = v.add(e2, 40, 50)
+        n3 = n2.get_or_create_node(elem='APP', elem_type=ArchiType.ApplicationComponent,
+                                  create_node=True, create_elem=True)
+        n4 = n2.get_or_create_node()
+        n.label = 'APP'
+
     def test_add_elem(self):
         log.name = "test_add_elem"
         m = create_model()
