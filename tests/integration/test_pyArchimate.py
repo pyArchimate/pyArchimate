@@ -9,10 +9,11 @@ from src.pyArchimate.logger import log, log_to_stderr, log_set_level
 from src.pyArchimate.pyArchimate import *
 
 TEST_DIR = Path(__file__).resolve().parent
+FIXTURES_DIR = TEST_DIR / "fixtures"
 
 
 def resource(name: str) -> str:
-    return str(TEST_DIR / name)
+    return str(FIXTURES_DIR / name)
 
 log_to_stderr()
 log_set_level(logging.INFO)
@@ -136,7 +137,10 @@ class MyTestCase(unittest.TestCase):
     def test_elem_props(self):
         log.name = "test_elem_props"
         m = create_model()
-        m.read(resource('prop-list.archimate'))
+        prop_list_path = Path(resource('prop-list.archimate'))
+        if not prop_list_path.exists():
+            pytest.skip("prop-list.archimate fixture is not present")
+        m.read(str(prop_list_path))
         e = m.add(concept_type="ApplicationCollaboration", name='SIA', desc="It's AIS")
         # e.prop('version', 1)
         e.prop('author', 'xavier')
