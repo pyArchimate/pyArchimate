@@ -6,13 +6,14 @@ authors = [
 ]
 description = "A library to create & manage Archimate files"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10,<4.0"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = ['lxml', 'oyaml', 'pillow']
+dependencies = ["lxml (>=6.0.2,<7.0.0)", "oyaml (>=1.0,<2.0)", "pillow (>=12.2.0,<13.0.0)", "requests (>=2.32.5,<2.33)"]
+license = "MIT"
+license-files = ["LICENSE"]
 
 [project.urls]
 "Homepage" = "https://github.com/pyArchimate/pyArchimate"
@@ -178,4 +179,3 @@ line_length = 120
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
-
