@@ -12,7 +12,9 @@ import os
 import re
 import sys
 from collections import defaultdict
+from dataclasses import dataclass
 from enum import Enum
+from typing import Callable
 from uuid import uuid4, UUID
 
 import lxml.etree as et
@@ -31,6 +33,48 @@ ARIS_type_map = {}
 relationship_keys = {}
 archi_category = {}
 default_theme = 'archi'
+
+
+@dataclass
+class ReaderEntry:
+    """
+    Registry entry describing how to select and call a reader based on the root tag.
+    """
+
+    tag_key: str
+    loader: Callable[[], Callable]
+    supports_merge: bool = False
+    forward_read_args: bool = False
+
+
+def _load_archimate_reader():
+    from .readers.archimateReader import archimate_reader
+
+    return archimate_reader
+
+
+def _load_archi_reader():
+    from .readers.archiReader import archi_reader
+
+    return archi_reader
+
+
+def _load_aris_reader():
+    from .readers.arisAMLreader import aris_reader
+
+    return aris_reader
+
+
+_MODEL_READER_REGISTRY = [
+    ReaderEntry(tag_key='opengroup', loader=_load_archimate_reader, supports_merge=True),
+    ReaderEntry(tag_key='archimate', loader=_load_archi_reader, supports_merge=True),
+    ReaderEntry(tag_key='aml', loader=_load_aris_reader, forward_read_args=True),
+]
+
+_OPERATION_ERROR_MESSAGES = {
+    'read': 'Unsupported input format',
+    'merge': 'Unsupported input format for merge operation',
+}
 
 
 class Writers(Enum):
@@ -3181,6 +3225,33 @@ class Model:
         else:
             return archi_writer(self, file_path)
 
+    def _load_file_contents(self, file_path, operation):
+        try:
+            with open(file_path, 'r', encoding='utf-8') as fd:
+                return fd.read()
+        except IOError:
+            log.error(f"{__mod__} {self.__class__.__name__}.{operation}: Cannot open or read file '{file_path}'")
+            sys.exit(1)
+
+    @staticmethod
+    def _match_reader_entry(root_tag):
+        lower_tag = root_tag.lower()
+        for entry in _MODEL_READER_REGISTRY:
+            if entry.tag_key in lower_tag:
+                return entry
+        return None
+
+    def _prepare_reader(self, file_path, operation):
+        data = self._load_file_contents(file_path, operation)
+        parser = et.XMLParser(recover=True)
+        root = et.fromstring(data.encode(), parser=parser)
+        entry = self._match_reader_entry(root.tag)
+        if entry is None:
+            log.error(_OPERATION_ERROR_MESSAGES.get(operation, _OPERATION_ERROR_MESSAGES['read']))
+            return None, None, None
+        reader = entry.loader()
+        return reader, root, entry
+
     def read(self, file_path, *args, **kwargs):
         """
         Method to read an Archimate file
@@ -3194,25 +3265,12 @@ class Model:
 
 
         """
-        try:
-            with open(file_path, 'r', encoding='utf-8') as fd:
-                _data = fd.read()
-        except IOError:
-            log.error(f"{__mod__} {self.__class__.__name__}.read: Cannot open or read file '{file_path}'")
-            sys.exit(1)
-        parser = et.XMLParser(recover=True)
-        root = et.fromstring(_data.encode(), parser=parser)
-        from .readers.archimateReader import archimate_reader
-        from .readers.archiReader import archi_reader
-        from .readers.arisAMLreader import aris_reader
-        if 'opengroup' in root.tag:
-            archimate_reader(self, root)
-        elif 'archimate' in root.tag:
-            archi_reader(self, root)
-        elif 'AML' in root.tag:
-            aris_reader(self, root, *args, **kwargs)
-        else:
-            log.error('Unsupported input format')
+        reader, root, entry = self._prepare_reader(file_path, 'read')
+        if reader is None:
+            return
+        call_args = args if entry.forward_read_args else ()
+        call_kwargs = kwargs if entry.forward_read_args else {}
+        reader(self, root, *call_args, **call_kwargs)
 
     def merge(self, file_path):
         """
@@ -3223,22 +3281,13 @@ class Model:
 
         """
 
-        try:
-            with open(file_path, 'r', encoding='utf-8') as fd:
-                _data = fd.read()
-        except IOError:
-            log.error(f"{__mod__} {self.__class__.__name__}.read: Cannot open or read file '{file_path}'")
-            sys.exit(1)
-        root = et.fromstring(_data.encode())
-        from .readers.archimateReader import archimate_reader
-        from .readers.archiReader import archi_reader
-        # self from .readers.arisAMLreader import aris_reader
-        if 'opengroup' in root.tag:
-            archimate_reader(self, root, merge_flg=True)
-        elif 'archimate' in root.tag:
-            archi_reader(self, root, merge_flg=True)
-        else:
-            log.error('Unsupported input format for merge operation')
+        reader, root, entry = self._prepare_reader(file_path, 'merge')
+        if reader is None:
+            return
+        if not entry.supports_merge:
+            log.error(_OPERATION_ERROR_MESSAGES['merge'])
+            return
+        reader(self, root, merge_flg=True)
 
     def filter_elements(self, fct):
         """
