@@ -9,6 +9,7 @@ Welcome to pyArchimate documentation!
    :caption: Contents:
 
    modules
+   diagrams
 
 Indices and tables
 ==================
@@ -16,5 +17,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
 

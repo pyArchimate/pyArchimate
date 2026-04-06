@@ -1,0 +1,21 @@
+@startuml
+!includeurl <C4/C4_Context>
+title pyArchimate Context Diagram
+LAYOUT_WITH_LEGEND()
+
+Person(designer, "Designer", "Creates and curates enterprise architecture models")
+Person(automation, "Automation / Integrations", "Runs scripts, CI jobs or tool integrations")
+
+System(pyArchimate, "pyArchimate", "Python library handling Archimate models, views, elements, and relationships")
+
+System_Ext(archiFiles, "Archi/Archimate/ARIS sources", "Existing Archimate exchange files read by pyArchimate")
+System_Ext(exportTargets, "Archimate XML / Archi models / CSV", "Files written by pyArchimate for downstream tools")
+System_Ext(logging, "Logging subsystem", "Standard logging leveraging lxml, oyaml, and stdlib")
+
+Rel(designer, pyArchimate, "Uses API to create models, add elements, and render views")
+Rel(automation, pyArchimate, "Invokes CLI automation scripts")
+Rel(pyArchimate, archiFiles, "Reads models via Archi/Archimate/ARIS readers")
+Rel(pyArchimate, exportTargets, "Writes Archimate / Archi / CSV exports")
+Rel(pyArchimate, logging, "Emits warnings and errors")
+
+@enduml

@@ -1,3 +1,6 @@
 /venv/
 # /docs/build/
 **/*.bak
+.vscode/
+__pycache__/
+build/

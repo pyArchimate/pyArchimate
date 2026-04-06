@@ -1,0 +1,25 @@
+@startuml
+title Communication Diagram for Model Operations
+
+actor "CLI / Script" as CLI
+participant "Model" as Model
+participant "Element" as Element
+participant "Relationship" as Relationship
+participant "View" as View
+participant "Node" as Node
+participant "Connection" as Connection
+
+CLI -> Model ++ : add()
+Model -> Element : create and catalog
+Model -> Relationship : create between elements
+Model -> View : add(view)
+View -> Node ++ : add node for element
+Node -> Element : references
+View -> Connection ++ : add connection for relationship
+Connection -> Relationship : references source/target
+Node -> Connection : attach connection endpoints
+Connection -> Node -- : complete
+Model -> View -- : return updated view
+Model -> CLI -- : operation result
+
+@enduml
