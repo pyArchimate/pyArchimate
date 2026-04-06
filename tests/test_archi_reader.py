@@ -1,14 +1,22 @@
 
+import tempfile
+from pathlib import Path
+
 from src.pyArchimate.pyArchimate import *
 
+BASE = Path(__file__).resolve().parent
+INPUT = BASE / 'test.archimate'
 
-f = r'C:\Users\XY56RE\PycharmProjects\createModel\createModel\output\CADP MF App Decomm.archimate'
-out = r'out.archimate'
+
+def _run():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out = Path(tmp_dir) / 'out.archimate'
+        m = Model('test')
+        m.read(INPUT, reader=Readers.archi)
+        m.check_invalid_conn()
+        m.check_invalid_nodes()
+        m.write(out, writer=Writers.archi)
+        m.write(out.with_suffix('.xml'), writer=Writers.archimate)
 
 
-m = Model('test')
-m.read('test.archimate', reader=Readers.archi)
-m.check_invalid_conn()
-m.check_invalid_nodes()
-m.write(out, writer=Writers.archi)
-m.write('out.xml', writer=Writers.archimate)
+_run()
