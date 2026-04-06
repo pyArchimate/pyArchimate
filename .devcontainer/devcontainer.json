@@ -1,0 +1,68 @@
+{
+    "name": "pyArchimateDevContainer",
+    "image": "mcr.microsoft.com/devcontainers/python:3.12-trixie",
+    "init": true,
+    "remoteUser": "devcontainer",
+    "updateRemoteUserUID": true,
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": true,
+            "installOhMyZsh": true,
+            "installOhMyZshConfig": true,
+            "upgradePackages": true
+        },
+        "ghcr.io/devcontainers/features/git:1": {
+            "ppa": true,
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers/features/node": {
+            "version": "lts"
+        }
+    },
+    "mounts": [
+        "source=python-cache,target=/home/devcontainer/.cache,type=volume",
+        "source=node-cache,target=/home/devcontainer/.npm,type=volume"
+    ],
+    "onCreateCommand": "sudo chown -R devcontainer:devcontainer /home/devcontainer/.cache && sudo chown -R devcontainer:devcontainer /home/devcontainer/.npm",
+    "postCreateCommand": "sudo chown -R ${containerUser}:${containerUser} ${containerWorkspaceFolder} && sudo chmod +x .devcontainer/post-create.sh && .devcontainer/post-create.sh || true",
+    "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "mhutchie.git-graph",
+                "jimasp.behave-vsc",
+                "charliermarsh.ruff",
+                "ms-python.vscode-mypy",
+                "ms-python.vscode-pyright",
+                "vivaxy.vscode-commitizen",
+                "ms-python.vscode-pylance",
+                "ms-python.debugpy",
+                "github.vscode-github-actions",
+                "jebbs.plantuml",
+                "snyk-security.snyk-vulnerability-scanner",
+                "redhat.vscode-yaml",
+                "SonarSource.sonarlint-vscode",
+                "yzhang.markdown-all-in-one"
+            ],
+            "settings": {
+                "debug.javascript.autoAttachFilter": "disabled",
+                "git.autofetch": true,
+                "chat.promptFilesRecommendations": {
+                    "speckit.constitution": true,
+                    "speckit.specify": true,
+                    "speckit.plan": true,
+                    "speckit.tasks": true,
+                    "speckit.implement": true,
+                    "speckit.analyze": true,
+                    "speckit.checklist": true,
+                    "speckit.clarify": true,
+                    "speckit.taskstoissues": true
+                },
+                "chat.tools.terminal.autoApprove": {
+                    ".specify/scripts/bash/": true,
+                    ".specify/scripts/powershell/": false
+                }
+            }
+        }
+    }
+}
