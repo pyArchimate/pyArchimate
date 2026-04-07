@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'pyArchimate'
-copyright = '© 2026 - Xavier Mayeur / Stephan Borg'
+copyright = '2026 - Xavier Mayeur / Stephan Borg'
 author = 'Xavier Mayeur'
 version = "1"
 release = '1.0.1'
