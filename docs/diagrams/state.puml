@@ -1,0 +1,17 @@
+@startuml
+title Model Lifecycle State Diagram
+
+[*] --> EmptyModel
+note right of EmptyModel: Model initialized with no elements\nor relationships
+state EmptyModel {
+}
+
+EmptyModel --> Populated : Model.add()\nnew elements/relationships
+Populated --> ViewReady : Model.add(ArchiType.View)\ncreates nodes/connections
+ViewReady --> Serialized : Model.write(writer)
+Serialized --> Populated : Model.add_relationship(), Model.add()
+Populated --> Invalid : check_invalid_conn()/nodes fail
+Invalid --> Populated : fix elements/relationships
+Serialized --> [*] : Metadata embedded/expanded
+
+@enduml

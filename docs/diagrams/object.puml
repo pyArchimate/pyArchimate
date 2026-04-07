@@ -1,0 +1,44 @@
+@startuml
+title pyArchimate Object Diagram Example
+
+object "Model: ArchitectureDemo" as ModelObj <<Model>> {
+  name = "ArchitectureDemo"
+}
+object "Element: BusinessService" as ServiceElem <<Element>> {
+  type = BusinessService
+  uuid = <generated>
+}
+object "Element: DataObject" as DataElem <<Element>> {
+  type = DataObject
+}
+object "Relationship: Serving" as ServingRel <<Relationship>> {
+  type = Serving
+  name = "Serves customer data"
+}
+object "View: ApplicationOverview" as ViewObj <<View>> {
+  name = "ApplicationOverview"
+}
+object "Node: ServiceNode" as ServiceNode <<Node>> {
+  ref = ServiceElem
+}
+object "Node: DataNode" as DataNode <<Node>> {
+  ref = DataElem
+}
+object "Connection: ServiceToData" as ConnectionObj <<Connection>> {
+  ref = ServingRel
+  source = ServiceNode
+  target = DataNode
+}
+ModelObj --> ServiceElem
+ModelObj --> DataElem
+ModelObj --> ServingRel
+ModelObj --> ViewObj
+ViewObj --> ServiceNode
+ViewObj --> DataNode
+ViewObj --> ConnectionObj
+ServiceNode --> ServiceElem : represents
+DataNode --> DataElem : represents
+ConnectionObj --> ServingRel
+ConnectionObj --> ServiceNode : source
+ConnectionObj --> DataNode : target
+@enduml

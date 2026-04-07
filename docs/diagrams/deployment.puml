@@ -1,0 +1,39 @@
+@startuml
+title pyArchimate Deployment Diagram
+
+node DeveloperWorkstation {
+  node "Python 3.12+ runtime" as PythonRuntime
+  artifact "pyArchimate CLI / automation" as CLI
+  artifact "pyArchimate library" as Library
+}
+node CIRunner {
+  node "CI Python runtime" as PyCI
+  artifact "pyArchimate CLI" as CLI_CI
+  artifact "pyArchimate library" as Library_CI
+}
+node Filesystem {
+  artifact "Archi/Archimate/ARIS sources" as Sources
+  artifact "Archimate/Archi/CSV exports" as Exports
+}
+node Logging {
+  artifact "pyArchimate logs" as Logs
+}
+node Dependencies {
+  artifact "lxml / oyaml / stdlib helpers" as Deps
+}
+actor "Designer" as Designer
+actor "Automation / CI" as Automation
+
+Designer --> CLI : runs scripts
+Automation --> CLI_CI : triggers CI automation
+CLI --> Library : imports core API
+CLI_CI --> Library_CI : imports core API
+Library --> Deps : leverages helpers
+Library_CI --> Deps
+Library --> Sources : reads Archi/Archimate/ARIS sources
+Library_CI --> Sources
+Library --> Logs : emits warnings/errors
+Library_CI --> Logs
+Library --> Exports : writes Archimate / Archi / CSV
+Library_CI --> Exports
+@enduml

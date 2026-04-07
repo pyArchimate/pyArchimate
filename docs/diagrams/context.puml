@@ -1,0 +1,21 @@
+@startuml
+title pyArchimate Context Diagram
+
+"pyArchimate" as Library
+actor "Designer" as Designer
+actor "Automation / Integrations" as Automation
+cloud "Archi/Archimate/ARIS sources" as Inputs
+rectangle "Archimate XML / Archi models / CSV" as Outputs
+rectangle "Readers / Writers" as IO
+rectangle "Core Model Builder" as Core
+rectangle "Logging subsystem" as Logging
+
+Designer --> Core : create models, add elements, draw views
+Automation --> Core : invoke automation scripts or CI jobs
+Core --> IO : delegate serialization & deserialization
+IO --> Inputs : parse Archi/Archimate/ARIS sources
+IO --> Outputs : write Archimate / Archi / CSV exports
+Core --> Logging : emit warnings & diagnostics
+Core ..> Library : exposes API for scripts, CLIs
+Library ..> Inputs : references validation metadata
+@enduml

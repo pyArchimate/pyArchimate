@@ -1,0 +1,31 @@
+@startuml
+!includeurl <C4/C4_Container>
+title pyArchimate Container Diagram
+LAYOUT_WITH_LEGEND()
+
+Person(designer, "Designer", "Creates and curates enterprise architecture models")
+Person(automation, "Automation / Integrations", "Runs scripts, CI jobs, or tool integrations")
+
+System_Boundary(pyArchimateBoundary, "pyArchimate") {
+  Container(pyArchimateLib, "pyArchimate library", "Python", "Manages models, elements, views, nodes, relationships, profiles, and serialization.")
+  Container(cli, "pyArchimate CLI", "Python", "Exposes commands and automation entry points for scripts and CI.")
+  Container(readers, "Reader Drivers", "Python modules", "archiReader, archimateReader, arisAMLreader parse external Archi formats.")
+  Container(writers, "Writer Drivers", "Python modules", "archimateWriter, archiWriter, csvWriter emit Archimate/Archi/CSV outputs.")
+  Container(logger, "Logging", "Python logging", "Configures file/stderr handlers via pyArchimate.logger.")
+}
+
+System_Ext(archiFiles, "Archi/Archimate/ARIS sources", "Repositories of existing exchange files")
+System_Ext(exportTargets, "Archimate XML / Archi / CSV", "Target files created by pyArchimate")
+System_Ext(buildEnv, "CI/CD pipelines", "Invoke pyArchimate CLI in automation jobs")
+
+Rel(designer, pyArchimateLib, "Uses API to build models, elements, views")
+Rel(automation, cli, "Runs CLI commands")
+Rel(cli, pyArchimateLib, "Invokes core APIs")
+Rel(pyArchimateLib, readers, "Delegates parsing to reader modules")
+Rel(pyArchimateLib, writers, "Sends models to writers for serialization")
+Rel(pyArchimateLib, logger, "Sends logs")
+Rel(readers, archiFiles, "Reads Archi/Archimate/ARIS data")
+Rel(writers, exportTargets, "Writes Archimate XML, Archi models, CSV")
+Rel(buildEnv, cli, "Executes CLI workflows")
+
+@enduml

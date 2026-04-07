@@ -1,0 +1,38 @@
+@startuml
+!includeurl <C4/C4_Deployment>
+title pyArchimate Deployment Diagram
+LAYOUT_WITH_LEGEND()
+
+Deployment_Node(workstation, "Developer Workstation", "Laptop", "Runs interactive pyArchimate CLI") {
+  Container(pyArchimateCLI, "pyArchimate CLI", "Python", "Invoked by developers")
+  Container(pyArchimateLib, "pyArchimate library", "Python", "Loads models, readers, writers")
+}
+
+Deployment_Node(ciRunner, "CI/CD Runner", "Linux VM", "Executes automation scripts") {
+  Container(pyArchimateCLI_ci, "pyArchimate CLI", "Python", "Invoked by CI jobs")
+  Container(pyArchimateLib_ci, "pyArchimate library", "Python", "Shared core logic")
+}
+
+Deployment_Node(filesystem, "File System / Git", "Storage", "Holds source Archi files and exports") {
+  Container(archiRepo, "Archi/ARIS sources", "File storage", "Input repositories")
+  Container(exportHub, "Archimate/Archi/CSV exports", "File storage", "Generated outputs")
+}
+
+Deployment_Node(logging, "Logging", "syslog/rotating files", "Captures pyArchimate logs") {
+  Container(logStore, "pyArchimate logs", "Log files", "Warnings/errors from library/readers/writers")
+}
+
+Rel(pyArchimateCLI, pyArchimateLib, "Loads core API")
+Rel(pyArchimateCLI_ci, pyArchimateLib_ci, "Loads core API")
+Rel(pyArchimateLib, archiRepo, "Reads Archi/Archimate/ARIS source files")
+Rel(pyArchimateLib_ci, archiRepo, "Reads source files")
+Rel(pyArchimateLib, exportHub, "Writes Archimate/Archi/CSV exports")
+Rel(pyArchimateLib_ci, exportHub, "Writes exports for CI")
+Rel(pyArchimateLib, logStore, "Emits warnings/errors")
+Rel(pyArchimateLib_ci, logStore, "Emits CI logs")
+Rel(pyArchimateCLI, exportHub, "Reads/writes artifacts")
+Rel(pyArchimateCLI_ci, exportHub, "Reads/writes artifacts")
+Rel(pyArchimateCLI, archiRepo, "Reads models")
+Rel(pyArchimateCLI_ci, archiRepo, "Reads models")
+
+@enduml
