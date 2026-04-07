@@ -1,15 +1,23 @@
-:orphan:
-
-Welcome to pyArchimate documentation!
-=====================================
-
+pyArchimate
+====================
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Architecture:
+
+   diagrams
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API Reference:
 
    modules
-   diagrams
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Package details:
+
+   src
 
 Indices and tables
 ==================

@@ -1,7 +1,5 @@
-:orphan:
-
-Diagrams
-========
+Architecture
+============
 
 The files in ``docs/diagrams`` are PlantUML sources that document the architecture of
 pyArchimate. They include both classic UML views (class, component, object, deployment, etc.)
