@@ -1,13 +1,34 @@
+import logging
+import os
 import unittest
+from pathlib import Path
 
-from src.pyArchimate.logger import *
+import pytest
+
+from src.pyArchimate.logger import log, log_to_stderr, log_set_level
 from src.pyArchimate.pyArchimate import *
 
-__mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+TEST_DIR = Path(__file__).resolve().parent
+FIXTURES_DIR = TEST_DIR / "fixtures"
+
+
+def resource(name: str) -> str:
+    return str(FIXTURES_DIR / name)
 
 log_to_stderr()
 log_set_level(logging.INFO)
+
+
+@pytest.fixture(autouse=True)
+def _tmp_path_cwd(request, tmp_path):
+    old_cwd = Path.cwd()
+    os.chdir(tmp_path)
+    if request.instance is not None:
+        request.instance.tmp_path = tmp_path
+    try:
+        yield
+    finally:
+        os.chdir(old_cwd)
 
 
 def create_model():
@@ -72,6 +93,7 @@ def add_some_view(m):
 
 
 class MyTestCase(unittest.TestCase):
+
     def test_new_model(self):
         log.name = "test_new_model"
         m = create_model()
@@ -115,7 +137,10 @@ class MyTestCase(unittest.TestCase):
     def test_elem_props(self):
         log.name = "test_elem_props"
         m = create_model()
-        m.read('/Users/xavier/PycharmProjects/pyArchimate/tests/prop-list.archimate')
+        prop_list_path = Path(resource('prop-list.archimate'))
+        if not prop_list_path.exists():
+            pytest.skip("prop-list.archimate fixture is not present")
+        m.read(str(prop_list_path))
         e = m.add(concept_type="ApplicationCollaboration", name='SIA', desc="It's AIS")
         # e.prop('version', 1)
         e.prop('author', 'xavier')
@@ -135,7 +160,7 @@ class MyTestCase(unittest.TestCase):
         v = m.get_or_create_view('Default View', create_view=True)
         n = v.get_or_create_node(elem='Data Object', elem_type=ArchiType.DataObject,     create_node=True, create_elem=True)
         n.label_expression = '${name}\n________'
-        m.write('/Users/xavier/PycharmProjects/pyArchimate/tests/out.archimate', writer=Writers.archi)
+        m.write('out.archimate', writer=Writers.archi)
         return
         e, e2, rel = add_some_elems(m)
         v = m.add(ArchiType.View, 'New View using new method')
@@ -746,7 +771,7 @@ class MyTestCase(unittest.TestCase):
     def test_new_arch_reader(self):
         log.name = "test_new_arch_reader"
         m = Model('test')
-        m.read('MyModel.xml')
+        m.read(resource('myModel.archimate'))
         m.default_theme('aris')
         m.write('out.xml')
         from src.pyArchimate.writers.csvWriter import csv_writer
@@ -780,7 +805,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_profile(self):
         m = Model('test')
-        m.read('profile.archimate') # model already include profiles
+        m.read(resource('profile.archimate')) # model already include profiles
         x = m.elements[0].profile_name # check the fist one
         m.write('out.archimate', writer=Writers.archi) # write out
         m.read('out.archimate') # and read back to ensure profiles are kept on elements
