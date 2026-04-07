@@ -1,0 +1,22 @@
+@startuml
+title View Construction Activity Diagram
+
+start
+ :Create Model;
+ :Add core Elements;
+ :Add Relationships;
+ if (Need View?) then (yes)
+   :Create View;
+   split
+     :Place Nodes via View.add();
+   split again
+     :Add Connections via View.add_connection();
+   end split
+ else (no)
+   stop
+ endif
+ :Validate model (check_invalid_conn / nodes);
+ :Write output (archimate/csv/archi);
+ stop
+
+@enduml

@@ -1,0 +1,44 @@
+@startuml
+title pyArchimate Package Diagram
+
+package "pyArchimate" {
+  class "pyArchimate.py" as Core {
+    + Model
+    + Element
+    + Relationship
+    + View
+    + Node
+    + Connection
+    + Profile
+  }
+  package readers {
+    class archiReader
+    class archimateReader
+    class arisAMLreader
+  }
+  package writers {
+    class archimateWriter
+    class archiWriter
+    class csvWriter
+  }
+  class logger
+  package doc {}
+}
+package examples {
+  class Scripts
+}
+package tests {
+  class UnitTests
+}
+Core --> readers.archiReader : loads
+Core --> readers.archimateReader : loads
+Core --> readers.arisAMLreader : loads
+Core --> writers.archimateWriter : exports
+Core --> writers.archiWriter : exports
+Core --> writers.csvWriter : exports
+Core --> logger : emits logs
+examples.Scripts --> Core : drives
+tests.UnitTests --> Core
+tests.UnitTests --> readers.archiReader
+tests.UnitTests --> writers.archimateWriter
+@enduml

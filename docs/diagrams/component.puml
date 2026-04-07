@@ -1,0 +1,30 @@
+@startuml
+title pyArchimate Component Diagram
+
+package "pyArchimate" {
+  component "Model Manager" as ModelManager
+  component "View Manager" as ViewManager
+  component "Reader Facade" as ReaderFacade
+  component "Writer Facade" as WriterFacade
+  component "Profile Manager" as ProfileHelper
+  component "Logging" as Logging
+}
+component "CLI / Automation" as CLI
+component "Archi / Archimate / ARIS sources" as Sources
+component "Archimate XML / Archi / CSV exports" as Exports
+component "lxml, oyaml, stdlib helpers" as Dependencies
+
+CLI --> ModelManager : uses API to build models
+ModelManager --> ViewManager : creates nodes/connections for views
+ModelManager --> ReaderFacade : accepts parsed data
+ModelManager --> WriterFacade : feeds models for serialization
+ModelManager --> ProfileHelper : maintains profiles
+ModelManager --> Logging : emits warnings
+ReaderFacade --> Logging : logs parsing issues
+WriterFacade --> Logging : logs exports
+ReaderFacade --> Sources : reads Archi/Archimate/ARIS inputs
+WriterFacade --> Exports : writes Archimate/Archi/CSV
+ModelManager --> Dependencies : leverages helper libraries
+ReaderFacade --> Dependencies
+WriterFacade --> Dependencies
+@enduml

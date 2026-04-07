@@ -1,0 +1,40 @@
+@startuml
+title pyArchimate Composite Diagram
+
+object Model {
+  - elems_dict : Element
+  - rels_dict : Relationship
+  - views_dict : View
+  - profiles_dict : Profile
+}
+object Element
+object Relationship
+object Profile
+object View {
+  - nodes_dict : Node
+  - conns_dict : Connection
+}
+object Node {
+  - ref : Element
+  - nodes_dict : Node
+  - parent : View | Node
+}
+object Connection {
+  - ref : Relationship
+  - source : Node
+  - target : Node
+  - bendpoints : Point
+}
+object Point
+Model --> Element
+Model --> Relationship
+Model --> View
+Model --> Profile
+View --> Node
+View --> Connection
+Node --> Element : represents
+Node *-- Node : embedded
+Connection --> Relationship
+Connection --> Node : source
+Connection ..> Node : target
+@enduml

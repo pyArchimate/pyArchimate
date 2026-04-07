@@ -1,0 +1,76 @@
+@startuml
+title pyArchimate Class Diagram
+
+class Model {
+  - _uuid
+  - elems_dict
+  - rels_dict
+  - views_dict
+  + add()
+  + add_relationship()
+  + add_profile()
+  + read()
+  + write()
+}
+class Element {
+  - _uuid
+  - _type : ArchiType
+  - _properties
+  + prop()
+  + in_rels()
+  + out_rels()
+  + rels()
+}
+class Relationship {
+  - _uuid
+  - _type : ArchiType
+  - access_type : AccessType
+  - influence_strength
+  + prop()
+  + delete()
+}
+class Profile {
+  - _uuid
+  - concept : ArchiType
+  + delete()
+}
+class View {
+  - _uuid
+  - nodes_dict
+  - conns_dict
+  + add()
+  + add_connection()
+  + delete()
+}
+class Node {
+  - _uuid
+  - _ref : Element
+  - nodes_dict
+  + add()
+  + delete()
+}
+class Connection {
+  - _uuid
+  - _ref : Relationship
+  - _source : Node
+  - _target : Node
+  + add_bendpoint()
+  + delete()
+}
+enum Readers
+enum Writers
+Model "1" o-- "*" Element : contains
+Model "1" o-- "*" Relationship : manages
+Model "1" o-- "*" View : owns
+Model "1" o-- "*" Profile : catalogs
+View "1" o-- "*" Node : hosts
+View "1" o-- "*" Connection : connects
+Node "1" *-- "*" Node : embeds
+Node --> Element : refers to
+Connection --> Relationship : visualizes
+Connection --> Node : source/target
+Relationship --> Element : source/target
+Element "0..*" ..> Profile : optionally uses
+Model --> Readers : uses readers
+Model --> Writers : uses writers
+@enduml

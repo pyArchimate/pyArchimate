@@ -1,0 +1,29 @@
+@startuml
+title Reader + Writer Lifecycle Sequence
+
+actor "CLI / Script" as CLI
+participant "Model" as Model
+participant "archiReader" as Reader
+participant "Element/Relationship" as Element
+participant "View" as View
+participant "archimateWriter" as Writer
+
+CLI -> Model : read(filepath)
+activate Model
+Model -> Reader : parse XML
+activate Reader
+Reader -> Element : create elements + relationships
+Element -> Model : register()
+Model -> View : add(view)
+Model --> View : get_or_create_node()
+View -> Model : get relationship data
+Model -> Writer : write(writer=Writers.archimate)
+activate Writer
+Writer -> Model : traverse elements/views
+Writer --> CLI : output XML
+
+deactivate Writer
+deactivate Reader
+deactivate Model
+
+@enduml
