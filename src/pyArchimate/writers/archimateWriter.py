@@ -64,7 +64,7 @@ def archimate_writer(model, file_path=None) -> str:
             id = _get_prop_def_id(k)
             p = et.SubElement(view_props, 'property', propertyDefinitionRef=id)
             pv = et.SubElement(p, 'value')
-            pv.text = v
+            pv.text = str(v)
 
     # Add all Elements
     elems = et.SubElement(root, 'elements')
@@ -91,7 +91,7 @@ def archimate_writer(model, file_path=None) -> str:
                 id = _get_prop_def_id(k)
                 p = et.SubElement(pp, 'property', propertyDefinitionRef=id)
                 pv = et.SubElement(p, 'value')
-                pv.text = v
+                pv.text = str(v)
 
     # Add all relationships
     elems = et.SubElement(root, 'relationships')
@@ -124,7 +124,7 @@ def archimate_writer(model, file_path=None) -> str:
                     model.pdefs[id] = k
                 p = et.SubElement(pp, 'property', propertyDefinitionRef=id)
                 pv = et.SubElement(p, 'value')
-                pv.text = v
+                pv.text = str(v)
 
     # get model organization
     orgs_dict = defaultdict(list)
@@ -165,7 +165,7 @@ def archimate_writer(model, file_path=None) -> str:
     for k, v in model.pdefs.items():
         p = et.SubElement(pd, 'propertyDefinition', identifier=k, type='string')
         p_name = et.SubElement(p, 'name')
-        p_name.text = v
+        p_name.text = str(v)
 
     # Add all views
     if len(model.views) > 0:
@@ -196,7 +196,7 @@ def archimate_writer(model, file_path=None) -> str:
                     id = _get_prop_def_id(k)
                     p = et.SubElement(pp, 'property', propertyDefinitionRef=id)
                     pv = et.SubElement(p, 'value')
-                    pv.text = v
+                    pv.text = str(v)
 
             def _add_node(parent, n: Node):
                 """
