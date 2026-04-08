@@ -1507,7 +1507,10 @@ class Node:
 
         :return: Element
         """
-        return self.model.elems_dict[self._ref]
+        try:
+            return self.model.elems_dict[self._ref]
+        except KeyError:
+            raise ArchimateConceptTypeError(f'Invalid element reference "{self._ref}"')
 
     @property
     def ref(self) -> str:
@@ -2938,13 +2941,13 @@ class Model:
         self.desc = desc
         self._properties = {}
         self.pdefs = {}
-        self._profiles_dict = defaultdict(Profile)
-        self.elems_dict = defaultdict(Element)
-        self.rels_dict = defaultdict(Relationship)
-        self.nodes_dict = defaultdict(Node)
-        self.conns_dict = defaultdict(Connection)
-        self.views_dict = defaultdict(View)
-        self.labels_dict = defaultdict(Node)
+        self._profiles_dict = {}
+        self.elems_dict = {}
+        self.rels_dict = {}
+        self.nodes_dict = {}
+        self.conns_dict = {}
+        self.views_dict = {}
+        self.labels_dict = {}
         self.orgs = defaultdict(list)
         self.theme = 'archi'
 
