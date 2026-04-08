@@ -11,7 +11,7 @@ def test_aris_aml_reader(tmp_path: Path):
     fixtures_dir = Path(__file__).with_name("fixtures")
     cadp_file = fixtures_dir / "aris.aml"
     if not cadp_file.exists():
-        pytest.skip("CADP.aml fixture is not present")
+        pytest.skip("aris.aml fixture is not present")
 
     output_file = tmp_path / "out.xml"
 
