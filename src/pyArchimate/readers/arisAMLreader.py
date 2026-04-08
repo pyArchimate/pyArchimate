@@ -222,10 +222,10 @@ def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_vi
             size = o.find('Size')
             n = view.add(
                 ref=o_elem_ref,
-                x=int(pos.get('Pos.X') * scale_x),
-                y=int(pos.get('Pos.Y') * scale_y),
-                w=int(size.get('Size.dX') * scale_x),
-                h=int(size.get('Size.dY') * scale_y),
+                x=int(int(pos.get('Pos.X')) * scale_x),
+                y=int(int(pos.get('Pos.Y')) * scale_y),
+                w=int(int(size.get('Size.dX'))*  scale_x),
+                h=int(int(size.get('Size.dY')) * scale_y),
                 uuid=o_id
             )
 
