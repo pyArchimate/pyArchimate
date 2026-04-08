@@ -333,6 +333,22 @@ class MyTestCase(unittest.TestCase):
 
         m.write('out.archimate', writer=Writers.archi)
 
+    def test_register_custom_writer(self):
+        log.name = "test_register_custom_writer"
+        m = Model('test writer')
+        called = {}
+
+        def fake_writer(model, file_path=None):
+            called['model'] = model
+            called['path'] = file_path
+            return '<custom/>'
+
+        register_writer('custom', fake_writer)
+        result = m.write('dummy', writer='custom')
+        self.assertEqual(result, '<custom/>')
+        self.assertIs(called['model'], m)
+        self.assertEqual(called['path'], 'dummy')
+
     def test_add_conn(self):
         log.name = "test_add_conn"
         m: Model = create_model()

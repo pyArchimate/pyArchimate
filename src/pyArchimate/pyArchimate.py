@@ -88,6 +88,55 @@ class Writers(Enum):
     archimate = 2
 
 
+_writer_registry = {}
+_default_writers_initialized = False
+
+
+def register_writer(key, writer_callable):
+    """Register a writer under a key for use with :meth:`Model.write`."""
+
+    if not callable(writer_callable):
+        raise TypeError('writer must be callable')
+    _writer_registry[key] = writer_callable
+
+
+def _ensure_default_writers():
+    global _default_writers_initialized
+    if _default_writers_initialized:
+        return
+    from .writers.archimateWriter import archimate_writer
+    from .writers.archiWriter import archi_writer
+    from .writers.csvWriter import csv_writer
+
+    register_writer(Writers.archimate, archimate_writer)
+    register_writer(Writers.archi, archi_writer)
+    register_writer(Writers.csv, csv_writer)
+    _default_writers_initialized = True
+
+
+def _resolve_writer(writer):
+    if callable(writer):
+        return writer
+
+    _ensure_default_writers()
+    key = writer
+    if isinstance(writer, str):
+        try:
+            key = Writers[writer]
+        except KeyError:
+            pass
+    if isinstance(writer, int):
+        try:
+            key = Writers(writer)
+        except ValueError:
+            pass
+
+    if key in _writer_registry:
+        return _writer_registry[key]
+
+    raise ValueError(f"Unknown writer '{writer}'. Registered writers: {list(_writer_registry.keys())}")
+
+
 class Readers(Enum):
     """
     Enumaration for Readers drivers
@@ -3213,20 +3262,13 @@ class Model:
 
         :param file_path:
         :type file_path: str
-        :param writer: a writer function converting the model into the desired output format, default: Archimate OEF XML
-        :type writer: Writers
+        :param writer: writer selection (enum value, registry key, or callable) used to format the output.
+        :type writer: Writers|str|callable
         :return:  data structure
         :rtype: str
         """
-        from .writers.archimateWriter import archimate_writer
-        from .writers.csvWriter import csv_writer
-        from .writers.archiWriter import archi_writer
-        if writer == Writers.archimate:
-            return archimate_writer(self, file_path)
-        elif writer == Writers.csv:
-            return csv_writer(self, file_path)
-        else:
-            return archi_writer(self, file_path)
+        writer_callable = _resolve_writer(writer)
+        return writer_callable(self, file_path)
 
     def _load_file_contents(self, file_path, operation):
         try:
