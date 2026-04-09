@@ -3,11 +3,10 @@ File reader for native Archimate Tool .archimate file format
 """
 
 import sys
-import lxml.etree as et
 
 try:
     from .. import *
-except:
+except ImportError:
     sys.path.insert(0, "..")
     from pyArchimate import *
 
