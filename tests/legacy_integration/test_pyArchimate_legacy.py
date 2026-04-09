@@ -9,7 +9,7 @@ from src.pyArchimate.logger import log, log_to_stderr, log_set_level
 from src.pyArchimate.pyArchimate import *
 
 TEST_DIR = Path(__file__).resolve().parent
-FIXTURES_DIR = TEST_DIR / "fixtures"
+FIXTURES_DIR = TEST_DIR.parent / "fixtures"
 
 
 def resource(name: str) -> str:

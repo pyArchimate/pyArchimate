@@ -7,7 +7,7 @@ from src.pyArchimate.pyArchimate import Model, Writers
 
 
 def test_archi_writer(tmp_path: Path):
-    fixtures_dir = Path(__file__).with_name("fixtures")
+    fixtures_dir = Path(__file__).parent.with_name("fixtures")
     archimate_file = fixtures_dir / "myModel.archimate"
     if not archimate_file.exists():
         pytest.skip("myModel.archimate fixture is not present")
