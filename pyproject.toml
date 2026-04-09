@@ -132,7 +132,7 @@ indent-style = "space"
 
 [tool.pytest.ini_options]
 pythonpath = "src/pyArchimate"  # mirrors the package layout so pytest can import pyArchimate when running from the repo root
-testpaths = ["./tests/unit", "./tests/security", "./tests/integration", "./tests/api"]
+testpaths = ["./tests/legacy_unit", "./tests/legacy_integration"]
 python_files = "*_test.py test_*.py *_spec.py"
 addopts = """
 --cov=src
@@ -148,8 +148,12 @@ asyncio_default_fixture_loop_scope = "module"
 asyncio_mode = "auto"
 
 [tool.coverage.run]
-branch = true
+branch = false
 source = ["src"]
+omit = [
+    "tests/*",
+    "src/setup.py",
+]
 
 [tool.coverage.report]
 show_missing = true

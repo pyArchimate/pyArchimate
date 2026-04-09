@@ -1,7 +1,7 @@
 from lxml import etree
 
 from src.pyArchimate.writers.archimateWriter import archimate_writer
-from tests.unit._helpers import simple_archimate_model
+from tests.legacy_unit._helpers import simple_archimate_model
 
 
 def test_archimate_writer_produces_valid_xml():

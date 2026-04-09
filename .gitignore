@@ -5,3 +5,13 @@
 __pycache__
 build/
 .coverage
+*.pyc
+.venv/
+venv/
+dist/
+*.egg-info/
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.idea/
