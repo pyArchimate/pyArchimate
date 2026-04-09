@@ -3,14 +3,15 @@
 """
 
 import sys
+
 try:
     from .. import *
-except:
+except ImportError:
     sys.path.insert(0, "..")
     from pyArchimate import *
 
-import os
 import csv
+import os
 
 
 def csv_writer(model: Model, file_path: str):
@@ -68,4 +69,3 @@ def csv_writer(model: Model, file_path: str):
     convert_elements()
     convert_relationships()
     convert_properties()
-
