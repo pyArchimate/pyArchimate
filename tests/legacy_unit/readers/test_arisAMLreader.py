@@ -2,7 +2,7 @@ from lxml import etree
 
 import pytest
 
-from src.pyArchimate.pyArchimate import Model
+from src.pyArchimate import Model
 from src.pyArchimate.readers.arisAMLreader import _id_of, aris_reader
 
 

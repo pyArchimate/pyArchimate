@@ -1,4 +1,4 @@
-from src.pyArchimate.pyArchimate import ArchiType, Model
+from src.pyArchimate import ArchiType, Model
 
 
 def test_model_roundtrip_preserves_properties(tmp_path):
