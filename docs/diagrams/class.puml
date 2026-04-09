@@ -1,64 +1,92 @@
 @startuml
-title pyArchimate Class Diagram
+title pyArchimate Class Diagram (Modular Wrapper + Legacy Core)
 
-class Model {
-  - _uuid
-  - elems_dict
-  - rels_dict
-  - views_dict
-  + add()
-  + add_relationship()
-  + add_profile()
-  + read()
-  + write()
+package "Wrapper Modules" {
+  class "model.py\n<<module>>" as ModelModule {
+    + re-export Model
+  }
+  class "element.py\n<<module>>" as ElementModule {
+    + re-export Element
+  }
+  class "relationship.py\n<<module>>" as RelationshipModule {
+    + re-export Relationship
+  }
+  class "pyArchimate.py\n<<compat module>>" as CompatModule {
+    + re-export public API
+  }
 }
-class Element {
-  - _uuid
-  - _type : ArchiType
-  - _properties
-  + prop()
-  + in_rels()
-  + out_rels()
-  + rels()
+
+package "Helper Modules" {
+  class "diagram.py\n<<module>>" as DiagramModule {
+    + get_or_create_node(owner,...)
+    + get_or_create_connection(owner,...)
+  }
+  class "properties.py\n<<module>>" as PropertyModule {
+    + embed_props(model,...)
+    + expand_props(model,...)
+    + check_invalid_conn(model)
+    + check_invalid_nodes(model)
+  }
+  class "logging.py\n<<module>>" as LoggingModule {
+    + log_to_file()
+    + log_to_stderr()
+    + log_set_level()
+  }
 }
-class Relationship {
-  - _uuid
-  - _type : ArchiType
-  - access_type : AccessType
-  - influence_strength
-  + prop()
-  + delete()
+
+package "_legacy.py (Actual Class Definitions)" {
+  class Model {
+    + add()
+    + add_relationship()
+    + add_profile()
+    + read()
+    + write()
+    + embed_props()
+    + expand_props()
+    + check_invalid_conn()
+    + check_invalid_nodes()
+  }
+  class Element {
+    + prop()
+    + in_rels()
+    + out_rels()
+    + rels()
+  }
+  class Relationship {
+    + prop()
+    + delete()
+  }
+  class Profile {
+    + delete()
+  }
+  class View {
+    + add()
+    + add_connection()
+    + delete()
+  }
+  class Node {
+    + add()
+    + delete()
+  }
+  class Connection {
+    + add_bendpoint()
+    + delete()
+  }
 }
-class Profile {
-  - _uuid
-  - concept : ArchiType
-  + delete()
-}
-class View {
-  - _uuid
-  - nodes_dict
-  - conns_dict
-  + add()
-  + add_connection()
-  + delete()
-}
-class Node {
-  - _uuid
-  - _ref : Element
-  - nodes_dict
-  + add()
-  + delete()
-}
-class Connection {
-  - _uuid
-  - _ref : Relationship
-  - _source : Node
-  - _target : Node
-  + add_bendpoint()
-  + delete()
-}
+
 enum Readers
 enum Writers
+
+ModelModule ..> Model : re-exports
+ElementModule ..> Element : re-exports
+RelationshipModule ..> Relationship : re-exports
+CompatModule ..> Model : re-exports
+CompatModule ..> Element : re-exports
+CompatModule ..> Relationship : re-exports
+CompatModule ..> DiagramModule : exports helper functions
+CompatModule ..> PropertyModule : exports helper functions
+CompatModule ..> LoggingModule : exports helper functions
+
 Model "1" o-- "*" Element : contains
 Model "1" o-- "*" Relationship : manages
 Model "1" o-- "*" View : owns
@@ -73,4 +101,7 @@ Relationship --> Element : source/target
 Element "0..*" ..> Profile : optionally uses
 Model --> Readers : uses readers
 Model --> Writers : uses writers
+DiagramModule --> Model : delegates
+PropertyModule --> Model : delegates
+LoggingModule ..> Model : emits logs
 @enduml

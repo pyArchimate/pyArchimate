@@ -1,44 +1,74 @@
 @startuml
-title pyArchimate Package Diagram
+title pyArchimate Package Diagram (Modularized)
 
 package "pyArchimate" {
-  class "pyArchimate.py" as Core {
-    + Model
-    + Element
-    + Relationship
-    + View
-    + Node
-    + Connection
-    + Profile
+  package "core modules" {
+    class "model.py" as ModelModule
+    class "element.py" as ElementModule
+    class "relationship.py" as RelationshipModule
   }
+
+  package "helpers" {
+    class "diagram.py" as DiagramHelper
+    class "properties.py" as PropertyHelper
+    class "logging.py" as LoggingHelper
+  }
+
+  class "_legacy.py" as Legacy
+  class "pyArchimate.py\n(compat shim)" as Shim
+  class "__init__.py" as PackageInit
+
   package readers {
     class archiReader
     class archimateReader
     class arisAMLreader
   }
+
   package writers {
     class archimateWriter
     class archiWriter
     class csvWriter
   }
-  class logger
-  package doc {}
+
+  class "logger.py" as LoggerModule
 }
+
 package examples {
   class Scripts
 }
+
 package tests {
   class UnitTests
+  class IntegrationTests
 }
-Core --> readers.archiReader : loads
-Core --> readers.archimateReader : loads
-Core --> readers.arisAMLreader : loads
-Core --> writers.archimateWriter : exports
-Core --> writers.archiWriter : exports
-Core --> writers.csvWriter : exports
-Core --> logger : emits logs
-examples.Scripts --> Core : drives
-tests.UnitTests --> Core
-tests.UnitTests --> readers.archiReader
-tests.UnitTests --> writers.archimateWriter
+
+ModelModule --> Legacy : re-exports Model
+ElementModule --> Legacy : re-exports Element
+RelationshipModule --> Legacy : re-exports Relationship
+DiagramHelper --> ModelModule : delegates
+DiagramHelper --> RelationshipModule : delegates
+PropertyHelper --> ModelModule : delegates
+LoggingHelper --> LoggerModule : wraps
+Shim --> ModelModule : exports
+Shim --> ElementModule : exports
+Shim --> RelationshipModule : exports
+Shim --> Legacy : compatibility
+PackageInit --> Shim : package surface
+readers.archiReader --> PackageInit : imports
+readers.archimateReader --> PackageInit : imports
+readers.arisAMLreader --> PackageInit : imports
+writers.archimateWriter --> PackageInit : imports
+writers.archiWriter --> PackageInit : imports
+writers.csvWriter --> PackageInit : imports
+examples.Scripts --> PackageInit : drives
+tests.UnitTests --> PackageInit
+tests.IntegrationTests --> PackageInit
+readers.archiReader --> Shim : fallback imports
+readers.archimateReader --> Shim : fallback imports
+readers.arisAMLreader --> Shim : fallback imports
+writers.archimateWriter --> Shim : fallback imports
+writers.archiWriter --> Shim : fallback imports
+writers.csvWriter --> Shim : fallback imports
+tests.UnitTests --> Shim : legacy imports
+tests.IntegrationTests --> Shim : legacy imports
 @enduml
