@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from lxml import etree
 
-from src.pyArchimate import Model
+from src.pyArchimate.pyArchimate import Model
 from src.pyArchimate.readers.archiReader import archi_reader
 
 FIXTURES = Path(__file__).resolve().parents[2] / "fixtures"
