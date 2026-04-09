@@ -1,7 +1,8 @@
 import sys
+
 try:
     from .. import *
-except:
+except ImportError:
     sys.path.insert(0, "..")
     from pyArchimate import *
 

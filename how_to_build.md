@@ -9,5 +9,5 @@
 - python -m build
 
 ## publish to Pypi (require API token)
-- pip install --upgrade twine 
+- pip install --upgrade twine
 - twine upload dist/*
