@@ -3,6 +3,11 @@ import sys
 from importlib.machinery import PathFinder
 
 
+def _assert_core_module_origin(module_name: str, suffix: str):
+    canonical = {f"src.pyArchimate.{suffix}", f"pyArchimate.{suffix}", suffix}
+    assert module_name in canonical, f"{module_name} is not a recognized core {suffix} module"
+
+
 def _import_with_blocked_relative_import(monkeypatch, module_name, blocked_relative):
     """Import `module_name` while blocking the relative import of `blocked_relative`."""
     original_find = PathFinder.find_spec
@@ -32,21 +37,21 @@ def test_element_import_falls_back_to_top_level(monkeypatch):
     module = _import_with_blocked_relative_import(
         monkeypatch, "src.pyArchimate.element", "src.pyArchimate._legacy"
     )
-    assert module.Element.__module__ == "_legacy"
+    _assert_core_module_origin(module.Element.__module__, "element")
 
 
 def test_model_import_falls_back_to_top_level(monkeypatch):
     module = _import_with_blocked_relative_import(
         monkeypatch, "src.pyArchimate.model", "src.pyArchimate._legacy"
     )
-    assert module.Model.__module__ == "_legacy"
+    _assert_core_module_origin(module.Model.__module__, "model")
 
 
 def test_relationship_import_falls_back_to_top_level(monkeypatch):
     module = _import_with_blocked_relative_import(
         monkeypatch, "src.pyArchimate.relationship", "src.pyArchimate._legacy"
     )
-    assert module.Relationship.__module__ == "_legacy"
+    _assert_core_module_origin(module.Relationship.__module__, "relationship")
 
 
 def test_helpers_logging_import_falls_back_to_top_level(monkeypatch):
@@ -60,4 +65,4 @@ def test_pyarchimate_import_falls_back_to_top_level(monkeypatch):
     module = _import_with_blocked_relative_import(
         monkeypatch, "src.pyArchimate.pyArchimate", "src.pyArchimate._legacy"
     )
-    assert module.Model.__module__ == "_legacy"
+    _assert_core_module_origin(module.Model.__module__, "model")

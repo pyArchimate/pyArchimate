@@ -120,6 +120,11 @@ def _resolve_writer(writer):
 
     _ensure_default_writers()
     key = writer
+    if isinstance(writer, Enum):
+        try:
+            key = Writers(writer.value)
+        except ValueError:
+            pass
     if isinstance(writer, str):
         try:
             key = Writers[writer]
@@ -135,6 +140,21 @@ def _resolve_writer(writer):
         return _writer_registry[key]
 
     raise ValueError(f"Unknown writer '{writer}'. Registered writers: {list(_writer_registry.keys())}")
+
+
+def register_model(cls):
+    """Update the legacy Model reference to point to the modern implementation."""
+    globals()['Model'] = cls
+
+
+def register_element(cls):
+    """Update the legacy Element reference to point to the modern implementation."""
+    globals()['Element'] = cls
+
+
+def register_relationship(cls):
+    """Update the legacy Relationship reference to point to the modern implementation."""
+    globals()['Relationship'] = cls
 
 
 class Readers(Enum):

@@ -87,6 +87,20 @@ description: "Tasks for Modular Model Modules"
 
 ---
 
+## Phase 6: Legacy-Independent Views & Writers (New)
+
+**Purpose**: Remove core runtime dependencies on `_legacy.py` while preserving legacy import compatibility.
+
+- [ ] T021 Extract `View`, `Node`, `Connection`, and `Profile` into a new modern module (e.g., `src/pyArchimate/view.py`) with full parity to `_legacy.py` behavior (validation, styling, bendpoints, properties, profiles).
+- [ ] T022 Update `model.py`, readers, and writers to import the new view stack; keep `_legacy` consuming the new classes as a fallback, not vice versa.
+- [ ] T023 Move writer registry/resolution (`register_writer`, `_resolve_writer`, defaults) into modern code and point `_legacy` at it; ensure legacy custom writer registration still works.
+- [ ] T024 Add/adjust tests to assert legacy import shims still expose `Element`, `Relationship`, `View`, and writer registration while core modules import only modern code.
+- [ ] T025 Run full test suite with `_legacy` present but unused by core modules; document the outcome in `specs/001-modularize-model/spec.md`.
+
+**Acceptance Test**: With `_legacy.py` left untouched on disk, core modules (`model.py`, `element.py`, `relationship.py`, new view/writer modules) must import only modern code paths; `PYTHONPATH=. poetry run pytest` passes, and legacy import tests continue to succeed.
+
+---
+
 ## Dependencies & Execution Order
 
 - **Phase 1 (Setup)** must complete before foundational files exist

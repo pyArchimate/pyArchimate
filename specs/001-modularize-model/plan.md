@@ -6,6 +6,10 @@
 ## Summary
 Split `src/pyArchimate/pyArchimate.py` into purpose-built modules for `Model`, `Element`, `Relationship`, and helper utilities (diagram, property, logging) so each domain concept can be tested and reasoned about independently while keeping the public API (`pyArchimate.Model`, etc.) intact through `pyArchimate/__init__.py` and compatibility wrappers.
 
+### Current Gap (2026-04-11)
+- Core modules still rely on `_legacy.py` for `View`, `Profile`, `Node`, `Connection`, and `_resolve_writer`; these need to be extracted into modern modules and wired without legacy imports.
+- Compatibility registration flows from new modules back into `_legacy`; should be inverted so the new modules stand alone and `_legacy` only consumes them for backward compatibility.
+
 ## Technical Context
 **Language/Version**: Python 3.11 (project targets `>=3.10,<4.0` with tooling tuned to 3.12/3.13).  
 **Primary Dependencies**: `lxml`, `oyaml`, `pillow`, `requests`, plus standard pytest/behave/httpx tooling for tests, and Sphinx for docs.  

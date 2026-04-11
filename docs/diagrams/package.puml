@@ -1,74 +1,66 @@
 @startuml
-title pyArchimate Package Diagram (Modularized)
+title pyArchimate Package Structure
 
 package "pyArchimate" {
-  package "core modules" {
-    class "model.py" as ModelModule
-    class "element.py" as ElementModule
-    class "relationship.py" as RelationshipModule
+  class "__init__.py" as Init {
+    {package entry point}
+  }
+
+  class "model.py" as Model {
+    class Model
+  }
+
+  class "element.py" as Element {
+    class Element
+  }
+
+  class "relationship.py" as Relationship {
+    class Relationship
   }
 
   package "helpers" {
-    class "diagram.py" as DiagramHelper
-    class "properties.py" as PropertyHelper
-    class "logging.py" as LoggingHelper
+    class "diagram.py" as DiagramHelper {
+      + get_or_create_node()
+      + get_or_create_connection()
+    }
+    class "properties.py" as PropertiesHelper {
+      + embed_props()
+      + expand_props()
+      + check_invalid_conn()
+      + check_invalid_nodes()
+    }
+    class "logging.py" as LoggingHelper {
+      + log_to_file()
+      + log_to_stderr()
+      + log_set_level()
+    }
   }
 
-  class "_legacy.py" as Legacy
-  class "pyArchimate.py\n(compat shim)" as Shim
-  class "__init__.py" as PackageInit
-
-  package readers {
+  package "readers" {
     class archiReader
     class archimateReader
     class arisAMLreader
   }
 
-  package writers {
+  package "writers" {
     class archimateWriter
     class archiWriter
     class csvWriter
   }
 
-  class "logger.py" as LoggerModule
+  class "logger.py" as Logger
 }
 
-package examples {
-  class Scripts
-}
+Init --> Model : exports
+Init --> Element : exports
+Init --> Relationship : exports
+Init --> DiagramHelper : exports
+Init --> PropertiesHelper : exports
+Init --> LoggingHelper : exports
+Init --> readers : imports from
+Init --> writers : imports from
 
-package tests {
-  class UnitTests
-  class IntegrationTests
-}
+DiagramHelper --> Logger : uses
+LoggingHelper --> Logger : wraps
 
-ModelModule --> Legacy : re-exports Model
-ElementModule --> Legacy : re-exports Element
-RelationshipModule --> Legacy : re-exports Relationship
-DiagramHelper --> ModelModule : delegates
-DiagramHelper --> RelationshipModule : delegates
-PropertyHelper --> ModelModule : delegates
-LoggingHelper --> LoggerModule : wraps
-Shim --> ModelModule : exports
-Shim --> ElementModule : exports
-Shim --> RelationshipModule : exports
-Shim --> Legacy : compatibility
-PackageInit --> Shim : package surface
-readers.archiReader --> PackageInit : imports
-readers.archimateReader --> PackageInit : imports
-readers.arisAMLreader --> PackageInit : imports
-writers.archimateWriter --> PackageInit : imports
-writers.archiWriter --> PackageInit : imports
-writers.csvWriter --> PackageInit : imports
-examples.Scripts --> PackageInit : drives
-tests.UnitTests --> PackageInit
-tests.IntegrationTests --> PackageInit
-readers.archiReader --> Shim : fallback imports
-readers.archimateReader --> Shim : fallback imports
-readers.arisAMLreader --> Shim : fallback imports
-writers.archimateWriter --> Shim : fallback imports
-writers.archiWriter --> Shim : fallback imports
-writers.csvWriter --> Shim : fallback imports
-tests.UnitTests --> Shim : legacy imports
-tests.IntegrationTests --> Shim : legacy imports
 @enduml
