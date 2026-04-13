@@ -1,6 +1,6 @@
 import logging
 
-from src.pyArchimate.logger import log, log_to_file, log_to_stderr, log_set_level
+from src.pyArchimate.logger import log, log_set_level, log_to_file, log_to_stderr
 
 
 def test_log_set_level_is_restorable():

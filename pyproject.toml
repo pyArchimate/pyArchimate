@@ -53,6 +53,7 @@ lint = [
     "ruff>=0.14.10,<1.0.0",
     "pymarkdownlnt>=0.9.35",
     "lxml-stubs (>=0.5.1,<0.6.0)",
+    "types-setuptools (>=82.0.0.20260408,<83.0.0.0)",
 ]
 
 docs = [
@@ -86,7 +87,7 @@ exclude = [
 [tool.mypy]
 strict = true
 mypy_path = "src"
-packages = ["pyArchimate", "tests"]
+explicit_package_bases = true
 show_error_codes = true
 ignore_missing_imports = false
 allow_redefinition = false
@@ -112,7 +113,7 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "W", "B", "C", "I"]
 ignore = [
-    "E501",
+    "E501",   # line too long — handled by formatter
 ]
 exclude = [
     "**/node_modules",

@@ -4,11 +4,6 @@ Writer registry helpers extracted from the legacy module.
 
 from ..enums import Writers
 
-try:  # legacy enum compatibility
-    from .._legacy import Writers as LegacyWriters  # type: ignore
-except Exception:
-    LegacyWriters = None
-
 _writer_registry = {}
 _default_writers_initialized = False
 
@@ -42,11 +37,6 @@ def _resolve_writer(writer):
     key = writer
     if isinstance(writer, Writers):
         key = writer
-    elif LegacyWriters and isinstance(writer, LegacyWriters):
-        try:
-            key = Writers(writer.value)
-        except Exception:
-            key = writer
     elif isinstance(writer, str):
         try:
             key = Writers[writer]

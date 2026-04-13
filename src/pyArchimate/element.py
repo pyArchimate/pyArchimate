@@ -96,7 +96,7 @@ class Element:
         # Attribute and data structure initialization
         self._uuid = set_id(uuid)
         self.parent = parent
-        self.model: "Model" = parent
+        self.model: Optional["Model"] = parent
         self.name = name
         self._type = elem_type
         self.desc = desc
@@ -118,7 +118,6 @@ class Element:
 
         # remove nodes used in views referring to this element
         for n in self.parent.nodes_dict.copy().values():
-            n_id = n.uuid
             if n.ref == _id:
                 n.delete()
                 del n
@@ -370,15 +369,6 @@ class Element:
 
         """
         self.folder = None
-
-
-try:
-    from . import _legacy as _legacy_module
-except ImportError:
-    _legacy_module = None
-
-if _legacy_module and hasattr(_legacy_module, "register_element"):
-    _legacy_module.register_element(Element)
 
 
 __all__ = ["Element"]

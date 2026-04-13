@@ -1,4 +1,8 @@
+import os
 import sys
+from collections import defaultdict
+
+from lxml import etree as et
 
 try:
     from .. import *
@@ -158,7 +162,7 @@ def archimate_writer(model, file_path=None) -> str:
             lbl = et.SubElement(item, 'label')
             lbl.text = label
             for i in orgs_dict[k]:
-                ref_item = et.SubElement(item, 'item', identifierRef=i)
+                et.SubElement(item, 'item', identifierRef=i)
 
     # Set Propertydefs
     pd = et.SubElement(root, 'propertyDefinitions')

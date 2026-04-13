@@ -1,5 +1,5 @@
-from tests._helpers import simple_archimate_model
 from src.pyArchimate.writers.csvWriter import csv_writer
+from tests._helpers import simple_archimate_model
 
 
 def test_csv_writer_generates_expected_files(tmp_path):

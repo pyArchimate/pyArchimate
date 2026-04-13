@@ -33,7 +33,7 @@ description: "Tasks for Modular Model Modules"
 **Purpose**: Carve out the core module files and wiring that every story depends on.
 
 - [X] T003 [P] Add `src/pyArchimate/model.py` that will host the `Model` class formerly living in `pyArchimate.py` and wire necessary imports
-- [X] T004 [P] Add `src/pyArchimate/element.py` that will host the `Element` class plus serialization helpers extracted from `pyArchimate.py`
+- [X] T004 [P] Add `src/pyArchimate/element.py` that will host the `Element` class plus property helpers extracted from `pyArchimate.py`
 - [X] T005 [P] Add `src/pyArchimate/relationship.py` that will host the `Relationship` class and related connection helpers
 - [X] T006 [P] Move the diagram/property/logging helpers (`get_or_create_node`, `embed_props`/`expand_props`, `pyArchimate.logger` setup, etc.) from `src/pyArchimate/pyArchimate.py` into the new helper modules under `src/pyArchimate/helpers`
 - [X] T007 [P] Update `src/pyArchimate/__init__.py` to import/export `Model`, `Element`, `Relationship`, and the helper utilities from the new modules instead of `pyArchimate.py`
@@ -84,6 +84,9 @@ description: "Tasks for Modular Model Modules"
 
 - [X] T019 Run `poetry run pytest` to verify the full test suite passes after the refactor
 - [X] T020 Run `poetry check` to ensure packaging metadata and imports remain valid with the split modules
+- [X] T026 Add a layer-boundary enforcement check (e.g., via `importlinter` or a custom `ast` script) to CI that fails if any Layer 2 module (`model.py`, `element.py`, `relationship.py`) imports from Layer 3 or Layer 4 — satisfies AC-004
+- [X] T027 Create `tests/integration/test_state_preservation.py` that imports both the old and new code paths and asserts logging level, reader registry, and writer registry state are identical before and after modularization — covers the state-persistence edge case in spec.md
+- [ ] T028 Run `poetry run ruff check src/pyArchimate && poetry run pyright src/pyArchimate && poetry run mypy src/pyArchimate` and confirm zero errors — satisfies AC-010
 
 ---
 
@@ -91,11 +94,16 @@ description: "Tasks for Modular Model Modules"
 
 **Purpose**: Remove core runtime dependencies on `_legacy.py` while preserving legacy import compatibility.
 
-- [ ] T021 Extract `View`, `Node`, `Connection`, and `Profile` into a new modern module (e.g., `src/pyArchimate/view.py`) with full parity to `_legacy.py` behavior (validation, styling, bendpoints, properties, profiles).
-- [ ] T022 Update `model.py`, readers, and writers to import the new view stack; keep `_legacy` consuming the new classes as a fallback, not vice versa.
-- [ ] T023 Move writer registry/resolution (`register_writer`, `_resolve_writer`, defaults) into modern code and point `_legacy` at it; ensure legacy custom writer registration still works.
-- [ ] T024 Add/adjust tests to assert legacy import shims still expose `Element`, `Relationship`, `View`, and writer registration while core modules import only modern code.
-- [ ] T025 Run full test suite with `_legacy` present but unused by core modules; document the outcome in `specs/001-modularize-model/spec.md`.
+**TDD order**: Write failing tests first (T021a–T021c), then implement (T021–T025).
+
+- [X] T021a [P] Write failing tests in `tests/unit/test_view.py` asserting `from pyArchimate.view import View, Node, Connection, Profile` succeeds and that each class exposes the same interface as the current `_legacy.py` equivalents — tests must fail before T021 runs
+- [X] T021b [P] Write failing tests in `tests/unit/test_legacy_independence.py` asserting that `model.py`, `element.py`, and `relationship.py` import cleanly with `_legacy.py` absent from `sys.modules` — tests must fail before T022 runs
+- [X] T021c [P] Write failing tests in `tests/unit/test_writer_registry.py` asserting `register_writer` and `_resolve_writer` are importable from a modern module (not `_legacy`) — tests must fail before T023 runs
+- [X] T021 Replace the legacy-facade shim in `src/pyArchimate/view.py` with full modern implementations of `View`, `Node`, `Connection`, and `Profile` that have zero `_legacy` imports, maintaining full behavioral parity (validation, styling, bendpoints, properties, profiles).
+- [X] T022 Update `model.py`, readers, and writers to import the new view stack; keep `_legacy` consuming the new classes as a fallback, not vice versa.
+- [X] T023 Move writer registry/resolution (`register_writer`, `_resolve_writer`, defaults) into modern code and point `_legacy` at it; ensure legacy custom writer registration still works.
+- [X] T024 Add/adjust tests to assert legacy import shims still expose `Element`, `Relationship`, `View`, and writer registration while core modules import only modern code.
+- [X] T025 Run full test suite with `_legacy` present but unused by core modules; document the outcome in `specs/001-modularize-model/spec.md`.
 
 **Acceptance Test**: With `_legacy.py` left untouched on disk, core modules (`model.py`, `element.py`, `relationship.py`, new view/writer modules) must import only modern code paths; `PYTHONPATH=. poetry run pytest` passes, and legacy import tests continue to succeed.
 

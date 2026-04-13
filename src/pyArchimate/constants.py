@@ -9,7 +9,7 @@ No external pyArchimate imports - this is a Layer 1 base module.
 
 import os
 from dataclasses import dataclass
-from typing import Callable
+from typing import Any, Callable
 
 import oyaml as yaml
 
@@ -69,7 +69,7 @@ class ReaderEntry:
     """
 
     tag_key: str
-    loader: Callable[[], Callable]
+    loader: Callable[[], Callable[..., Any]]
     supports_merge: bool = False
     forward_read_args: bool = False
 
@@ -112,7 +112,7 @@ MODEL_READER_REGISTRY = [
 ]
 
 # Writer registry (populated at runtime by _ensure_default_writers)
-WRITER_REGISTRY = {}
+WRITER_REGISTRY: dict[Any, Any] = {}
 DEFAULT_WRITERS_INITIALIZED = False
 
 
@@ -124,10 +124,10 @@ def _initialize_archimate_metadata():
     try:
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
         checker_rules_path = os.path.join(__location__, "checker_rules.yml")
-        
+
         with open(checker_rules_path, "r") as fd:
             data = yaml.load(fd, Loader=yaml.Loader)
-        
+
         # Populate the global dictionaries
         if 'archimate_rels' in data:
             ALLOWED_RELATIONSHIPS.update(data['archimate_rels'])
@@ -144,4 +144,35 @@ def _initialize_archimate_metadata():
 
 # Initialize on module load
 _initialize_archimate_metadata()
+
+
+# ===== Color Utilities =====
+
+class RGBA:
+    """Manage RGB/hex color and alpha (opacity) channels.
+
+    :param r: red channel 0-255
+    :param g: green channel 0-255
+    :param b: blue channel 0-255
+    :param a: alpha channel 0-100
+    """
+
+    def __init__(self, r=0, g=0, b=0, a=100):
+        self.r = max(0, min(255, int(r)))
+        self.g = max(0, min(255, int(g)))
+        self.b = max(0, min(255, int(b)))
+        self.a = max(0, min(100, int(a)))
+
+    @property
+    def color(self):
+        """Return #RRGGBB hex string."""
+        return '#{0:02x}{1:02x}{2:02x}'.format(self.r, self.g, self.b).upper()
+
+    @color.setter
+    def color(self, color_string):
+        """Set RGB from a #RRGGBB hex string."""
+        if color_string is not None:
+            self.r = int(color_string[1:3], 16)
+            self.g = int(color_string[3:5], 16)
+            self.b = int(color_string[5:], 16)
 

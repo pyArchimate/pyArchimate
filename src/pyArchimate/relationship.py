@@ -1,13 +1,12 @@
 """Relationship module - extracted from the legacy monolith."""
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Optional
 
-from .constants import ARCHI_CATEGORY, ALLOWED_RELATIONSHIPS, RELATIONSHIP_KEYS
+from .constants import ALLOWED_RELATIONSHIPS, ARCHI_CATEGORY, RELATIONSHIP_KEYS
 from .enums import ArchiType
-from .exceptions import ArchimateConceptTypeError
+from .exceptions import ArchimateConceptTypeError, ArchimateRelationshipError
 
 if TYPE_CHECKING:
-    from .model import Model
     from .element import Element
 
 
@@ -92,11 +91,28 @@ def check_valid_relationship(rel_type, source_type, target_type, raise_flg=False
         target_type = 'Junction'
 
     if RELATIONSHIP_KEYS[rel_type] not in ALLOWED_RELATIONSHIPS[source_type][target_type]:
-        msg = ArchimateConceptTypeError(f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' ")
+        err_msg = f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' "
         if raise_flg:
-            raise msg
+            raise ArchimateRelationshipError(err_msg)
         else:
-            log.error(ArchimateConceptTypeError(f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' "))
+            log.error(ArchimateRelationshipError(err_msg))
+
+
+def get_default_rel_type(source_type, target_type):
+    """Return the default valid relationship type between two element types."""
+    if not hasattr(ArchiType, source_type) or ARCHI_CATEGORY[source_type] == 'Relationship':
+        raise ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'")
+    if not hasattr(ArchiType, target_type) or ARCHI_CATEGORY[target_type] == 'Relationship':
+        raise ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
+    rels = ALLOWED_RELATIONSHIPS[source_type][target_type]
+    if len(rels) > 0:
+        for preferred in ('g', 'r', 's', 'a', 'c', 'o', 'v'):
+            if preferred in rels:
+                t = preferred
+                break
+        else:
+            t = rels[0]
+        return [k for k, v in RELATIONSHIP_KEYS.items() if v == t][0]
 
 
 class Relationship:
@@ -254,7 +270,7 @@ class Relationship:
                 self._source = src.uuid
 
     @property
-    def target(self) -> "Element":
+    def target(self) -> Optional["Element"]:
         """
         Get the target object
 
@@ -306,7 +322,7 @@ class Relationship:
         if new_type not in ARCHI_CATEGORY or ARCHI_CATEGORY[new_type] != 'Relationship':
             raise ValueError('Invalid Archimate relationship type')
         # Raise an exception is the new relationship type is not compatible with the source & target ones
-        check_valid_relationship(new_type, self.source.type, self.target.type)
+        check_valid_relationship(new_type, self.source.type if self.source else '', self.target.type if self.target else '')  # noqa: E501
         self._type = new_type
 
     @property
@@ -443,7 +459,7 @@ class Relationship:
         return self._is_directed
 
     @is_directed.setter
-    def is_directed(self, val: bool):
+    def is_directed(self, val: bool) -> None:
         """
         Set the direction of an Association relationship
 
@@ -483,15 +499,6 @@ class Relationship:
 
         """
         self.folder = None
-
-
-try:
-    from . import _legacy as _legacy_module
-except ImportError:
-    _legacy_module = None
-
-if _legacy_module and hasattr(_legacy_module, "register_relationship"):
-    _legacy_module.register_relationship(Relationship)
 
 
 __all__ = ["Relationship"]

@@ -3405,6 +3405,18 @@ files = [
 urllib3 = ">=2"
 
 [[package]]
+name = "types-setuptools"
+version = "82.0.0.20260408"
+description = "Typing stubs for setuptools"
+optional = false
+python-versions = ">=3.10"
+groups = ["lint"]
+files = [
+    {file = "types_setuptools-82.0.0.20260408-py3-none-any.whl", hash = "sha256:ece0a215cdfa6463a65fd6f68bd940f39e455729300ddfe61cab1147ed1d2462"},
+    {file = "types_setuptools-82.0.0.20260408.tar.gz", hash = "sha256:036c68caf7e672a699f5ebbf914708d40644c14e05298bc49f7272be91cf43d3"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.15.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
@@ -3666,4 +3678,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "13c410f096901aab9dd5182d595a70fd4142456307ab16d198171506f4bdeed0"
+content-hash = "19d46b856440b2c90ea3176ac67b76902240e278d1bd724f2dc3eae8877078e5"

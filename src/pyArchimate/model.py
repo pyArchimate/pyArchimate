@@ -5,33 +5,29 @@ import os
 import re
 import sys
 from collections import defaultdict
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import lxml.etree as et
 
 from .constants import (
-    ARCHI_CATEGORY, ALLOWED_RELATIONSHIPS, DEFAULT_THEME,
-    MODEL_READER_REGISTRY, OPERATION_ERROR_MESSAGES
+    ARCHI_CATEGORY,
+    DEFAULT_THEME,
+    MODEL_READER_REGISTRY,
+    OPERATION_ERROR_MESSAGES,
 )
+from .element import Element, set_id
 from .enums import ArchiType, Writers
 from .exceptions import ArchimateConceptTypeError
-from .element import Element, set_id
-from .view import View, Profile, Node, Connection
-from .writers import _resolve_writer
 from .logger import log
-
-LegacyArchimateConceptTypeError = None
-try:  # pragma: no cover - compatibility only
-    from ._legacy import ArchimateConceptTypeError as LegacyArchimateConceptTypeError  # type: ignore
-except Exception:
-    LegacyArchimateConceptTypeError = None
+from .view import Node, Profile, View
 
 if TYPE_CHECKING:
     from .relationship import Relationship
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+__mod__ = __name__.split('.')[-1]
 
-ARCHIMATE_EXCEPTION_GROUP = (ArchimateConceptTypeError,) if LegacyArchimateConceptTypeError is None else (ArchimateConceptTypeError, LegacyArchimateConceptTypeError)
+ARCHIMATE_EXCEPTION_GROUP = (ArchimateConceptTypeError,)
 
 _relationship_cls = None
 
@@ -43,7 +39,7 @@ def _get_relationship_class():
     return _relationship_cls
 
 
-def default_color(elem_type, theme=DEFAULT_THEME) -> str:
+def default_color(elem_type: str, theme: Any = DEFAULT_THEME) -> str:
     """
     Get the default color of a Node, according to its type
 
@@ -68,9 +64,11 @@ def default_color(elem_type, theme=DEFAULT_THEME) -> str:
             return aris_colors[cat]
         else:
             try:
-                return theme[cat]
+                return str(theme[cat])
             except KeyError:
                 return default_colors[cat]
+    return default_colors['other']
+
 
 class Model:
     """
@@ -146,8 +144,8 @@ class Model:
             self.elems_dict[_e.uuid] = _e
             return _e
 
-    def add_relationship(self, rel_type='', source=None, target=None, uuid=None, name=None, access_type=None,
-                         influence_strength=None, desc=None, is_directed=None, profile=None) -> "Relationship":
+    def add_relationship(self, rel_type: str = '', source: Any = None, target: Any = None, uuid: Optional[str] = None, name: Optional[str] = None, access_type: Optional[str] = None,  # noqa: E501
+                         influence_strength: Optional[str] = None, desc: Optional[str] = None, is_directed: Optional[bool] = None, profile: Optional[str] = None) -> "Relationship":
         """
         Method to add a new Relationship between two Element objects
 
@@ -336,6 +334,7 @@ class Model:
         :return:  data structure
         :rtype: str
         """
+        from .writers import _resolve_writer
         writer_callable = _resolve_writer(writer)
         return writer_callable(self, file_path)
 
@@ -499,7 +498,7 @@ class Model:
         """
         return [x for x in self.views_dict.values() if x.name == name]
 
-    def get_or_create_element(self, elem_type: str, elem: str, create_elem=False):
+    def get_or_create_element(self, elem_type: str, elem: str, create_elem: bool = False) -> Optional[Any]:
         """
         Method to get an Element by name or create one if not existing
 
@@ -522,9 +521,9 @@ class Model:
         else:
             return None
 
-    def get_or_create_relationship(self, rel_type: str, name: str, source, target, create_rel=False,
-                                   access_type=None,
-                                   influence_strength=None, desc=None, is_directed=None):
+    def get_or_create_relationship(self, rel_type: str, name: Optional[str], source: Any, target: Any, create_rel: bool = False,  # noqa: E501
+                                   access_type: Optional[str] = None,
+                                   influence_strength: Optional[str] = None, desc: Optional[str] = None, is_directed: Optional[bool] = None) -> Optional[Any]:
         """
         Method to get a Relationship by source/target/type and/or by name or create one if not found
 
@@ -623,7 +622,6 @@ class Model:
             if isinstance(o, Relationship):
                 # For relationship, we embed all properties in a single one called 'Identifier'
                 # to cope with ARIS limitation
-                p = {}
                 if o.name is not None:
                     o.prop('Identifier', o.name)
                 # if o.desc is not None:
@@ -642,7 +640,7 @@ class Model:
                 # Else we embed properties art the end of the description field
                 pat = r'[#]*properties\s*=\s*(\{[\s\S]*\})[;]*'
                 # Get the concept description and remove any existing embedded properties tag
-                desc = '' if o.desc is None else re.sub(pat, '', o.desc, re.DOTALL)
+                desc = '' if o.desc is None else re.sub(pat, '', o.desc, flags=re.DOTALL)
                 # add the properties tag in the concept desc
                 desc += desc.strip(' \n') + '\n\nproperties = ' + json.dumps(o.props, indent=2) + '\n'
                 o.desc = desc
@@ -671,7 +669,7 @@ class Model:
             if isinstance(o, Relationship):
                 if o.prop('Identifier') is not None:
                     p = o.prop('Identifier')
-                    match = re.findall(pat, p, re.M)
+                    match = re.findall(pat, str(p), re.M)
                     if len(match) > 0:
                         p = json.loads(match[0])
                         o.remove_prop('Identifier')
@@ -687,7 +685,7 @@ class Model:
                             for key, val in p.items():
                                 o.prop(key, val)
                 if clean_doc:
-                    o.desc = None if o.desc is None else re.sub(pat, '', o.desc, re.DOTALL)
+                    o.desc = None if o.desc is None else re.sub(pat, '', o.desc, flags=re.DOTALL)
 
             elif isinstance(o, View) or isinstance(o, Element) or isinstance(o, Model):
                 # Get the concept description and remove any existing embedded properties tag
@@ -697,11 +695,11 @@ class Model:
                         # get the properties
                         props = json.loads(match[0])
                         # and clean up the desc attribute
-                        o.desc = re.sub(pat, '', o.desc, re.DOTALL).strip(' \n')
+                        o.desc = re.sub(pat, '', o.desc, flags=re.DOTALL).strip(' \n')
                         for key, val in props.items():
                             o.prop(key, val)
                         if clean_doc:
-                            o.desc = None if o.desc is None else re.sub(pat, '', o.desc, re.DOTALL)
+                            o.desc = None if o.desc is None else re.sub(pat, '', o.desc, flags=re.DOTALL)
 
         _expand(self, clean_doc)
         for v in self.views_dict.values():
@@ -757,13 +755,13 @@ class Model:
         if isinstance(c.source, View):
             log.error(f'Connection {c.uuid} has a view {c.source.name} as source node')
             _ok = False
-        if c.source is not None:
-            if c.source._ref != c.concept._source:
+        if c.source is not None and not isinstance(c.source, View):
+            if c.source._ref != c.concept._source:  # type: ignore[attr-defined]
                 log.error(f'Connection {c.uuid} has a reference to its source Element which is not '
                           'the reference of the relationship source Element')
             _ok = False
-        if c.target is not None:
-            if c.target._ref != c.concept._target:
+        if c.target is not None and not isinstance(c.target, View):
+            if c.target._ref != c.concept._target:  # type: ignore[attr-defined]
                 log.error(f'Connection {c.uuid} has a reference to its target Element which is not '
                           'the reference of the relationship target Element')
             _ok = False
@@ -797,15 +795,6 @@ class Model:
         for r in self.conns:
             r.line_color = default_color('Relationship', theme)
         self.theme = theme
-
-
-try:
-    from . import _legacy as _legacy_module
-except ImportError:
-    _legacy_module = None
-
-if _legacy_module and hasattr(_legacy_module, "register_model"):
-    _legacy_module.register_model(Model)
 
 
 __all__ = ["Model"]

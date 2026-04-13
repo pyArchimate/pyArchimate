@@ -88,58 +88,62 @@ class Writers(Enum):
     archimate = 2
 
 
-_writer_registry = {}
-_default_writers_initialized = False
+# Writer registry: delegate entirely to the modern writers module so there
+# is a single registry shared between legacy and modern code paths.
+# The try/except fallback handles the case where _legacy is loaded as a
+# top-level module (e.g., via view.py's top-level import fallback path),
+# where relative imports are unavailable.
+try:
+    from .writers import (  # noqa: E402, F401, F811
+        _ensure_default_writers,
+        _resolve_writer,
+        _writer_registry,
+        register_writer,
+    )
+except ImportError:
+    # Fallback implementations used when _legacy.py is imported as a
+    # top-level module (no package context, so relative imports fail).
+    _writer_registry = {}
+    _default_writers_initialized = False
 
+    def register_writer(key, writer_callable):  # noqa: F811
+        if not callable(writer_callable):
+            raise TypeError('writer must be callable')
+        _writer_registry[key] = writer_callable
 
-def register_writer(key, writer_callable):
-    """Register a writer under a key for use with :meth:`Model.write`."""
-
-    if not callable(writer_callable):
-        raise TypeError('writer must be callable')
-    _writer_registry[key] = writer_callable
-
-
-def _ensure_default_writers():
-    global _default_writers_initialized
-    if _default_writers_initialized:
-        return
-    from .writers.archimateWriter import archimate_writer
-    from .writers.archiWriter import archi_writer
-    from .writers.csvWriter import csv_writer
-
-    register_writer(Writers.archimate, archimate_writer)
-    register_writer(Writers.archi, archi_writer)
-    register_writer(Writers.csv, csv_writer)
-    _default_writers_initialized = True
-
-
-def _resolve_writer(writer):
-    if callable(writer):
-        return writer
-
-    _ensure_default_writers()
-    key = writer
-    if isinstance(writer, Enum):
+    def _ensure_default_writers():  # noqa: F811
+        global _default_writers_initialized
+        if _default_writers_initialized:
+            return
         try:
-            key = Writers(writer.value)
-        except ValueError:
+            from writers.archimateWriter import archimate_writer
+            from writers.archiWriter import archi_writer
+            from writers.csvWriter import csv_writer
+            register_writer(Writers.archimate, archimate_writer)
+            register_writer(Writers.archi, archi_writer)
+            register_writer(Writers.csv, csv_writer)
+        except ImportError:
             pass
-    if isinstance(writer, str):
-        try:
-            key = Writers[writer]
-        except KeyError:
-            pass
-    if isinstance(writer, int):
-        try:
-            key = Writers(writer)
-        except ValueError:
-            pass
+        _default_writers_initialized = True
 
-    if key in _writer_registry:
-        return _writer_registry[key]
-
-    raise ValueError(f"Unknown writer '{writer}'. Registered writers: {list(_writer_registry.keys())}")
+    def _resolve_writer(writer):  # noqa: F811
+        if callable(writer):
+            return writer
+        _ensure_default_writers()
+        key = writer
+        if isinstance(writer, str):
+            try:
+                key = Writers[writer]
+            except (KeyError, Exception):
+                pass
+        elif isinstance(writer, int):
+            try:
+                key = Writers(writer)
+            except (ValueError, Exception):
+                pass
+        if key in _writer_registry:
+            return _writer_registry[key]
+        raise ValueError(f"Unknown writer '{writer}'. Registered writers: {list(_writer_registry.keys())}")
 
 
 def register_model(cls):
@@ -3762,3 +3766,14 @@ if allowed_relationships == {}:
     except KeyError as e:
         log.error(f'{__mod__}: Invalid metamodel parameters - checks are disabled!')
         raise KeyError(e)
+
+# Invert registration: legacy now consumes modern implementations.
+# Core modules (model.py, element.py, relationship.py) no longer call back
+# into _legacy; instead _legacy replaces its own class references with the
+# modern ones so downstream code using _legacy.Model etc. gets the new impl.
+try:
+    from .model import Model  # noqa: F811
+    from .element import Element  # noqa: F811
+    from .relationship import Relationship  # noqa: F811
+except ImportError:
+    pass  # Fall back to local class definitions when modern modules are absent

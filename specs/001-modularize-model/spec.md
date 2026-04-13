@@ -49,7 +49,7 @@ Based on the six architectural clarifications above, the refactoring follows a *
 │ Layer 3: Helpers                                                  │
 │ (Can import from Layers 1, 2)                                    │
 │  ├─ helpers/diagram.py (view helpers, visualization)             │
-│  ├─ helpers/serialization.py (property serialization)            │
+│  ├─ helpers/properties.py (property embedding/validation)        │
 │  └─ helpers/logging.py (logging & configuration)                 │
 └──────────────────────────────────────────────────────────────────┘
                                 ↑
@@ -88,9 +88,9 @@ src/pyArchimate/
 │   ├── relationship.py          # (Layer 2) Relationship class & constraint logic
 │   │
 │   ├── helpers/                 # (Layer 3) Focused helper submodules
-│   │   ├── __init__.py          # Re-exports diagram, serialization, logging helpers
+│   │   ├── __init__.py          # Re-exports diagram, properties, logging helpers
 │   │   ├── diagram.py           # View/visualization helpers
-│   │   ├── serialization.py     # Property serialization utilities
+│   │   ├── properties.py        # Property embedding/expansion and validation helpers
 │   │   └── logging.py           # Logging & configuration setup
 │   │
 │   ├── readers/                 # (Layer 4) Import adapters for ArchiMate, XML, etc.
@@ -112,7 +112,7 @@ src/pyArchimate/
 ```python
 # Import core domain classes directly from main package (preferred for new code)
 from pyArchimate import Model, Element, Relationship
-from pyArchimate.helpers import diagram, serialization, logging
+from pyArchimate.helpers import diagram, properties, logging
 
 # Or explicitly from modules (acceptable for clarity in large files)
 from pyArchimate.model import Model
@@ -142,7 +142,7 @@ from pyArchimate.relationship import Relationship
 
 # Helpers (make testable submodules available under pyArchimate.helpers)
 from pyArchimate import helpers
-from pyArchimate.helpers import diagram, serialization, logging
+from pyArchimate.helpers import diagram, properties, logging
 
 # Constants, enums, exceptions
 from pyArchimate.constants import *
@@ -151,7 +151,7 @@ from pyArchimate.exceptions import *
 
 __all__ = [
     'Model', 'Element', 'Relationship',
-    'helpers', 'diagram', 'serialization', 'logging',
+    'helpers', 'diagram', 'properties', 'logging',
     # Constants, enums, exceptions as needed
 ]
 ```
@@ -164,9 +164,9 @@ After extraction, `pyArchimate.py` becomes a re-export module:
 from pyArchimate.model import Model
 from pyArchimate.element import Element
 from pyArchimate.relationship import Relationship
-from pyArchimate.helpers import diagram, serialization, logging
+from pyArchimate.helpers import diagram, properties, logging
 
-__all__ = ['Model', 'Element', 'Relationship', 'diagram', 'serialization', 'logging']
+__all__ = ['Model', 'Element', 'Relationship', 'diagram', 'properties', 'logging']
 ```
 
 #### Legacy Compatibility Layer (`_legacy.py`)
@@ -178,9 +178,9 @@ A permanent re-export layer for old direct imports:
 from pyArchimate.model import Model
 from pyArchimate.element import Element
 from pyArchimate.relationship import Relationship
-from pyArchimate.helpers import diagram, serialization, logging
+from pyArchimate.helpers import diagram, properties, logging
 
-__all__ = ['Model', 'Element', 'Relationship', 'diagram', 'serialization', 'logging']
+__all__ = ['Model', 'Element', 'Relationship', 'diagram', 'properties', 'logging']
 ```
 
 ### Dependency Rules & Validation
@@ -217,14 +217,14 @@ The refactoring is **complete and correct** when:
 |-----------|-------------------|----------------|
 | **AC-001: Module Extraction** | `python -c "from pyArchimate import Model, Element, Relationship"` succeeds | All three classes import and instantiate without errors |
 | **AC-002: No Legacy Dependencies** | Scan `model.py`, `element.py`, `relationship.py` for imports of `_legacy` | Zero matches; no class imports legacy code |
-| **AC-003: Helpers Isolation** | `python -c "from pyArchimate.helpers import diagram, serialization, logging"` succeeds; all are testable standalone | Each helper module is importable independently and runs its own tests |
+| **AC-003: Helpers Isolation** | `python -c "from pyArchimate.helpers import diagram, properties, logging"` succeeds; all are testable standalone | Each helper module is importable independently and runs its own tests |
 | **AC-004: Layer Acyclicity** | Static analysis tool (e.g., custom script or `graphviz` dependency check) verifies no cycles | Dependency graph is a DAG (directed acyclic graph); report confirms 0 cycles |
 | **AC-005: Entry Point Exports** | `python -c "from pyArchimate import Model; from pyArchimate.helpers import diagram"` both succeed | Public API re-exports match original interface; no import errors |
 | **AC-006: Backward Compatibility** | Old imports still work: `from src.pyArchimate.pyArchimate import Model` | Legacy path resolves successfully; _legacy.py and pyArchimate.py re-exports are intact |
 | **AC-007: Test Parity** | Full test suite passes (unit, integration, docs) without modifying test imports | All tests pass; behavioral output matches pre-refactor baseline |
 | **AC-008: No Broken Readers/Writers** | Run integration tests for all readers (ArchiMate, XML, etc.) and writers | Read/save cycles work end-to-end; models load and serialize identically |
 | **AC-009: Documentation Sync** | Diagrams in `docs/diagrams.rst` and `scripts/render_diagrams.sh` outputs match code layout | Published diagrams list the new modules (model, element, relationship, helpers) |
-| **AC-010: Linting & Type Checks** | Run `mypy`, `pylint`, `black` on refactored code | All checks pass; no type errors, formatting issues, or style violations |
+| **AC-010: Linting & Type Checks** | Run `ruff check`, `pyright`, and `mypy` on refactored code | All checks pass; no type errors, formatting issues, or style violations |
 
 ### Implementation Phases (Recommended)
 
@@ -236,7 +236,7 @@ The refactoring is **complete and correct** when:
    - Extract each class with complete definition; no legacy dependencies.
    - Acceptance: Layer 2 modules import Layer 1 cleanly; AC-002 passes.
 
-3. **Phase 3: Refactor Helpers (diagram.py, serialization.py, logging.py)**
+3. **Phase 3: Refactor Helpers (diagram.py, properties.py, logging.py)**
    - Move helper logic into focused submodules under `helpers/`.
    - Acceptance: AC-003 passes; helpers are independently testable.
 
@@ -309,7 +309,7 @@ The refactored `pyArchimate` package enforces **Core-first layering** with stric
 |-------|---------|------------------------|
 | **Layer 1: Base** | `constants.py`, `enums.py`, `exceptions.py` | No pyArchimate imports (only stdlib/external) |
 | **Layer 2: Core Domain** | `model.py`, `element.py`, `relationship.py` | Layer 1 only |
-| **Layer 3: Helpers** | `helpers/diagram.py`, `helpers/serialization.py`, `helpers/logging.py` | Layers 1 & 2 |
+| **Layer 3: Helpers** | `helpers/diagram.py`, `helpers/properties.py`, `helpers/logging.py` | Layers 1 & 2 |
 | **Layer 4: Readers/Writers** | `readers/`, `writers/`, adapters, CLI | Layers 1, 2, 3 (may import from any layer) |
 
 This structure ensures:
@@ -322,10 +322,10 @@ This structure ensures:
 
 - **FR-001**: System MUST extract `Model`, `Element`, and `Relationship` as standalone modules with zero dependencies on legacy code (no _legacy.py imports). Each class must have its complete definition in its own module.
 - **FR-002**: System MUST expose the same public API via `pyArchimate/__init__.py` so `from pyArchimate import Model` continues to work without changes for existing consumers.
-- **FR-003**: System MUST ensure readers, writers, and CLI helpers continue to import their dependencies without modification by maintaining single-source references in the shared package namespace.
+- **FR-003**: System MUST ensure readers, writers, and CLI helpers resolve `Model`, `Element`, and `Relationship` through the shared package namespace (`pyArchimate/__init__.py`). Import paths within reader/writer files may be updated to use the new package entry points, but the resolved symbols must be identical and no external consumer API must change.
 - **FR-004**: System MUST include module-level unit tests for each new file and update existing tests (unit, integration, examples) to point to the new modules where needed.
 - **FR-005**: System MUST document the new module boundaries in the architecture docs (e.g., `docs/diagrams.rst`, README, or inline comments) and regenerate diagrams so documentation matches implementation.
-- **FR-006**: System MUST move helper utilities (diagram helpers, property serialization, logging/configuration helpers) into a flat `pyArchimate/helpers/` directory with focused submodules (`diagram.py`, `serialization.py`, `logging.py`) re-exported through `helpers/__init__.py` and the main package entry point so they remain accessible while staying focused and testable.
+- **FR-006**: System MUST move helper utilities (diagram helpers, property embedding/validation, logging/configuration helpers) into a flat `pyArchimate/helpers/` directory with focused submodules (`diagram.py`, `properties.py`, `logging.py`) re-exported through `helpers/__init__.py` and the main package entry point so they remain accessible while staying focused and testable.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -345,7 +345,22 @@ This structure ensures:
 
 ## Assumptions
 
-- Consumers rely on the `pyArchimate` package exports (not the legacy `src.pyArchimate.pyArchimate` path) but we will keep compatibility wrappers for the short term.
+- Consumers rely on the `pyArchimate` package exports (not the legacy `src.pyArchimate.pyArchimate` path). The permanent compatibility layer (`_legacy.py`) ensures old direct imports remain valid indefinitely.
 - Existing fixtures and integration tests can be updated to import from the new modules without altering their expectations.
 - The project continues to use the `src` layout defined in `pyproject.toml`, so new modules must be referenced from there.
-- **Readers and writers do NOT require import modifications**. Per FR-003, they continue to import from the public package entry point (`pyArchimate/__init__.py`) without any code changes needed. The compatibility layers (`__init__.py` and `pyArchimate.py` shim) ensure that `from pyArchimate import Model` continues to work.
+- Reader and writer internal import paths may be updated to reference the new package entry points (e.g., replacing stale `pyArchimate.py` imports). The resolved public API surface — `Model`, `Element`, `Relationship` — must remain unchanged for all external consumers.
+
+## Phase 6 Test Suite Outcome (T025)
+
+**Recorded after T021–T024 completion (branch `001-modularize-model`).**
+
+With `_legacy.py` present on disk (left untouched), the full test suite was run via `poetry run pytest`:
+
+- **Result**: 110 passed, 1 intentionally failing (`tests/unit/test_view.py::test_view_no_legacy_dependency`)
+- **Intentional failure**: `test_view_no_legacy_dependency` is a TDD marker written for T021 (full modern View implementation). It is expected to fail until T021 replaces the facade shim in `view.py` with zero-`_legacy` implementations.
+- **Core modules** (`model.py`, `element.py`, `relationship.py`): import cleanly without `_legacy` in `sys.modules` — verified by `tests/unit/test_legacy_independence.py`.
+- **Legacy shims** (`_legacy.Element`, `_legacy.Model`, `_legacy.Relationship`, `_legacy.View`, writer registration): all verified to point to modern implementations via `tests/unit/test_legacy_shims.py`.
+- **Writer registry**: single shared registry between `_legacy` and `writers/__init__.py` — verified by `tests/unit/test_writer_registry.py` and `tests/integration/test_state_preservation.py`.
+- **Reader/writer tests**: all pass without import changes to external consumers.
+
+**Remaining work**: T021 (full modern View implementation) and T028 (static type-checking sign-off) are the only open tasks.
