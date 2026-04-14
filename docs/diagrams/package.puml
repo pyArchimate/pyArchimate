@@ -1,44 +1,66 @@
 @startuml
-title pyArchimate Package Diagram
+title pyArchimate Package Structure
 
 package "pyArchimate" {
-  class "pyArchimate.py" as Core {
-    + Model
-    + Element
-    + Relationship
-    + View
-    + Node
-    + Connection
-    + Profile
+  class "__init__.py" as Init {
+    {package entry point}
   }
-  package readers {
+
+  class "model.py" as Model {
+    class Model
+  }
+
+  class "element.py" as Element {
+    class Element
+  }
+
+  class "relationship.py" as Relationship {
+    class Relationship
+  }
+
+  package "helpers" {
+    class "diagram.py" as DiagramHelper {
+      + get_or_create_node()
+      + get_or_create_connection()
+    }
+    class "properties.py" as PropertiesHelper {
+      + embed_props()
+      + expand_props()
+      + check_invalid_conn()
+      + check_invalid_nodes()
+    }
+    class "logging.py" as LoggingHelper {
+      + log_to_file()
+      + log_to_stderr()
+      + log_set_level()
+    }
+  }
+
+  package "readers" {
     class archiReader
     class archimateReader
     class arisAMLreader
   }
-  package writers {
+
+  package "writers" {
     class archimateWriter
     class archiWriter
     class csvWriter
   }
-  class logger
-  package doc {}
+
+  class "logger.py" as Logger
 }
-package examples {
-  class Scripts
-}
-package tests {
-  class UnitTests
-}
-Core --> readers.archiReader : loads
-Core --> readers.archimateReader : loads
-Core --> readers.arisAMLreader : loads
-Core --> writers.archimateWriter : exports
-Core --> writers.archiWriter : exports
-Core --> writers.csvWriter : exports
-Core --> logger : emits logs
-examples.Scripts --> Core : drives
-tests.UnitTests --> Core
-tests.UnitTests --> readers.archiReader
-tests.UnitTests --> writers.archimateWriter
+
+Init --> Model : exports
+Init --> Element : exports
+Init --> Relationship : exports
+Init --> DiagramHelper : exports
+Init --> PropertiesHelper : exports
+Init --> LoggingHelper : exports
+Init --> readers : imports from
+Init --> writers : imports from
+
+DiagramHelper --> Logger : uses
+LoggingHelper --> Logger : wraps
+
 @enduml

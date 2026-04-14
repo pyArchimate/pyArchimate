@@ -1,7 +1,11 @@
+import os
 import sys
+
+from lxml import etree as et
+
 try:
     from .. import *
-except:
+except ImportError:
     sys.path.insert(0, "..")
     from pyArchimate import *
 
@@ -31,7 +35,7 @@ def archi_writer(model: Model, file_path: str):
     nsp_url = 'http://www.archimatetool.com/archimate'
     xsi_url = 'http://www.w3.org/2001/XMLSchema-instance'
     xsi = et.QName(xsi_url, 'type')
-    ns = {'archimate': nsp_url, 'xsi': xsi}
+    _ns = {'archimate': nsp_url, 'xsi': xsi}  # namespace dict (reserved for future use)
 
     # Create basic folder structure
     f_strategy = et.SubElement(root, 'folder', name="Strategy", id=set_id(), type="strategy")

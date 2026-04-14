@@ -2,12 +2,12 @@
 File reader for native Archimate Tool .archimate file format
 """
 
+import os
 import sys
-import lxml.etree as et
 
 try:
     from .. import *
-except:
+except ImportError:
     sys.path.insert(0, "..")
     from pyArchimate import *
 
@@ -37,7 +37,7 @@ def archi_reader(model, root, merge_flg=False):
         log.fatal(f'{__mod__}: Input file is not an Open Group Archimate file - Aborting')
         return None
 
-    ns = root.tag.split('model')[0]
+    _ = root.tag.split('model')[0]  # namespace prefix (unused but kept for clarity)
     xsi = '{http://www.w3.org/2001/XMLSchema-instance}'
 
     model.name = root.get('name')
@@ -72,7 +72,6 @@ def archi_reader(model, root, merge_flg=False):
                 if merge_flg and e.get('id') in model.elems_dict:
                     elem = model.elems_dict[e.get('id')]
                 else:
-                    x = e.get('profiles')
                     elem = model.add(concept_type=type_e, name=e.get('name'), uuid=e.get('id'),
                                      profile=e.get('profiles'))
 

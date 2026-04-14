@@ -6,7 +6,7 @@ from lxml import etree
 from src.pyArchimate import Model
 from src.pyArchimate.readers.archiReader import archi_reader
 
-FIXTURES = Path(__file__).resolve().parents[2] / "legacy_integration" / "fixtures"
+FIXTURES = Path(__file__).resolve().parents[2] / "fixtures"
 
 
 FULL_ARCHI_MODEL = """<?xml version='1.0'?>

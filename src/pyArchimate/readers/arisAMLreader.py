@@ -9,10 +9,10 @@
 import ctypes
 import platform
 import sys
-import lxml.etree as et
+
 try:
     from .. import *
-except:
+except ImportError:
     sys.path.insert(0, "..")
     from pyArchimate import *
 
@@ -232,7 +232,7 @@ def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_vi
             if o_type == 'Grouping':
                 n.fill_color = "#FFFFFF"
                 n.opacity = 100
-        _parse_nodes(grp)
+
 
     def _parse_connections(grp=None, view=None):
         """

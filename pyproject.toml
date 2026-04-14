@@ -52,6 +52,8 @@ lint = [
     "pyright>=1.1.407,<2.0.0",
     "ruff>=0.14.10,<1.0.0",
     "pymarkdownlnt>=0.9.35",
+    "lxml-stubs (>=0.5.1,<0.6.0)",
+    "types-setuptools (>=82.0.0.20260408,<83.0.0.0)",
 ]
 
 docs = [
@@ -74,11 +76,18 @@ reportMissingImports = true
 reportUnusedVariable = "warning"
 reportMissingTypeStubs = "none"
 reportUnknownMemberType = false
+extraPaths = ["src"]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "src/pyArchimate/_legacy.py",
+]
 
 [tool.mypy]
 strict = true
 mypy_path = "src"
-packages = ["frictionless_architect", "tests"]
+explicit_package_bases = true
 show_error_codes = true
 ignore_missing_imports = false
 allow_redefinition = false
@@ -90,8 +99,11 @@ disallow_untyped_decorators = true
 warn_unused_ignores = true
 warn_return_any = true
 warn_unreachable = true
-plugins = [
-  "pydantic.mypy"
+#plugins = [
+#  "pydantic.mypy"
+#]
+exclude = [
+    "src/pyArchimate/_legacy.py",
 ]
 
 [tool.ruff]
@@ -101,29 +113,19 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "W", "B", "C", "I"]
 ignore = [
-    "E501",
+    "E501",   # line too long — handled by formatter
 ]
 exclude = [
-    ".venv",
-    ".git",
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
     "docs",
     "build",
     "dist",
-    "__pycache__",
-    "*.pyc",
-    "*.pyo",
-    "*.pyd",
     "env",
     "ENV",
-    ".mypy_cache",
-    ".ruff_cache",
-    ".pytest_cache",
     "*.log",
-    ".env*",
-    "node_modules",
-    "*.lock",
-    "*.json",
-    "*.md",
+    "src/pyArchimate/_legacy.py",
 ]
 
 [tool.ruff.format]
@@ -132,7 +134,7 @@ indent-style = "space"
 
 [tool.pytest.ini_options]
 pythonpath = "src/pyArchimate"  # mirrors the package layout so pytest can import pyArchimate when running from the repo root
-testpaths = ["./tests/legacy_unit", "./tests/legacy_integration"]
+testpaths = ["./tests/legacy_unit", "./tests/legacy_integration", "./tests/unit", "./tests/security", "./tests/integration", "./tests/api"]
 python_files = "*_test.py test_*.py *_spec.py"
 addopts = """
 --cov=src
@@ -153,6 +155,7 @@ source = ["src"]
 omit = [
     "tests/*",
     "src/setup.py",
+    "src/pyArchimate/_legacy.py",
 ]
 
 [tool.coverage.report]

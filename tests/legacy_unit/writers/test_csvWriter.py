@@ -1,4 +1,4 @@
-from tests.legacy_unit._helpers import simple_archimate_model
+from tests._helpers import simple_archimate_model
 from src.pyArchimate.writers.csvWriter import csv_writer
 
 

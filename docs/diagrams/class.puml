@@ -1,76 +1,95 @@
 @startuml
-title pyArchimate Class Diagram
+title pyArchimate Domain Model
 
 class Model {
-  - _uuid
-  - elems_dict
-  - rels_dict
-  - views_dict
-  + add()
-  + add_relationship()
-  + add_profile()
-  + read()
-  + write()
+  id: str
+  name: str
+  elements: dict[str, Element]
+  relationships: dict[str, Relationship]
+  views: dict[str, View]
+  --
+  + add(element: Element)
+  + add_relationship(rel: Relationship)
+  + add_profile(profile: Profile)
+  + read(source, format: str)
+  + write(target, format: str)
 }
+
 class Element {
-  - _uuid
-  - _type : ArchiType
-  - _properties
-  + prop()
-  + in_rels()
-  + out_rels()
-  + rels()
+  id: str
+  name: str
+  type: str
+  properties: dict
+  --
+  + prop(key: str) -> Any
+  + in_rels() -> List[Relationship]
+  + out_rels() -> List[Relationship]
+  + rels() -> List[Relationship]
 }
+
 class Relationship {
-  - _uuid
-  - _type : ArchiType
-  - access_type : AccessType
-  - influence_strength
-  + prop()
+  id: str
+  name: str
+  type: str
+  source: Element
+  target: Element
+  --
+  + prop(key: str) -> Any
   + delete()
 }
+
 class Profile {
-  - _uuid
-  - concept : ArchiType
+  id: str
+  name: str
+  --
   + delete()
 }
+
 class View {
-  - _uuid
-  - nodes_dict
-  - conns_dict
-  + add()
-  + add_connection()
+  id: str
+  name: str
+  nodes: List[Node]
+  connections: List[Connection]
+  --
+  + add(element: Element) -> Node
+  + add_connection(rel: Relationship) -> Connection
   + delete()
 }
+
 class Node {
-  - _uuid
-  - _ref : Element
-  - nodes_dict
+  id: str
+  element: Element
+  x: int
+  y: int
+  --
   + add()
   + delete()
 }
+
 class Connection {
-  - _uuid
-  - _ref : Relationship
-  - _source : Node
-  - _target : Node
-  + add_bendpoint()
+  id: str
+  relationship: Relationship
+  source: Node
+  target: Node
+  --
+  + add_bendpoint(x, y)
   + delete()
 }
-enum Readers
-enum Writers
-Model "1" o-- "*" Element : contains
-Model "1" o-- "*" Relationship : manages
-Model "1" o-- "*" View : owns
+
+Model "1" *-- "*" Element : contains
+Model "1" *-- "*" Relationship : manages
+Model "1" *-- "*" View : owns
 Model "1" o-- "*" Profile : catalogs
-View "1" o-- "*" Node : hosts
-View "1" o-- "*" Connection : connects
-Node "1" *-- "*" Node : embeds
-Node --> Element : refers to
+
+View "1" *-- "*" Node : hosts
+View "1" *-- "*" Connection : contains
+
+Node --> Element : visualizes
 Connection --> Relationship : visualizes
 Connection --> Node : source/target
+
 Relationship --> Element : source/target
-Element "0..*" ..> Profile : optionally uses
-Model --> Readers : uses readers
-Model --> Writers : uses writers
+
+Element "0..*" o-- "0..*" Profile : tagged by
+
 @enduml
