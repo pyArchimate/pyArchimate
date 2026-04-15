@@ -20,16 +20,16 @@ poetry run pymarkdownlnt fix *.md specs/*.md
 
 echo "Running ruff check..."
 # Runs ruff for linting and formatting checks across the project.
-poetry run ruff check . --fix
+poetry run ruff check src/ --fix
 
 echo "Running pyright..."
 # Runs pyright for static type checking. Assumes pyright is executable in the environment.
-poetry run pyright
+poetry run pyright src/
 
 # --- Static Type Checking ---
 echo "Running mypy..."
 # Runs mypy on the src directory for static type checking.
-poetry run mypy
+poetry run mypy src/
 
 # --- Unit Tests ---
 echo "Running pytest unit tests..."

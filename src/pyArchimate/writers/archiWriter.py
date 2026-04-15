@@ -1,19 +1,26 @@
 import os
 import sys
+from typing import cast as _cast
 
 from lxml import etree as et
+from lxml.etree import _Element
 
 try:
-    from .. import *
+    from ..constants import ARCHI_CATEGORY as archi_category
+    from ..element import set_id
+    from ..enums import ArchiType
+    from ..helpers.logging import log
+    from ..model import Model
+    from ..view import View
 except ImportError:
     sys.path.insert(0, "..")
-    from pyArchimate import *
+    from pyArchimate import ArchiType, Model, View, archi_category, log, set_id  # type: ignore[no-redef,attr-defined]
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
-def archi_writer(model: Model, file_path: str):
+def archi_writer(model: Model, file_path: str) -> str:
     """
     The CSV writer generates three output files:
     - one for all elements
@@ -96,11 +103,11 @@ def archi_writer(model: Model, file_path: str):
             folder_path = elem.folder
         else:
             folder_path = '/' + cat + elem.folder
-        folder = _get_folder(folders, folder_path)
+        folder = _cast(_Element, _get_folder(folders, folder_path))
         if elem.type == 'Junction':
             elem.type = elem.junction_type.capitalize() + elem.type
         e = et.SubElement(folder, 'element', {
-            xsi: 'archimate:' + elem.type,
+            str(xsi): 'archimate:' + elem.type,
             'id': elem.uuid
         })
         if elem.name is not None:
@@ -122,9 +129,10 @@ def archi_writer(model: Model, file_path: str):
             folder_path = rel.folder
         else:
             folder_path = '/' + cat + rel.folder
-        folder = _get_folder(folders, folder_path)
+        folder = _cast(_Element, _get_folder(folders, folder_path))
+        assert rel.source is not None and rel.target is not None
         r = et.SubElement(folder, 'element', {
-            xsi: 'archimate:' + rel.type + 'Relationship',
+            str(xsi): 'archimate:' + rel.type + 'Relationship',
             'id': rel.uuid,
             'source': rel.source.uuid,
             'target': rel.target.uuid
@@ -165,10 +173,10 @@ def archi_writer(model: Model, file_path: str):
             folder_path = view.folder
         else:
             folder_path = '/' + cat + view.folder
-        folder = _get_folder(folders, folder_path)
+        folder = _cast(_Element, _get_folder(folders, folder_path))
 
         e = et.SubElement(folder, 'element', {
-            xsi: 'archimate:ArchimateDiagramModel',
+            str(xsi): 'archimate:ArchimateDiagramModel',
             'name': view.name,
             'id': view.uuid
         })
@@ -177,7 +185,7 @@ def archi_writer(model: Model, file_path: str):
         def _add_node(parent, parent_tag, node):
 
             child = et.SubElement(parent_tag, 'child', {
-                xsi: 'archimate:DiagramObject',
+                str(xsi): 'archimate:DiagramObject',
                 'id': node.uuid,
             })
             if node.font_name is not None and node.font_size is not None:
@@ -202,14 +210,14 @@ def archi_writer(model: Model, file_path: str):
             if node.cat == 'Element':
                 child.set('archimateElement', node.ref)
             elif node.cat == "Container":
-                child.set(xsi, 'archimate:Group')
+                child.set(str(xsi), 'archimate:Group')
                 child.set('name', node.label)
             elif node.cat == "Label":
-                child.set(xsi, 'archimate:Note')
+                child.set(str(xsi), 'archimate:Note')
                 content = et.SubElement(child, 'content')
                 content.text = node.label
             elif node.cat == "Model":
-                child.set(xsi, 'archimate:DiagramModelReference')
+                child.set(str(xsi), 'archimate:DiagramModelReference')
                 child.set('model', node.ref)
             if node.text_alignment is not None:
                 child.set('textAlignment', node.text_alignment)
@@ -236,8 +244,9 @@ def archi_writer(model: Model, file_path: str):
 
             # Add related connections for which node is source
             for conn in node.out_conns():
+                assert conn.source is not None and conn.target is not None
                 c = et.SubElement(child, 'sourceConnection', {
-                    xsi: "archimate:Connection",
+                    str(xsi): "archimate:Connection",
                     'id': conn.uuid,
                     'lineWidth': "1",
                     'source': conn.source.uuid,
@@ -284,7 +293,7 @@ def archi_writer(model: Model, file_path: str):
             et.SubElement(e, 'property', key=k, value=str(v))
 
     # Add model name, documentation & properties
-    root.set('name', model.name)
+    root.set('name', model.name or '')
     if model.desc is not None:
         doc = et.SubElement(root, 'purpose')
         doc.text = model.desc

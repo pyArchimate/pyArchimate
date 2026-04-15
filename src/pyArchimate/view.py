@@ -5,7 +5,7 @@ All classes are self-contained and carry no dependency on the legacy module.
 
 import math
 from collections import defaultdict
-from typing import Optional
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 from .constants import ARCHI_CATEGORY, DEFAULT_THEME
 from .element import Element, set_id
@@ -13,11 +13,14 @@ from .enums import ArchiType
 from .exceptions import ArchimateConceptTypeError
 from .logger import log
 
+if TYPE_CHECKING:
+    from .model import Model
+
 # ---------------------------------------------------------------------------
 # Colour helper
 # ---------------------------------------------------------------------------
 
-def default_color(elem_type, theme=DEFAULT_THEME) -> str:
+def default_color(elem_type: str, theme: Union[str, "dict[str, str]", None] = DEFAULT_THEME) -> str:
     """Return the default fill colour for a node, keyed by Archimate element type."""
     _archi_colors = {
         'strategy': '#F5DEAA', 'business': "#FFFFB5", 'application': "#B5FFFF",
@@ -38,7 +41,8 @@ def default_color(elem_type, theme=DEFAULT_THEME) -> str:
         if theme == 'aris':
             return _aris_colors.get(cat, '#FFFFFF')
         try:
-            return theme[cat]
+            theme_dict = cast("dict[str, str]", theme)
+            return str(theme_dict[cat])
         except (KeyError, TypeError):
             return _archi_colors.get(cat, '#FFFFFF')
     return '#FFFFFF'
@@ -54,6 +58,7 @@ class Point:
     def __init__(self, x: float = 0, y: float = 0):
         self._x = max(0, int(x))
         self._y = max(0, int(y))
+        self.idx: int = 0
 
     @property
     def x(self):
@@ -111,7 +116,7 @@ class Profile:
         self.name = name
         self._uuid = set_id(uuid)
         self.concept = concept
-        self.model = model
+        self.model: "Model" = cast("Model", model)
 
     def delete(self):
         """Remove this profile and clear all references to it from elements and relationships."""
@@ -119,8 +124,8 @@ class Profile:
             x.reset_profile()
         for x in [r for r in self.model.relationships if r.profile_id == self.uuid]:
             x.reset_profile()
-        if self.uuid in self.model.profiles:
-            del self.model.profiles[self.uuid]
+        if self.uuid in self.model._profiles_dict:
+            del self.model._profiles_dict[self.uuid]
 
     @property
     def uuid(self) -> str:
@@ -148,12 +153,12 @@ class Node:
     def __init__(self, ref=None, x=0, y=0, w=120, h=55, uuid=None,
                  node_type='Element', label=None, parent=None):
         # parent type check is done after View is defined; accept duck-typed objects
-        if not (hasattr(parent, 'view') and hasattr(parent, 'model')):
+        if parent is None or not (hasattr(parent, 'view') and hasattr(parent, 'model')):
             raise ValueError('Node class parent should be a class View or Node instance!')
 
-        self.parent = parent
-        self._view = parent.view
-        self._model = parent.model
+        self.parent: "Union[View, Node]" = parent
+        self._view: "View" = cast("View", parent.view)
+        self._model: "Model" = cast("Model", parent.model)
 
         self._ref = None
         if ref is not None:
@@ -184,18 +189,18 @@ class Node:
         self.flags = 0
         self.cat = node_type
         self.label = label
-        self.nodes_dict: dict = {}
-        self._fill_color = None
-        self.line_color = None
-        self.opacity = 100
-        self.lc_opacity = 100
-        self.font_color = None
+        self.nodes_dict: dict[str, "Node"] = {}
+        self._fill_color: Optional[str] = None
+        self.line_color: Optional[str] = None
+        self.opacity: int | float = 100
+        self.lc_opacity: int | float = 100
+        self.font_color: Optional[str] = None
         self.font_name = 'Segoe UI'
-        self.font_size = 9
-        self.text_alignment = None
+        self.font_size: int | float = 9
+        self.text_alignment: Optional[str] = None
         self.text_position = None
-        self.label_expression = None
-        self.border_type = None
+        self.label_expression: Optional[str] = None
+        self.border_type: Optional[str] = None
         self.iconColor = None
         self.gradient = None
 
@@ -260,7 +265,7 @@ class Node:
     @property
     def concept(self) -> Element:
         try:
-            return self.model.elems_dict[self._ref]
+            return cast(Element, self.model.elems_dict[self._ref])
         except KeyError:
             raise ArchimateConceptTypeError(f'Invalid element reference "{self._ref}"') from None
 
@@ -338,7 +343,7 @@ class Node:
         return float(self._cy)
 
     @cy.setter
-    def cy(self, val: float):
+    def cy(self, val: float) -> None:
         if val < 0:
             val = 0
         self.y = int(val - self._h / 2 + 0.5)
@@ -386,7 +391,7 @@ class Node:
     @fill_color.setter
     def fill_color(self, color_str):
         if color_str is None:
-            self._fill_color = default_color(self.type, self.model.theme)
+            self._fill_color = default_color(self.type or '', self.model.theme)
         else:
             self._fill_color = color_str
 
@@ -401,10 +406,10 @@ class Node:
         return self._model
 
     @property
-    def nodes(self):
+    def nodes(self) -> list["Node"]:
         return list(self.nodes_dict.values())
 
-    def getnodes(self, elem_type=None):
+    def getnodes(self, elem_type: Optional[str] = None) -> list["Node"]:
         if elem_type is None:
             return list(self.nodes_dict.values())
         return [x for x in self.nodes_dict.values() if x.type == elem_type]
@@ -435,8 +440,8 @@ class Node:
         if point is not None:
             x = float(point.x)
             y = float(point.y)
-        return (self.cx - self.w / 2 < x < self.cx + self.w / 2
-                and self.cy - self.h / 2 < y < self.cy + self.h / 2)
+        return bool(self.cx - self.w / 2 < x < self.cx + self.w / 2
+                    and self.cy - self.h / 2 < y < self.cy + self.h / 2)
 
     def resize(self, max_in_row=3, keep_kids_size=True, w=120, h=55,
                gap_x=20, gap_y=20, justify='left', recurse=False, sort="asc"):
@@ -491,23 +496,27 @@ class Node:
         """Return connections to/from this node, optionally filtered by type."""
         if rel_type is None:
             return [c for c in self.view.conns_dict.values()
-                    if c.source.uuid == self.uuid or c.target.uuid == self.uuid]
+                    if c.source is not None and c.target is not None
+                    and (c.source.uuid == self.uuid or c.target.uuid == self.uuid)]
         return [c for c in self.view.conns_dict.values()
-                if c.type == rel_type and (c.source.uuid == self.uuid or c.target.uuid == self.uuid)]
+                if c.source is not None and c.target is not None
+                and c.type == rel_type and (c.source.uuid == self.uuid or c.target.uuid == self.uuid)]
 
     def in_conns(self, rel_type=None):
         if rel_type is None:
-            return [c for c in self.view.conns_dict.values() if c.target.uuid == self.uuid]
+            return [c for c in self.view.conns_dict.values()
+                    if c.target is not None and c.target.uuid == self.uuid]
         return [c for c in self.view.conns_dict.values()
-                if c.type == rel_type and c.target.uuid == self.uuid]
+                if c.target is not None and c.type == rel_type and c.target.uuid == self.uuid]
 
     def out_conns(self, rel_type=None):
         if rel_type is None:
-            return [c for c in self.view.conns_dict.values() if c.source.uuid == self.uuid]
+            return [c for c in self.view.conns_dict.values()
+                    if c.source is not None and c.source.uuid == self.uuid]
         return [c for c in self.view.conns_dict.values()
-                if c.type == rel_type and c.source.uuid == self.uuid]
+                if c.source is not None and c.type == rel_type and c.source.uuid == self.uuid]
 
-    def get_obj_pos(self, other_node) -> Position:
+    def get_obj_pos(self, other_node: "Node") -> Position:
         """Return a Position describing this node's relationship to another."""
         dx = other_node.cx - self.cx
         dy = other_node.cy - self.cy
@@ -591,14 +600,16 @@ class Node:
         obj1 = None
         for r in self.conns():
             bps = r.get_all_bendpoints()
-            if r.target.uuid == self.uuid:
+            if r.target is not None and r.target.uuid == self.uuid:
                 obj2 = r.source
                 obj1 = r.target
             else:
                 obj1 = r.source
                 obj2 = r.target
+            if obj1 is None or obj2 is None:
+                continue
             pos = obj1.get_obj_pos(obj2)
-            angle = pos.angle
+            angle: float = pos.angle or 0.0
             p = pos.orientation
             if not obj1.is_inside(obj2.cx, obj2.cy):
                 if len(bps) == 0:
@@ -619,7 +630,7 @@ class Node:
                         _y = (obj2.cy + obj1.cy) / 2
                     r.add_bendpoint(Point(_x, _y))
                     bps = r.get_all_bendpoints()
-                if r.target.uuid == self.uuid:
+                if r.target is not None and r.target.uuid == self.uuid:
                     bp = bps[len(bps) - 1]
                     bp.idx = len(bps) - 1
                 else:
@@ -635,6 +646,8 @@ class Node:
                     top.append({'order': -angle, 'bp': bp, 'r': r})
                 if 'B' in bp_pos.orientation:
                     bottom.append({'order': angle, 'bp': bp, 'r': r})
+        if obj1 is None:
+            return
         i = 1
         for r in sorted(right, key=lambda d: d['order']):
             r['bp'].y = obj1.cy - obj1.h * (0.5 - (i / (len(right) + 1)))
@@ -691,12 +704,12 @@ class Connection:
         self.parent: 'View' = parent
         self.view = self.parent
         self._uuid = set_id(uuid)
-        self.model = self.parent.parent
+        self.model: "Model" = self.parent.parent
 
         # ref: Relationship uuid
         if isinstance(ref, str):
             self._ref = ref
-        elif hasattr(ref, 'uuid'):
+        elif ref is not None and hasattr(ref, 'uuid'):
             self._ref = ref.uuid
         else:
             raise ArchimateConceptTypeError("'ref' is not an instance of 'Relationship' class.")
@@ -724,7 +737,7 @@ class Connection:
             raise ValueError(f'Invalid target reference "{self._target}"')
 
         self._uuid = set_id(uuid)
-        self.bendpoints: list = []
+        self.bendpoints: list[Point] = []
         self.line_color = None
         self.font_color = None
         self.font_name = 'Segoe UI'
@@ -760,18 +773,18 @@ class Connection:
 
     @property
     def type(self) -> str:
-        return self.model.rels_dict[self._ref].type
+        return cast(str, self.model.rels_dict[self._ref].type)
 
     @property
     def name(self) -> Optional[str]:
-        return self.model.rels_dict[self._ref].name
+        return cast(Optional[str], self.model.rels_dict[self._ref].name)
 
     @property
     def source(self) -> Optional[Node]:
         if self._source in self.model.nodes_dict:
-            return self.model.nodes_dict[self._source]
+            return cast(Node, self.model.nodes_dict[self._source])
         elif self._source in self.model.conns_dict:
-            return self.model.rels_dict[self._source]
+            return cast(Node, self.model.rels_dict[self._source])
         return None
 
     @source.setter
@@ -788,9 +801,9 @@ class Connection:
     @property
     def target(self) -> Optional[Node]:
         if self._target in self.model.nodes_dict:
-            return self.model.nodes_dict[self._target]
+            return cast(Node, self.model.nodes_dict[self._target])
         elif self._target in self.model.conns_dict:
-            return self.model.rels_dict[self._target]
+            return cast(Node, self.model.rels_dict[self._target])
         return None
 
     @target.setter
@@ -816,21 +829,21 @@ class Connection:
     def influence_strength(self):
         return self.concept.influence_strength
 
-    def add_bendpoint(self, *bendpoints: Point):
+    def add_bendpoint(self, *bendpoints: Point) -> None:
         for bp in bendpoints:
             self.bendpoints.append(bp)
 
-    def set_bendpoint(self, bp: Point, index: int):
+    def set_bendpoint(self, bp: Point, index: int) -> None:
         if index < len(self.bendpoints):
             self.bendpoints[index] = bp
 
     def get_bendpoint(self, index: int) -> Optional[Point]:
         return self.bendpoints[index] if index < len(self.bendpoints) else None
 
-    def del_bendpoint(self, index: int):
+    def del_bendpoint(self, index: int) -> None:
         del self.bendpoints[index]
 
-    def get_all_bendpoints(self) -> list:
+    def get_all_bendpoints(self) -> list[Point]:
         return self.bendpoints
 
     def remove_all_bendpoints(self):
@@ -838,6 +851,7 @@ class Connection:
 
     def l_shape(self, direction=0, weight_x=0.5, weight_y=0.5):
         """Shape the connection as an L (one bendpoint)."""
+        assert self.source is not None and self.target is not None
         self.remove_all_bendpoints()
         s_cx, s_cy = self.source.cx, self.source.cy
         t_cx, t_cy = self.target.cx, self.target.cy
@@ -856,6 +870,7 @@ class Connection:
 
     def s_shape(self, direction=0, weight_x=0.5, weight_y=0.5, weight2=0.5):
         """Shape the connection as an S (two bendpoints)."""
+        assert self.source is not None and self.target is not None
         self.remove_all_bendpoints()
         s_xy = Point(self.source.cx, self.source.cy)
         t_xy = Point(self.target.cx, self.target.cy)
@@ -893,16 +908,16 @@ class View:
             raise ArchimateConceptTypeError(
                 'View class parent should be a class Model instance!'
             )
-        self.parent = parent
-        self.model = parent
+        self.parent: "Model" = cast("Model", parent)
+        self.model: "Model" = cast("Model", parent)
         self.view = self  # root of the node tree
         self._uuid = set_id(uuid)
         self.name = name
         self.desc = desc
-        self.unions: list = []
-        self.nodes_dict: dict = defaultdict(Node)
-        self.conns_dict: dict = defaultdict(Connection)
-        self._properties: dict = {}
+        self.unions: list[object] = []
+        self.nodes_dict: dict[str, Node] = defaultdict(Node)
+        self.conns_dict: dict[str, Connection] = defaultdict(Connection)
+        self._properties: dict[str, object] = {}
         self.folder = folder
 
     def delete(self):
@@ -916,15 +931,17 @@ class View:
         if _id in self.parent.views_dict:
             del self.parent.views_dict[_id]
 
-    def add(self, ref=None, x=0, y=0, w=120, h=55, uuid=None,
-            node_type='Element', label=None) -> Node:
+    def add(self, ref: object = None, x: int = 0, y: int = 0, w: int = 120, h: int = 55,
+            uuid: Optional[str] = None, node_type: str = 'Element',
+            label: Optional[str] = None) -> Node:
         """Add and return a Node in this view."""
         n = Node(ref, x, y, w, h, uuid, node_type, label, self)
         self.nodes_dict[n.uuid] = n
         self.model.nodes_dict[n.uuid] = n
         return n
 
-    def add_connection(self, ref=None, source=None, target=None, uuid=None) -> Connection:
+    def add_connection(self, ref: object = None, source: object = None,
+                       target: object = None, uuid: Optional[str] = None) -> Connection:
         """Add and return a Connection between two Nodes."""
         c = Connection(ref, source, target, uuid, self)
         self.conns_dict[c.uuid] = c
@@ -940,10 +957,10 @@ class View:
         return 'Diagram'
 
     @property
-    def props(self) -> dict:
+    def props(self) -> dict[str, object]:
         return self._properties
 
-    def prop(self, key, value=None):
+    def prop(self, key: str, value: object = None) -> object:
         if value is None:
             return self._properties.get(key)
         self._properties[key] = value
@@ -954,18 +971,19 @@ class View:
             del self._properties[key]
 
     @property
-    def nodes(self):
+    def nodes(self) -> list[Node]:
         return list(self.nodes_dict.values())
 
     @property
-    def conns(self):
+    def conns(self) -> list[Connection]:
         return list(self.conns_dict.values())
 
     def remove_folder(self):
         self.folder = None
 
-    def get_or_create_node(self, elem=None, elem_type=None, x=0, y=0, w=120, h=55,
-                           create_elem=False, create_node=False) -> Optional[Node]:
+    def get_or_create_node(self, elem: object = None, elem_type: Optional[str] = None,
+                           x: int = 0, y: int = 0, w: int = 120, h: int = 55,
+                           create_elem: bool = False, create_node: bool = False) -> Optional[Node]:
         """Return an existing node for the element, or create one if requested."""
         _e = None
         if not isinstance(elem, Element):
@@ -985,21 +1003,26 @@ class View:
             return self.add(ref=_e, x=x, y=y, w=w, h=h)
         return None
 
-    def get_or_create_connection(self, rel=None, source=None, target=None,
-                                 rel_type=None, name=None,
-                                 create_conn=False) -> Optional[Connection]:
+    def get_or_create_connection(self, rel: object = None, source: Optional["Node"] = None,
+                                 target: Optional["Node"] = None,
+                                 rel_type: Optional[str] = None, name: Optional[str] = None,
+                                 create_conn: bool = False) -> Optional["Connection"]:
         """Return an existing connection or create one if requested."""
         v = self
         if rel is None:
+            if source is None or target is None:
+                return None
             if name is None:
                 r = self.model.filter_relationships(
                     lambda x: (rel_type == x.type
+                               and x.source is not None and x.target is not None
                                and source.concept.uuid == x.source.uuid
                                and target.concept.uuid == x.target.uuid)
                 )
             else:
                 r = self.model.filter_relationships(
                     lambda x: (rel_type == x.type
+                               and x.source is not None and x.target is not None
                                and source.concept.uuid == x.source.uuid
                                and target.concept.uuid == x.target.uuid
                                and x.name == name)
@@ -1007,12 +1030,14 @@ class View:
             if len(r) > 0:
                 r = r[0]
             else:
+                if rel_type is None:
+                    return None
                 r = self.model.add_relationship(
                     source=source.ref, target=target.ref,
                     rel_type=rel_type, name=name
                 )
         elif hasattr(rel, 'type'):  # duck-typed Relationship
-            r = rel
+            r = cast(Any, rel)
             rel_type = r.type
         else:
             return None
@@ -1020,7 +1045,7 @@ class View:
         if len(c) > 0:
             return c[0]
         elif create_conn:
-            if target.parent.uuid != source.uuid:
+            if target is not None and source is not None and target.parent.uuid != source.uuid:
                 return v.add_connection(r, source, target)
         return None
 

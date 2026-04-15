@@ -1,6 +1,6 @@
 """Element module - extracted from the legacy monolith."""
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, cast
 
 from .constants import ARCHI_CATEGORY
 from .enums import ArchiType
@@ -36,7 +36,7 @@ def _is_valid_uuid(uuid_to_test, version=4):
     return str(uuid_obj) == uuid_to_test
 
 
-def set_id(uuid=None):
+def set_id(uuid: Optional[str] = None) -> str:
     """
     Function to create an identifier if none exists
 
@@ -94,16 +94,16 @@ class Element:
                 raise ValueError('Element class parent should be a class Model instance!')
 
         # Attribute and data structure initialization
-        self._uuid = set_id(uuid)
-        self.parent = parent
-        self.model: Optional["Model"] = parent
-        self.name = name
-        self._type = elem_type
-        self.desc = desc
-        self.folder = folder
-        self._properties = {}
-        self._profile  = profile
-        self.junction_type = None
+        self._uuid: str = set_id(uuid)
+        self.parent: "Model" = cast("Model", parent)
+        self.model: "Model" = cast("Model", parent)
+        self.name: Optional[str] = name
+        self._type: Optional[str] = elem_type
+        self.desc: Optional[str] = desc
+        self.folder: Optional[str] = folder
+        self._properties: dict[str, object] = {}
+        self._profile: Optional[str] = profile
+        self.junction_type: Optional[str] = None
 
     def delete(self) -> None:
         """
@@ -133,7 +133,7 @@ class Element:
             del self.parent.elems_dict[_id]
 
     @property
-    def uuid(self):
+    def uuid(self) -> str:
         """
         Get the identifier of this element
 
@@ -143,7 +143,7 @@ class Element:
         return self._uuid
 
     @property
-    def type(self):
+    def type(self) -> Optional[str]:
         """
         Get the Archimate concept type of this element
 
@@ -264,7 +264,7 @@ class Element:
         if key in self._properties:
             del self._properties[key]
 
-    def merge(self, elem=None, merge_props=False):
+    def merge(self, elem: "Element", merge_props: bool = False) -> None:
         """
         Method to merge another element of the same type with this element
 
@@ -286,17 +286,17 @@ class Element:
 
             # merge (concatenate) element description
             if elem.desc != self.desc:
-                self.desc += '\n----\n' + elem.desc
+                self.desc = (self.desc or '') + '\n----\n' + (elem.desc or '')
 
         # Re-assign othe element related node references to this element (merge target)
         for n in [self.model.nodes_dict[x] for x in self.model.nodes_dict if self.model.nodes_dict[x].ref == elem.uuid]:
             n.ref = self.uuid
 
         # Re-assign other element inboud and outbound relationship references to this element
-        for r in self.model.filter_relationships(lambda x: (x.target.uuid == elem.uuid)):
+        for r in self.model.filter_relationships(lambda x: (x.target is not None and x.target.uuid == elem.uuid)):
             r.target = self
 
-        for r in self.model.filter_relationships(lambda x: (x.source.uuid == elem.uuid)):
+        for r in self.model.filter_relationships(lambda x: (x.source is not None and x.source.uuid == elem.uuid)):
             r.source = self
 
         # finally delete the merged element
@@ -313,10 +313,10 @@ class Element:
 
         """
         if rel_type is None:
-            return self.model.filter_relationships(lambda x: (x.target.uuid == self.uuid))
+            return self.model.filter_relationships(lambda x: (x.target is not None and x.target.uuid == self.uuid))
         else:
             return self.model.filter_relationships(lambda x: (
-                    x.target.uuid == self.uuid
+                    x.target is not None and x.target.uuid == self.uuid
                     and
                     x.type == rel_type)
                                                    )
@@ -332,10 +332,10 @@ class Element:
 
         """
         if rel_type is None:
-            return self.model.filter_relationships(lambda x: (x.source.uuid == self.uuid))
+            return self.model.filter_relationships(lambda x: (x.source is not None and x.source.uuid == self.uuid))
         else:
             return self.model.filter_relationships(lambda x: (
-                    x.source.uuid == self.uuid
+                    x.source is not None and x.source.uuid == self.uuid
                     and
                     x.type == rel_type)
                                                    )
@@ -352,13 +352,13 @@ class Element:
         """
         if rel_type is None:
             return self.model.filter_relationships(lambda x: (
-                    x.target.uuid == self.uuid
+                    (x.target is not None and x.target.uuid == self.uuid)
                     or
-                    x.source.uuid == self.uuid)
+                    (x.source is not None and x.source.uuid == self.uuid))
                                                    )
         else:
             return self.model.filter_relationships(lambda x: (
-                    (x.target.uuid == self.uuid or x.source.uuid == self.uuid)
+                    ((x.target is not None and x.target.uuid == self.uuid) or (x.source is not None and x.source.uuid == self.uuid))
                     and
                     x.type == rel_type)
                                                    )

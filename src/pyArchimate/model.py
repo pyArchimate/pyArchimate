@@ -379,7 +379,7 @@ class Model:
 
         """
         reader, root, entry = self._prepare_reader(file_path, 'read')
-        if reader is None:
+        if reader is None or entry is None:
             return
         call_args = args if entry.forward_read_args else ()
         call_kwargs = kwargs if entry.forward_read_args else {}
@@ -395,7 +395,7 @@ class Model:
         """
 
         reader, root, entry = self._prepare_reader(file_path, 'merge')
-        if reader is None:
+        if reader is None or entry is None:
             return
         if not entry.supports_merge:
             log.error(OPERATION_ERROR_MESSAGES['merge'])
@@ -756,12 +756,12 @@ class Model:
             log.error(f'Connection {c.uuid} has a view {c.source.name} as source node')
             _ok = False
         if c.source is not None and not isinstance(c.source, View):
-            if c.source._ref != c.concept._source:  # type: ignore[attr-defined]
+            if c.source._ref != c.concept._source:
                 log.error(f'Connection {c.uuid} has a reference to its source Element which is not '
                           'the reference of the relationship source Element')
             _ok = False
         if c.target is not None and not isinstance(c.target, View):
-            if c.target._ref != c.concept._target:  # type: ignore[attr-defined]
+            if c.target._ref != c.concept._target:
                 log.error(f'Connection {c.uuid} has a reference to its target Element which is not '
                           'the reference of the relationship target Element')
             _ok = False

@@ -2,10 +2,13 @@ import os
 import sys
 
 try:
-    from .. import *
+    from ..constants import RGBA
+    from ..enums import ArchiType
+    from ..helpers.logging import log
+    from ..view import Point
 except ImportError:
     sys.path.insert(0, "..")
-    from pyArchimate import *
+    from pyArchimate import RGBA, ArchiType, Point, log  # type: ignore[no-redef,attr-defined]
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))

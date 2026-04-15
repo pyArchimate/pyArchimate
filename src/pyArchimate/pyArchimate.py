@@ -2,12 +2,6 @@
 
 import math  # noqa: F401 - re-exported for legacy callers that do `from pyArchimate import *`
 
-try:
-    from ._legacy import *  # type: ignore[import-not-found]  # noqa: F401,F403
-except ImportError:
-    # Fallback when legacy module is absent; rely on new modules only.
-    pass
-
 # All imports below are intentional re-exports — this file is a public API shim.
 from .constants import ARCHI_CATEGORY as archi_category  # noqa: F401
 from .constants import ARIS_TYPE_MAP as ARIS_type_map  # noqa: F401

@@ -4,12 +4,15 @@ File reader for native Archimate Tool .archimate file format
 
 import os
 import sys
+from typing import Any
 
 try:
-    from .. import *
+    from ..enums import AccessType, ArchiType
+    from ..helpers.logging import log
+    from ..view import Node, Point, View
 except ImportError:
     sys.path.insert(0, "..")
-    from pyArchimate import *
+    from pyArchimate import AccessType, ArchiType, Node, Point, View, log  # type: ignore[no-redef,attr-defined]
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -157,8 +160,8 @@ def archi_reader(model, root, merge_flg=False):
             type_n = child.get(xsi + 'type').split(':')[1]
             if type_n == 'DiagramObject':
                 node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'))
-                if node.concept.prop('label') is not None:
-                    node.label_expression = node.concept.prop('label')
+                if node is not None and node.concept.prop('label') is not None:
+                    node.label_expression = str(node.concept.prop('label'))
             elif type_n == 'Group':
                 node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'), node_type='Container',
                                   label=child.get('name'))
@@ -219,7 +222,7 @@ def archi_reader(model, root, merge_flg=False):
             # recurse on child's children
             _get_node(child, node)
 
-    def _get_connection(tag, parent: View):
+    def _get_connection(tag: Any, parent: View) -> None:
         """
         Get recursively children connections from parent tag (view or child)
         :param tag: XMLtag with children

@@ -53,6 +53,7 @@ lint = [
     "ruff>=0.14.10,<1.0.0",
     "pymarkdownlnt>=0.9.35",
     "lxml-stubs (>=0.5.1,<0.6.0)",
+    "setuptools (>=82.0.1,<83.0.0)",
     "types-setuptools (>=82.0.0.20260408,<83.0.0.0)",
 ]
 
@@ -114,6 +115,7 @@ target-version = "py312"
 select = ["E", "F", "W", "B", "C", "I"]
 ignore = [
     "E501",   # line too long — handled by formatter
+    "C901",   # complexity — legacy monolithic functions not yet refactored
 ]
 exclude = [
     "**/node_modules",
@@ -133,7 +135,7 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.pytest.ini_options]
-pythonpath = "src/pyArchimate"  # mirrors the package layout so pytest can import pyArchimate when running from the repo root
+pythonpath = [".", "src/pyArchimate"]  # "." lets tests use `from src.pyArchimate import …`; "src/pyArchimate" lets readers/writers use bare `from pyArchimate import …` fallback
 testpaths = ["./tests/legacy_unit", "./tests/legacy_integration", "./tests/unit", "./tests/security", "./tests/integration", "./tests/api"]
 python_files = "*_test.py test_*.py *_spec.py"
 addopts = """
