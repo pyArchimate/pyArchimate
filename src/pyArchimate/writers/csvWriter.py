@@ -5,16 +5,16 @@
 import sys
 
 try:
-    from .. import *
+    from ..model import Model
 except ImportError:
     sys.path.insert(0, "..")
-    from pyArchimate import *
+    from pyArchimate import Model  # type: ignore[no-redef,attr-defined]
 
 import csv
 import os
 
 
-def csv_writer(model: Model, file_path: str):
+def csv_writer(model: Model, file_path: str) -> None:
     """
     The CSV writer generates three output files:
     - one for all elements

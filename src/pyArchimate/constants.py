@@ -11,7 +11,7 @@ import os
 from dataclasses import dataclass
 from typing import Any, Callable
 
-import oyaml as yaml
+import oyaml as yaml  # type: ignore[import-untyped]
 
 # ===== Configuration Constants =====
 

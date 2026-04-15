@@ -1,0 +1,3 @@
+(1) Consider adding a single "Document & Diagram Hygiene" subsection to specs/TECHNICAL.md that references the constitution and then delete the corresponding block in specs/PROJECT_SPECIFICATION.md, keeping the latter focused on business intent.
+(2) Where multiple specs mention "aim for >90% coverage," pick one canonical location (maybe specs/TECHNICAL.md) and cross-link from the other docs so you don’t have to edit multiple places when the target shifts.
+(3) To aid traceability, add a very brief table of how each spec ties back to the constitution (e.g., "Refactoring & Modularity → Constitution I & Project Constitution I").

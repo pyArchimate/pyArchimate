@@ -9,12 +9,31 @@
 import ctypes
 import platform
 import sys
+from typing import Any, Optional
 
 try:
-    from .. import *
+    from ..constants import ARIS_TYPE_MAP as ARIS_type_map
+    from ..enums import ArchiType, TextAlignment
+    from ..exceptions import ArchimateConceptTypeError, ArchimateRelationshipError
+    from ..helpers.logging import log
+    from ..model import Model
+    from ..relationship import get_default_rel_type
+    from ..view import Node, Point, View
 except ImportError:
     sys.path.insert(0, "..")
-    from pyArchimate import *
+    from pyArchimate import (  # type: ignore[no-redef,attr-defined]  # noqa: E401
+        ArchimateConceptTypeError,
+        ArchimateRelationshipError,
+        ArchiType,
+        ARIS_type_map,
+        Model,
+        Node,
+        Point,
+        TextAlignment,
+        View,
+        get_default_rel_type,
+        log,
+    )
 
 
 def get_text_size(text, points, font):
@@ -29,23 +48,23 @@ def get_text_size(text, points, font):
     if platform.system() == 'Linux':
         from PIL import ImageFont
         font = ImageFont.truetype('DejaVuSans.ttf', points)
-        size = font.getsize(text)
-        return size[0], size[1]
+        bbox = font.getbbox(text)
+        return bbox[2] - bbox[0], bbox[3] - bbox[1]
 
     else:
         class SIZE(ctypes.Structure):
             """ """
             _fields_ = [("cx", ctypes.c_long), ("cy", ctypes.c_long)]
 
-        hdc = ctypes.windll.user32.GetDC(0)
-        hfont = ctypes.windll.gdi32.CreateFontA(points, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, font)
-        hfont_old = ctypes.windll.gdi32.SelectObject(hdc, hfont)
+        hdc = ctypes.windll.user32.GetDC(0)  # type: ignore[attr-defined]
+        hfont = ctypes.windll.gdi32.CreateFontA(points, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, font)  # type: ignore[attr-defined]
+        hfont_old = ctypes.windll.gdi32.SelectObject(hdc, hfont)  # type: ignore[attr-defined]
 
         size = SIZE(0, 0)
-        ctypes.windll.gdi32.GetTextExtentPoint32A(hdc, text, len(text), ctypes.byref(size))
+        ctypes.windll.gdi32.GetTextExtentPoint32A(hdc, text, len(text), ctypes.byref(size))  # type: ignore[attr-defined]
 
-        ctypes.windll.gdi32.SelectObject(hdc, hfont_old)
-        ctypes.windll.gdi32.DeleteObject(hfont)
+        ctypes.windll.gdi32.SelectObject(hdc, hfont_old)  # type: ignore[attr-defined]
+        ctypes.windll.gdi32.DeleteObject(hfont)  # type: ignore[attr-defined]
 
         return size.cx, size.cy
 
@@ -63,7 +82,7 @@ def _id_of(_id):
         return 'id-' + _id
 
 
-def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_view=False):
+def aris_reader(model: Model, root: Any, reader: Optional[Any] = None, scale_x: float = 0.3, scale_y: float = 0.3, no_view: bool = False) -> None:
     """
     Class to perform the parsing of ARIS AML data and to generate an Archimate model
 
@@ -185,6 +204,8 @@ def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_vi
                             r_type = get_default_rel_type(model.elems_dict[o_uuid].type,
                                                           model.elems_dict[r_target].type)
                             log.warning(str(exc) + f' - Replacing by {r_type}')
+                            if r_type is None:
+                                continue
                             r = model.add_relationship(
                                 rel_type=r_type, source=o_uuid, target=r_target, uuid=r_id
                             )
@@ -384,7 +405,7 @@ def aris_reader(model: Model, root, reader=None, scale_x=0.3, scale_y=0.3, no_vi
                             ref=lbl_ref,
                             x=max(int(pos.get('Pos.X') * scale_x), 0),
                             y=max(int(pos.get('Pos.Y') * scale_y), 0),
-                            w=w + 18,  # 13 * len(max(o_name.split('\n'))),
+                            w=int(w) + 18,  # 13 * len(max(o_name.split('\n'))),
                             h=30 + (h * 1.5) * (o_name.count('\n') + 1),
                             node_type='Label', label=o_name
                         )

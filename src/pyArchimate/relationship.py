@@ -1,6 +1,6 @@
 """Relationship module - extracted from the legacy monolith."""
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, cast
 
 from .constants import ALLOWED_RELATIONSHIPS, ARCHI_CATEGORY, RELATIONSHIP_KEYS
 from .enums import ArchiType
@@ -8,6 +8,7 @@ from .exceptions import ArchimateConceptTypeError, ArchimateRelationshipError
 
 if TYPE_CHECKING:
     from .element import Element
+    from .model import Model
 
 
 def _is_valid_uuid(uuid_to_test, version=4):
@@ -153,8 +154,8 @@ class Relationship:
             if not hasattr(parent, "rels_dict"):
                 raise ValueError('Relationship class parent should be a class Model instance!')
 
-        self.parent = parent
-        self.model = parent
+        self.parent: "Model" = cast("Model", parent)
+        self.model: "Model" = cast("Model", parent)
         # get source identifier as reference
         if isinstance(source, str):
             self._source = source
@@ -189,7 +190,7 @@ class Relationship:
         self.name = name
         self.desc = desc
         self._properties = {}
-        self.folder = None
+        self.folder: Optional[str] = None
         self._profile = profile
         self._access_type = access_type
         self._influence_strength = influence_strength

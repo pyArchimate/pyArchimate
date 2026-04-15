@@ -1,20 +1,38 @@
 import os
 import sys
 from collections import defaultdict
+from typing import Optional
+from typing import cast as _cast
 
 from lxml import etree as et
+from lxml.etree import _Element
 
 try:
-    from .. import *
+    from ..constants import ARCHI_CATEGORY as archi_category
+    from ..constants import DEFAULT_THEME as default_theme
+    from ..constants import RGBA
+    from ..enums import ArchiType
+    from ..helpers.logging import log
+    from ..model import Model, default_color
+    from ..view import Node
 except ImportError:
     sys.path.insert(0, "..")
-    from pyArchimate import *
+    from pyArchimate import (  # type: ignore[no-redef,attr-defined]  # noqa: E401
+        RGBA,
+        ArchiType,
+        Model,
+        Node,
+        archi_category,
+        default_color,
+        default_theme,
+        log,
+    )
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
-def archimate_writer(model, file_path=None) -> str:
+def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
     """
     Method to generate an Archimate XML Open Exchange File format structure as a string object
 
@@ -35,7 +53,7 @@ def archimate_writer(model, file_path=None) -> str:
     nsp_url = 'http://www.opengroup.org/xsd/archimate/3.0/'
     xsi_url = 'http://www.w3.org/2001/XMLSchema-instance'
     xsi = et.QName(xsi_url, 'type')
-    ns = {'ns': nsp_url, 'xsi': xsi}
+    ns_find: dict[str, str] = {'ns': nsp_url}
 
     name = et.SubElement(root, 'name')
     name.text = model.name if model.name is not None else 'Archimate Model'
@@ -48,12 +66,12 @@ def archimate_writer(model, file_path=None) -> str:
         :type k: str
         :return: propertydek id
         """
-        id = [x for x, y in model.pdefs.items() if y == k]
-        if len(id) == 0:
-            id = 'propid-' + str(len(model.pdefs) + 1)
+        id_list = [x for x, y in model.pdefs.items() if y == k]
+        if len(id_list) == 0:
+            id: str = 'propid-' + str(len(model.pdefs) + 1)
             model.pdefs[id] = k
         else:
-            id = id[0]
+            id = id_list[0]
         return id
 
     # Get Model documentation
@@ -80,7 +98,7 @@ def archimate_writer(model, file_path=None) -> str:
             cat = 'Technology'
         if e.folder is None:
             e.folder = '/' + cat
-        elem = et.SubElement(elems, 'element', {'identifier': e.uuid, xsi: e.type})
+        elem = et.SubElement(elems, 'element', {'identifier': e.uuid, str(xsi): e.type})
         if e.name is None:
             e.name = e.type
         if e.name is not None:
@@ -100,13 +118,13 @@ def archimate_writer(model, file_path=None) -> str:
     # Add all relationships
     elems = et.SubElement(root, 'relationships')
     for e in model.relationships:
+        assert e.source is not None and e.target is not None
         elem = et.SubElement(elems, 'relationship', {
             'identifier': e.uuid,
             'source': e.source.uuid,
             'target': e.target.uuid,
-            xsi: e.type
+            str(xsi): e.type
         })
-        e: Relationship = e
         if e.access_type is not None and e.type == ArchiType.Access:
             elem.set('accessType', e.access_type)
         if e.is_directed is not None and e.type == ArchiType.Association:
@@ -148,16 +166,16 @@ def archimate_writer(model, file_path=None) -> str:
             labels = k.split('/')
             item = orgs
             for label in labels[1:-1]:
-                if item.find('ns:item', ns) is None:
+                if item.find('ns:item', ns_find) is None:
                     item = et.SubElement(item, 'item')
                 else:
-                    item = item.find('ns:item', ns)
+                    item = _cast(_Element, item.find('ns:item', ns_find))
                 lbl = et.SubElement(item, 'label')
                 lbl.text = label
-            if item.find('ns:item', ns) is None:
+            if item.find('ns:item', ns_find) is None:
                 item = et.SubElement(item, 'item')
             else:
-                item = item.find('ns:item', ns)
+                item = _cast(_Element, item.find('ns:item', ns_find))
             label = labels[-1:][0]
             lbl = et.SubElement(item, 'label')
             lbl.text = label
@@ -181,7 +199,7 @@ def archimate_writer(model, file_path=None) -> str:
 
             view = et.SubElement(diag, 'view', attrib={
                 'identifier': _v.uuid,
-                xsi: 'Diagram'
+                str(xsi): 'Diagram'
             })
 
             if _v.name is not None:
@@ -202,7 +220,7 @@ def archimate_writer(model, file_path=None) -> str:
                     pv = et.SubElement(p, 'value')
                     pv.text = str(v)
 
-            def _add_node(parent, n: Node):
+            def _add_node(parent: _Element, n: Node) -> None:
                 """
                 Local function to add nodes in xml view structure
 
@@ -212,8 +230,8 @@ def archimate_writer(model, file_path=None) -> str:
                 if n.cat == 'Element':
                     n_elem = et.SubElement(parent, 'node', attrib={
                         'identifier': n.uuid,
-                        'elementRef': n.ref,
-                        xsi: n.cat,
+                        'elementRef': n.ref or '',
+                        str(xsi): n.cat,
                         'x': str(n.x),
                         'y': str(n.y),
                         'w': str(n.w),
@@ -222,7 +240,7 @@ def archimate_writer(model, file_path=None) -> str:
                 else:
                     n_elem = et.SubElement(parent, 'node', attrib={
                         'identifier': n.uuid,
-                        xsi: n.cat,
+                        str(xsi): n.cat,
                         'x': str(n.x),
                         'y': str(n.y),
                         'w': str(n.w),
@@ -241,7 +259,7 @@ def archimate_writer(model, file_path=None) -> str:
                     lc.set('b', str(rgb.b))
                     lc.set('a', '100' if n.opacity is None else str(n.lc_opacity))
                 if n.fill_color is not None:
-                    if n.fill_color != default_color(n.type, default_theme):
+                    if n.fill_color != default_color(n.type or '', default_theme):
                         fc = et.SubElement(style, 'fillColor')
                         rgb = RGBA()
                         rgb.color = n.fill_color
@@ -262,8 +280,8 @@ def archimate_writer(model, file_path=None) -> str:
                     ftc.set('b', str(rgb.b))
 
                 if n.cat == 'Model':
-                    et.SubElement(n_elem, 'viewRef', ref=n.ref)
-                    n_elem.set(xsi, 'Label')
+                    et.SubElement(n_elem, 'viewRef', ref=n.ref or '')
+                    n_elem.set(str(xsi), 'Label')
                 # recurse in embedded nodes if any
                 for sub_n in n.nodes:
                     _add_node(n_elem, sub_n)
@@ -281,14 +299,15 @@ def archimate_writer(model, file_path=None) -> str:
                     :param n2: another Node object
                     :return: True is n2 is embedded into n1
                     """
-                    return (n1.x < n2.x < n1.x + n1.w) and (n1.y < n2.y < n1.y + n1.h)
+                    return bool((n1.x < n2.x < n1.x + n1.w) and (n1.y < n2.y < n1.y + n1.h))
 
+                assert c.source is not None and c.target is not None
                 if is_embedded(c.source, c.target) or is_embedded(c.target, c.source):
                     continue
                 c_elem = et.SubElement(view, 'connection', attrib={
                     'identifier': c.uuid,
                     'relationshipRef': c.ref,
-                    xsi: 'Relationship',
+                    str(xsi): 'Relationship',
                     'source': c.source.uuid,
                     'target': c.target.uuid
                 })
@@ -320,9 +339,9 @@ def archimate_writer(model, file_path=None) -> str:
                     et.SubElement(c_elem, 'bendpoint', x=str(bp.x), y=str(bp.y))
 
     # suppress empty propertydef
-    pd = root.find('propertyDefinitions')
-    if pd.find('propertyDefinition') is None:
-        root.remove(pd)
+    pd_check = root.find('propertyDefinitions')
+    if pd_check is not None and pd_check.find('propertyDefinition') is None:
+        root.remove(pd_check)
     # Convert the xml structure into XML string data
     xml_str = et.tostring(root, encoding='UTF-8', pretty_print=True)
 
