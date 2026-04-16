@@ -6,7 +6,7 @@ File reader from ARIS AML format
 Module contents
 ---------------
 
-.. automodule:: arisAMLreader
+.. automodule:: pyArchimate.readers.arisAMLreader
    :members:
    :undoc-members:
    :show-inheritance:

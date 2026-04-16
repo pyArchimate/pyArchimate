@@ -4,18 +4,18 @@ title pyArchimate Context Diagram
 "pyArchimate" as Library
 actor "Designer" as Designer
 actor "Automation / Integrations" as Automation
-cloud "Archi/Archimate/ARIS sources" as Inputs
-rectangle "Archimate XML / Archi models / CSV" as Outputs
-rectangle "Readers / Writers" as IO
-rectangle "Core Model Builder" as Core
-rectangle "Logging subsystem" as Logging
+cloud "Archi / Archimate / ARIS sources" as Inputs
+rectangle "Exchange Formats (XML, CSV)" as Outputs
+rectangle "Format Adapters (IO)" as IO
+rectangle "pyArchimate Core" as Core
+rectangle "Logging Subsystem" as Logging
 
-Designer --> Core : create models, add elements, draw views
-Automation --> Core : invoke automation scripts or CI jobs
-Core --> IO : delegate serialization & deserialization
-IO --> Inputs : parse Archi/Archimate/ARIS sources
-IO --> Outputs : write Archimate / Archi / CSV exports
-Core --> Logging : emit warnings & diagnostics
-Core ..> Library : exposes API for scripts, CLIs
+Designer --> Core : create models, draw views
+Automation --> Core : trigger automation scripts
+Core --> IO : delegate parsing & serialization
+IO --> Inputs : parse external sources
+IO --> Outputs : write output files
+Core --> Logging : emit diagnostics
+Core ..> Library : exposes Public API
 Library ..> Inputs : references validation metadata
 @enduml

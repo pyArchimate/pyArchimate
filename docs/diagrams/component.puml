@@ -2,29 +2,29 @@
 title pyArchimate Component Diagram
 
 package "pyArchimate" {
-  component "Model Manager" as ModelManager
-  component "View Manager" as ViewManager
-  component "Reader Facade" as ReaderFacade
-  component "Writer Facade" as WriterFacade
-  component "Profile Manager" as ProfileHelper
-  component "Logging" as Logging
+  component "Model Module" as ModelMod
+  component "View Module" as ViewMod
+  component "Reader Registry" as ReaderRegistry
+  component "Writer Registry" as WriterRegistry
+  component "Helper Utilities" as Helpers
+  component "Logging Subsystem" as Logging
 }
 component "CLI / Automation" as CLI
 component "Archi / Archimate / ARIS sources" as Sources
-component "Archimate XML / Archi / CSV exports" as Exports
-component "lxml, oyaml, stdlib helpers" as Dependencies
+component "Exchange Formats (XML, CSV)" as Exports
+component "lxml, oyaml, stdlib" as Dependencies
 
-CLI --> ModelManager : uses API to build models
-ModelManager --> ViewManager : creates nodes/connections for views
-ModelManager --> ReaderFacade : accepts parsed data
-ModelManager --> WriterFacade : feeds models for serialization
-ModelManager --> ProfileHelper : maintains profiles
-ModelManager --> Logging : emits warnings
-ReaderFacade --> Logging : logs parsing issues
-WriterFacade --> Logging : logs exports
-ReaderFacade --> Sources : reads Archi/Archimate/ARIS inputs
-WriterFacade --> Exports : writes Archimate/Archi/CSV
-ModelManager --> Dependencies : leverages helper libraries
-ReaderFacade --> Dependencies
-WriterFacade --> Dependencies
+CLI --> ModelMod : uses API to build models
+ModelMod --> ViewMod : owns views and nodes
+ModelMod --> ReaderRegistry : loads format adapters
+ModelMod --> WriterRegistry : feeds models for serialization
+ModelMod --> Helpers : delegates validation
+ModelMod --> Logging : emits warnings
+ReaderRegistry --> Logging : logs parsing issues
+WriterRegistry --> Logging : logs export status
+ReaderRegistry --> Sources : reads exchange data
+WriterRegistry --> Exports : writes output files
+ModelMod --> Dependencies : leverages core libraries
+ReaderRegistry --> Dependencies
+WriterRegistry --> Dependencies
 @enduml

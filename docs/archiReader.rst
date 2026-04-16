@@ -6,7 +6,7 @@ File reader from Archimate Tool native format
 Module contents
 ---------------
 
-.. automodule:: archiReader
+.. automodule:: pyArchimate.readers.archiReader
    :members:
    :undoc-members:
    :show-inheritance:

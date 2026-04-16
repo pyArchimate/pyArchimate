@@ -4,43 +4,55 @@ title pyArchimate Domain Model
 class Model {
   id: str
   name: str
-  elements: dict[str, Element]
-  relationships: dict[str, Relationship]
-  views: dict[str, View]
+  desc: str
+  theme: str
+  elements: list[Element]
+  relationships: list[Relationship]
+  views: list[View]
+  profiles: list[Profile]
   --
-  + add(element: Element)
-  + add_relationship(rel: Relationship)
-  + add_profile(profile: Profile)
-  + read(source, format: str)
-  + write(target, format: str)
+  + add(type, name, ...) : Element|View
+  + add_relationship(type, source, target, ...) : Relationship
+  + add_profile(name, concept, ...) : Profile
+  + read(file_path)
+  + write(file_path, writer)
+  + merge(file_path)
+  + find_elements(name, type) : list[Element]
+  + get_or_create_view(name, create) : View
 }
 
 class Element {
   id: str
   name: str
   type: str
+  desc: str
+  folder: str
   properties: dict
   --
-  + prop(key: str) -> Any
-  + in_rels() -> List[Relationship]
-  + out_rels() -> List[Relationship]
-  + rels() -> List[Relationship]
+  + prop(key, value)
+  + rels(rel_type) : list[Relationship]
+  + delete()
 }
 
 class Relationship {
   id: str
   name: str
   type: str
-  source: Element
-  target: Element
+  source: Element|Relationship
+  target: Element|Relationship
+  desc: str
+  access_type: str
+  influence_strength: str
+  is_directed: bool
   --
-  + prop(key: str) -> Any
+  + prop(key, value)
   + delete()
 }
 
 class Profile {
   id: str
   name: str
+  concept: str
   --
   + delete()
 }
@@ -48,31 +60,39 @@ class Profile {
 class View {
   id: str
   name: str
-  nodes: List[Node]
-  connections: List[Connection]
+  desc: str
+  folder: str
+  nodes: list[Node]
+  connections: list[Connection]
   --
-  + add(element: Element) -> Node
-  + add_connection(rel: Relationship) -> Connection
-  + delete()
+  + add(ref, x, y, ...) : Node
+  + add_connection(ref, source, target, ...) : Connection
+  + get_or_create_node(elem, ...) : Node
 }
 
 class Node {
   id: str
-  element: Element
-  x: int
-  y: int
+  concept: Element
+  cat: str {Element|Label|Container|Model}
+  x, y, w, h: int
+  fill_color, line_color: str
+  label: str
   --
-  + add()
+  + add(ref, ...) : Node {nested}
+  + resize(...)
+  + move(new_parent)
   + delete()
 }
 
 class Connection {
   id: str
-  relationship: Relationship
-  source: Node
-  target: Node
+  concept: Relationship
+  source, target: Node
+  bendpoints: list[Point]
   --
-  + add_bendpoint(x, y)
+  + add_bendpoint(Point)
+  + l_shape()
+  + s_shape()
   + delete()
 }
 
@@ -88,8 +108,10 @@ Node --> Element : visualizes
 Connection --> Relationship : visualizes
 Connection --> Node : source/target
 
-Relationship --> Element : source/target
+Relationship --> Element : connects
+Relationship --> Relationship : connects (higher-order)
 
-Element "0..*" o-- "0..*" Profile : tagged by
+Element "0..*" o-- "0..*" Profile : specialized by
+Relationship "0..*" o-- "0..*" Profile : specialized by
 
 @enduml

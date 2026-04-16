@@ -14,7 +14,7 @@ Module contents
 .. toctree::
    :maxdepth: 4
 
-.. automodule:: pyArchimate
+.. automodule:: pyArchimate.pyArchimate
    :members:
    :undoc-members:
    :show-inheritance:
