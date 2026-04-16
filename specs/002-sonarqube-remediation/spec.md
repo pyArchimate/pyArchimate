@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "Remediate the SonarQube errors found at https://sonarcloud.io/api/issues/search?componentKeys=pyArchimate_pyArchimate&severities=CRITICAL&ps=50&p=1"
 
+## Clarifications
+
+### Session 2026-04-16
+
+- Q: Should `_legacy.py` be deleted (after confirming no live callers) or refactored in place? → A: Delete it after verifying no live callers exist.
+- Q: Where should helper functions extracted from complex functions be placed? → A: Private functions (prefixed `_`) in the same file as the original.
+- Q: When is SonarCloud verification triggered to confirm fixes? → A: Once at the end, after all fixes are complete.
+- Q: How should fixes be batched into commits? → A: One commit per rule category (S5727 → S1192 → S5754 → S2208 → S1186 → S3776).
+- Q: What is the policy if refactoring introduces new SonarCloud violations? → A: Block — no commit may introduce any new violation.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Fix Identity Check Comparisons in Tests (Priority: P1)
@@ -49,7 +59,7 @@ A developer maintaining error-handling code finds bare `except:` clauses that ca
 
 **Acceptance Scenarios**:
 
-1. **Given** `src/pyArchimate/_legacy.py` contains a bare `except:`, **When** it is changed to `except Exception:`, **Then** the S5754 violation is resolved and existing tests continue to pass.
+1. **Given** `src/pyArchimate/_legacy.py` is confirmed dead code and deleted, **When** the deletion is committed, **Then** the S5754 violation in that file is automatically resolved.
 2. **Given** `tests/legacy_integration/test_pyArchimate_legacy.py:476` contains a bare `except:`, **When** it is changed to `except Exception:`, **Then** the S5754 violation is resolved and the integration tests continue to pass.
 
 ---
@@ -97,13 +107,13 @@ A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisA
 2. **Given** `archimateWriter.py:35` has a function with complexity 180, **When** it is refactored into smaller functions, **Then** writer tests pass, output format is identical, and the S3776 violation is resolved.
 3. **Given** `model.py:651` has a function with complexity 95, **When** it is decomposed, **Then** model tests pass and the S3776 violation is resolved.
 4. **Given** all 35+ S3776 violations are addressed, **When** SonarCloud analyses the project, **Then** zero S3776 CRITICAL issues remain.
-5. **Given** `_legacy.py` contains multiple high-complexity functions, **When** they are refactored (or the file is removed if fully superseded), **Then** legacy tests pass and the S3776 violations in that file are resolved.
+5. **Given** `_legacy.py` is confirmed to have no live callers, **When** the file is deleted, **Then** all S3776 violations in that file are automatically resolved with no test regressions.
 
 ---
 
 ### Edge Cases
 
-- Functions in `_legacy.py` may be partially superseded by the recent modularisation work; verify whether each function is still called before refactoring, and prefer removal over refactoring if the code is dead.
+- `_legacy.py` MUST be deleted after confirming no live callers exist (grep all imports and usages across the codebase); this eliminates 13 violations in one step. Do not refactor in place.
 - Some `is` comparisons in test files may correctly be testing object identity (e.g., checking a singleton or a specific cached instance); review each case individually before changing to `==`.
 - Wildcard imports may pull in names that are not explicitly referenced in the file but are needed at runtime; audit the actual usage before restricting imports.
 
@@ -118,9 +128,10 @@ A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisA
 - **FR-005**: The empty-function (S1186) violation MUST be resolved by adding an explanatory comment or completing the implementation.
 - **FR-006**: All 35+ cognitive-complexity (S3776) violations MUST be resolved by decomposing each over-threshold function into smaller helpers, with each helper having a complexity score ≤ 15.
 - **FR-007**: All existing unit, integration, and BDD tests MUST continue to pass after every remediation change.
+- **FR-011**: No commit during remediation may introduce any new SonarCloud violation of any severity. Each commit must leave the codebase with fewer or equal violations than before.
 - **FR-008**: The public API of every affected production module MUST remain unchanged (no breaking changes to function signatures, class interfaces, or module exports).
-- **FR-009**: Refactored helpers MUST be placed in the same module as the original function unless a clearly better module boundary exists.
-- **FR-010**: Changes to `_legacy.py` MUST be assessed for whether the code is still in active use before refactoring; dead code SHOULD be removed rather than refactored.
+- **FR-009**: Refactored helpers MUST be private functions (prefixed `_`) defined in the same file as the original function. No new helper modules are to be created.
+- **FR-010**: `_legacy.py` MUST be deleted after confirming zero live callers (no active imports or usages anywhere in the codebase). Refactoring in place is not acceptable.
 
 ### Key Entities
 
@@ -132,7 +143,7 @@ A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisA
 
 ### Measurable Outcomes
 
-- **SC-001**: SonarCloud reports zero CRITICAL-severity issues for the `pyArchimate_pyArchimate` component after all changes are merged.
+- **SC-001**: A single SonarCloud scan run after all fixes are complete reports zero CRITICAL-severity issues for the `pyArchimate_pyArchimate` component.
 - **SC-002**: The full test suite (unit, integration, BDD) passes with no regressions introduced by the remediation.
 - **SC-003**: No function in the production codebase has a cognitive complexity score greater than 15.
 - **SC-004**: Total estimated remediation debt falls from 1,731 minutes to 0 minutes as reported by SonarCloud.
@@ -141,8 +152,8 @@ A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisA
 ## Assumptions
 
 - The SonarCloud token and project key (`pyArchimate_pyArchimate`) remain valid throughout the remediation effort.
-- `_legacy.py` functions flagged by SonarCloud are still reachable from production or test code; if they are dead code, removal is preferred over refactoring.
+- `_legacy.py` will be deleted (not refactored) once confirmed to have no live callers; this is the agreed disposition.
 - The allowed cognitive complexity threshold is 15, as specified in the SonarCloud rule configuration for this project.
-- Refactoring will be done incrementally per rule category (identity checks → string constants → bare excepts → wildcard imports → empty function → cognitive complexity) to allow focused code review.
+- Fixes are committed one rule category at a time in this order: S5727 (identity checks) → S1192 (string constants) → S5754 (bare excepts) → S2208 (wildcard imports) → S1186 (empty function) → S3776 (cognitive complexity). Each category produces exactly one commit.
 - `tests/legacy_*` directories are in scope for this remediation because they contribute to the CRITICAL issue count; however, refactoring scope is limited to the specific violations and does not include a full rewrite of legacy tests.
 - The project uses Python 3; idiomatic Python 3 patterns (e.g., `isinstance` checks, f-strings) may be used in refactored code where appropriate.

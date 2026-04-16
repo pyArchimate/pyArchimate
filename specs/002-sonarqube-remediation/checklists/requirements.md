@@ -33,4 +33,4 @@
 
 - All items pass. Spec is ready for `/speckit.plan`.
 - 57 CRITICAL SonarQube issues across 6 rule categories are fully captured.
-- Legacy code (`_legacy.py`, `tests/legacy_*`) is explicitly in scope with a removal-preferred assumption.
+- Clarification session (2026-04-16): 5 questions answered — `_legacy.py` disposition, helper placement, verification trigger, commit batching strategy, and net-new violation policy all resolved.
