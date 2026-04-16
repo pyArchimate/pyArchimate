@@ -60,22 +60,17 @@ A developer maintaining error-handling code finds bare `except:` clauses that ca
 **Acceptance Scenarios**:
 
 1. **Given** `src/pyArchimate/_legacy.py` is confirmed dead code and deleted, **When** the deletion is committed, **Then** the S5754 violation in that file is automatically resolved.
-2. **Given** `tests/legacy_integration/test_pyArchimate_legacy.py:476` contains a bare `except:`, **When** it is changed to `except Exception:`, **Then** the S5754 violation is resolved and the integration tests continue to pass.
+2. **Given** `tests/legacy_integration/test_pyArchimate_legacy.py` is part of the legacy test suite, **When** the remediation is performed, **Then** this file is NOT modified, and its violations are ignored in SonarCloud.
 
 ---
 
-### User Story 4 - Fix Wildcard Imports (Priority: P2)
+### User Story 4 - Fix Wildcard Imports (Priority: Out of Scope)
 
-A developer working in legacy example and integration test files finds `from module import *` statements. These pollute the local namespace, make it hard to trace where names come from, and violate the S2208 rule. Replacing them with explicit imports makes dependencies clear.
-
-**Why this priority**: Low-risk; affects only legacy example and integration test files with no impact on production code.
-
-**Independent Test**: The two affected files can be updated independently; tests in those files must still execute successfully.
+**Note**: This story is out of scope as it only affects legacy example and integration test files (`tests/legacy_*`), which are excluded from remediation to ensure backward compatibility.
 
 **Acceptance Scenarios**:
 
-1. **Given** `tests/legacy_examples/Archi2Aris.py` uses `import *`, **When** only the actually-used names are imported explicitly, **Then** the script runs successfully and the S2208 violation is resolved.
-2. **Given** `tests/legacy_integration/test_pyArchimate_legacy.py` uses `import *`, **When** only the actually-used names are imported explicitly, **Then** all integration tests pass and the S2208 violation is resolved.
+1. **Given** legacy files use `import *`, **When** the remediation is complete, **Then** these files remain unchanged and their S2208 violations are ignored in SonarCloud.
 
 ---
 
@@ -121,10 +116,10 @@ A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisA
 
 ### Functional Requirements
 
-- **FR-001**: All 13 identity-check (S5727) violations MUST be resolved by replacing value-equality `is`/`is not` comparisons with `==`/`!=` where appropriate.
+- **FR-001**: All identity-check (S5727) violations in non-legacy code MUST be resolved by replacing value-equality `is`/`is not` comparisons with `==`/`!=` where appropriate.
 - **FR-002**: All 6 duplicate-string-literal (S1192) violations MUST be resolved by extracting repeated literals into named module-level constants.
-- **FR-003**: Both bare-except (S5754) violations MUST be resolved by specifying `Exception` (or a more specific exception class) in every `except` clause.
-- **FR-004**: Both wildcard-import (S2208) violations MUST be resolved by replacing `import *` with explicit named imports.
+- **FR-003**: The bare-except (S5754) violation in `_legacy.py` MUST be resolved (via file deletion). Violations in `tests/legacy_*` are excluded.
+- **FR-004**: Wildcard-import (S2208) violations are OUT OF SCOPE as they only occur in legacy files.
 - **FR-005**: The empty-function (S1186) violation MUST be resolved by adding an explanatory comment or completing the implementation.
 - **FR-006**: All 35+ cognitive-complexity (S3776) violations MUST be resolved by decomposing each over-threshold function into smaller helpers, with each helper having a complexity score ≤ 15.
 - **FR-007**: All existing unit, integration, and BDD tests MUST continue to pass after every remediation change.
@@ -148,6 +143,7 @@ A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisA
 - **SC-003**: No function in the production codebase has a cognitive complexity score greater than 15.
 - **SC-004**: Total estimated remediation debt falls from 1,731 minutes to 0 minutes as reported by SonarCloud.
 - **SC-005**: All public module APIs remain backward-compatible (confirmed by existing tests passing without modification).
+- **SC-006**: `tests/legacy_*` directories are **not** modified.
 
 ## Assumptions
 
@@ -155,5 +151,5 @@ A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisA
 - `_legacy.py` will be deleted (not refactored) once confirmed to have no live callers; this is the agreed disposition.
 - The allowed cognitive complexity threshold is 15, as specified in the SonarCloud rule configuration for this project.
 - Fixes are committed one rule category at a time in this order: S5727 (identity checks) → S1192 (string constants) → S5754 (bare excepts) → S2208 (wildcard imports) → S1186 (empty function) → S3776 (cognitive complexity). Each category produces exactly one commit.
-- `tests/legacy_*` directories are in scope for this remediation because they contribute to the CRITICAL issue count; however, refactoring scope is limited to the specific violations and does not include a full rewrite of legacy tests.
+- `tests/legacy_*` directories are **not** in scope for this remediation even though they contribute to the CRITICAL issue count; SonarQube should ignore these legacy tests used solely for backward compatibility purposes.
 - The project uses Python 3; idiomatic Python 3 patterns (e.g., `isinstance` checks, f-strings) may be used in refactored code where appropriate.
