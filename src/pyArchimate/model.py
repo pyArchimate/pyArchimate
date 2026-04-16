@@ -29,14 +29,6 @@ __mod__ = __name__.split('.')[-1]
 
 ARCHIMATE_EXCEPTION_GROUP = (ArchimateConceptTypeError,)
 
-_relationship_cls = None
-
-def _get_relationship_class():
-    global _relationship_cls
-    if _relationship_cls is None:
-        from .relationship import Relationship
-        _relationship_cls = Relationship
-    return _relationship_cls
 
 
 def default_color(elem_type: str, theme: Any = DEFAULT_THEME) -> str:
@@ -610,7 +602,7 @@ class Model:
 
         """
 
-        Relationship = _get_relationship_class()
+        from .relationship import Relationship
 
         def _embed(o):
             """
@@ -662,7 +654,7 @@ class Model:
 
         """
 
-        Relationship = _get_relationship_class()
+        from .relationship import Relationship
 
         def _expand(o, clean_doc):
             pat = r'[#]*properties\s*=\s*(\{[\s\S]*\})[;]*'
