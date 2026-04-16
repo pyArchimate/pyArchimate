@@ -1,6 +1,5 @@
-from lxml import etree
-
 import pytest
+from lxml import etree
 
 from src.pyArchimate import Model
 from src.pyArchimate.readers.arisAMLreader import _id_of, aris_reader

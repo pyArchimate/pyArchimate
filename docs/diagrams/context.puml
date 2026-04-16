@@ -8,10 +8,13 @@ cloud "Archi / Archimate / ARIS sources" as Inputs
 rectangle "Exchange Formats (XML, CSV)" as Outputs
 rectangle "Format Adapters (IO)" as IO
 rectangle "pyArchimate Core" as Core
+rectangle "View Module\n(View, Node, Connection)" as ViewMod
 rectangle "Logging Subsystem" as Logging
 
-Designer --> Core : create models, draw views
+Designer --> Core : create models, add elements
+Designer --> ViewMod : draw views, place nodes
 Automation --> Core : trigger automation scripts
+Core --> ViewMod : owns views
 Core --> IO : delegate parsing & serialization
 IO --> Inputs : parse external sources
 IO --> Outputs : write output files

@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from src.pyArchimate.pyArchimate import Model, ArchiType
+from src.pyArchimate.constants import ARIS_TYPE_MAP  # Import the ARIS_TYPE_MAP
+from src.pyArchimate.pyArchimate import Model
 from src.pyArchimate.readers.arisAMLreader import aris_reader
-from src.pyArchimate.constants import ARIS_TYPE_MAP # Import the ARIS_TYPE_MAP
 
 
 def test_aris_aml_reader(tmp_path: Path):

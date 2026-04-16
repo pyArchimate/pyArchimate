@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from src.pyArchimate.logger import log, log_to_stderr, log_set_level
+from src.pyArchimate.logger import log, log_set_level, log_to_stderr
 from src.pyArchimate.pyArchimate import *
 
 TEST_DIR = Path(__file__).resolve().parent

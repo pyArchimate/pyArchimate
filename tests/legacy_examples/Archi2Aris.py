@@ -1,8 +1,7 @@
 #!python
 import argparse
+
 from src.pyArchimate.pyArchimate import *
-from src.pyArchimate.readers.archiReader import archi_reader
-from src.pyArchimate.writers.archimateWriter import archimate_writer
 
 parse = argparse.ArgumentParser()
 parse.add_argument('filename', help='Archi file to convert to ARIS Archimate XML')

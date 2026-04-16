@@ -138,9 +138,9 @@ pythonpath = [".", "src/pyArchimate"]  # "." lets tests use `from src.pyArchimat
 testpaths = ["./tests/legacy_unit", "./tests/legacy_integration", "./tests/unit", "./tests/security", "./tests/integration", "./tests/api"]
 python_files = "*_test.py test_*.py *_spec.py"
 addopts = """
---cov=src
---cov-report=xml:build/coverage.xml
---cov-report=term-missing 
+ --cov=src
+ --cov-report=xml:build/coverage.xml
+ --cov-report=term-missing
 --junitxml=build/unit-tests.xml
 """
 cache_dir = "/tmp/.pytest_cache"
