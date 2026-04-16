@@ -38,5 +38,5 @@ poetry run pytest tests/unit/
 
 echo "Pre-commit checks passed successfully."
 echo "✅ Pre-commit checks completed."
-echo "Run scripts/pre_merge_checks.sh before merging to exercise api, integration, and security suites."
+echo "Run scripts/pre_push_checks.sh before merging to exercise api, integration, and security suites."
 exit 0

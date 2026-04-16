@@ -15,3 +15,9 @@ Thumbs.db
 *.tmp
 *.swp
 .idea/
+.claude/skills/
+.github/agents/
+.github/prompts/
+.specify/integrations/
+.specify/init-options.json
+.specify/integration.json

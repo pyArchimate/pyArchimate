@@ -86,7 +86,7 @@ description: "Tasks for Modular Model Modules"
 - [X] T020 Run `poetry check` to ensure packaging metadata and imports remain valid with the split modules
 - [X] T026 Add a layer-boundary enforcement check (e.g., via `importlinter` or a custom `ast` script) to CI that fails if any Layer 2 module (`model.py`, `element.py`, `relationship.py`) imports from Layer 3 or Layer 4 — satisfies AC-004
 - [X] T027 Create `tests/integration/test_state_preservation.py` that imports both the old and new code paths and asserts logging level, reader registry, and writer registry state are identical before and after modularization — covers the state-persistence edge case in spec.md
-- [ ] T028 Run `poetry run ruff check src/pyArchimate && poetry run pyright src/pyArchimate && poetry run mypy src/pyArchimate` and confirm zero errors — satisfies AC-010
+- [X] T028 Run `poetry run ruff check src/pyArchimate && poetry run pyright src/pyArchimate && poetry run mypy src/pyArchimate` and confirm zero errors — satisfies AC-010
 
 ---
 

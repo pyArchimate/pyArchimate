@@ -6,7 +6,7 @@ File writer to ArchiMate Model Exchange File Format
 Module contents
 ---------------
 
-.. automodule:: archimateWriter
+.. automodule:: pyArchimate.writers.archimateWriter
    :members:
    :undoc-members:
    :show-inheritance:

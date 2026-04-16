@@ -2,38 +2,40 @@
 title pyArchimate Package Structure
 
 package "pyArchimate" {
-  class "__init__.py" as Init {
-    {package entry point}
+  class "pyArchimate.py" as Facade {
+    {Public API Shim}
   }
 
-  class "model.py" as Model {
+  class "model.py" as ModelMod {
     class Model
   }
 
-  class "element.py" as Element {
+  class "view.py" as ViewMod {
+    class View
+    class Node
+    class Connection
+    class Profile
+    class Point
+    class Position
+  }
+
+  class "element.py" as ElementMod {
     class Element
   }
 
-  class "relationship.py" as Relationship {
+  class "relationship.py" as RelationshipMod {
     class Relationship
   }
 
+  class "constants.py" as Constants
+  class "enums.py" as Enums
+  class "exceptions.py" as Exceptions
+  class "logger.py" as Logger
+
   package "helpers" {
-    class "diagram.py" as DiagramHelper {
-      + get_or_create_node()
-      + get_or_create_connection()
-    }
-    class "properties.py" as PropertiesHelper {
-      + embed_props()
-      + expand_props()
-      + check_invalid_conn()
-      + check_invalid_nodes()
-    }
-    class "logging.py" as LoggingHelper {
-      + log_to_file()
-      + log_to_stderr()
-      + log_set_level()
-    }
+    class "diagram.py" as DiagramHelper
+    class "properties.py" as PropertiesHelper
+    class "logging.py" as LoggingHelper
   }
 
   package "readers" {
@@ -47,20 +49,26 @@ package "pyArchimate" {
     class archiWriter
     class csvWriter
   }
-
-  class "logger.py" as Logger
 }
 
-Init --> Model : exports
-Init --> Element : exports
-Init --> Relationship : exports
-Init --> DiagramHelper : exports
-Init --> PropertiesHelper : exports
-Init --> LoggingHelper : exports
-Init --> readers : imports from
-Init --> writers : imports from
+Facade --> ModelMod : exports
+Facade --> ViewMod : exports
+Facade --> ElementMod : exports
+Facade --> RelationshipMod : exports
+Facade --> Enums : exports
+Facade --> Exceptions : exports
 
-DiagramHelper --> Logger : uses
-LoggingHelper --> Logger : wraps
+ModelMod ..> ViewMod : references
+ViewMod ..> ModelMod : references
+ModelMod --> readers : uses
+ModelMod --> writers : uses
+
+readers ..> ModelMod : populates
+writers ..> ModelMod : serializes
+
+ModelMod --> Constants : uses
+ViewMod --> Constants : uses
+ElementMod --> Constants : uses
+RelationshipMod --> Constants : uses
 
 @enduml

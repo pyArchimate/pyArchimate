@@ -2,39 +2,62 @@
 title pyArchimate Composite Diagram
 
 object Model {
-  - elems_dict : Element
-  - rels_dict : Relationship
-  - views_dict : View
-  - profiles_dict : Profile
+  - elems_dict : dict[id, Element]
+  - rels_dict : dict[id, Relationship]
+  - views_dict : dict[id, View]
+  - profiles_dict : dict[id, Profile]
+  - nodes_dict : dict[id, Node] {registry}
+  - conns_dict : dict[id, Connection] {registry}
 }
-object Element
-object Relationship
-object Profile
+
+object Element {
+  - properties : dict
+}
+
+object Relationship {
+  - source : Element|Relationship
+  - target : Element|Relationship
+}
+
+object Profile {
+  - concept : str
+}
+
 object View {
-  - nodes_dict : Node
-  - conns_dict : Connection
+  - nodes_dict : dict[id, Node]
+  - conns_dict : dict[id, Connection]
 }
+
 object Node {
-  - ref : Element
-  - nodes_dict : Node
+  - ref : id {Element|View}
   - parent : View | Node
+  - nodes_dict : dict[id, Node] {children}
 }
+
 object Connection {
-  - ref : Relationship
+  - ref : id {Relationship}
   - source : Node
   - target : Node
-  - bendpoints : Point
+  - bendpoints : list[Point]
 }
-object Point
-Model --> Element
-Model --> Relationship
-Model --> View
-Model --> Profile
-View --> Node
-View --> Connection
-Node --> Element : represents
-Node *-- Node : embedded
-Connection --> Relationship
-Connection --> Node : source
-Connection ..> Node : target
+
+object Point {
+  - x, y : int
+}
+
+Model *-- Element
+Model *-- Relationship
+Model *-- View
+Model *-- Profile
+
+View *-- Node
+View *-- Connection
+
+Node --> Element : visualizes
+Node *-- Node : nested children
+
+Connection --> Relationship : visualizes
+Connection o-- Node : source / target
+Connection *-- Point : bendpoints
+
 @enduml

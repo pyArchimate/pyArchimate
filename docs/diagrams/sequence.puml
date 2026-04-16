@@ -1,29 +1,45 @@
 @startuml
-title Reader + Writer Lifecycle Sequence
+title Model Reader + Writer Lifecycle Sequence
 
 actor "CLI / Script" as CLI
 participant "Model" as Model
-participant "archiReader" as Reader
-participant "Element/Relationship" as Element
+participant "Reader" as Reader
+participant "Element" as Element
 participant "View" as View
-participant "archimateWriter" as Writer
+participant "Writer" as Writer
+
+== Reading ==
 
 CLI -> Model : read(filepath)
 activate Model
-Model -> Reader : parse XML
-activate Reader
-Reader -> Element : create elements + relationships
-Element -> Model : register()
-Model -> View : add(view)
-Model --> View : get_or_create_node()
-View -> Model : get relationship data
-Model -> Writer : write(writer=Writers.archimate)
-activate Writer
-Writer -> Model : traverse elements/views
-Writer --> CLI : output XML
+  Model -> Reader : entry.loader() (dynamic)
+  activate Reader
+  Reader -> Model : add(concept_type, name, ...)
+  activate Model
+    Model -> Element : __init__(...)
+    Model -> Model : register in elems_dict
+  deactivate Model
+  Reader -> Model : add_relationship(...)
+  Reader -> Model : add(View, ...)
+  activate Model
+    Model -> View : __init__(...)
+  deactivate Model
+  Reader --> Model : return (populated)
+  deactivate Reader
+Model --> CLI : success
+deactivate Model
 
-deactivate Writer
-deactivate Reader
+== Writing ==
+
+CLI -> Model : write(filepath, writer=Writers.archi)
+activate Model
+  Model -> Writer : _resolve_writer(Writers.archi)
+  activate Writer
+  Writer -> Model : traverse elements/views
+  Writer -> Writer : build XML tree (lxml)
+  Writer --> CLI : output file
+  deactivate Writer
+Model --> CLI : success
 deactivate Model
 
 @enduml

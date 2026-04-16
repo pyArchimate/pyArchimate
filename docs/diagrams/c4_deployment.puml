@@ -5,21 +5,21 @@ LAYOUT_WITH_LEGEND()
 
 Deployment_Node(workstation, "Developer Workstation", "Laptop", "Runs interactive pyArchimate CLI") {
   Container(pyArchimateCLI, "pyArchimate CLI", "Python", "Invoked by developers")
-  Container(pyArchimateLib, "pyArchimate library", "Python", "Loads models, readers, writers")
+  Container(pyArchimateLib, "pyArchimate Core", "Python", "Modularized library for model management")
 }
 
 Deployment_Node(ciRunner, "CI/CD Runner", "Linux VM", "Executes automation scripts") {
   Container(pyArchimateCLI_ci, "pyArchimate CLI", "Python", "Invoked by CI jobs")
-  Container(pyArchimateLib_ci, "pyArchimate library", "Python", "Shared core logic")
+  Container(pyArchimateLib_ci, "pyArchimate Core", "Python", "Shared core logic")
 }
 
 Deployment_Node(filesystem, "File System / Git", "Storage", "Holds source Archi files and exports") {
   Container(archiRepo, "Archi/ARIS sources", "File storage", "Input repositories")
-  Container(exportHub, "Archimate/Archi/CSV exports", "File storage", "Generated outputs")
+  Container(exportHub, "Exchange Formats", "File storage", "Generated outputs (XML, CSV)")
 }
 
 Deployment_Node(logging, "Logging", "syslog/rotating files", "Captures pyArchimate logs") {
-  Container(logStore, "pyArchimate logs", "Log files", "Warnings/errors from library/readers/writers")
+  Container(logStore, "pyArchimate logs", "Log files", "Warnings/errors from core and IO drivers")
 }
 
 Rel(pyArchimateCLI, pyArchimateLib, "Loads core API")

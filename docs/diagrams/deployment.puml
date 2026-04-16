@@ -2,38 +2,38 @@
 title pyArchimate Deployment Diagram
 
 node DeveloperWorkstation {
-  node "Python 3.12+ runtime" as PythonRuntime
-  artifact "pyArchimate CLI / automation" as CLI
-  artifact "pyArchimate library" as Library
+  node "Python 3.10+ runtime" as PythonRuntime
+  artifact "pyArchimate CLI" as CLI
+  artifact "pyArchimate Core" as Library
 }
 node CIRunner {
   node "CI Python runtime" as PyCI
   artifact "pyArchimate CLI" as CLI_CI
-  artifact "pyArchimate library" as Library_CI
+  artifact "pyArchimate Core" as Library_CI
 }
 node Filesystem {
-  artifact "Archi/Archimate/ARIS sources" as Sources
-  artifact "Archimate/Archi/CSV exports" as Exports
+  artifact "Archi / ARIS sources" as Sources
+  artifact "Exchange Formats (XML, CSV)" as Exports
 }
 node Logging {
   artifact "pyArchimate logs" as Logs
 }
 node Dependencies {
-  artifact "lxml / oyaml / stdlib helpers" as Deps
+  artifact "lxml / oyaml / pillow" as Deps
 }
 actor "Designer" as Designer
 actor "Automation / CI" as Automation
 
 Designer --> CLI : runs scripts
-Automation --> CLI_CI : triggers CI automation
-CLI --> Library : imports core API
-CLI_CI --> Library_CI : imports core API
-Library --> Deps : leverages helpers
+Automation --> CLI_CI : triggers CI pipelines
+CLI --> Library : imports public API
+CLI_CI --> Library_CI : imports public API
+Library --> Deps : leverages dependencies
 Library_CI --> Deps
-Library --> Sources : reads Archi/Archimate/ARIS sources
+Library --> Sources : reads source data
 Library_CI --> Sources
 Library --> Logs : emits warnings/errors
 Library_CI --> Logs
-Library --> Exports : writes Archimate / Archi / CSV
+Library --> Exports : writes output files
 Library_CI --> Exports
 @enduml

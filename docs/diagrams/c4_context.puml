@@ -9,8 +9,8 @@ Person(automation, "Automation / Integrations", "Runs scripts, CI jobs or tool i
 System(pyArchimate, "pyArchimate", "Python library handling Archimate models, views, elements, and relationships")
 
 System_Ext(archiFiles, "Archi/Archimate/ARIS sources", "Existing Archimate exchange files read by pyArchimate")
-System_Ext(exportTargets, "Archimate XML / Archi models / CSV", "Files written by pyArchimate for downstream tools")
-System_Ext(logging, "Logging subsystem", "Standard logging leveraging lxml, oyaml, and stdlib")
+System_Ext(exportTargets, "Exchange Formats", "Archimate XML, Archi models, or CSV datasets")
+System_Ext(logging, "Logging Subsystem", "Standard logging leveraging lxml, oyaml, and stdlib")
 
 Rel(designer, pyArchimate, "Uses API to create models, add elements, and render views")
 Rel(automation, pyArchimate, "Invokes CLI automation scripts")
