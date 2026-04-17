@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd" identifier="id-2b0c639b388044d09709ceaaadbcf40f">
+  <name xml:lang="fr">My Model</name>
+  <properties>
+    <property propertyDefinitionRef="propid-1">
+      <value xml:lang="fr">X. Mayeur</value>
+    </property>
+    <property propertyDefinitionRef="propid-2">
+      <value xml:lang="fr">1.0.0</value>
+    </property>
+  </properties>
+  <elements>
+    <element identifier="id-0718eb79d0334ce6a027fe941abc1f93" xsi:type="BusinessActor">
+      <name xml:lang="fr">Eric</name>
+    </element>
+    <element identifier="id-6a1aa2303db240328489e78893c16330" xsi:type="BusinessFunction">
+      <name xml:lang="fr">Son lui même</name>
+    </element>
+    <element identifier="id-f5d8f6f2e1c64a6c81428893d3e723e4" xsi:type="ApplicationService">
+      <name xml:lang="fr">Application Service</name>
+    </element>
+    <element identifier="id-81abffaa0c97461a976cf57d7be40138" xsi:type="ApplicationComponent">
+      <name xml:lang="fr">Application Component</name>
+    </element>
+  </elements>
+  <relationships>
+    <relationship identifier="id-12e4dd7a334f48cf94b91d64b9a4b775" source="id-81abffaa0c97461a976cf57d7be40138" target="id-f5d8f6f2e1c64a6c81428893d3e723e4" xsi:type="Serving">
+      <name xml:lang="fr">Serves</name>
+    </relationship>
+    <relationship identifier="id-c4679f0f7de24575b77366a82249ad56" source="id-0718eb79d0334ce6a027fe941abc1f93" target="id-6a1aa2303db240328489e78893c16330" xsi:type="Serving" />
+    <relationship identifier="id-2573f79cab924dfd8783c27fe459a481" source="id-6a1aa2303db240328489e78893c16330" target="id-0718eb79d0334ce6a027fe941abc1f93" xsi:type="Serving" />
+    <relationship identifier="id-917ad6811ea2463c850425209baaf1fd" source="id-0718eb79d0334ce6a027fe941abc1f93" target="id-6a1aa2303db240328489e78893c16330" xsi:type="Assignment" />
+  </relationships>
+  <organizations>
+    <item>
+      <label xml:lang="fr">Business</label>
+      <item identifierRef="id-0718eb79d0334ce6a027fe941abc1f93" />
+      <item identifierRef="id-6a1aa2303db240328489e78893c16330" />
+    </item>
+    <item>
+      <label xml:lang="fr">Application</label>
+      <item identifierRef="id-f5d8f6f2e1c64a6c81428893d3e723e4" />
+      <item identifierRef="id-81abffaa0c97461a976cf57d7be40138" />
+    </item>
+    <item>
+      <label xml:lang="fr">Relations</label>
+      <item identifierRef="id-12e4dd7a334f48cf94b91d64b9a4b775" />
+      <item identifierRef="id-c4679f0f7de24575b77366a82249ad56" />
+      <item identifierRef="id-2573f79cab924dfd8783c27fe459a481" />
+      <item identifierRef="id-917ad6811ea2463c850425209baaf1fd" />
+    </item>
+    <item>
+      <label xml:lang="fr">Views</label>
+      <item identifierRef="id-543f1ed016a648a69ea001376af24ca9" />
+    </item>
+  </organizations>
+  <propertyDefinitions>
+    <propertyDefinition identifier="propid-1" type="string">
+      <name>author</name>
+    </propertyDefinition>
+    <propertyDefinition identifier="propid-2" type="string">
+      <name>version</name>
+    </propertyDefinition>
+  </propertyDefinitions>
+  <views>
+    <diagrams>
+      <view identifier="id-543f1ed016a648a69ea001376af24ca9" xsi:type="Diagram">
+        <name xml:lang="fr">view 1</name>
+        <node identifier="id-c5561c0d7981490ba184870a75c97d4e" elementRef="id-0718eb79d0334ce6a027fe941abc1f93" xsi:type="Element" x="192" y="108" w="193" h="121">
+          <style>
+            <fillColor r="255" g="255" b="181" a="100" />
+            <lineColor r="92" g="92" b="92" a="100" />
+            <font name="Lucida Grande" size="12">
+              <color r="0" g="0" b="0" />
+            </font>
+          </style>
+          <node identifier="id-8505e8cf424a41e49e1142b694c65108" elementRef="id-6a1aa2303db240328489e78893c16330" xsi:type="Element" x="216" y="156" w="120" h="55">
+            <style>
+              <fillColor r="255" g="255" b="181" a="100" />
+              <lineColor r="92" g="92" b="92" a="100" />
+              <font name="Lucida Grande" size="12">
+                <color r="0" g="0" b="0" />
+              </font>
+            </style>
+          </node>
+        </node>
+        <node identifier="id-fcdc9cc0ed2e472fa645f7ae4a6af506" elementRef="id-f5d8f6f2e1c64a6c81428893d3e723e4" xsi:type="Element" x="180" y="288" w="120" h="55">
+          <style>
+            <fillColor r="181" g="255" b="255" a="100" />
+            <lineColor r="92" g="92" b="92" a="100" />
+            <font name="Lucida Grande" size="12">
+              <color r="0" g="0" b="0" />
+            </font>
+          </style>
+        </node>
+      </view>
+    </diagrams>
+  </views>
+</model>
