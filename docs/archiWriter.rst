@@ -1,7 +1,7 @@
 Archimate Tool file writer
 ===========================
 
-File reader from Archimate Tool native file format
+File writer to Archimate Tool native file format
 
 Module contents
 ---------------

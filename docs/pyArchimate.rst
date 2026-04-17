@@ -1,9 +1,11 @@
-pyArchimate Library
-===================
+pyArchimate – Public API shim
+==============================
 
-pyArchimate is a Python library to manage Archimate based models
-
-
+``pyArchimate.pyArchimate`` is a compatibility shim that re-exports the full
+public API from the individual sub-modules (:doc:`model`, :doc:`element`,
+:doc:`relationship`, :doc:`view`, :doc:`enums`, :doc:`exceptions`,
+:doc:`helpers`).  Importing from this shim gives access to every public
+symbol in one place.
 
 .. image:: metaModel.png
    :width: 800
@@ -11,8 +13,6 @@ pyArchimate is a Python library to manage Archimate based models
 
 Module contents
 ---------------
-.. toctree::
-   :maxdepth: 4
 
 .. automodule:: pyArchimate.pyArchimate
    :members:
