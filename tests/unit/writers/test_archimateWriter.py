@@ -19,13 +19,13 @@ def test_archimate_writer_with_views_produces_view_xml():
     ns = {'ns': 'http://www.opengroup.org/xsd/archimate/3.0/'}
     # views element must be present and contain a diagram
     views = root.find('ns:views', namespaces=ns)
-    assert views is not None
+    assert views is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
     diagrams = views.find('ns:diagrams', namespaces=ns)
-    assert diagrams is not None
+    assert diagrams is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
     view_el = diagrams.find('ns:view', namespaces=ns)
-    assert view_el is not None
+    assert view_el is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
     # nodes must be serialised
-    assert view_el.find('ns:node', namespaces=ns) is not None
+    assert view_el.find('ns:node', namespaces=ns) is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
 
 
 def test_archimate_writer_with_views_to_file(tmp_path):

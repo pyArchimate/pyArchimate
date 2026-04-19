@@ -44,12 +44,6 @@ echo -e "\n🤖 Installing Specify CLI..."
 run_command "uv tool install specify-cli --from git+https://github.com/github/spec-kit.git"
 echo "✅ Done"
 
-# if [ -f /workspaces/frictionless-architect/frontend/package.json ]; then
-#     echo -e "\n🌐 Installing frontend dependencies and Playwright browser..."
-#     run_command "cd /workspaces/frictionless-architect/frontend && npm config set bin-links false && npm install && node ./node_modules/playwright/cli.js install --with-deps chromium"
-#     echo "✅ Done"
-# fi
-
 # Installing commitizen
 echo -e "\n🛠️ Installing commitizen..."
 run_command "pip install commitizen"

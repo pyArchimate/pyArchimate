@@ -4,4 +4,5 @@ from behave import given  # type: ignore[import-untyped]
 
 @given("acceptance tests are not yet implemented")
 def step_placeholder(_context):
+    # TODO: implement acceptance test step
     pass

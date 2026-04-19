@@ -110,15 +110,6 @@ The following patterns and practices have been established for API-level integra
   - Provide explicit cleanup (teardown) hooks to ensure test isolation
   - Use fixture-scoped cleanup to prevent test pollution
 
-### JWT Token Management in Tests
-
-- **JWT Helper Utilities**: Create a dedicated `jwt_utils.py` module that:
-  - Generates short-lived test tokens matching app configuration
-  - Uses the same algorithm/secret as the application (read from environment)
-  - Allows test-specific payload customization (user ID, roles, etc.)
-  - Does not share implementation with production JWT code to avoid circular dependencies
-- **Environment-Driven Configuration**: Read JWT settings from environment variables (`FRICTIONLESS_ARCHITECT_JWT_SECRET`, `FRICTIONLESS_ARCHITECT_JWT_ALGORITHM`) in `conftest.py` so tests adapt to runtime configuration
-
 ### Test Data Cleanup and Isolation
 
 - **Fixture Cleanup Strategy**: Use pytest `yield` fixtures with explicit cleanup blocks to:
@@ -374,10 +365,10 @@ sudo apt-get update && sudo apt-get install -y default-jre
 pysonar --sonar-token=<token-from-.secrets>
 ```
 
-You can also query SonarCloud�s public API for the current critical issues list; the token value is stored in the project `.secrets` directory (look for the Sonar token key there) and should not be committed.
+You can also query SonarCloud public API for the current critical issues list; the token value is stored in the project `.env` file (look for the SONAR_TOKEN key there) and should not be committed.
 
 ```
-https://sonarcloud.io/api/issues/search?componentKeys=wolffy-au_frictionless-architect&branch=main&ps=50&p=1&token=<token-from-.secrets>
+https://sonarcloud.io/api/issues/search?componentKeys=wolffy-au/process-analyst-copilot&branch=master&ps=50&p=1&token=<SONAR_TOKEN>
 ```
 
 ### SonarCloud Remediation Workflow
