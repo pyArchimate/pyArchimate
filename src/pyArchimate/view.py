@@ -150,6 +150,24 @@ class Node:
     :param parent:    parent View or parent Node
     """
 
+    @staticmethod
+    def _resolve_ref(ref: object) -> "Optional[str]":
+        if ref is None:
+            return None
+        if isinstance(ref, str):
+            return ref
+        if isinstance(ref, Element):
+            return ref.uuid
+        if hasattr(ref, 'uuid'):
+            return str(ref.uuid)  # pyright: ignore[reportAttributeAccessIssue]
+        raise ValueError("'ref' is not an instance of 'Element' class.")
+
+    def _validate_ref(self, node_type: str, ref: "Optional[str]") -> None:
+        if node_type == 'Element' and ref is not None and ref not in self.model.elems_dict:
+            raise ValueError(f'Invalid element reference "{ref}"')
+        if node_type == 'Label' and ref is not None and ref not in self.model.labels_dict:
+            raise ValueError(f'Invalid element reference "{ref}"')
+
     def __init__(self, ref=None, x=0, y=0, w=120, h=55, uuid=None,
                  node_type='Element', label=None, parent=None):
         # parent type check is done after View is defined; accept duck-typed objects
@@ -160,23 +178,8 @@ class Node:
         self._view: "View" = cast("View", parent.view)
         self._model: "Model" = cast("Model", parent.model)
 
-        self._ref = None
-        if ref is not None:
-            if isinstance(ref, str):
-                self._ref = ref
-            elif isinstance(ref, Element):
-                self._ref = ref.uuid
-            elif hasattr(ref, 'uuid'):
-                self._ref = ref.uuid
-            else:
-                raise ValueError("'ref' is not an instance of 'Element' class.")
-
-        if node_type == 'Element':
-            if self._ref is not None and self._ref not in self.model.elems_dict:
-                raise ValueError(f'Invalid element reference "{self._ref}"')
-        elif node_type == 'Label':
-            if self._ref is not None and self._ref not in self.model.labels_dict:
-                raise ValueError(f'Invalid element reference "{self._ref}"')
+        self._ref = self._resolve_ref(ref)
+        self._validate_ref(node_type, self._ref)
 
         self._uuid = set_id(uuid)
         self._x = int(x)
@@ -516,6 +519,35 @@ class Node:
         return [c for c in self.view.conns_dict.values()
                 if c.source is not None and c.type == rel_type and c.source.uuid == self.uuid]
 
+    def _compute_gap_x(self, other_node: "Node") -> float:
+        ocx, ow = float(other_node.cx), float(other_node.w)
+        scx, sx, sw = float(self.cx), float(self.x), float(self.w)
+        if ocx - ow / 2 > sx + sw / 2 and ocx + ow / 2 > scx + sw / 2:
+            return ocx - ow / 2 - scx - sw / 2
+        if ocx - ow / 2 < scx - sw / 2 and ocx + ow / 2 < scx - sw / 2:
+            return ocx + ow / 2 - scx + sw / 2
+        return 0.0
+
+    def _compute_gap_y(self, other_node: "Node") -> float:
+        ocy, oh = float(other_node.cy), float(other_node.h)
+        scy, sh = float(self.cy), float(self.h)
+        if ocy - oh / 2 > scy + sh / 2 and ocy + oh / 2 > scy + sh / 2:
+            return ocy - oh / 2 - scy - sh / 2
+        if ocy - oh / 2 < scy - sh / 2 and ocy + oh / 2 < scy - sh / 2:
+            return ocy + oh / 2 - scy + sh / 2
+        return 0.0
+
+    @staticmethod
+    def _refine_gap_orientation(position: Position) -> None:
+        if position.gap_x == 0 and position.gap_y < 0:
+            position.orientation = "T!"
+        elif position.gap_x == 0 and position.gap_y > 0:
+            position.orientation = "B!"
+        elif position.gap_x < 0 and position.gap_y == 0:
+            position.orientation = "L!"
+        elif position.gap_x > 0 and position.gap_y == 0:
+            position.orientation = "R!"
+
     def get_obj_pos(self, other_node: "Node") -> Position:
         """Return a Position describing this node's relationship to another."""
         dx = other_node.cx - self.cx
@@ -529,34 +561,16 @@ class Node:
         angle = (360 - angle) % 360
         position.angle = angle
         if angle < 45 or angle > 315:
-            pos = 'R'
+            position.orientation = 'R'
         elif 45 <= angle < 135:
-            pos = 'T'
+            position.orientation = 'T'
         elif 135 <= angle < 225:
-            pos = 'L'
+            position.orientation = 'L'
         else:
-            pos = 'B'
-        position.orientation = pos
-        if other_node.cx - other_node.w / 2 > self.x + self.w / 2 \
-                and other_node.cx + other_node.w / 2 > self.cx + self.w / 2:
-            position.gap_x = other_node.cx - other_node.w / 2 - self.cx - self.w / 2
-        elif other_node.cx - other_node.w / 2 < self.cx - self.w / 2 \
-                and other_node.cx + other_node.w / 2 < self.cx - self.w / 2:
-            position.gap_x = other_node.cx + other_node.w / 2 - self.cx + self.w / 2
-        if other_node.cy - other_node.h / 2 > self.cy + self.h / 2 \
-                and other_node.cy + other_node.h / 2 > self.cy + self.h / 2:
-            position.gap_y = other_node.cy - other_node.h / 2 - self.cy - self.h / 2
-        elif other_node.cy - other_node.h / 2 < self.cy - self.h / 2 \
-                and other_node.cy + other_node.h / 2 < self.cy - self.h / 2:
-            position.gap_y = other_node.cy + other_node.h / 2 - self.cy + self.h / 2
-        if position.gap_x == 0 and position.gap_y < 0:
-            position.orientation = "T!"
-        elif position.gap_x == 0 and position.gap_y > 0:
-            position.orientation = "B!"
-        elif position.gap_x < 0 and position.gap_y == 0:
-            position.orientation = "L!"
-        elif position.gap_x > 0 and position.gap_y == 0:
-            position.orientation = "R!"
+            position.orientation = 'B'
+        position.gap_x = self._compute_gap_x(other_node)
+        position.gap_y = self._compute_gap_y(other_node)
+        self._refine_gap_orientation(position)
         return position
 
     def get_point_pos(self, point: Point) -> Position:
@@ -594,80 +608,81 @@ class Node:
         position.orientation = pos
         return position
 
+    @staticmethod
+    def _compute_midpoint(obj1: "Node", obj2: "Node", pos: Position) -> "tuple[float, float]":
+        p = pos.orientation
+        cx1, cy1 = float(obj1.cx), float(obj1.cy)
+        cx2, cy2 = float(obj2.cx), float(obj2.cy)
+        w1, h1 = float(obj1.w), float(obj1.h)
+        if p == 'L!':
+            return cx1 - w1 / 2 + pos.gap_x / 2, cy1
+        if p == 'R!':
+            return cx1 + w1 / 2 + pos.gap_x / 2, cy1
+        if p == 'B!':
+            return cx1, cy1 + h1 / 2 + pos.gap_y / 2
+        if p == 'T!':
+            return cx1, cy2 + float(obj2.h) / 2 - pos.gap_y / 2
+        return (cx2 + cx1) / 2, (cy2 + cy1) / 2
+
+    def _queue_connection_bp(self, r: "Connection", obj1: "Node", obj2: "Node",
+                              top: "list[dict[str, Any]]", bottom: "list[dict[str, Any]]",
+                              left: "list[dict[str, Any]]", right: "list[dict[str, Any]]") -> None:
+        bps = r.get_all_bendpoints()
+        pos = obj1.get_obj_pos(obj2)
+        angle: float = pos.angle or 0.0
+        if obj1.is_inside(obj2.cx, obj2.cy):
+            return
+        if len(bps) == 0:
+            _x, _y = self._compute_midpoint(obj1, obj2, pos)
+            r.add_bendpoint(Point(_x, _y))
+            bps = r.get_all_bendpoints()
+        if r.target is not None and r.target.uuid == self.uuid:
+            bp = bps[len(bps) - 1]
+            bp.idx = len(bps) - 1
+        else:
+            bp = bps[0]
+            bp.idx = 0
+        bp_pos = obj1.get_point_pos(bp)
+        if 'R' in bp_pos.orientation:
+            right.append({'order': angle, 'bp': bp, 'r': r})
+        if 'L' in bp_pos.orientation:
+            left.append({'order': -((angle + 180) % 360), 'bp': bp, 'r': r})
+        if 'T' in bp_pos.orientation:
+            top.append({'order': -angle, 'bp': bp, 'r': r})
+        if 'B' in bp_pos.orientation:
+            bottom.append({'order': angle, 'bp': bp, 'r': r})
+
+    @staticmethod
+    def _spread_connections_along_edge(obj1: "Node", items: "list[dict[str, Any]]", axis: str) -> None:
+        n = len(items)
+        for i, entry in enumerate(sorted(items, key=lambda d: d['order']), start=1):
+            if axis == 'y':
+                entry['bp'].y = obj1.cy - obj1.h * (0.5 - (i / (n + 1)))
+            else:
+                entry['bp'].x = obj1.cx - obj1.w * (0.5 - (i / (n + 1)))
+            entry['r'].set_bendpoint(Point(entry['bp'].x, entry['bp'].y), entry['bp'].idx)
+
     def distribute_connections(self):
         """Redistribute all connections evenly along each edge of this node."""
-        top, bottom, left, right = [], [], [], []
+        top: list[dict[str, Any]] = []
+        bottom: list[dict[str, Any]] = []
+        left: list[dict[str, Any]] = []
+        right: list[dict[str, Any]] = []
         obj1 = None
         for r in self.conns():
-            bps = r.get_all_bendpoints()
             if r.target is not None and r.target.uuid == self.uuid:
-                obj2 = r.source
-                obj1 = r.target
+                obj2, obj1 = r.source, r.target
             else:
-                obj1 = r.source
-                obj2 = r.target
+                obj1, obj2 = r.source, r.target
             if obj1 is None or obj2 is None:
                 continue
-            pos = obj1.get_obj_pos(obj2)
-            angle: float = pos.angle or 0.0
-            p = pos.orientation
-            if not obj1.is_inside(obj2.cx, obj2.cy):
-                if len(bps) == 0:
-                    if p == 'L!':
-                        _x = obj1.cx - obj1.w / 2 + pos.gap_x / 2
-                        _y = obj1.cy
-                    elif p == 'R!':
-                        _x = obj1.cx + obj1.w / 2 + pos.gap_x / 2
-                        _y = obj1.cy
-                    elif p == 'B!':
-                        _y = obj1.cy + obj1.h / 2 + pos.gap_y / 2
-                        _x = obj1.cx
-                    elif p == 'T!':
-                        _y = obj2.cy + obj2.h / 2 - pos.gap_y / 2
-                        _x = obj1.cx
-                    else:
-                        _x = (obj2.cx + obj1.cx) / 2
-                        _y = (obj2.cy + obj1.cy) / 2
-                    r.add_bendpoint(Point(_x, _y))
-                    bps = r.get_all_bendpoints()
-                if r.target is not None and r.target.uuid == self.uuid:
-                    bp = bps[len(bps) - 1]
-                    bp.idx = len(bps) - 1
-                else:
-                    bp = bps[0]
-                    bp.idx = 0
-                bp_pos = obj1.get_point_pos(bp)
-                if 'R' in bp_pos.orientation:
-                    right.append({'order': angle, 'bp': bp, 'r': r})
-                if 'L' in bp_pos.orientation:
-                    angle = (angle + 180) % 360
-                    left.append({'order': -angle, 'bp': bp, 'r': r})
-                if 'T' in bp_pos.orientation:
-                    top.append({'order': -angle, 'bp': bp, 'r': r})
-                if 'B' in bp_pos.orientation:
-                    bottom.append({'order': angle, 'bp': bp, 'r': r})
+            self._queue_connection_bp(r, obj1, obj2, top, bottom, left, right)
         if obj1 is None:
             return
-        i = 1
-        for r in sorted(right, key=lambda d: d['order']):
-            r['bp'].y = obj1.cy - obj1.h * (0.5 - (i / (len(right) + 1)))
-            i += 1
-            r['r'].set_bendpoint(Point(r['bp'].x, r['bp'].y), r['bp'].idx)
-        i = 1
-        for r in sorted(left, key=lambda d: d['order']):
-            r['bp'].y = obj1.cy - obj1.h * (0.5 - (i / (len(left) + 1)))
-            i += 1
-            r['r'].set_bendpoint(Point(r['bp'].x, r['bp'].y), r['bp'].idx)
-        i = 1
-        for r in sorted(top, key=lambda d: d['order']):
-            r['bp'].x = obj1.cx - obj1.w * (0.5 - (i / (len(top) + 1)))
-            i += 1
-            r['r'].set_bendpoint(Point(r['bp'].x, r['bp'].y), r['bp'].idx)
-        i = 1
-        for r in sorted(bottom, key=lambda d: d['order']):
-            r['bp'].x = obj1.cx - obj1.w * (0.5 - (i / (len(bottom) + 1)))
-            i += 1
-            r['r'].set_bendpoint(Point(r['bp'].x, r['bp'].y), r['bp'].idx)
+        self._spread_connections_along_edge(obj1, right, 'y')
+        self._spread_connections_along_edge(obj1, left, 'y')
+        self._spread_connections_along_edge(obj1, top, 'x')
+        self._spread_connections_along_edge(obj1, bottom, 'x')
 
     def move(self, new_parent):
         """Reparent this node to a different Node or View within the same diagram."""
@@ -696,6 +711,22 @@ class Connection:
     :param parent: parent View
     """
 
+    @staticmethod
+    def _resolve_conn_ref(ref: object) -> str:
+        if isinstance(ref, str):
+            return ref
+        if ref is not None and hasattr(ref, 'uuid'):
+            return str(ref.uuid)  # pyright: ignore[reportAttributeAccessIssue]
+        raise ArchimateConceptTypeError("'ref' is not an instance of 'Relationship' class.")
+
+    @staticmethod
+    def _resolve_node_uuid(node: object, label: str) -> str:
+        if isinstance(node, Node):
+            return node.uuid
+        if isinstance(node, str):
+            return node
+        raise ArchimateConceptTypeError(f"'{label}' is not an instance of 'Node' class.")
+
     def __init__(self, ref=None, source=None, target=None, uuid=None, parent=None):
         if not isinstance(parent, View):
             raise ArchimateConceptTypeError(
@@ -706,33 +737,15 @@ class Connection:
         self._uuid = set_id(uuid)
         self.model: "Model" = self.parent.parent
 
-        # ref: Relationship uuid
-        if isinstance(ref, str):
-            self._ref = ref
-        elif ref is not None and hasattr(ref, 'uuid'):
-            self._ref = ref.uuid
-        else:
-            raise ArchimateConceptTypeError("'ref' is not an instance of 'Relationship' class.")
+        self._ref = self._resolve_conn_ref(ref)
         if self._ref not in self.model.rels_dict:
             raise ValueError(f'Invalid relationship reference "{self._ref}"')
 
-        # source node
-        if isinstance(source, Node):
-            self._source = source.uuid
-        elif isinstance(source, str):
-            self._source = source
-        else:
-            raise ArchimateConceptTypeError("'source' is not an instance of 'Node' class.")
+        self._source = self._resolve_node_uuid(source, 'source')
         if self._source not in self.model.nodes_dict and self._source not in self.model.conns_dict:
             raise ValueError(f'Invalid source reference "{self._source}"')
 
-        # target node
-        if isinstance(target, Node):
-            self._target = target.uuid
-        elif isinstance(target, str):
-            self._target = target
-        else:
-            raise ArchimateConceptTypeError("'target' is not an instance of 'Node' class.")
+        self._target = self._resolve_node_uuid(target, 'target')
         if self._target not in self.model.nodes_dict and self._target not in self.model.conns_dict:
             raise ValueError(f'Invalid target reference "{self._target}"')
 
@@ -1003,50 +1016,54 @@ class View:
             return self.add(ref=_e, x=x, y=y, w=w, h=h)
         return None
 
+    def _find_or_create_rel(self, source: "Node", target: "Node",
+                             rel_type: Optional[str], name: Optional[str]) -> "Optional[Any]":
+        src_uuid = source.concept.uuid
+        tgt_uuid = target.concept.uuid
+        if name is None:
+            matches = self.model.filter_relationships(
+                lambda x: (rel_type == x.type
+                            and x.source is not None and x.target is not None
+                            and src_uuid == x.source.uuid
+                            and tgt_uuid == x.target.uuid)
+            )
+        else:
+            matches = self.model.filter_relationships(
+                lambda x: (rel_type == x.type
+                            and x.source is not None and x.target is not None
+                            and src_uuid == x.source.uuid
+                            and tgt_uuid == x.target.uuid
+                            and x.name == name)
+            )
+        if matches:
+            return matches[0]
+        if rel_type is None:
+            return None
+        return self.model.add_relationship(
+            source=source.ref, target=target.ref, rel_type=rel_type, name=name
+        )
+
     def get_or_create_connection(self, rel: object = None, source: Optional["Node"] = None,
                                  target: Optional["Node"] = None,
                                  rel_type: Optional[str] = None, name: Optional[str] = None,
                                  create_conn: bool = False) -> Optional["Connection"]:
         """Return an existing connection or create one if requested."""
-        v = self
         if rel is None:
             if source is None or target is None:
                 return None
-            if name is None:
-                r = self.model.filter_relationships(
-                    lambda x: (rel_type == x.type
-                               and x.source is not None and x.target is not None
-                               and source.concept.uuid == x.source.uuid
-                               and target.concept.uuid == x.target.uuid)
-                )
-            else:
-                r = self.model.filter_relationships(
-                    lambda x: (rel_type == x.type
-                               and x.source is not None and x.target is not None
-                               and source.concept.uuid == x.source.uuid
-                               and target.concept.uuid == x.target.uuid
-                               and x.name == name)
-                )
-            if len(r) > 0:
-                r = r[0]
-            else:
-                if rel_type is None:
-                    return None
-                r = self.model.add_relationship(
-                    source=source.ref, target=target.ref,
-                    rel_type=rel_type, name=name
-                )
+            r = self._find_or_create_rel(source, target, rel_type, name)
+            if r is None:
+                return None
         elif hasattr(rel, 'type'):  # duck-typed Relationship
             r = cast(Any, rel)
             rel_type = r.type
         else:
             return None
         c = [c for c in self.conns_dict.values() if c.ref == r.uuid and c.type == rel_type]
-        if len(c) > 0:
+        if c:
             return c[0]
-        elif create_conn:
-            if target is not None and source is not None and target.parent.uuid != source.uuid:
-                return v.add_connection(r, source, target)
+        if create_conn and target is not None and source is not None and target.parent.uuid != source.uuid:
+            return self.add_connection(r, source, target)
         return None
 
 

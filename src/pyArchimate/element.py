@@ -264,6 +264,13 @@ class Element:
         if key in self._properties:
             del self._properties[key]
 
+    def _merge_properties_and_desc(self, elem: "Element") -> None:
+        for key, val in elem.props.items():
+            if key not in self.props:
+                self.prop(key, val)
+        if elem.desc != self.desc:
+            self.desc = (self.desc or '') + '\n----\n' + (elem.desc or '')
+
     def merge(self, elem: "Element", merge_props: bool = False) -> None:
         """
         Method to merge another element of the same type with this element
@@ -280,13 +287,7 @@ class Element:
 
         # merge elem into the current one
         if merge_props:
-            for key, val in elem.props.items():
-                if key not in self.props:
-                    self.prop(key, val)
-
-            # merge (concatenate) element description
-            if elem.desc != self.desc:
-                self.desc = (self.desc or '') + '\n----\n' + (elem.desc or '')
+            self._merge_properties_and_desc(elem)
 
         # Re-assign othe element related node references to this element (merge target)
         for n in [self.model.nodes_dict[x] for x in self.model.nodes_dict if self.model.nodes_dict[x].ref == elem.uuid]:
