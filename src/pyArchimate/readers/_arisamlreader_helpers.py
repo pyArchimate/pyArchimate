@@ -32,6 +32,7 @@ except ImportError:
 _ATTRDEF_TYPE = 'AttrDef.Type'
 _POS_X = 'Pos.X'
 _POS_Y = 'Pos.Y'
+_NOT_A_VIEW = "'view' is not an instance of class 'View'"
 
 
 def get_text_size(text: str, points: int, font: str) -> tuple[float, float]:
@@ -157,7 +158,7 @@ def parse_nodes(grp: Any, view: Optional[View], model: Model,
     if grp is None or view is None:
         return
     if not isinstance(view, View):
-        raise ArchimateConceptTypeError("'view' is not an instance of class 'View'")
+        raise ArchimateConceptTypeError(_NOT_A_VIEW)
     for o in grp.findall('ObjOcc'):
         o_type = ARIS_type_map[o.attrib['SymbolNum']]
         o_id = id_of(o.attrib['ObjOcc.ID'])
@@ -214,7 +215,7 @@ def parse_connections(grp: Any, view: Optional[View], model: Model,
     if grp is None or view is None:
         return
     if not isinstance(view, View):
-        raise ValueError("'view' is not an instance of class 'View'")
+        raise ValueError(_NOT_A_VIEW)
     for o in grp.findall('ObjOcc'):
         o_id = id_of(o.attrib['ObjOcc.ID'])
         for conn in o.findall('CxnOcc'):
@@ -228,7 +229,7 @@ def parse_containers(grp: Any, view: Optional[View], scale_x: float, scale_y: fl
     if grp is None or view is None:
         return
     if not isinstance(view, View):
-        raise ArchimateConceptTypeError("'view' is not an instance of class 'View'")
+        raise ArchimateConceptTypeError(_NOT_A_VIEW)
     for objs in grp.findall('GfxObj'):
         for o in objs.findall('RoundedRectangle'):
             pos = o.find('Position')
@@ -266,7 +267,7 @@ def parse_labels_in_view(grp: Any, view: Optional[View], model: Model,
     if grp is None or view is None:
         return
     if not isinstance(view, View):
-        raise ArchimateConceptTypeError("'view' is not an instance of class 'View'")
+        raise ArchimateConceptTypeError(_NOT_A_VIEW)
     for objs in grp.findall('FFTextOcc'):
         lbl_ref = id_of(objs.attrib['FFTextDef.IdRef'])
         if lbl_ref not in model.labels_dict:
