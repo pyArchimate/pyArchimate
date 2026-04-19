@@ -29,6 +29,11 @@ except ImportError:
     )
 
 
+_ATTRDEF_TYPE = 'AttrDef.Type'
+_POS_X = 'Pos.X'
+_POS_Y = 'Pos.Y'
+
+
 def get_text_size(text: str, points: int, font: str) -> tuple[float, float]:
     if platform.system() == 'Linux':
         from PIL import ImageFont
@@ -57,6 +62,37 @@ def id_of(_id: str) -> str:
     return 'id-' + _id
 
 
+def _parse_aris_attrs(elem: Any) -> tuple[Optional[str], Optional[str], dict[str, str]]:
+    name: Optional[str] = None
+    desc: Optional[str] = None
+    props: dict[str, str] = {}
+    for attr in elem.findall('AttrDef'):
+        key = attr.attrib[_ATTRDEF_TYPE]
+        val = ''.join(v.get('TextValue') + '\n' for v in attr.iter('PlainText'))
+        if key == 'AT_NAME':
+            name = val
+        elif key == 'AT_DESC':
+            desc = val
+        else:
+            props[key] = val
+    return name, desc, props
+
+
+def _parse_objdef(o: Any, model: Model, folder: str) -> None:
+    if 'SymbolNum' not in o.attrib:
+        return
+    o_type = ARIS_type_map[o.attrib['SymbolNum']]
+    if o_type == '':
+        return
+    guid = o.find('GUID').text
+    o_uuid = id_of(o.attrib['ObjDef.ID'])
+    o_name, o_desc, props = _parse_aris_attrs(o)
+    props['GUID'] = guid
+    elem = model.add(concept_type=o_type, name=o_name, desc=o_desc, uuid=o_uuid, folder=folder)
+    for k, v in props.items():
+        elem.prop(k, v)
+
+
 def parse_elements(group: Any, root: Any, model: Model, folder: str = '') -> None:
     if group is None:
         group = root
@@ -67,32 +103,7 @@ def parse_elements(group: Any, root: Any, model: Model, folder: str = '') -> Non
             for n in a.iter('PlainText'):
                 folder += '/' + n.get('TextValue')
         for o in g.findall('ObjDef'):
-            if 'SymbolNum' not in o.attrib:
-                continue
-            o_type = ARIS_type_map[o.attrib['SymbolNum']]
-            if o_type == '':
-                continue
-            o_id = o.attrib['ObjDef.ID']
-            guid = o.find('GUID').text
-            o_uuid = id_of(o_id)
-            props: dict[str, str] = {}
-            o_name = None
-            o_desc = None
-            for attr in o.findall('AttrDef'):
-                key = attr.attrib['AttrDef.Type']
-                val = ''
-                for v in attr.iter('PlainText'):
-                    val += v.get('TextValue') + '\n'
-                if key == 'AT_NAME':
-                    o_name = val
-                elif key == 'AT_DESC':
-                    o_desc = val
-                else:
-                    props[key] = val
-            props['GUID'] = guid
-            elem = model.add(concept_type=o_type, name=o_name, desc=o_desc, uuid=o_uuid, folder=folder)
-            for k, v in props.items():
-                elem.prop(k, v)
+            _parse_objdef(o, model, folder)
         parse_elements(g, root, model, folder)
         folder = old_folder
 
@@ -112,26 +123,32 @@ def _add_rel_with_fallback(model: Model, r_type: str, o_uuid: str,
             r.prop(key, value)
 
 
+def _collect_cxn_props(rel: Any) -> dict[str, str]:
+    props: dict[str, str] = {}
+    for attr in rel.findall('AttrDef'):
+        key = attr.attrib[_ATTRDEF_TYPE]
+        val = ''.join(v.get('TextValue') + '\n' for v in attr.iter('PlainText'))
+        props[key] = val
+    return props
+
+
+def _process_objdef_rels(o: Any, model: Model) -> None:
+    o_uuid = id_of(o.attrib['ObjDef.ID'])
+    for rel in o.findall('CxnDef'):
+        r_type = ARIS_type_map[rel.attrib['CxnDef.Type']]
+        r_id = id_of(rel.attrib['CxnDef.ID'])
+        r_target = id_of(rel.attrib.get('ToObjDef.IdRef'))
+        if r_target not in model.elems_dict:
+            continue
+        _add_rel_with_fallback(model, r_type, o_uuid, r_target, r_id, _collect_cxn_props(rel))
+
+
 def parse_relationships(groups: Any, root: Any, model: Model) -> None:
     if groups is None:
         groups = root
     for g in groups.findall('Group'):
         for o in g.findall('ObjDef'):
-            o_uuid = id_of(o.attrib['ObjDef.ID'])
-            for rel in o.findall('CxnDef'):
-                r_type = ARIS_type_map[rel.attrib['CxnDef.Type']]
-                r_id = id_of(rel.attrib['CxnDef.ID'])
-                r_target = id_of(rel.attrib.get('ToObjDef.IdRef'))
-                if r_target not in model.elems_dict:
-                    continue
-                props: dict[str, str] = {}
-                for attr in rel.findall('AttrDef'):
-                    key = attr.attrib['AttrDef.Type']
-                    val = ''
-                    for v in attr.iter('PlainText'):
-                        val += v.get('TextValue') + '\n'
-                    props[key] = val
-                _add_rel_with_fallback(model, r_type, o_uuid, r_target, r_id, props)
+            _process_objdef_rels(o, model)
         parse_relationships(g, root, model)
 
 
@@ -148,8 +165,8 @@ def parse_nodes(grp: Any, view: Optional[View], model: Model,
         pos = o.find('Position')
         size = o.find('Size')
         n = view.add(ref=o_elem_ref,
-                     x=int(int(pos.get('Pos.X')) * scale_x),
-                     y=int(int(pos.get('Pos.Y')) * scale_y),
+                     x=int(int(pos.get(_POS_X)) * scale_x),
+                     y=int(int(pos.get(_POS_Y)) * scale_y),
                      w=int(int(size.get('Size.dX')) * scale_x),
                      h=int(int(size.get('Size.dY')) * scale_y),
                      uuid=o_id)
@@ -188,8 +205,8 @@ def _handle_regular_conn(conn: Any, o_id: str, view: View, model: Model,
     c = view.add_connection(ref=c_rel_id, source=o_id, target=c_target, uuid=c_id)
     for i, pos in enumerate(conn.findall('Position')):
         if 0 < i < len(conn.findall('Position')) - 1:
-            c.add_bendpoint(Point(int(pos.get('Pos.X')) * scale_x,
-                                  int(pos.get('Pos.Y')) * scale_y))
+            c.add_bendpoint(Point(int(pos.get(_POS_X)) * scale_x,
+                                  int(pos.get(_POS_Y)) * scale_y))
 
 
 def parse_connections(grp: Any, view: Optional[View], model: Model,
@@ -219,8 +236,8 @@ def parse_containers(grp: Any, view: Optional[View], scale_x: float, scale_y: fl
             brush = o.find('Brush')
             if pos is not None and size is not None:
                 n = view.add(ref=None,
-                             x=int(int(pos.get('Pos.X')) * scale_x),
-                             y=int(int(pos.get('Pos.Y')) * scale_y),
+                             x=int(int(pos.get(_POS_X)) * scale_x),
+                             y=int(int(pos.get(_POS_Y)) * scale_y),
                              w=int(int(size.get('Size.dX')) * scale_x),
                              h=int(int(size.get('Size.dY')) * scale_y),
                              node_type='Container')
@@ -235,7 +252,7 @@ def parse_labels(root: Any, model: Model) -> None:
         if o.attrib['IsModelAttr'] == 'TEXT':
             o_name = None
             for attr in o.findall('AttrDef'):
-                key = attr.attrib['AttrDef.Type']
+                key = attr.attrib[_ATTRDEF_TYPE]
                 val = ''
                 for v in attr.iter('PlainText'):
                     val += v.get('TextValue') + '\n'
@@ -262,8 +279,8 @@ def parse_labels_in_view(grp: Any, view: Optional[View], model: Model,
         w, h = max([get_text_size(x, 9, "Segoe UI") for x in o_name.split('\n')])
         try:
             n = view.add(ref=lbl_ref,
-                         x=max(int(float(pos.get('Pos.X', '0')) * scale_x), 0),
-                         y=max(int(float(pos.get('Pos.Y', '0')) * scale_y), 0),
+                         x=max(int(float(pos.get(_POS_X, '0')) * scale_x), 0),
+                         y=max(int(float(pos.get(_POS_Y, '0')) * scale_y), 0),
                          w=int(w) + 18,
                          h=30 + (h * 1.5) * (o_name.count('\n') + 1),
                          node_type='Label', label=o_name)
@@ -274,6 +291,21 @@ def parse_labels_in_view(grp: Any, view: Optional[View], model: Model,
             n.text_alignment = TextAlignment.Left
         except ValueError:
             log.warning(f'Node {o_name} has unknown element reference {lbl_ref} - ignoring')
+
+
+def _build_view(o: Any, model: Model, folder: str, scale_x: float, scale_y: float) -> None:
+    view_id = id_of(o.attrib['Model.ID'])
+    o_name, o_desc, _ = _parse_aris_attrs(o)
+    view = cast(View, model.add(concept_type=ArchiType.View, name=o_name, uuid=view_id, desc=o_desc))
+    view.folder = folder
+    log.info('Parsing & adding nodes')
+    parse_nodes(o, view, model, scale_x, scale_y)
+    log.info('Parsing & adding conns')
+    parse_connections(o, view, model, scale_x, scale_y)
+    log.info('Parsing and adding container groups')
+    parse_containers(o, view, scale_x, scale_y)
+    log.info('Parsing and adding labels')
+    parse_labels_in_view(o, view, model, scale_x, scale_y)
 
 
 def parse_views(group: Any, root: Any, model: Model, scale_x: float, scale_y: float,
@@ -287,31 +319,7 @@ def parse_views(group: Any, root: Any, model: Model, scale_x: float, scale_y: fl
             for n in a.iter('PlainText'):
                 folder += '/' + n.get('TextValue')
         for o in g.findall('Model'):
-            view_id = id_of(o.attrib['Model.ID'])
-            props: dict[str, str] = {}
-            o_name = None
-            o_desc = None
-            for attr in o.findall('AttrDef'):
-                key = attr.attrib['AttrDef.Type']
-                val = ''
-                for v in attr.iter('PlainText'):
-                    val += v.get('TextValue') + '\n'
-                if key == 'AT_NAME':
-                    o_name = val
-                elif key == 'AT_DESC':
-                    o_desc = val
-                else:
-                    props[key] = val
-            view = cast(View, model.add(concept_type=ArchiType.View, name=o_name, uuid=view_id, desc=o_desc))
-            log.info('Parsing & adding nodes')
-            view.folder = folder
-            parse_nodes(o, view, model, scale_x, scale_y)
-            log.info('Parsing & adding conns')
-            parse_connections(o, view, model, scale_x, scale_y)
-            log.info('Parsing and adding container groups')
-            parse_containers(o, view, scale_x, scale_y)
-            log.info('Parsing and adding labels')
-            parse_labels_in_view(o, view, model, scale_x, scale_y)
+            _build_view(o, model, folder, scale_x, scale_y)
         parse_views(g, root, model, scale_x, scale_y, folder)
         folder = old_folder
 

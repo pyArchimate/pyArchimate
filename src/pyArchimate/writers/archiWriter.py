@@ -173,11 +173,7 @@ def _write_connection(child: _Element, conn: object, xsi: et.QName) -> None:
                       endY=str(int(bp.y - conn_target.cy)))
 
 
-def _add_node(parent: object, parent_tag: _Element, node: object, xsi: et.QName) -> None:
-    child = et.SubElement(parent_tag, 'child', {
-        str(xsi): 'archimate:DiagramObject',
-        'id': getattr(node, 'uuid', ''),
-    })
+def _set_node_visual_attrs(child: _Element, node: object) -> None:
     font_name = getattr(node, 'font_name', None)
     font_size = getattr(node, 'font_size', None)
     if font_name is not None and font_size is not None:
@@ -198,6 +194,9 @@ def _add_node(parent: object, parent_tag: _Element, node: object, xsi: et.QName)
     lc_opacity = getattr(node, 'lc_opacity', 100)
     if str(lc_opacity) != '100':
         et.SubElement(child, 'feature', name='lineAlpha', value=str(int(255 * int(lc_opacity) / 100)))
+
+
+def _set_node_features(child: _Element, node: object) -> None:
     label_expression = getattr(node, 'label_expression', None)
     if label_expression is not None:
         et.SubElement(child, 'feature', name='labelExpression', value=label_expression)
@@ -207,6 +206,9 @@ def _add_node(parent: object, parent_tag: _Element, node: object, xsi: et.QName)
     gradient = getattr(node, 'gradient', None)
     if gradient is not None:
         et.SubElement(child, 'feature', name='gradient', value=gradient)
+
+
+def _set_node_cat_content(child: _Element, node: object, xsi: et.QName) -> None:
     cat = getattr(node, 'cat', 'Element')
     node_ref = getattr(node, 'ref', None)
     node_label = getattr(node, 'label', None)
@@ -231,7 +233,18 @@ def _add_node(parent: object, parent_tag: _Element, node: object, xsi: et.QName)
     border_type = getattr(node, 'border_type', None)
     if border_type is not None:
         child.set('borderType', border_type)
+
+
+def _add_node(parent: object, parent_tag: _Element, node: object, xsi: et.QName) -> None:
+    child = et.SubElement(parent_tag, 'child', {
+        str(xsi): 'archimate:DiagramObject',
+        'id': getattr(node, 'uuid', ''),
+    })
+    _set_node_visual_attrs(child, node)
+    _set_node_features(child, node)
+    _set_node_cat_content(child, node, xsi)
     node_type = getattr(node, 'type', None)
+    fill_color = getattr(node, 'fill_color', None)
     if node_type == ArchiType.Grouping and fill_color is None:
         setattr(node, 'opacity', 0)  # noqa: B010
     node_x = getattr(node, 'x', 0)

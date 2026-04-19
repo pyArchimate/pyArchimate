@@ -1,7 +1,7 @@
 import os
 import sys
 from collections import defaultdict
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 from typing import cast as _cast
 
 from lxml import etree as et
@@ -77,6 +77,23 @@ def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
             _write_properties(elem, e.props, model)
 
 
+def _write_rel_attrs(elem: _Element, e: Any, model: Model) -> None:
+    if e.access_type is not None and e.type == ArchiType.Access:
+        elem.set('accessType', e.access_type)
+    if e.is_directed is not None and e.type == ArchiType.Association:
+        elem.set('isDirected', "true")
+    if e.influence_strength is not None and e.type == ArchiType.Influence:
+        elem.set('influenceStrength', e.influence_strength)
+    if e.name is not None:
+        e_name = et.SubElement(elem, 'name')
+        e_name.text = e.name
+    if e.desc is not None:
+        e_desc = et.SubElement(elem, 'documentation')
+        e_desc.text = e.desc
+    if e.props:
+        _write_properties(elem, e.props, model)
+
+
 def _write_relationships(root: _Element, model: Model, xsi: et.QName) -> None:
     rels = et.SubElement(root, 'relationships')
     for e in model.relationships:
@@ -87,23 +104,10 @@ def _write_relationships(root: _Element, model: Model, xsi: et.QName) -> None:
             'target': e.target.uuid,
             str(xsi): e.type
         })
-        if e.access_type is not None and e.type == ArchiType.Access:
-            elem.set('accessType', e.access_type)
-        if e.is_directed is not None and e.type == ArchiType.Association:
-            elem.set('isDirected', "true")
-        if e.influence_strength is not None and e.type == ArchiType.Influence:
-            elem.set('influenceStrength', e.influence_strength)
-        if e.name is not None:
-            e_name = et.SubElement(elem, 'name')
-            e_name.text = e.name
-        if e.desc is not None:
-            e_desc = et.SubElement(elem, 'documentation')
-            e_desc.text = e.desc
-        if e.props:
-            _write_properties(elem, e.props, model)
+        _write_rel_attrs(elem, e, model)
 
 
-def _write_organizations(root: _Element, model: Model, ns_find: dict[str, str]) -> None:
+def _collect_orgs_dict(model: Model) -> dict[str, list[str]]:
     orgs_dict: dict[str, list[str]] = defaultdict(list)
     for e in model.elements:
         if e.folder is not None:
@@ -114,27 +118,35 @@ def _write_organizations(root: _Element, model: Model, ns_find: dict[str, str]) 
     for v in model.views:
         if v.folder is not None:
             orgs_dict[v.folder].append(v.uuid)
-    keys = sorted(orgs_dict.keys())
-    orgs = et.SubElement(root, 'organizations')
-    for k in keys:
-        labels = k.split('/')
-        item = orgs
-        for label in labels[1:-1]:
-            if item.find(_NS_ITEM, ns_find) is None:
-                item = et.SubElement(item, 'item')
-            else:
-                item = _cast(_Element, item.find(_NS_ITEM, ns_find))
-            lbl = et.SubElement(item, 'label')
-            lbl.text = label
+    return orgs_dict
+
+
+def _write_org_path(orgs: _Element, k: str, orgs_dict: dict[str, list[str]],
+                    ns_find: dict[str, str]) -> None:
+    labels = k.split('/')
+    item = orgs
+    for label in labels[1:-1]:
         if item.find(_NS_ITEM, ns_find) is None:
             item = et.SubElement(item, 'item')
         else:
             item = _cast(_Element, item.find(_NS_ITEM, ns_find))
-        label_text = labels[-1:][0]
         lbl = et.SubElement(item, 'label')
-        lbl.text = label_text
-        for i in orgs_dict[k]:
-            et.SubElement(item, 'item', identifierRef=i)
+        lbl.text = label
+    if item.find(_NS_ITEM, ns_find) is None:
+        item = et.SubElement(item, 'item')
+    else:
+        item = _cast(_Element, item.find(_NS_ITEM, ns_find))
+    lbl = et.SubElement(item, 'label')
+    lbl.text = labels[-1]
+    for i in orgs_dict[k]:
+        et.SubElement(item, 'item', identifierRef=i)
+
+
+def _write_organizations(root: _Element, model: Model, ns_find: dict[str, str]) -> None:
+    orgs_dict = _collect_orgs_dict(model)
+    orgs = et.SubElement(root, 'organizations')
+    for k in sorted(orgs_dict.keys()):
+        _write_org_path(orgs, k, orgs_dict, ns_find)
 
 
 def _write_node_style(n_elem: _Element, n: Node) -> None:
@@ -199,14 +211,39 @@ def _add_node(parent: _Element, n: Node, xsi: et.QName) -> None:
         _add_node(n_elem, sub_n, xsi)
 
 
+def _is_node_embedded(n1: Node, n2: Node) -> bool:
+    return bool((n1.x < n2.x < n1.x + n1.w) and (n1.y < n2.y < n1.y + n1.h))
+
+
+def _write_conn_style(c_elem: _Element, c: Any) -> None:
+    style = et.SubElement(c_elem, 'style')
+    if c.line_width is not None:
+        style.set('lineWidth', str(c.line_width))
+    if c.line_color is not None:
+        if c.line_color != default_color(c.type, default_theme):
+            lc = et.SubElement(style, 'lineColor')
+            rgb = RGBA()
+            rgb.color = c.line_color
+            lc.set('r', str(rgb.r))
+            lc.set('g', str(rgb.g))
+            lc.set('b', str(rgb.b))
+    if c.font_name is not None:
+        ft = et.SubElement(style, 'font', attrib={
+            'name': c.font_name,
+            'size': str(c.font_size)
+        })
+        rgb = RGBA()
+        ftc = et.SubElement(ft, 'color')
+        rgb.color = c.font_color
+        ftc.set('r', str(rgb.r))
+        ftc.set('g', str(rgb.g))
+        ftc.set('b', str(rgb.b))
+
+
 def _write_connections(view_elem: _Element, _v: object, xsi: et.QName) -> None:
     for c in _v.conns:  # type: ignore[attr-defined]
         assert c.source is not None and c.target is not None
-
-        def _is_embedded(n1: Node, n2: Node) -> bool:
-            return bool((n1.x < n2.x < n1.x + n1.w) and (n1.y < n2.y < n1.y + n1.h))
-
-        if _is_embedded(c.source, c.target) or _is_embedded(c.target, c.source):
+        if _is_node_embedded(c.source, c.target) or _is_node_embedded(c.target, c.source):
             continue
         c_elem = et.SubElement(view_elem, 'connection', attrib={
             'identifier': c.uuid,
@@ -215,28 +252,7 @@ def _write_connections(view_elem: _Element, _v: object, xsi: et.QName) -> None:
             'source': c.source.uuid,
             'target': c.target.uuid
         })
-        style = et.SubElement(c_elem, 'style')
-        if c.line_width is not None:
-            style.set('lineWidth', str(c.line_width))
-        if c.line_color is not None:
-            if c.line_color != default_color(c.type, default_theme):
-                lc = et.SubElement(style, 'lineColor')
-                rgb = RGBA()
-                rgb.color = c.line_color
-                lc.set('r', str(rgb.r))
-                lc.set('g', str(rgb.g))
-                lc.set('b', str(rgb.b))
-        if c.font_name is not None:
-            ft = et.SubElement(style, 'font', attrib={
-                'name': c.font_name,
-                'size': str(c.font_size)
-            })
-            rgb = RGBA()
-            ftc = et.SubElement(ft, 'color')
-            rgb.color = c.font_color
-            ftc.set('r', str(rgb.r))
-            ftc.set('g', str(rgb.g))
-            ftc.set('b', str(rgb.b))
+        _write_conn_style(c_elem, c)
         for bp in c.get_all_bendpoints():
             et.SubElement(c_elem, 'bendpoint', x=str(bp.x), y=str(bp.y))
 

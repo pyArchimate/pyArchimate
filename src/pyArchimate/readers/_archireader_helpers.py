@@ -156,25 +156,29 @@ def _parse_rel_attributes(elem: Any, e: Any) -> None:
         elem.prop(p.get('key'), p.get('value'))
 
 
+def _process_folder_element(e: Any, model: Any, xsi: str, merge_flg: bool, folder: str) -> None:
+    type_e = e.get(xsi + 'type').split(':')[1]
+    if 'Relationship' in type_e or 'ArchimateDiagramModel' in type_e:
+        return
+    if merge_flg and e.get('id') in model.elems_dict:
+        elem = model.elems_dict[e.get('id')]
+    else:
+        elem = model.add(concept_type=type_e, name=e.get('name'), uuid=e.get('id'),
+                         profile=e.get('profiles'))
+    elem.folder = folder
+    doc = e.find('documentation')
+    if doc is not None:
+        elem.desc = doc.text
+    for p in e.findall('property'):
+        elem.prop(p.get('key'), p.get('value'))
+    if type_e == 'Junction':
+        elem.junction_type = e.get('type') if e.get('type') is not None else 'and'
+
+
 def get_folders_elem(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path: str = '') -> None:
     folder = folder_path + '/' + tag.get('name')
     for e in tag.findall('element'):
-        type_e = e.get(xsi + 'type').split(':')[1]
-        if 'Relationship' in type_e or 'ArchimateDiagramModel' in type_e:
-            continue
-        if merge_flg and e.get('id') in model.elems_dict:
-            elem = model.elems_dict[e.get('id')]
-        else:
-            elem = model.add(concept_type=type_e, name=e.get('name'), uuid=e.get('id'),
-                             profile=e.get('profiles'))
-        elem.folder = folder
-        doc = e.find('documentation')
-        if doc is not None:
-            elem.desc = doc.text
-        for p in e.findall('property'):
-            elem.prop(p.get('key'), p.get('value'))
-        if type_e == 'Junction':
-            elem.junction_type = e.get('type') if e.get('type') is not None else 'and'
+        _process_folder_element(e, model, xsi, merge_flg, folder)
     for f in tag.findall('folder'):
         get_folders_elem(f, model, xsi, merge_flg, folder)
 
