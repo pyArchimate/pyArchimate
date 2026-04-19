@@ -3,7 +3,7 @@
 **Feature Branch**: `002-sonarqube-remediation`  
 **Created**: 2026-04-16  
 **Status**: Draft  
-**Input**: User description: "Remediate the SonarQube errors found at https://sonarcloud.io/api/issues/search?componentKeys=pyArchimate_pyArchimate&severities=CRITICAL&ps=50&p=1"
+**Input**: User description: "pyArchimate is analysed continuously by SonarCloud (project key `pyArchimate_pyArchimate`). Remediate the SonarQube errors found at https://sonarcloud.io/api/issues/search?componentKeys=pyArchimate_pyArchimate&ps=50&p=1"
 
 ## Clarifications
 
@@ -14,6 +14,12 @@
 - Q: When is SonarCloud verification triggered to confirm fixes? → A: Once at the end, after all fixes are complete.
 - Q: How should fixes be batched into commits? → A: One commit per rule category (S5727 → S1192 → S5754 → S2208 → S1186 → S3776).
 - Q: What is the policy if refactoring introduces new SonarCloud violations? → A: Block — no commit may introduce any new violation.
+
+### Session 2026-04-19
+
+- Q: How will `tests/legacy_*` files be excluded from SonarCloud's issue count? → A: Add exclusion patterns to `sonar-project.properties` (e.g., `sonar.exclusions=tests/legacy_*/**`).
+- Q: For extreme-complexity files (original score > 100), must helpers remain in the same file per FR-009? → A: Exception allowed — a `_<module>_helpers.py` private sibling module is acceptable for `arisAMLreader.py` and `archiReader.py`.
+- Q: How is the final SonarCloud verification scan triggered to confirm SC-001? → A: Automated — the existing CI/CD pipeline triggers the scan on push to the branch.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -120,12 +126,13 @@ A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisA
 - **FR-002**: All 6 duplicate-string-literal (S1192) violations MUST be resolved by extracting repeated literals into named module-level constants.
 - **FR-003**: The bare-except (S5754) violation in `_legacy.py` MUST be resolved (via file deletion). Violations in `tests/legacy_*` are excluded.
 - **FR-004**: Wildcard-import (S2208) violations are OUT OF SCOPE as they only occur in legacy files.
+- **FR-012**: `tests/legacy_*` files MUST be excluded from SonarCloud analysis via `sonar.exclusions=tests/legacy_*/**` in `sonar-project.properties`; this ensures their violations do not count toward SC-001.
 - **FR-005**: The empty-function (S1186) violation MUST be resolved by adding an explanatory comment or completing the implementation.
 - **FR-006**: All 35+ cognitive-complexity (S3776) violations MUST be resolved by decomposing each over-threshold function into smaller helpers, with each helper having a complexity score ≤ 15.
 - **FR-007**: All existing unit, integration, and BDD tests MUST continue to pass after every remediation change.
 - **FR-011**: No commit during remediation may introduce any new SonarCloud violation of any severity. Each commit must leave the codebase with fewer or equal violations than before.
 - **FR-008**: The public API of every affected production module MUST remain unchanged (no breaking changes to function signatures, class interfaces, or module exports).
-- **FR-009**: Refactored helpers MUST be private functions (prefixed `_`) defined in the same file as the original function. No new helper modules are to be created.
+- **FR-009**: Refactored helpers MUST be private functions (prefixed `_`) defined in the same file as the original function. **Exception**: for modules whose original cognitive complexity exceeds 100 (`arisAMLreader.py`, `archiReader.py`), a private sibling module named `_<module>_helpers.py` in the same package directory is acceptable.
 - **FR-010**: `_legacy.py` MUST be deleted after confirming zero live callers (no active imports or usages anywhere in the codebase). Refactoring in place is not acceptable.
 
 ### Key Entities
@@ -138,7 +145,7 @@ A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisA
 
 ### Measurable Outcomes
 
-- **SC-001**: A single SonarCloud scan run after all fixes are complete reports zero CRITICAL-severity issues for the `pyArchimate_pyArchimate` component.
+- **SC-001**: The CI/CD pipeline SonarCloud scan triggered by the final push to `002-sonarqube-remediation` reports zero CRITICAL-severity issues for the `pyArchimate_pyArchimate` component.
 - **SC-002**: The full test suite (unit, integration, BDD) passes with no regressions introduced by the remediation.
 - **SC-003**: No function in the production codebase has a cognitive complexity score greater than 15.
 - **SC-004**: Total estimated remediation debt falls from 1,731 minutes to 0 minutes as reported by SonarCloud.
@@ -148,8 +155,9 @@ A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisA
 ## Assumptions
 
 - The SonarCloud token and project key (`pyArchimate_pyArchimate`) remain valid throughout the remediation effort.
+- The CI/CD pipeline is already configured to trigger a SonarCloud scan on every push; no pipeline changes are required to satisfy SC-001.
 - `_legacy.py` will be deleted (not refactored) once confirmed to have no live callers; this is the agreed disposition.
 - The allowed cognitive complexity threshold is 15, as specified in the SonarCloud rule configuration for this project.
 - Fixes are committed one rule category at a time in this order: S5727 (identity checks) → S1192 (string constants) → S5754 (bare excepts) → S2208 (wildcard imports) → S1186 (empty function) → S3776 (cognitive complexity). Each category produces exactly one commit.
-- `tests/legacy_*` directories are **not** in scope for this remediation even though they contribute to the CRITICAL issue count; SonarQube should ignore these legacy tests used solely for backward compatibility purposes.
+- `tests/legacy_*` directories are **not** in scope for this remediation even though they contribute to the CRITICAL issue count; they are excluded via `sonar.exclusions=tests/legacy_*/**` in `sonar-project.properties`.
 - The project uses Python 3; idiomatic Python 3 patterns (e.g., `isinstance` checks, f-strings) may be used in refactored code where appropriate.
