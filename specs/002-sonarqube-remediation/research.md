@@ -31,14 +31,11 @@ sonar.test.exclusions=tests/legacy_*/**
 
 **Finding**: All 4 S5727 violations are in `tests/unit/writers/test_archimateWriter.py` at lines 22, 24, 26, 28. Each is an `assert <var> is not None` check on the return value of `lxml.etree.Element.find()`. SonarCloud flags these as "always-true" because lxml's type stubs declare `find()` as returning `_Element` (not `Optional[_Element]`), making the `is not None` comparison statically redundant.
 
-**Fix**: Replace with `assert <var> is not None` → no, since `find()` actually returns `Optional[_Element]` at runtime. The correct and SonarCloud-compliant fix is to drop the explicit `is not None` and use a truthy assertion:
-- `assert views is not None` → `assert views is not None`
+**Fix**: During implementation, open the SonarCloud issue detail for each of the 4 violations to confirm the exact rule message. Apply the appropriate fix:
+- If the violation is `is True` / `is False` (identity comparison on a boolean) → replace with `== True` / `== False` or the idiomatic truthy form (`assert x` / `assert not x`).
+- If the violation is `is not None` on an lxml `find()` result flagged as "always true" due to type stubs → add a targeted `# NOSONAR` comment on that line (the comparison is semantically correct at runtime since `find()` can return `None`).
 
-Wait — lxml's `find()` does return `None` when not found. The SonarCloud S5727 trigger here is likely the newer Python analyzer treating these as "comparison to non-boolean using `is`". The safe, idiomatic fix that satisfies S5727 without changing semantics:
-- Keep `is not None` checks (they are semantically correct for None comparisons)
-- Add `# type: ignore` only if pyright complains
-
-**Revised decision**: The S5727 rule specifically covers `is True` / `is False` identity comparisons on non-singleton booleans. The `is not None` pattern is idiomatic Python and should not be flagged. Verify the actual violation messages on SonarCloud during implementation; if they are `is True`/`is False` patterns elsewhere in the file, fix those. If they truly are `is not None` on lxml results, add targeted `# NOSONAR` suppression comments.
+**Key constraint**: `is not None` against `None` is idiomatic Python and semantically correct. Do not replace with `!= None`.
 
 **Alternatives considered**: Replace with `==`/`!=` — valid but loses the None-identity semantic; rejected.
 

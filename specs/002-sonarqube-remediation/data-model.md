@@ -114,5 +114,5 @@ File: `tests/features/steps/placeholder_steps.py`
 
 - All extracted helpers: private (prefixed `_`), `snake_case`, type-annotated.
 - New sibling helper modules (`_archireader_helpers.py`, `_arisamlreader_helpers.py`): not exported from `src/pyArchimate/readers/__init__.py`.
-- All helper names resolved to real function names during implementation (TBD above updated in tasks.md).
+- All helper names resolved to real function names during implementation (update TBD entries in this file, data-model.md, as each function is refactored).
 - No changes to `tests/legacy_*/**`.

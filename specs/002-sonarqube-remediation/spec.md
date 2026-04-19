@@ -34,7 +34,7 @@ A developer running the test suite sees that test assertions use `is`/`is not` f
 **Acceptance Scenarios**:
 
 1. **Given** a test file uses `assert result is True`, **When** the assertion is changed to `assert result == True` (or `assert result`), **Then** the assertion still passes for correct behaviour and the SonarCloud S5727 rule no longer flags that line.
-2. **Given** a test file uses `assert value is not None`, **When** the assertion is retained as-is (identity check against `None` is idiomatic and correct), **Then** SonarCloud does not flag it as a violation.
+2. **Given** SonarCloud flags an `is not None` check on an lxml `find()` result as a false positive (because lxml type stubs declare the return type as non-optional), **When** a `# NOSONAR` comment is added to that line, **Then** the violation is suppressed without altering runtime semantics — `find()` does return `None` at runtime when the element is absent.
 3. **Given** all identity-check violations are resolved, **When** SonarCloud analyses the project, **Then** zero S5727 CRITICAL issues are reported.
 
 ---
@@ -49,9 +49,9 @@ A developer reading reader and writer modules encounters the same string literal
 
 **Acceptance Scenarios**:
 
-1. **Given** `'ns:item'` appears 4 times in `archimateWriter.py`, **When** it is replaced with a named constant, **Then** the module's behaviour is identical and SonarCloud no longer reports S1192 for that file.
-2. **Given** `'Pos.X'` and `'Pos.Y'` each appear 4 times in `arisAMLreader.py`, **When** they are replaced with named constants, **Then** parsing behaviour is identical and the S1192 violations are resolved.
-3. **Given** `'AttrDef.Type'` appears 4 times in `arisAMLreader.py`, **When** it is replaced with a named constant, **Then** the S1192 violation is resolved.
+1. **Given** `'ns:item'` appears 4 times in `archimateWriter.py`, **When** it is replaced with a named constant `_NS_ITEM`, **Then** the module's behaviour is identical and SonarCloud no longer reports S1192 for that file.
+
+*Note*: `arisAMLreader.py` S1192 scenarios (`'Pos.X'`, `'Pos.Y'`, `'AttrDef.Type'`) are no longer present as CRITICAL violations in SonarCloud as of 2026-04-19; they are assumed already resolved and are out of scope for this remediation.
 
 ---
 
@@ -98,7 +98,7 @@ A developer browsing BDD step definitions finds an empty `placeholder_steps.py` 
 
 A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisAMLreader.py`, `archiWriter.py`, `archimateWriter.py`, `model.py`, `view.py`, `relationship.py`, `element.py`, `csvWriter.py`, `check_layer_boundaries.py`) encounters monolithic functions with complexity scores ranging from 16 to 259, well above the allowed threshold of 15. Breaking these functions into focused, well-named helpers makes the code understandable, testable in isolation, and maintainable.
 
-**Why this priority**: High-complexity functions are the largest source of CRITICAL violations (35+ issues) and represent the highest maintenance risk in the codebase. Reader and writer functions with complexity above 100 are especially urgent.
+**Why this priority**: High-complexity functions are the largest source of CRITICAL violations (10 open issues) and represent the highest maintenance risk in the codebase. Reader and writer functions with complexity above 100 are especially urgent.
 
 **Independent Test**: Each refactored module has its own unit/integration tests. After refactoring, all existing tests must pass; the public API of each module must remain unchanged.
 
@@ -106,8 +106,8 @@ A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisA
 
 1. **Given** `archiReader.py:21` has a function with complexity 254, **When** it is decomposed into focused helper functions each with complexity ≤ 15, **Then** all existing tests for that reader pass, the public interface is unchanged, and SonarCloud reports no S3776 violation for that file.
 2. **Given** `archimateWriter.py:35` has a function with complexity 180, **When** it is refactored into smaller functions, **Then** writer tests pass, output format is identical, and the S3776 violation is resolved.
-3. **Given** `model.py:651` has a function with complexity 95, **When** it is decomposed, **Then** model tests pass and the S3776 violation is resolved.
-4. **Given** all 35+ S3776 violations are addressed, **When** SonarCloud analyses the project, **Then** zero S3776 CRITICAL issues remain.
+3. *(Already resolved — not present in current SonarCloud CRITICAL list as of 2026-04-19)*: `model.py:651` complexity 95 was previously flagged; assumed resolved in prior work.
+4. **Given** all 10 open S3776 violations are addressed, **When** SonarCloud analyses the project, **Then** zero S3776 CRITICAL issues remain.
 5. **Given** `_legacy.py` is confirmed to have no live callers, **When** the file is deleted, **Then** all S3776 violations in that file are automatically resolved with no test regressions.
 
 ---
@@ -123,12 +123,12 @@ A developer reading core modules (`archiReader.py`, `archimateReader.py`, `arisA
 ### Functional Requirements
 
 - **FR-001**: All identity-check (S5727) violations in non-legacy code MUST be resolved by replacing value-equality `is`/`is not` comparisons with `==`/`!=` where appropriate.
-- **FR-002**: All 6 duplicate-string-literal (S1192) violations MUST be resolved by extracting repeated literals into named module-level constants.
+- **FR-002**: The 1 open duplicate-string-literal (S1192) violation MUST be resolved by extracting the repeated literal `'ns:item'` in `archimateWriter.py` into a named module-level constant `_NS_ITEM`.
 - **FR-003**: The bare-except (S5754) violation in `_legacy.py` MUST be resolved (via file deletion). Violations in `tests/legacy_*` are excluded.
 - **FR-004**: Wildcard-import (S2208) violations are OUT OF SCOPE as they only occur in legacy files.
 - **FR-012**: `tests/legacy_*` files MUST be excluded from SonarCloud analysis via `sonar.exclusions=tests/legacy_*/**` in `sonar-project.properties`; this ensures their violations do not count toward SC-001.
 - **FR-005**: The empty-function (S1186) violation MUST be resolved by adding an explanatory comment or completing the implementation.
-- **FR-006**: All 35+ cognitive-complexity (S3776) violations MUST be resolved by decomposing each over-threshold function into smaller helpers, with each helper having a complexity score ≤ 15.
+- **FR-006**: All 10 open cognitive-complexity (S3776) violations MUST be resolved by decomposing each over-threshold function into smaller helpers, with each helper having a complexity score ≤ 15.
 - **FR-007**: All existing unit, integration, and BDD tests MUST continue to pass after every remediation change.
 - **FR-011**: No commit during remediation may introduce any new SonarCloud violation of any severity. Each commit must leave the codebase with fewer or equal violations than before.
 - **FR-008**: The public API of every affected production module MUST remain unchanged (no breaking changes to function signatures, class interfaces, or module exports).

@@ -65,7 +65,7 @@ sonar-project.properties          ← add legacy exclusions (FR-012)
 
 src/pyArchimate/
 ├── element.py                    ← S3776: 1 function (complexity 16)
-├── view.py                       ← S3776: 4 functions (complexities 17–44)
+├── view.py                       ← S3776: 5 functions (complexities 17–44)
 ├── readers/
 │   ├── archiReader.py            ← S3776: 1 function (complexity 254)
 │   ├── _archireader_helpers.py   ← NEW: private helpers (FR-009 exception)
