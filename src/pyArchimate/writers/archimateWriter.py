@@ -257,7 +257,7 @@ def _write_connections(view_elem: _Element, _v: object, xsi: et.QName) -> None:
             et.SubElement(c_elem, 'bendpoint', x=str(bp.x), y=str(bp.y))
 
 
-def _write_views(root: _Element, model: Model, xsi: et.QName, ns_find: dict[str, str]) -> None:
+def _write_views(root: _Element, model: Model, xsi: et.QName) -> None:
     if not model.views:
         return
     views = et.SubElement(root, 'views')
@@ -318,7 +318,7 @@ def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
         p_name = et.SubElement(p, 'name')
         p_name.text = str(v)
 
-    _write_views(root, model, xsi, ns_find)
+    _write_views(root, model, xsi)
 
     pd_check = root.find('propertyDefinitions')
     if pd_check is not None and pd_check.find('propertyDefinition') is None:

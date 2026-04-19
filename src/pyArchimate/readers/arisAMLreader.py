@@ -7,7 +7,7 @@
 *
 """
 import sys
-from typing import Any, Optional
+from typing import Any
 
 try:
     from ..helpers.logging import log
@@ -39,7 +39,7 @@ _id_of = id_of
 __all__ = ['aris_reader', 'get_text_size', '_id_of', 'id_of']
 
 
-def aris_reader(model: Model, root: Any, reader: Optional[Any] = None,
+def aris_reader(model: Model, root: Any,
                 scale_x: float = 0.3, scale_y: float = 0.3, no_view: bool = False) -> None:
     """
     Class to perform the parsing of ARIS AML data and to generate an Archimate model

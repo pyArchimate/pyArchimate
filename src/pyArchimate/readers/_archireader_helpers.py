@@ -140,9 +140,12 @@ def _resolve_rel_endpoints(e: Any, model: Any) -> tuple[Any, Any] | None:
 def _parse_rel_attributes(elem: Any, e: Any) -> None:
     at = e.get('accessType')
     if at is not None:
-        elem.access_type = (AccessType.Read if at == "1"
-                            else AccessType.ReadWrite if at == "3"
-                            else AccessType.Access)
+        if at == "1":
+            elem.access_type = AccessType.Read
+        elif at == "3":
+            elem.access_type = AccessType.ReadWrite
+        else:
+            elem.access_type = AccessType.Access
     else:
         elem.access_type = AccessType.Write
     if e.get('directed') is not None:
