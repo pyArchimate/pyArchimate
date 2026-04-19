@@ -31,6 +31,8 @@ except ImportError:
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
+_NS_ITEM = 'ns:item'
+
 
 def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
     """
@@ -166,16 +168,16 @@ def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
             labels = k.split('/')
             item = orgs
             for label in labels[1:-1]:
-                if item.find('ns:item', ns_find) is None:
+                if item.find(_NS_ITEM, ns_find) is None:
                     item = et.SubElement(item, 'item')
                 else:
-                    item = _cast(_Element, item.find('ns:item', ns_find))
+                    item = _cast(_Element, item.find(_NS_ITEM, ns_find))
                 lbl = et.SubElement(item, 'label')
                 lbl.text = label
-            if item.find('ns:item', ns_find) is None:
+            if item.find(_NS_ITEM, ns_find) is None:
                 item = et.SubElement(item, 'item')
             else:
-                item = _cast(_Element, item.find('ns:item', ns_find))
+                item = _cast(_Element, item.find(_NS_ITEM, ns_find))
             label = labels[-1:][0]
             lbl = et.SubElement(item, 'label')
             lbl.text = label
