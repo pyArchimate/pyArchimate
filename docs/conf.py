@@ -32,6 +32,13 @@ exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
 
 root_doc = 'index'
 
+# Suppress "more than one target found for cross-reference" warnings.
+# These arise because pyArchimate.pyArchimate re-exports every public symbol,
+# causing Sphinx to see duplicate targets (e.g. pyArchimate.model.Model and
+# pyArchimate.pyArchimate.Model).  The individual module pages are canonical;
+# the shim page is an additional convenience entry point.
+suppress_warnings = ['ref.python']
+
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

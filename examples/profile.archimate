@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="My Model" id="id-2b0c639b388044d09709ceaaadbcf40f" version="5.0.0">
+  <folder name="Strategy" id="id-272a4c13554e447b92d42e31f65bc44f" type="strategy"/>
+  <folder name="Business" id="id-8c33ec1ffd8d43db8c4b5904e67fa3bd" type="business">
+    <element xsi:type="archimate:BusinessActor" name="Eric" id="id-0718eb79d0334ce6a027fe941abc1f93" profiles="id-c68a6000efea4577948a129fac7821b8"/>
+    <element xsi:type="archimate:BusinessFunction" name="Son lui même" id="id-6a1aa2303db240328489e78893c16330"/>
+  </folder>
+  <folder name="Application" id="id-e362d4339dcf4358ba7b7d8c880ab05c" type="application">
+    <element xsi:type="archimate:ApplicationService" name="Application Service" id="id-f5d8f6f2e1c64a6c81428893d3e723e4" profiles="id-51fe1b6603724af4b391d1980399df41"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Application Component" id="id-81abffaa0c97461a976cf57d7be40138"/>
+  </folder>
+  <folder name="Technology" id="id-c9ffba78ca0f4b3aaeaee8c950276e18" type="technology"/>
+  <folder name="Motivation" id="id-ae7b775134df4abc8445fa92291d8d24" type="motivation"/>
+  <folder name="Implementation" id="id-83b1f449677b47c682f8978c8dfcc50e" type="implementation_migration"/>
+  <folder name="Other" id="id-24204e676f3c43afa358dcf6d8dd0519" type="other"/>
+  <folder name="Relations" id="id-2b5213a1f64341e89316d04a85e4b0fd" type="relations">
+    <element xsi:type="archimate:ServingRelationship" name="Serves" id="id-12e4dd7a334f48cf94b91d64b9a4b775" source="id-81abffaa0c97461a976cf57d7be40138" target="id-f5d8f6f2e1c64a6c81428893d3e723e4"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-c4679f0f7de24575b77366a82249ad56" source="id-0718eb79d0334ce6a027fe941abc1f93" target="id-6a1aa2303db240328489e78893c16330"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-2573f79cab924dfd8783c27fe459a481" source="id-6a1aa2303db240328489e78893c16330" target="id-0718eb79d0334ce6a027fe941abc1f93"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-917ad6811ea2463c850425209baaf1fd" profiles="id-b0615108615441618340fa5b6344b2ca" source="id-0718eb79d0334ce6a027fe941abc1f93" target="id-6a1aa2303db240328489e78893c16330"/>
+  </folder>
+  <folder name="Views" id="id-3e377b6997d443fc841551aff65a39eb" type="diagrams">
+    <element xsi:type="archimate:ArchimateDiagramModel" name="view 1" id="id-543f1ed016a648a69ea001376af24ca9">
+      <child xsi:type="archimate:DiagramObject" id="id-c5561c0d7981490ba184870a75c97d4e" targetConnections="id-b1253e05ae7f44cb895780ec95bad4b9" archimateElement="id-0718eb79d0334ce6a027fe941abc1f93">
+        <bounds x="192" y="108" width="193" height="121"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-4c4b14dc022c43fe919169f5e3f1c424" source="id-c5561c0d7981490ba184870a75c97d4e" target="id-8505e8cf424a41e49e1142b694c65108" archimateRelationship="id-c4679f0f7de24575b77366a82249ad56"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-3d99d226d4a54b1b974fbf354c230ee3" source="id-c5561c0d7981490ba184870a75c97d4e" target="id-8505e8cf424a41e49e1142b694c65108" archimateRelationship="id-917ad6811ea2463c850425209baaf1fd">
+          <bendpoint startX="174" startY="4" endX="-137" endY="13"/>
+        </sourceConnection>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-fcdc9cc0ed2e472fa645f7ae4a6af506" archimateElement="id-f5d8f6f2e1c64a6c81428893d3e723e4">
+        <bounds x="180" y="288" width="120" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-8505e8cf424a41e49e1142b694c65108" targetConnections="id-4c4b14dc022c43fe919169f5e3f1c424 id-3d99d226d4a54b1b974fbf354c230ee3" archimateElement="id-6a1aa2303db240328489e78893c16330">
+        <bounds x="540" y="132" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-b1253e05ae7f44cb895780ec95bad4b9" source="id-8505e8cf424a41e49e1142b694c65108" target="id-c5561c0d7981490ba184870a75c97d4e" archimateRelationship="id-2573f79cab924dfd8783c27fe459a481">
+          <bendpoint startX="-137" startY="-13" endX="174" endY="-22"/>
+        </sourceConnection>
+      </child>
+    </element>
+  </folder>
+  <property key="author" value="X. Mayeur"/>
+  <property key="version" value="1.0.0"/>
+  <profile name="Specialization AS1" id="id-51fe1b6603724af4b391d1980399df41" conceptType="ApplicationService"/>
+  <profile name="Specialization on business actor" id="id-c68a6000efea4577948a129fac7821b8" conceptType="BusinessActor"/>
+  <profile name="Specialization AS2" id="id-fc04b834c3cc447d989fd063f36c8ef5" conceptType="ApplicationService"/>
+  <profile name="Specialization on assignment relationship" id="id-b0615108615441618340fa5b6344b2ca" conceptType="AssignmentRelationship"/>
+</archimate:model>

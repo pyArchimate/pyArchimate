@@ -1,0 +1,39 @@
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd"
+       identifier="id-a84d2455d48c44a2847b3407e270599f">
+    <name>test</name>
+    <elements>
+        <element identifier="id-ff87a772e9ce4ba291cfa09bd36b3f2e" xsi:type="ApplicationComponent">
+            <name>C1</name>
+        </element>
+        <element identifier="id-c7b37cf3a8ce4e4bbeaa9720a9e1e20f" xsi:type="BusinessObject">
+            <name>O</name>
+        </element>
+    </elements>
+    <relationships>
+        <relationship identifier="id-90dfe5f9889a4302a344aecfd71704e2" source="id-ff87a772e9ce4ba291cfa09bd36b3f2e"
+                      target="id-c7b37cf3a8ce4e4bbeaa9720a9e1e20f" xsi:type="Access" accessType="Read">
+            <name>relationship!</name>
+            <properties>
+                <property propertyDefinitionRef="propid-1">
+                    <value>relationship!</value>
+                </property>
+            </properties>
+        </relationship>
+    </relationships>
+    <organizations>
+        <item>
+            <label>Application</label>
+            <item identifierRef="id-ff87a772e9ce4ba291cfa09bd36b3f2e"/>
+        </item>
+        <item>
+            <label>Business</label>
+            <item identifierRef="id-c7b37cf3a8ce4e4bbeaa9720a9e1e20f"/>
+        </item>
+    </organizations>
+    <propertyDefinitions>
+        <propertyDefinition identifier="propid-1" type="string">
+            <name>Identifier</name>
+        </propertyDefinition>
+    </propertyDefinitions>
+</model>
