@@ -58,7 +58,7 @@ def _get_folder(folders: dict[str, _Element], folder_str: str) -> _Element:
 def _resolve_folder_path(obj_folder: str | None, cat: str) -> str:
     if obj_folder is None:
         return '/' + cat
-    if '/' + cat == obj_folder[:len(cat) + 1]:
+    if obj_folder.startswith('/' + cat):
         return obj_folder
     return '/' + cat + obj_folder
 
