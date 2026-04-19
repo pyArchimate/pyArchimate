@@ -1,7 +1,7 @@
 import os
 import sys
 from collections import defaultdict
-from typing import Optional
+from typing import Callable, Optional
 from typing import cast as _cast
 
 from lxml import etree as et
@@ -33,64 +33,28 @@ __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 
 _NS_ITEM = 'ns:item'
 
+_GetPropId = Callable[[str], str]
 
-def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
-    """
-    Method to generate an Archimate XML Open Exchange File format structure as a string object
 
-    Used by Model.write(filepath) method
+def _get_prop_def_id(model: Model, k: str) -> str:
+    id_list = [x for x, y in model.pdefs.items() if y == k]
+    if len(id_list) == 0:
+        prop_id: str = 'propid-' + str(len(model.pdefs) + 1)
+        model.pdefs[prop_id] = k
+        return prop_id
+    return str(id_list[0])
 
-    """
-    # Basic model structure
-    # Attribute starting with '@' are XML attributes, other are tags
-    # Note that the order of the tags may be important, so those ones are defined by default
-    # and removed afterward if empty (e.g. documentation or property tags)
-    xml = b"""<?xml version="1.0" encoding="utf-8"?>
-    <model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd" identifier="id-a84d2455d48c44a2847b3407e270599f">
-    </model>
-    """
 
-    tree = et.fromstring(xml)
-    root = tree
-    nsp_url = 'http://www.opengroup.org/xsd/archimate/3.0/'
-    xsi_url = 'http://www.w3.org/2001/XMLSchema-instance'
-    xsi = et.QName(xsi_url, 'type')
-    ns_find: dict[str, str] = {'ns': nsp_url}
+def _write_properties(parent: _Element, props: dict[str, object], model: Model) -> None:
+    pp = et.SubElement(parent, 'properties')
+    for k, v in props.items():
+        prop_id = _get_prop_def_id(model, k)
+        p = et.SubElement(pp, 'property', propertyDefinitionRef=prop_id)
+        pv = et.SubElement(p, 'value')
+        pv.text = str(v)
 
-    name = et.SubElement(root, 'name')
-    name.text = model.name if model.name is not None else 'Archimate Model'
 
-    def _get_prop_def_id(k):
-        """
-        Get the property definition id for the provided key, or create a new one
-
-        :param k: key to map
-        :type k: str
-        :return: propertydek id
-        """
-        id_list = [x for x, y in model.pdefs.items() if y == k]
-        if len(id_list) == 0:
-            id: str = 'propid-' + str(len(model.pdefs) + 1)
-            model.pdefs[id] = k
-        else:
-            id = id_list[0]
-        return id
-
-    # Get Model documentation
-    if model.desc is not None:
-        doc = et.SubElement(root, 'documentation')
-        doc.text = model.desc
-
-    # get model properties
-    if model.props != {}:
-        view_props = et.SubElement(root, 'properties')
-        for k, v in model.props.items():
-            id = _get_prop_def_id(k)
-            p = et.SubElement(view_props, 'property', propertyDefinitionRef=id)
-            pv = et.SubElement(p, 'value')
-            pv.text = str(v)
-
-    # Add all Elements
+def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
     elems = et.SubElement(root, 'elements')
     for e in model.elements:
         cat = archi_category[e.type].split('-')[0]
@@ -109,19 +73,15 @@ def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
         if e.desc is not None and e.desc != '':
             e_desc = et.SubElement(elem, 'documentation')
             e_desc.text = e.desc
-        if e.props != {}:
-            pp = et.SubElement(elem, 'properties')
-            for k, v in e.props.items():
-                id = _get_prop_def_id(k)
-                p = et.SubElement(pp, 'property', propertyDefinitionRef=id)
-                pv = et.SubElement(p, 'value')
-                pv.text = str(v)
+        if e.props:
+            _write_properties(elem, e.props, model)
 
-    # Add all relationships
-    elems = et.SubElement(root, 'relationships')
+
+def _write_relationships(root: _Element, model: Model, xsi: et.QName) -> None:
+    rels = et.SubElement(root, 'relationships')
     for e in model.relationships:
         assert e.source is not None and e.target is not None
-        elem = et.SubElement(elems, 'relationship', {
+        elem = et.SubElement(rels, 'relationship', {
             'identifier': e.uuid,
             'source': e.source.uuid,
             'target': e.target.uuid,
@@ -139,19 +99,12 @@ def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
         if e.desc is not None:
             e_desc = et.SubElement(elem, 'documentation')
             e_desc.text = e.desc
-        if len(e.props.keys()) > 0:
-            pp = et.SubElement(elem, 'properties')
-            for k, v in e.props.items():
-                id = _get_prop_def_id(k)
-                if len(id) == 0:
-                    id = 'propid-' + str(len(model.pdefs) + 1)
-                    model.pdefs[id] = k
-                p = et.SubElement(pp, 'property', propertyDefinitionRef=id)
-                pv = et.SubElement(p, 'value')
-                pv.text = str(v)
+        if e.props:
+            _write_properties(elem, e.props, model)
 
-    # get model organization
-    orgs_dict = defaultdict(list)
+
+def _write_organizations(root: _Element, model: Model, ns_find: dict[str, str]) -> None:
+    orgs_dict: dict[str, list[str]] = defaultdict(list)
     for e in model.elements:
         if e.folder is not None:
             orgs_dict[e.folder].append(e.uuid)
@@ -161,198 +114,207 @@ def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
     for v in model.views:
         if v.folder is not None:
             orgs_dict[v.folder].append(v.uuid)
-    if orgs_dict is not None:
-        keys = sorted(orgs_dict.keys())
-        orgs = et.SubElement(root, 'organizations')
-        for k in keys:
-            labels = k.split('/')
-            item = orgs
-            for label in labels[1:-1]:
-                if item.find(_NS_ITEM, ns_find) is None:
-                    item = et.SubElement(item, 'item')
-                else:
-                    item = _cast(_Element, item.find(_NS_ITEM, ns_find))
-                lbl = et.SubElement(item, 'label')
-                lbl.text = label
+    keys = sorted(orgs_dict.keys())
+    orgs = et.SubElement(root, 'organizations')
+    for k in keys:
+        labels = k.split('/')
+        item = orgs
+        for label in labels[1:-1]:
             if item.find(_NS_ITEM, ns_find) is None:
                 item = et.SubElement(item, 'item')
             else:
                 item = _cast(_Element, item.find(_NS_ITEM, ns_find))
-            label = labels[-1:][0]
             lbl = et.SubElement(item, 'label')
             lbl.text = label
-            for i in orgs_dict[k]:
-                et.SubElement(item, 'item', identifierRef=i)
+        if item.find(_NS_ITEM, ns_find) is None:
+            item = et.SubElement(item, 'item')
+        else:
+            item = _cast(_Element, item.find(_NS_ITEM, ns_find))
+        label_text = labels[-1:][0]
+        lbl = et.SubElement(item, 'label')
+        lbl.text = label_text
+        for i in orgs_dict[k]:
+            et.SubElement(item, 'item', identifierRef=i)
 
-    # Set Propertydefs
+
+def _write_node_style(n_elem: _Element, n: Node) -> None:
+    style = et.SubElement(n_elem, 'style')
+    if n.line_color is not None:
+        lc = et.SubElement(style, 'lineColor')
+        rgb = RGBA()
+        rgb.color = n.line_color
+        lc.set('r', str(rgb.r))
+        lc.set('g', str(rgb.g))
+        lc.set('b', str(rgb.b))
+        lc.set('a', '100' if n.opacity is None else str(n.lc_opacity))
+    if n.fill_color is not None:
+        if n.fill_color != default_color(n.type or '', default_theme):
+            fc = et.SubElement(style, 'fillColor')
+            rgb = RGBA()
+            rgb.color = n.fill_color
+            fc.set('r', str(rgb.r))
+            fc.set('g', str(rgb.g))
+            fc.set('b', str(rgb.b))
+            fc.set('a', '100' if n.opacity is None else str(n.opacity))
+    if n.font_name is not None:
+        ft = et.SubElement(style, 'font', attrib={
+            'name': n.font_name,
+            'size': str(n.font_size)
+        })
+        rgb = RGBA()
+        ftc = et.SubElement(ft, 'color')
+        rgb.color = n.font_color
+        ftc.set('r', str(rgb.r))
+        ftc.set('g', str(rgb.g))
+        ftc.set('b', str(rgb.b))
+
+
+def _add_node(parent: _Element, n: Node, xsi: et.QName) -> None:
+    if n.cat == 'Element':
+        n_elem = et.SubElement(parent, 'node', attrib={
+            'identifier': n.uuid,
+            'elementRef': n.ref or '',
+            str(xsi): n.cat,
+            'x': str(n.x),
+            'y': str(n.y),
+            'w': str(n.w),
+            'h': str(n.h)
+        })
+    else:
+        n_elem = et.SubElement(parent, 'node', attrib={
+            'identifier': n.uuid,
+            str(xsi): n.cat,
+            'x': str(n.x),
+            'y': str(n.y),
+            'w': str(n.w),
+            'h': str(n.h)
+        })
+        lbl = et.SubElement(n_elem, 'label')
+        lbl.text = n.label
+    _write_node_style(n_elem, n)
+    if n.cat == 'Model':
+        et.SubElement(n_elem, 'viewRef', ref=n.ref or '')
+        n_elem.set(str(xsi), 'Label')
+    for sub_n in n.nodes:
+        _add_node(n_elem, sub_n, xsi)
+
+
+def _write_connections(view_elem: _Element, _v: object, xsi: et.QName) -> None:
+    for c in _v.conns:  # type: ignore[attr-defined]
+        assert c.source is not None and c.target is not None
+
+        def _is_embedded(n1: Node, n2: Node) -> bool:
+            return bool((n1.x < n2.x < n1.x + n1.w) and (n1.y < n2.y < n1.y + n1.h))
+
+        if _is_embedded(c.source, c.target) or _is_embedded(c.target, c.source):
+            continue
+        c_elem = et.SubElement(view_elem, 'connection', attrib={
+            'identifier': c.uuid,
+            'relationshipRef': c.ref,
+            str(xsi): 'Relationship',
+            'source': c.source.uuid,
+            'target': c.target.uuid
+        })
+        style = et.SubElement(c_elem, 'style')
+        if c.line_width is not None:
+            style.set('lineWidth', str(c.line_width))
+        if c.line_color is not None:
+            if c.line_color != default_color(c.type, default_theme):
+                lc = et.SubElement(style, 'lineColor')
+                rgb = RGBA()
+                rgb.color = c.line_color
+                lc.set('r', str(rgb.r))
+                lc.set('g', str(rgb.g))
+                lc.set('b', str(rgb.b))
+        if c.font_name is not None:
+            ft = et.SubElement(style, 'font', attrib={
+                'name': c.font_name,
+                'size': str(c.font_size)
+            })
+            rgb = RGBA()
+            ftc = et.SubElement(ft, 'color')
+            rgb.color = c.font_color
+            ftc.set('r', str(rgb.r))
+            ftc.set('g', str(rgb.g))
+            ftc.set('b', str(rgb.b))
+        for bp in c.get_all_bendpoints():
+            et.SubElement(c_elem, 'bendpoint', x=str(bp.x), y=str(bp.y))
+
+
+def _write_views(root: _Element, model: Model, xsi: et.QName, ns_find: dict[str, str]) -> None:
+    if not model.views:
+        return
+    views = et.SubElement(root, 'views')
+    diag = et.SubElement(views, 'diagrams')
+    for _v in model.views:
+        view_elem = et.SubElement(diag, 'view', attrib={
+            'identifier': _v.uuid,
+            str(xsi): 'Diagram'
+        })
+        if _v.name is not None:
+            v_name = et.SubElement(view_elem, 'name')
+            v_name.text = _v.name
+        if _v.desc is not None:
+            doc = et.SubElement(view_elem, 'documentation')
+            doc.text = _v.desc
+        if _v.props:
+            _write_properties(view_elem, _v.props, model)
+        for _n in _v.nodes:
+            _add_node(view_elem, _n, xsi)
+        _write_connections(view_elem, _v, xsi)
+
+
+def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
+    """
+    Method to generate an Archimate XML Open Exchange File format structure as a string object
+
+    Used by Model.write(filepath) method
+
+    """
+    xml = b"""<?xml version="1.0" encoding="utf-8"?>
+    <model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd" identifier="id-a84d2455d48c44a2847b3407e270599f">
+    </model>
+    """
+
+    root = et.fromstring(xml)
+    nsp_url = 'http://www.opengroup.org/xsd/archimate/3.0/'
+    xsi_url = 'http://www.w3.org/2001/XMLSchema-instance'
+    xsi = et.QName(xsi_url, 'type')
+    ns_find: dict[str, str] = {'ns': nsp_url}
+
+    name = et.SubElement(root, 'name')
+    name.text = model.name if model.name is not None else 'Archimate Model'
+
+    if model.desc is not None:
+        doc = et.SubElement(root, 'documentation')
+        doc.text = model.desc
+
+    if model.props:
+        _write_properties(root, model.props, model)
+
+    _write_elements(root, model, xsi)
+    _write_relationships(root, model, xsi)
+    _write_organizations(root, model, ns_find)
+
     pd = et.SubElement(root, 'propertyDefinitions')
     for k, v in model.pdefs.items():
         p = et.SubElement(pd, 'propertyDefinition', identifier=k, type='string')
         p_name = et.SubElement(p, 'name')
         p_name.text = str(v)
 
-    # Add all views
-    if len(model.views) > 0:
-        views = et.SubElement(root, 'views')
-        diag = et.SubElement(views, 'diagrams')
+    _write_views(root, model, xsi, ns_find)
 
-        # Add each view
-        for _v in model.views:
-
-            view = et.SubElement(diag, 'view', attrib={
-                'identifier': _v.uuid,
-                str(xsi): 'Diagram'
-            })
-
-            if _v.name is not None:
-                v_name = et.SubElement(view, 'name')
-                v_name.text = _v.name
-
-            # Get Model documentation
-            if _v.desc is not None:
-                doc = et.SubElement(view, 'documentation')
-                doc.text = _v.desc
-
-            # get view properties
-            if _v.props != {}:
-                pp = et.SubElement(view, 'properties')
-                for k, v in _v.props.items():
-                    id = _get_prop_def_id(k)
-                    p = et.SubElement(pp, 'property', propertyDefinitionRef=id)
-                    pv = et.SubElement(p, 'value')
-                    pv.text = str(v)
-
-            def _add_node(parent: _Element, n: Node) -> None:
-                """
-                Local function to add nodes in xml view structure
-
-                :param n: Node object
-                :return: xml data structure
-                """
-                if n.cat == 'Element':
-                    n_elem = et.SubElement(parent, 'node', attrib={
-                        'identifier': n.uuid,
-                        'elementRef': n.ref or '',
-                        str(xsi): n.cat,
-                        'x': str(n.x),
-                        'y': str(n.y),
-                        'w': str(n.w),
-                        'h': str(n.h)
-                    })
-                else:
-                    n_elem = et.SubElement(parent, 'node', attrib={
-                        'identifier': n.uuid,
-                        str(xsi): n.cat,
-                        'x': str(n.x),
-                        'y': str(n.y),
-                        'w': str(n.w),
-                        'h': str(n.h)
-                    })
-                    lbl = et.SubElement(n_elem, 'label')
-                    lbl.text = n.label
-
-                style = et.SubElement(n_elem, 'style')
-                if n.line_color is not None:
-                    lc = et.SubElement(style, 'lineColor')
-                    rgb = RGBA()
-                    rgb.color = n.line_color
-                    lc.set('r', str(rgb.r))
-                    lc.set('g', str(rgb.g))
-                    lc.set('b', str(rgb.b))
-                    lc.set('a', '100' if n.opacity is None else str(n.lc_opacity))
-                if n.fill_color is not None:
-                    if n.fill_color != default_color(n.type or '', default_theme):
-                        fc = et.SubElement(style, 'fillColor')
-                        rgb = RGBA()
-                        rgb.color = n.fill_color
-                        fc.set('r', str(rgb.r))
-                        fc.set('g', str(rgb.g))
-                        fc.set('b', str(rgb.b))
-                        fc.set('a', '100' if n.opacity is None else str(n.opacity))
-                if n.font_name is not None:
-                    ft = et.SubElement(style, 'font', attrib={
-                        'name': n.font_name,
-                        'size': str(n.font_size)
-                    })
-                    rgb = RGBA()
-                    ftc = et.SubElement(ft, 'color')
-                    rgb.color = n.font_color
-                    ftc.set('r', str(rgb.r))
-                    ftc.set('g', str(rgb.g))
-                    ftc.set('b', str(rgb.b))
-
-                if n.cat == 'Model':
-                    et.SubElement(n_elem, 'viewRef', ref=n.ref or '')
-                    n_elem.set(str(xsi), 'Label')
-                # recurse in embedded nodes if any
-                for sub_n in n.nodes:
-                    _add_node(n_elem, sub_n)
-
-            # Add nodes in view xml structure
-            for _n in _v.nodes:
-                _add_node(view, _n)
-
-            # Add Connections
-            for c in _v.conns:
-                def is_embedded(n1: Node, n2: Node) -> bool:
-                    """
-                    Define whether n2 is embedded into n1
-                    :param n1: a Node object
-                    :param n2: another Node object
-                    :return: True is n2 is embedded into n1
-                    """
-                    return bool((n1.x < n2.x < n1.x + n1.w) and (n1.y < n2.y < n1.y + n1.h))
-
-                assert c.source is not None and c.target is not None
-                if is_embedded(c.source, c.target) or is_embedded(c.target, c.source):
-                    continue
-                c_elem = et.SubElement(view, 'connection', attrib={
-                    'identifier': c.uuid,
-                    'relationshipRef': c.ref,
-                    str(xsi): 'Relationship',
-                    'source': c.source.uuid,
-                    'target': c.target.uuid
-                })
-
-                style = et.SubElement(c_elem, 'style')
-                if c.line_width is not None:
-                    style.set('lineWidth', str(c.line_width))
-                if c.line_color is not None:
-                    if c.line_color != default_color(c.type, default_theme):
-                        lc = et.SubElement(style, 'lineColor')
-                        rgb = RGBA()
-                        rgb.color = c.line_color
-                        lc.set('r', str(rgb.r))
-                        lc.set('g', str(rgb.g))
-                        lc.set('b', str(rgb.b))
-                if c.font_name is not None:
-                    ft = et.SubElement(style, 'font', attrib={
-                        'name': c.font_name,
-                        'size': str(c.font_size)
-                    })
-                    rgb = RGBA()
-                    ftc = et.SubElement(ft, 'color')
-                    rgb.color = c.font_color
-                    ftc.set('r', str(rgb.r))
-                    ftc.set('g', str(rgb.g))
-                    ftc.set('b', str(rgb.b))
-                # Add bendpoints
-                for bp in c.get_all_bendpoints():
-                    et.SubElement(c_elem, 'bendpoint', x=str(bp.x), y=str(bp.y))
-
-    # suppress empty propertydef
     pd_check = root.find('propertyDefinitions')
     if pd_check is not None and pd_check.find('propertyDefinition') is None:
         root.remove(pd_check)
-    # Convert the xml structure into XML string data
+
     xml_str = et.tostring(root, encoding='UTF-8', pretty_print=True)
 
     if file_path is not None:
-        if file_path is not None:
-            try:
-                with open(file_path, 'wb') as fd:
-                    fd.write(xml_str)
-            except IOError:
-                log.error(f'{__mod__}.write: Cannot write to file "{file_path}')
+        try:
+            with open(file_path, 'wb') as fd:
+                fd.write(xml_str)
+        except IOError:
+            log.error(f'{__mod__}.write: Cannot write to file "{file_path}')
 
     return xml_str.decode()
