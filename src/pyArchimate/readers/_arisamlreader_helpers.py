@@ -35,13 +35,15 @@ _POS_Y = 'Pos.Y'
 _NOT_A_VIEW = "'view' is not an instance of class 'View'"
 
 
+_FONT_SEARCH_PATHS = [
+    'DejaVuSans.ttf',                          # Linux (DejaVu installed)
+    '/System/Library/Fonts/Helvetica.ttc',     # macOS system font
+    '/Library/Fonts/Arial.ttf',                # macOS optional font
+]
+
+
 def get_text_size(text: str, points: int, font: str) -> tuple[float, float]:
-    if platform.system() == 'Linux':
-        from PIL import ImageFont
-        fnt = ImageFont.truetype('DejaVuSans.ttf', points)
-        bbox = fnt.getbbox(text)
-        return bbox[2] - bbox[0], bbox[3] - bbox[1]
-    else:
+    if platform.system() == 'Windows':
         class SIZE(ctypes.Structure):
             _fields_ = [("cx", ctypes.c_long), ("cy", ctypes.c_long)]
 
@@ -55,6 +57,17 @@ def get_text_size(text: str, points: int, font: str) -> tuple[float, float]:
         ctypes.windll.gdi32.SelectObject(hdc, hfont_old)  # type: ignore[attr-defined]
         ctypes.windll.gdi32.DeleteObject(hfont)  # type: ignore[attr-defined]
         return size.cx, size.cy
+    else:
+        from PIL import ImageFont
+        for path in _FONT_SEARCH_PATHS:
+            try:
+                fnt = ImageFont.truetype(path, points)
+                bbox = fnt.getbbox(text)
+                return bbox[2] - bbox[0], bbox[3] - bbox[1]
+            except (IOError, OSError):
+                continue
+        # Fallback: approximate with a character-count heuristic
+        return len(text) * points * 0.6, float(points)
 
 
 def id_of(_id: str) -> str:

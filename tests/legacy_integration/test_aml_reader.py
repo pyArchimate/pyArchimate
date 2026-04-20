@@ -5,8 +5,6 @@ import pytest
 
 from src.pyArchimate.constants import ARIS_TYPE_MAP  # Import the ARIS_TYPE_MAP
 from src.pyArchimate.pyArchimate import Model
-from src.pyArchimate.readers.arisAMLreader import aris_reader
-
 
 def test_aris_aml_reader(tmp_path: Path):
     fixtures_dir = Path(__file__).parent.with_name("fixtures")
@@ -16,7 +14,7 @@ def test_aris_aml_reader(tmp_path: Path):
 
     # Create a new model and read the ARIS AML file
     model = Model("imported_aris_model")
-    model.read(str(aml_file), reader=aris_reader)
+    model.read(str(aml_file))
 
     # --- Assertions for Model ---
     assert model.name == "imported_aris_model"
