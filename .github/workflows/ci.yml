@@ -43,8 +43,7 @@ jobs:
         run: poetry install --no-interaction
 
       - name: Run pytest
-        # Override cache-dir to avoid the Unix-only /tmp path set in pyproject.toml
-        run: poetry run pytest --cache-dir=.pytest_cache
+        run: poetry run pytest
 
       - name: Run behave
         run: poetry run behave tests/features/
