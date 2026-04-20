@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.0'
+
+jobs:
+  # ── Gate: run tests on ubuntu before publishing ──────────────────────────
+  test:
+    name: Test gate (ubuntu, Python 3.12)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache virtualenv
+        uses: actions/cache@v5
+        with:
+          path: .venv
+          key: venv-ubuntu-py3.12-${{ hashFiles('poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run pytest
+        run: poetry run pytest
+
+      - name: Run behave
+        run: poetry run behave tests/features/
+
+  # ── Build & publish to PyPI ───────────────────────────────────────────────
+  publish:
+    name: Build and publish to PyPI
+    needs: test
+    runs-on: ubuntu-latest
+
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pyArchimate
+
+    permissions:
+      id-token: write   # required for OIDC trusted publishing
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Sync version from tag
+        # Tag v1.2.0 → package version 1.2.0
+        run: poetry version "${GITHUB_REF_NAME#v}"
+
+      - name: Build sdist and wheel
+        run: poetry build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
