@@ -1,5 +1,7 @@
 # pyArchimate package
 
+[![test](https://github.com/pyArchimate/pyArchimate/actions/workflows/ci.yml/badge.svg)](https://github.com/pyArchimate/pyArchimate/actions/workflows/ci.yml)
+
 Package: [PyPI.org](https://pypi.org/project/pyArchimate/0.9.64/)
 
 Documentation: [readthedocs.org](https://pyarchimate.readthedocs.io)
