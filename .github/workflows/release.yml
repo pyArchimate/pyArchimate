@@ -14,6 +14,8 @@ jobs:
   test:
     name: Test gate (ubuntu, Python 3.12)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v6
