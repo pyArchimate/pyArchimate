@@ -381,3 +381,26 @@ def test_relationship_target_is_relationship():
     # Association from c to rel1 (relationship as target)
     rel2 = m.add_relationship(ArchiType.Association, source=c.uuid, target=rel1.uuid)
     assert rel2 is not None
+
+
+# ---------------------------------------------------------------------------
+# _resolve_and_validate_ref — lines 100, 103 (error branches)
+# ---------------------------------------------------------------------------
+
+from src.pyArchimate.relationship import _resolve_and_validate_ref
+
+
+def test_resolve_and_validate_ref_invalid_type_raises():
+    """Non-str, non-Element, non-uuid object raises ValueError (line 100)."""
+    m = Model('rr-invalid')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    b = m.add(ArchiType.ApplicationService, 'B')
+    with pytest.raises(ValueError, match="not an instance"):
+        _resolve_and_validate_ref(42, m.elems_dict, m.rels_dict, 'source')
+
+
+def test_resolve_and_validate_ref_unknown_uuid_raises():
+    """UUID string not present in elems_dict or rels_dict raises ValueError (line 103)."""
+    m = Model('rr-unknown')
+    with pytest.raises(ValueError, match="Invalid source"):
+        _resolve_and_validate_ref('id-deadbeef', m.elems_dict, m.rels_dict, 'source')

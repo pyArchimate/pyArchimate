@@ -475,3 +475,108 @@ def test_model_merge_unknown_xml_format_returns_none(tmp_path):
     xml_file.write_text('<Unrecognised><item/></Unrecognised>', encoding='utf-8')
     m = Model('merge-unknown')
     m.merge(str(xml_file))  # should not raise
+
+
+# ---------------------------------------------------------------------------
+# _matches_rel — fallthrough (line 37)
+# ---------------------------------------------------------------------------
+
+def test_matches_rel_no_match_returns_false():
+    """Relationship that is neither source nor target of elem returns nothing."""
+    m = Model('no-match')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    b = m.add(ArchiType.ApplicationService, 'B')
+    c = m.add(ArchiType.ApplicationComponent, 'C')
+    m.add_relationship(ArchiType.Serving, source=a, target=b)
+    # c is not involved in any relationship — list must be empty
+    result = m.find_relationships(None, c, direction='both')
+    assert result == []
+
+
+# ---------------------------------------------------------------------------
+# _find_props_block — edge cases (lines 54, 58-59)
+# ---------------------------------------------------------------------------
+
+from src.pyArchimate.model import _find_props_block, _strip_props_block  # noqa: E402
+
+
+def test_find_props_block_marker_no_brace_returns_none():
+    """Marker found but no '{' afterwards → line 54 continue."""
+    assert _find_props_block('properties = no_brace_here') is None
+
+
+def test_find_props_block_malformed_json_returns_none():
+    """Marker + brace found but JSON is malformed → line 58-59 pass."""
+    assert _find_props_block('properties = {not valid json}') is None
+
+
+def test_find_props_block_hash_prefix():
+    """'#properties={...}' variant is found."""
+    result = _find_props_block('#properties={"key": "val"}')
+    assert result is not None
+    _, _, parsed = result
+    assert parsed == {'key': 'val'}
+
+
+def test_strip_props_block_no_block_returns_original():
+    """Text without a block is returned unchanged."""
+    text = 'just some description'
+    assert _strip_props_block(text) == text
+
+
+# ---------------------------------------------------------------------------
+# _apply_rel_identity_props / _expand_relationship (lines 87-107)
+# ---------------------------------------------------------------------------
+
+def test_expand_props_relationship_with_embedded_json():
+    """Relationship with JSON in Identifier restores name and desc (lines 87-107)."""
+    import json as _json
+    m = Model('rel-expand')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    b = m.add(ArchiType.ApplicationService, 'B')
+    rel = m.add_relationship(ArchiType.Association, source=a, target=b)
+    # Manually place a JSON properties block in the Identifier prop
+    payload = _json.dumps({'name': 'restored-name', 'documentation': 'restored-doc'})
+    rel.prop('Identifier', f'properties = {payload}')
+    m.expand_props()
+    assert rel.name == 'restored-name'
+    assert rel.desc == 'restored-doc'
+
+
+def test_expand_props_relationship_is_directed():
+    """isDirected field is applied to Association relationship (line 92)."""
+    import json as _json
+    m = Model('rel-directed')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    b = m.add(ArchiType.ApplicationService, 'B')
+    rel = m.add_relationship(ArchiType.Association, source=a, target=b)
+    payload = _json.dumps({'isDirected': 'true'})
+    rel.prop('Identifier', f'properties = {payload}')
+    m.expand_props()
+    assert rel.is_directed is not None
+
+
+def test_expand_props_relationship_access_type():
+    """access field is applied to Access relationship (line 94)."""
+    import json as _json
+    m = Model('rel-access')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    b2 = m.add(ArchiType.DataObject, 'D')
+    rel = m.add_relationship(ArchiType.Access, source=a, target=b2)
+    payload = _json.dumps({'access': 'Read'})
+    rel.prop('Identifier', f'properties = {payload}')
+    m.expand_props()
+    assert rel.access_type == 'Read'
+
+
+def test_expand_props_relationship_influence_strength():
+    """influence_strength field is applied to Influence relationship (line 96)."""
+    import json as _json
+    m = Model('rel-influence')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    b = m.add(ArchiType.ApplicationService, 'B')
+    rel = m.add_relationship(ArchiType.Influence, source=a, target=b)
+    payload = _json.dumps({'influence_strength': '5'})
+    rel.prop('Identifier', f'properties = {payload}')
+    m.expand_props()
+    assert rel.influence_strength == '5'
