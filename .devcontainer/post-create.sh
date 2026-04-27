@@ -60,6 +60,12 @@ echo -e "\n🔒 Installing Snyk CLI..."
 run_command "npm install -g snyk@latest"
 echo "✅ Done"
 
+# Installing Git Hooks
+echo -e "\n🪝 Installing Git Hooks..."
+run_command "ln -sf ../../scripts/pre_commit_checks.sh .git/hooks/pre-commit"
+run_command "ln -sf ../../scripts/pre_push_checks.sh .git/hooks/pre-push"
+echo "✅ Done"
+
 echo -e "\n🧹 Cleaning cache..."
 run_command "sudo apt-get autoclean"
 run_command "sudo apt-get clean"
