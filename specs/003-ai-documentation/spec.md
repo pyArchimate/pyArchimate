@@ -5,6 +5,15 @@
 **Status**: Draft  
 **Input**: User description: "Create a baseline specification based on GitHub issue #27. The goal is to capture and integrate AI-generated documentation into the repository. Create a dedicated structured markdown file that covers the library's core purpose, architecture, and limitations. Ensure the documentation is optimized for AI consumption, linked from the README, and free of conversational artifacts. Develop a script to automate the generation of this documentation using AI tools, ensuring it can be easily updated as the library evolves. Include a tutorial for new users on how to utilize the library effectively, with examples and best practices."
 
+## Clarifications
+
+### Session 2026-04-27
+- Q: How should the generation script behave if the AI tool (claude code) produces malformed output or fails? → A: Stop and alert the user if output is malformed/invalid
+- Q: How should the generation script validate the "structural integrity" of the AI-generated AI.md? → A: Basic Markdown linting + check for mandatory headers
+- Q: What is the preferred implementation language for the generation script? → A: Python
+- Q: Should the generation script handle installation of its own dependencies? → A: Assume pre-configured environment (tools already in PATH)
+- Q: Should the tutorial's code examples be automatically verified for correctness? → A: Yes, examples should be mirrored in/verified by an automated test
+
 ## User Scenarios & Testing *(mandatory)*
 
 > **Note**: Automated tests (using `behave` for BDD scenarios and/or `pytest` for unit/integration tests) MUST be implemented to verify all User Stories and Measurable Outcomes defined in this specification.
@@ -77,6 +86,7 @@ A user browsing the repository's `README.md` finds a clearly marked link to `AI.
 - The generation script reads the working tree state of `docs/` and source files; uncommitted changes are reflected in the output. Maintainers should commit changes before regenerating `AI.md` for release purposes.
 - The tutorial targets the current stable release; users on older versions may encounter API differences. The tutorial MUST clearly state the minimum supported version at the top.
 - `AI.md` is fully overwritten on each regeneration run with no review step — the prior version is recoverable via git history.
+- **AI Tool Failure**: If the generation script fails or produces malformed output, it MUST NOT overwrite the existing `AI.md` and MUST notify the user with an error message.
 
 ## Requirements *(mandatory)*
 
@@ -89,10 +99,13 @@ A user browsing the repository's `README.md` finds a clearly marked link to `AI.
 - **FR-005**: The repository MUST contain a new user tutorial at `docs/tutorial.md` that covers loading, inspecting, modifying, and saving an ArchiMate model with complete, runnable code examples. The tutorial MUST state the minimum supported library version at the top.
 - **FR-006**: The tutorial MUST include best-practice guidance alongside the code examples (e.g., recommended patterns, common mistakes to avoid).
 - **FR-007**: A generation script MUST exist that produces or fully regenerates `AI.md` using AI-assisted tooling (assuming `claude code` as the execution environment), requiring only a single command invocation. The script MUST use the repository source files and the `docs/` folder as its input context.
-- **FR-008**: The generation script MUST be documented with instructions for maintainers on when and how to run it — specifically, it MUST be re-run whenever the `docs/` folder is updated to keep `AI.md` in sync.
+- **FR-008**: The generation script MUST be documented with instructions for maintainers on when and how to run it — specifically, it MUST be re-run whenever the `docs/` folder is updated to keep `AI.md` in sync. The documentation MUST list all prerequisites (e.g., Python version, `claude code` CLI) as the script assumes a pre-configured environment.
 - **FR-009**: `AI.md` MUST be version-controlled alongside the source code so it is always available without running any tooling.
 - **FR-010**: The generation script MUST NOT require credentials or API keys to be hard-coded; it MUST read them from environment variables or a standard configuration location.
 - **FR-011**: `AI.md` MUST accurately reflect the current content of the `docs/` folder; it is a derived artefact and MUST be regenerated after any significant documentation update.
+- **FR-012**: The generation script MUST validate the structural integrity of the generated content (specifically: valid Markdown syntax and presence of all mandatory sections: Summary, Overview, Core Purpose, Conceptual Model, Features, Use Cases, Strengths, Limitations) and MUST NOT overwrite `AI.md` if the AI process fails or produces invalid content.
+- **FR-013**: The generation script MUST be implemented in Python to ensure consistency with the library's codebase and existing developer tooling.
+- **FR-014**: All code examples provided in `docs/tutorial.md` MUST be automatically verified for correctness by a dedicated test (e.g., as part of the integration test suite) to prevent regression.
 
 ### Key Entities
 
