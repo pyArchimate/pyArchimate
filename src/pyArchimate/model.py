@@ -2,7 +2,6 @@
 
 import json
 import os
-import re
 import sys
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Optional
@@ -38,21 +37,50 @@ def _matches_rel(r: Any, rel_type: Optional[str], elem_uuid: str, wants_in: bool
     return False
 
 
+def _find_props_block(text: str) -> tuple[int, int, dict[str, Any]] | None:
+    """Locate the first embedded 'properties = {...}' block.
+
+    Uses json.JSONDecoder.raw_decode instead of a backtracking regex (S5852).
+    Returns (block_start, block_end, parsed_dict) or None.
+    """
+    for prefix in ('', '#'):
+        for sep in (' = ', '='):
+            marker = prefix + 'properties' + sep
+            idx = text.find(marker)
+            if idx == -1:
+                continue
+            brace = text.find('{', idx + len(marker))
+            if brace == -1:
+                continue
+            try:
+                parsed, length = json.JSONDecoder().raw_decode(text, brace)
+                return idx, brace + length, parsed
+            except json.JSONDecodeError:
+                pass
+    return None
+
+
+def _strip_props_block(text: str) -> str:
+    """Remove an embedded properties block from text."""
+    result = _find_props_block(text)
+    if result is None:
+        return text
+    start, end, _ = result
+    return (text[:start] + text[end:].lstrip(';')).strip()
+
+
 def _embed_object(o: Any, remove_props: bool) -> None:
     from .relationship import Relationship
     if isinstance(o, Relationship):
         if o.name is not None:
             o.prop('Identifier', o.name)
     elif o.props != {}:
-        desc = '' if o.desc is None else re.sub(_PROPS_PAT, '', o.desc, flags=re.DOTALL)
+        desc = '' if o.desc is None else _strip_props_block(o.desc)
         desc += desc.strip(' \n') + '\n\nproperties = ' + json.dumps(o.props, indent=2) + '\n'
         o.desc = desc
         if remove_props:
             for x in o.props.copy():
                 o.remove_prop(x)
-
-
-_PROPS_PAT = r'[#]*properties\s*=\s*(\{[\s\S]*\})[;]*'
 
 
 def _apply_rel_identity_props(o: Any, p: Any) -> None:
@@ -72,27 +100,26 @@ def _apply_rel_identity_props(o: Any, p: Any) -> None:
 
 def _expand_relationship(o: Any, clean_doc: bool) -> None:
     if o.prop('Identifier') is not None:
-        raw = o.prop('Identifier')
-        match = re.findall(_PROPS_PAT, str(raw), re.M)
-        if match:
-            p = json.loads(match[0])
+        result = _find_props_block(str(o.prop('Identifier')))
+        if result is not None:
+            _, _, p = result
             o.remove_prop('Identifier')
             _apply_rel_identity_props(o, p)
     if clean_doc:
-        o.desc = None if o.desc is None else re.sub(_PROPS_PAT, '', o.desc, flags=re.DOTALL)
+        o.desc = None if o.desc is None else _strip_props_block(o.desc)
 
 
 def _expand_element(o: Any, clean_doc: bool) -> None:
     if o.desc is None:
         return
-    match = re.findall(_PROPS_PAT, o.desc, re.M)
-    if len(match) == 1:
-        props = json.loads(match[0])
-        o.desc = re.sub(_PROPS_PAT, '', o.desc, flags=re.DOTALL).strip(' \n')
+    result = _find_props_block(o.desc)
+    if result is not None:
+        _, _, props = result
+        o.desc = _strip_props_block(o.desc)
         for key, val in props.items():
             o.prop(key, val)
     if clean_doc:
-        o.desc = None if o.desc is None else re.sub(_PROPS_PAT, '', o.desc, flags=re.DOTALL)
+        o.desc = None if o.desc is None else _strip_props_block(o.desc)
 
 
 def _expand_object(o: Any, clean_doc: bool) -> None:
