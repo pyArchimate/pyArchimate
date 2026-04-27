@@ -387,7 +387,156 @@ def test_relationship_target_is_relationship():
 # _resolve_and_validate_ref — lines 100, 103 (error branches)
 # ---------------------------------------------------------------------------
 
-from src.pyArchimate.relationship import _resolve_and_validate_ref
+from src.pyArchimate.relationship import _is_valid_uuid, _resolve_and_validate_ref
+
+
+# ---------------------------------------------------------------------------
+# _is_valid_uuid — ValueError branch (lines 27-28)
+# ---------------------------------------------------------------------------
+
+def test_is_valid_uuid_invalid_string_returns_false():
+    """Non-UUID string triggers UUID() ValueError and returns False."""
+    assert _is_valid_uuid('not-a-valid-uuid') is False
+
+
+# ---------------------------------------------------------------------------
+# get_default_rel_type — for-else fallback (line 126)
+# ---------------------------------------------------------------------------
+
+def test_get_default_rel_type_fallback_else_branch():
+    """Force the for-else branch via mocking: rels contains only non-preferred keys."""
+    from unittest.mock import patch
+    fake_allowed = {'ApplicationComponent': {'ApplicationService': ['f']}}
+    fake_keys = {'Flow': 'f'}
+    with patch('src.pyArchimate.relationship.ALLOWED_RELATIONSHIPS', fake_allowed), \
+         patch('src.pyArchimate.relationship.RELATIONSHIP_KEYS', fake_keys):
+        result = get_default_rel_type('ApplicationComponent', 'ApplicationService')
+    assert result == 'Flow'
+
+
+# ---------------------------------------------------------------------------
+# Relationship.__init__ — invalid parent (line 166)
+# ---------------------------------------------------------------------------
+
+def test_relationship_init_invalid_parent_raises():
+    """Parent without rels_dict raises ValueError."""
+    class FakeParent:
+        pass
+    with pytest.raises(ValueError, match='class Model instance'):
+        Relationship(parent=FakeParent())
+
+
+# ---------------------------------------------------------------------------
+# source property — return None for orphaned id (line 234)
+# ---------------------------------------------------------------------------
+
+def test_relationship_source_returns_none_for_orphaned_id(model_with_rel):
+    """When _source id is absent from both dicts, source returns None."""
+    _, _, _, rel = model_with_rel
+    rel._source = 'id-orphaned'
+    assert rel.source is None
+
+
+# ---------------------------------------------------------------------------
+# source setter — Element object path (line 253)
+# ---------------------------------------------------------------------------
+
+def test_relationship_source_setter_element_object(model_with_rel):
+    """Passing an Element object to source setter assigns its uuid."""
+    m, _, _, rel = model_with_rel
+    new_src = m.add(ArchiType.ApplicationComponent, 'DirectSrc')
+    rel.source = new_src
+    assert rel._source == new_src.uuid
+
+
+# ---------------------------------------------------------------------------
+# target property — rels_dict lookup (lines 266-267) and return None (line 268)
+# ---------------------------------------------------------------------------
+
+def test_relationship_target_in_rels_dict():
+    """target property returns the relationship object when target is in rels_dict."""
+    m = Model('tgt-rel')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    b = m.add(ArchiType.ApplicationService, 'B')
+    c = m.add(ArchiType.ApplicationComponent, 'C')
+    rel1 = m.add_relationship(ArchiType.Serving, source=a, target=b)
+    rel2 = m.add_relationship(ArchiType.Association, source=c.uuid, target=rel1.uuid)
+    assert rel2.target is rel1
+
+
+def test_relationship_target_returns_none_for_orphaned_id(model_with_rel):
+    """When _target id is absent from both dicts, target returns None."""
+    _, _, _, rel = model_with_rel
+    rel._target = 'id-orphaned'
+    assert rel.target is None
+
+
+# ---------------------------------------------------------------------------
+# target setter — Element object path (line 287)
+# ---------------------------------------------------------------------------
+
+def test_relationship_target_setter_element_object(model_with_rel):
+    """Passing an Element object to target setter assigns its uuid."""
+    m, _, _, rel = model_with_rel
+    new_dst = m.add(ArchiType.ApplicationService, 'DirectDst')
+    rel.target = new_dst
+    assert rel._target == new_dst.uuid
+
+
+# ---------------------------------------------------------------------------
+# props property getter (line 383)
+# ---------------------------------------------------------------------------
+
+def test_relationship_props_returns_dict(model_with_rel):
+    """props returns the internal properties dictionary."""
+    _, _, _, rel = model_with_rel
+    assert isinstance(rel.props, dict)
+
+
+# ---------------------------------------------------------------------------
+# access_type getter (line 422) and setter (lines 433-435)
+# ---------------------------------------------------------------------------
+
+def test_relationship_access_type_getter_unset():
+    """access_type getter returns None when not yet assigned."""
+    m = Model('ac-get')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    d = m.add(ArchiType.DataObject, 'D')
+    rel = m.add_relationship(ArchiType.Access, source=a, target=d)
+    assert rel.access_type is None
+
+
+def test_relationship_access_type_setter_on_access_rel():
+    """Setting access_type on an Access relationship stores the value."""
+    m = Model('ac-set')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    d = m.add(ArchiType.DataObject, 'D')
+    rel = m.add_relationship(ArchiType.Access, source=a, target=d)
+    rel.access_type = 'Write'
+    assert rel.access_type == 'Write'
+
+
+# ---------------------------------------------------------------------------
+# is_directed getter (line 445) and setter (lines 456-457)
+# ---------------------------------------------------------------------------
+
+def test_relationship_is_directed_getter_unset():
+    """is_directed getter returns None when not yet assigned."""
+    m = Model('dir-get')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    b = m.add(ArchiType.ApplicationService, 'B')
+    rel = m.add_relationship(ArchiType.Association, source=a, target=b)
+    assert rel.is_directed is None
+
+
+def test_relationship_is_directed_setter_on_association():
+    """Setting is_directed True on an Association relationship stores 'true'."""
+    m = Model('dir-set')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    b = m.add(ArchiType.ApplicationService, 'B')
+    rel = m.add_relationship(ArchiType.Association, source=a, target=b)
+    rel.is_directed = True
+    assert rel.is_directed == 'true'
 
 
 def test_resolve_and_validate_ref_invalid_type_raises():
