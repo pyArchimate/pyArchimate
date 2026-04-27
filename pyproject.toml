@@ -63,7 +63,6 @@ docs = [
 
 [tool.setuptools.package-dir]
 "" = "src"
-pyarchimate = "src/pyArchimate"
 pyArchimate = "src/pyArchimate"
 
 [tool.setuptools.packages.find]
@@ -81,7 +80,6 @@ exclude = [
     "**/node_modules",
     "**/__pycache__",
     "**/.*",
-    "src/pyArchimate/_legacy.py",
 ]
 
 [tool.mypy]
@@ -103,7 +101,6 @@ warn_unreachable = true
 #  "pydantic.mypy"
 #]
 exclude = [
-    "src/pyArchimate/_legacy.py",
 ]
 
 [tool.ruff]
@@ -126,7 +123,6 @@ exclude = [
     "env",
     "ENV",
     "*.log",
-    "src/pyArchimate/_legacy.py",
 ]
 
 [tool.ruff.format]
@@ -156,7 +152,6 @@ source = ["src"]
 omit = [
     "tests/*",
     "src/setup.py",
-    "src/pyArchimate/_legacy.py",
 ]
 
 [tool.coverage.report]
