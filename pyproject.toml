@@ -179,6 +179,13 @@ plugins.md004.style = "dash"
 [tool.pymarkdown.plugins.md013]
 line_length = 120
 
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "v$version"
+version_scheme = "pep440"
+version_provider = "pep621"
+update_changelog_on_bump = true
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
