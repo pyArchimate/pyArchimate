@@ -22,10 +22,10 @@ from src.pyArchimate.view import (
 
 def test_view_importable():
     """View, Node, Connection, Profile are importable from src.pyArchimate.view."""
-    assert View is not None
-    assert Node is not None
-    assert Connection is not None
-    assert Profile is not None
+    assert View
+    assert Node
+    assert Connection
+    assert Profile
 
 
 # ---------------------------------------------------------------------------

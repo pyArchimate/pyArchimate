@@ -16,7 +16,7 @@ from src.pyArchimate.relationship import (
 # ---------------------------------------------------------------------------
 
 def test_relationship_importable_from_relationship_module():
-    assert Relationship is not None
+    assert Relationship
 
 
 def test_relationship_exported_from_package():
