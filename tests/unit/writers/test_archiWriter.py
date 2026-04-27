@@ -10,7 +10,7 @@ def test_archi_writer_produces_archimate_document(tmp_path):
     archi_writer(model, str(target))
     assert target.exists()
     root = etree.parse(str(target)).getroot()
-    assert root.find('folder') is not None
+    assert root.find('folder') is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
     assert root.findall('.//element')
 
 

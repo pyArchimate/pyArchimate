@@ -22,8 +22,8 @@ poetry run behave tests/features/
 
 echo "Running pytest suites..."
 poetry run pytest tests/unit/ --cov-fail-under=80 --cov=src --cov-report=term-missing
-poetry run pytest tests/legacy_unit/
-poetry run pytest tests/integration/
+poetry run pytest tests/integration/ tests/fixtures/
+poetry run pytest tests/legacy_unit/ tests/legacy_integration/ tests/legacy_examples/
 
 echo "Pre-push checks passed successfully."
 echo "✅ Pre-push checks completed."

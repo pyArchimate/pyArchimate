@@ -1,6 +1,6 @@
 """Relationship module - extracted from the legacy monolith."""
 
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 from .constants import ALLOWED_RELATIONSHIPS, ARCHI_CATEGORY, RELATIONSHIP_KEYS
 from .enums import ArchiType
@@ -47,6 +47,13 @@ def set_id(uuid=None):
     return _id
 
 
+def _report(exc: Exception, raise_flg: bool) -> None:
+    if raise_flg:
+        raise exc
+    from .logger import log
+    log.error(exc)
+
+
 def check_valid_relationship(rel_type, source_type, target_type, raise_flg=False):
     """
     Check if a relationship is used according to Archimate language or raise an exception
@@ -59,26 +66,12 @@ def check_valid_relationship(rel_type, source_type, target_type, raise_flg=False
     :type target_type: str
     :param raise_flg: Throw an exception instead of logging an error
     """
-    from .logger import log
-
     if not hasattr(ArchiType, rel_type) or ARCHI_CATEGORY[rel_type] != 'Relationship':
-        msg = ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'")
-        if raise_flg:
-            raise msg
-        else:
-            log.error(ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'"))
+        _report(ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'"), raise_flg)
     if not hasattr(ArchiType, source_type):
-        msg = ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'")
-        if raise_flg:
-            raise msg
-        else:
-            log.error(ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'"))
+        _report(ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'"), raise_flg)
     if not hasattr(ArchiType, target_type):
-        msg = ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
-        if raise_flg:
-            raise msg
-        else:
-            log.error(ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'"))
+        _report(ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'"), raise_flg)
 
     if ARCHI_CATEGORY[source_type] == 'Relationship':
         source_type = "Relationship"
@@ -92,11 +85,29 @@ def check_valid_relationship(rel_type, source_type, target_type, raise_flg=False
         target_type = 'Junction'
 
     if RELATIONSHIP_KEYS[rel_type] not in ALLOWED_RELATIONSHIPS[source_type][target_type]:
-        err_msg = f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' "
-        if raise_flg:
-            raise ArchimateRelationshipError(err_msg)
-        else:
-            log.error(ArchimateRelationshipError(err_msg))
+        _report(ArchimateRelationshipError(
+            f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' "
+        ), raise_flg)
+
+
+def _resolve_and_validate_ref(ref: Any, elems_dict: dict[str, Any], rels_dict: dict[str, Any], arg_name: str) -> str:
+    """Resolve an element/relationship arg to its UUID and verify it exists in the model."""
+    if isinstance(ref, str):
+        uid: str = ref
+    else:
+        from .element import Element
+        if not (isinstance(ref, Element) or isinstance(ref, Relationship) or hasattr(ref, "uuid")):
+            raise ValueError(f"'{arg_name}' argument is not an instance of 'Element or Relationship' class.")
+        uid = cast(str, ref.uuid)
+    if uid not in elems_dict and uid not in rels_dict:
+        raise ValueError(f'Invalid {arg_name} reference "{uid}')
+    return uid
+
+
+def _get_concept_type(uid: str, elems_dict: dict[str, Any], rels_dict: dict[str, Any]) -> str:
+    if uid in elems_dict:
+        return cast(str, elems_dict[uid].type)
+    return cast(str, rels_dict[uid].type)
 
 
 def get_default_rel_type(source_type, target_type):
@@ -156,34 +167,8 @@ class Relationship:
 
         self.parent: "Model" = cast("Model", parent)
         self.model: "Model" = cast("Model", parent)
-        # get source identifier as reference
-        if isinstance(source, str):
-            self._source = source
-        elif source is not None:
-            from .element import Element
-            if not (
-                isinstance(source, Element)
-                or isinstance(source, Relationship)
-                or hasattr(source, "uuid")
-            ):
-                raise ValueError("'source' argument is not an instance of 'Element or Relationship' class.")
-            self._source = source.uuid
-        if self._source not in self.parent.elems_dict and self._source not in self.parent.rels_dict:
-            raise ValueError(f'Invalid source reference "{self._source}')
-        # get target identifier
-        if isinstance(target, str):
-            self._target = target
-        elif target is not None:
-            from .element import Element
-            if not (
-                isinstance(target, Element)
-                or isinstance(target, Relationship)
-                or hasattr(target, "uuid")
-            ):
-                raise ValueError("'target' argument is not an instance of 'Element/Relationship' class.")
-            self._target = target.uuid
-        if self._target not in self.parent.elems_dict and self._target not in self.parent.rels_dict:
-            raise ValueError(f'Invalid target reference "{target}')
+        self._source = _resolve_and_validate_ref(source, self.parent.elems_dict, self.parent.rels_dict, 'source')
+        self._target = _resolve_and_validate_ref(target, self.parent.elems_dict, self.parent.rels_dict, 'target')
 
         self._uuid = set_id(uuid)
         self._type = rel_type
@@ -197,14 +182,8 @@ class Relationship:
         self._is_directed = is_directed
 
         # check relationship validity (it also tests concept type validity) or raise exception
-        if self._source in self.model.elems_dict:
-            src_type = self.model.elems_dict[self._source].type
-        else:
-            src_type = self.model.rels_dict[self._source].type
-        if self._target in self.model.elems_dict:
-            dst_type = self.model.elems_dict[self._target].type
-        else:
-            dst_type = self.model.rels_dict[self._target].type
+        src_type = _get_concept_type(self._source, self.model.elems_dict, self.model.rels_dict)
+        dst_type = _get_concept_type(self._target, self.model.elems_dict, self.model.rels_dict)
 
         check_valid_relationship(self.type, src_type, dst_type)
 

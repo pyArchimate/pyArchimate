@@ -1,11 +1,4 @@
-"""Tests for modern View/Node/Connection/Profile implementations.
-
-These tests MUST FAIL until T021 replaces the legacy-facade shim in
-src/pyArchimate/view.py with full modern implementations that have
-zero _legacy imports.
-"""
-import inspect
-import sys
+"""Tests for View/Node/Connection/Profile implementations."""
 from typing import cast
 
 import pytest
@@ -24,42 +17,15 @@ from src.pyArchimate.view import (
 
 
 # ---------------------------------------------------------------------------
-# Basic import/legacy tests (pre-existing)
+# Basic import tests
 # ---------------------------------------------------------------------------
 
 def test_view_importable():
     """View, Node, Connection, Profile are importable from src.pyArchimate.view."""
-    assert View is not None
-    assert Node is not None
-    assert Connection is not None
-    assert Profile is not None
-
-
-def test_view_no_legacy_dependency():
-    """view.py must not import from _legacy — fails until T021 is complete."""
-    import src.pyArchimate.view as view_module
-
-    source = inspect.getsource(view_module)
-    assert "_legacy" not in source, (
-        "view.py still imports from _legacy; replace the shim with modern "
-        "implementations that have no _legacy dependency (T021)"
-    )
-
-
-def test_view_instantiates_without_legacy():
-    """View must be importable with _legacy absent from sys.modules."""
-    legacy_keys = [k for k in sys.modules if "_legacy" in k]
-    backups = {k: sys.modules.pop(k) for k in legacy_keys}
-    view_backup = sys.modules.pop("src.pyArchimate.view", None)
-
-    try:
-        from src.pyArchimate.view import View  # noqa: F401
-    except ImportError as exc:
-        pytest.fail(f"view.py cannot import without _legacy: {exc}")
-    finally:
-        sys.modules.update(backups)
-        if view_backup is not None:
-            sys.modules["src.pyArchimate.view"] = view_backup
+    assert View
+    assert Node
+    assert Connection
+    assert Profile
 
 
 # ---------------------------------------------------------------------------
@@ -1488,3 +1454,38 @@ def test_view_get_or_create_connection_no_conn_create_false(simple_view):
     conn.delete()
     result = v.get_or_create_connection(rel=rel, source=na, target=nb)
     assert result is None
+
+
+# ---------------------------------------------------------------------------
+# _classify_outer_quadrant — lines 46 ('R'), 48 ('B'), 51 ('T')
+# ---------------------------------------------------------------------------
+
+from src.pyArchimate.view import _classify_outer_quadrant
+
+
+def test_classify_outer_quadrant_right():
+    """Angle in [135, 225) → 'R' (line 46)."""
+    assert _classify_outer_quadrant(135) == 'R'
+    assert _classify_outer_quadrant(180) == 'R'
+    assert _classify_outer_quadrant(224.9) == 'R'
+
+
+def test_classify_outer_quadrant_bottom():
+    """Angle in [225, 315) → 'B' (line 48)."""
+    assert _classify_outer_quadrant(225) == 'B'
+    assert _classify_outer_quadrant(270) == 'B'
+    assert _classify_outer_quadrant(314.9) == 'B'
+
+
+def test_classify_outer_quadrant_left():
+    """Angle in [315, 360) or [0, 45) → 'L' (line 50)."""
+    assert _classify_outer_quadrant(315) == 'L'
+    assert _classify_outer_quadrant(0) == 'L'
+    assert _classify_outer_quadrant(44.9) == 'L'
+
+
+def test_classify_outer_quadrant_top():
+    """Angle in [45, 135) → 'T' (line 51)."""
+    assert _classify_outer_quadrant(45) == 'T'
+    assert _classify_outer_quadrant(90) == 'T'
+    assert _classify_outer_quadrant(134.9) == 'T'

@@ -11,7 +11,7 @@ from src.pyArchimate.model import Model
 # ---------------------------------------------------------------------------
 
 def test_element_importable_from_element_module():
-    assert Element is not None
+    assert Element
 
 
 def test_element_exported_from_package():

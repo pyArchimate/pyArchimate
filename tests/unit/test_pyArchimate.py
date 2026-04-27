@@ -4,7 +4,7 @@ from src.pyArchimate.model import Model
 from src.pyArchimate.relationship import Relationship
 
 
-def test_modular_imports_expose_legacy_api_surface():
+def test_modular_imports_expose_public_api_surface():
     assert Model is PackageModel
     assert Model.__name__ == "Model"
     assert Element.__name__ == "Element"

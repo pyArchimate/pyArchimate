@@ -266,6 +266,33 @@ def _add_node(parent: object, parent_tag: _Element, node: object, xsi: et.QName)
         _add_node(node, child, sub_n, xsi)
 
 
+def _write_view_element(view_folder: _Element, view: object, xsi: et.QName) -> None:
+    e = et.SubElement(view_folder, 'element', {
+        str(xsi): 'archimate:ArchimateDiagramModel',
+        'name': getattr(view, 'name', ''),
+        'id': getattr(view, 'uuid', ''),
+    })
+    for n in getattr(view, 'nodes', []):
+        _add_node(view, e, n, xsi)
+    view_desc = getattr(view, 'desc', None)
+    if view_desc is not None:
+        doc = et.SubElement(e, 'documentation')
+        doc.text = view_desc
+    for k, v in getattr(view, 'props', {}).items():
+        et.SubElement(e, 'property', key=k, value=str(v))
+
+
+def _write_model_metadata(root: _Element, model: Model) -> None:
+    root.set('name', model.name or '')
+    if model.desc is not None:
+        doc = et.SubElement(root, 'purpose')
+        doc.text = model.desc
+    for k, v in model.props.items():
+        et.SubElement(root, 'property', key=k, value=str(v))
+    for p in model.profiles:
+        et.SubElement(root, 'profile', name=p.name, id=p.uuid, conceptType=p.concept)
+
+
 def archi_writer(model: Model, file_path: str) -> str:
     """
     Write a Model to Archi (.archimate) XML format.
@@ -285,35 +312,13 @@ def archi_writer(model: Model, file_path: str) -> str:
 
     for elem in model.elements:
         _write_element(folders, elem, xsi)
-
     for rel in model.relationships:
         _write_relationship(folders, rel, xsi)
-
     for view in model.views:
-        view_folder_path = _resolve_folder_path(view.folder, 'Views')
-        view_folder = _get_folder(folders, view_folder_path)
-        e = et.SubElement(view_folder, 'element', {
-            str(xsi): 'archimate:ArchimateDiagramModel',
-            'name': view.name,
-            'id': view.uuid
-        })
-        for n in view.nodes:
-            _add_node(view, e, n, xsi)
-        if view.desc is not None:
-            doc = et.SubElement(e, 'documentation')
-            doc.text = view.desc
-        for k, v in view.props.items():
-            et.SubElement(e, 'property', key=k, value=str(v))
+        view_folder = _get_folder(folders, _resolve_folder_path(view.folder, 'Views'))
+        _write_view_element(view_folder, view, xsi)
 
-    root.set('name', model.name or '')
-    if model.desc is not None:
-        doc = et.SubElement(root, 'purpose')
-        doc.text = model.desc
-    for k, v in model.props.items():
-        et.SubElement(root, 'property', key=k, value=str(v))
-
-    for p in model.profiles:
-        et.SubElement(root, 'profile', name=p.name, id=p.uuid, conceptType=p.concept)
+    _write_model_metadata(root, model)
 
     xml_str = et.tostring(root, encoding='UTF-8', pretty_print=True)
 

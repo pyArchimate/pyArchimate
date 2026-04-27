@@ -66,28 +66,27 @@ def _get_imports(filepath: Path):
     return imports
 
 
+def _check_import_violation(filepath: Path, kind: str, module: str, lineno: int) -> str | None:
+    if kind == "relative":
+        first = module.split(".")[0] if module else ""
+        if first in LAYER2_FORBIDDEN_RELATIVE:
+            return f"  {filepath.name}:{lineno}  relative import of forbidden Layer 3/4 module: '.{module}'"
+    else:
+        for forbidden in LAYER2_FORBIDDEN_ABSOLUTE:
+            if module == forbidden or module.startswith(forbidden + "."):
+                return f"  {filepath.name}:{lineno}  absolute import of forbidden Layer 3/4 module: '{module}'"
+    return None
+
+
 def check_layer2():
     violations = []
     for filepath in LAYER2:
         if not filepath.exists():
             continue
         for kind, module, lineno in _get_imports(filepath):
-            if kind == "relative":
-                # Relative imports: check first component
-                first = module.split(".")[0] if module else ""
-                if first in LAYER2_FORBIDDEN_RELATIVE:
-                    violations.append(
-                        f"  {filepath.name}:{lineno}  "
-                        f"relative import of forbidden Layer 3/4 module: '.{module}'"
-                    )
-            else:
-                # Absolute imports: check for known forbidden prefixes
-                for forbidden in LAYER2_FORBIDDEN_ABSOLUTE:
-                    if module == forbidden or module.startswith(forbidden + "."):
-                        violations.append(
-                            f"  {filepath.name}:{lineno}  "
-                            f"absolute import of forbidden Layer 3/4 module: '{module}'"
-                        )
+            violation = _check_import_violation(filepath, kind, module, lineno)
+            if violation:
+                violations.append(violation)
     return violations
 
 
