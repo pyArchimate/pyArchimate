@@ -227,8 +227,11 @@ class Relationship:
 
         """
         _id = self._source
-        return self.parent.elems_dict[_id] if _id in self.parent.elems_dict else self.parent.rels_dict[
-            _id] if _id in self.parent.rels_dict else None
+        if _id in self.parent.elems_dict:
+            return self.parent.elems_dict[_id]
+        if _id in self.parent.rels_dict:
+            return self.parent.rels_dict[_id]
+        return None
 
     @source.setter
     def source(self, src):
@@ -258,8 +261,11 @@ class Relationship:
         :rtype: Element
         """
         _id = self._target
-        return self.parent.elems_dict[_id] if _id in self.parent.elems_dict \
-            else self.parent.rels_dict[_id] if _id in self.parent.rels_dict else None
+        if _id in self.parent.elems_dict:
+            return cast("Element", self.parent.elems_dict[_id])
+        if _id in self.parent.rels_dict:
+            return cast("Element", self.parent.rels_dict[_id])
+        return None
 
     @target.setter
     def target(self, dst):
