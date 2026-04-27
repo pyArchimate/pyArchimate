@@ -7,6 +7,8 @@
 
 ## User Scenarios & Testing *(mandatory)*
 
+> **Note**: Automated tests (using `behave` for BDD scenarios and/or `pytest` for unit/integration tests) MUST be implemented to verify all User Stories and Measurable Outcomes defined in this specification.
+
 ### User Story 1 - AI Consumption of Library Context (Priority: P1)
 
 An AI assistant (such as an LLM-based coding tool) queries the repository for context about pyArchimate. Instead of piecing together information from scattered files, it finds a single structured `AI.md` file that densely and precisely describes the library's purpose, object model, supported formats, and limitations — free of conversational filler.
@@ -86,7 +88,7 @@ A user browsing the repository's `README.md` finds a clearly marked link to `AI.
 - **FR-004**: `README.md` MUST include a link to `AI.md` and to `docs/tutorial.md`.
 - **FR-005**: The repository MUST contain a new user tutorial at `docs/tutorial.md` that covers loading, inspecting, modifying, and saving an ArchiMate model with complete, runnable code examples. The tutorial MUST state the minimum supported library version at the top.
 - **FR-006**: The tutorial MUST include best-practice guidance alongside the code examples (e.g., recommended patterns, common mistakes to avoid).
-- **FR-007**: A generation script MUST exist that produces or fully regenerates `AI.md` using AI-assisted tooling, requiring only a single command invocation. The script MUST use the repository source files and the `docs/` folder as its input context.
+- **FR-007**: A generation script MUST exist that produces or fully regenerates `AI.md` using AI-assisted tooling (assuming `claude code` as the execution environment), requiring only a single command invocation. The script MUST use the repository source files and the `docs/` folder as its input context.
 - **FR-008**: The generation script MUST be documented with instructions for maintainers on when and how to run it — specifically, it MUST be re-run whenever the `docs/` folder is updated to keep `AI.md` in sync.
 - **FR-009**: `AI.md` MUST be version-controlled alongside the source code so it is always available without running any tooling.
 - **FR-010**: The generation script MUST NOT require credentials or API keys to be hard-coded; it MUST read them from environment variables or a standard configuration location.
@@ -95,7 +97,7 @@ A user browsing the repository's `README.md` finds a clearly marked link to `AI.
 ### Key Entities
 
 - **AI.md**: The primary machine-readable documentation file — structured reference covering purpose, object model, formats, operations, and limitations.
-- **Tutorial document**: Step-by-step guide for new users with runnable examples and best-practice notes.
+- **docs/tutorial.md**: Tutorial document: Step-by-step guide for new users with runnable examples and best-practice notes.
 - **Generation script**: Executable script (shell or Python) that automates the creation/update of `AI.md`.
 - **README.md**: Existing entry-point document, updated with navigation links to new artefacts.
 
@@ -112,10 +114,181 @@ A user browsing the repository's `README.md` finds a clearly marked link to `AI.
 
 ## Assumptions
 
-- The `AI.md` file will initially be authored manually (or with AI assistance during this feature), with the generation script used for future updates rather than the initial creation.
+- The `AI.md` file will initially be authored manually (or with AI assistance during this feature), with the generation script used for future updates rather than the initial creation. The initial draft content provided in the [Sample Content for AI.md](#sample-content-for-aimd) section at the bottom of this specification is considered the starting baseline authored by the initial requester.
 - The tutorial will target Python developers who are familiar with the language but new to ArchiMate and the library; no prior ArchiMate knowledge is assumed.
+- The generation script assumes the availability of the `claude code` CLI tool for execution and context processing.
 - The generation script will use an external AI API (such as the Anthropic or OpenAI API) that the maintainer has access to; cost and rate limits are the maintainer's responsibility.
 - The tutorial document lives at `docs/tutorial.md`, alongside the existing Sphinx documentation tree.
 - Existing Sphinx/ReadTheDocs documentation is out of scope for this feature; `AI.md` and the tutorial are supplementary, not replacements.
 - The generation script is a developer/maintainer tool and does not need to run in CI by default, though it may be wired into an optional workflow in a follow-up.
 - Mobile or web-based viewing of documentation is not a concern — GitHub markdown rendering is the primary target.
+
+## Sample Content for AI.md
+
+```markdown
+# Summary
+
+A **Python-based engine for creating and manipulating enterprise architecture models using ArchiMate**, enabling automation, integration, and “architecture-as-code” workflows.
+
+It bridges the gap between **enterprise architecture modeling** and **modern software engineering practices**, making architecture **scriptable, testable, and version-controlled**.
+
+---
+
+# Overview
+
+**pyArchimate** is a lightweight Python library designed to **programmatically create, manipulate, and persist enterprise architecture models** using the **ArchiMate standard** (from The Open Group).
+
+It acts as an **“Architecture-as-Code” toolkit**, enabling developers and architects to build, modify, and manage ArchiMate models using Python instead of GUI-based tools.
+
+At its core, the library provides a **structured object model aligned with the ArchiMate metamodel**, allowing users to represent architectural concepts (elements, relationships, views) and serialize them into standard **ArchiMate XML files**.
+
+---
+
+# Core Purpose
+
+pyArchimate is intended to:
+
+- Automate creation and maintenance of enterprise architecture models  
+- Enable integration of architecture modelling into **CI/CD pipelines or scripts**  
+- Provide a programmable alternative to tools like Archi  
+- Support **model transformation, validation, and generation workflows**  
+- Facilitate **Architecture-as-Code practices**
+
+---
+
+# Conceptual Model (Metamodel Support)
+
+The library implements key ArchiMate concepts as Python objects:
+
+### 1. Model
+- The root container for all architectural data  
+- Holds elements, relationships, and views  
+- Represents the full enterprise architecture  
+
+### 2. View (Diagram)
+- A visual representation of part of the model  
+- Contains nodes and connections  
+- Used to communicate architecture to stakeholders  
+
+### 3. Element
+- Core building blocks (e.g., Business Actor, Application Component)  
+- Represent structural or behavioral concepts  
+
+### 4. Relationship
+- Defines how elements interact (e.g., association, flow, assignment)  
+
+### 5. Node
+- Visual instance of an element within a view  
+
+### 6. Connection
+- Visual representation of relationships between nodes  
+
+---
+
+# Key Features & Functionality
+
+## 1. File Handling & Persistence
+- Read existing ArchiMate models from XML
+- Write/export models to ArchiMate-compliant XML
+- Round-trip editing (load → modify → save)
+
+## 2. Model Creation & Management
+- Create models from scratch programmatically
+- Define architecture layers and structures
+- Maintain centralized architecture repositories in code
+
+## 3. CRUD Operations on Architecture Artefacts
+- Create, update, and delete:
+  - Elements
+  - Relationships
+  - Views/diagrams  
+- Enables full lifecycle management of architecture components
+
+## 4. Diagram (View) Management
+- Create and manage diagrams programmatically  
+- Add/remove nodes and connections  
+- Control layout structure (logical positioning, though limited styling)
+
+## 5. Metamodel Compliance
+- Enforces ArchiMate structure and relationships  
+- Ensures models remain valid and interoperable  
+
+## 6. Separation of Logical vs Visual Layers
+- Logical layer:
+  - Elements + relationships  
+- Visual layer:
+  - Nodes + connections in views  
+- Allows reuse of elements across multiple diagrams
+
+## 7. Automation & Scripting
+- Integrate with Python scripts for:
+  - Bulk model generation
+  - Migration between architectures
+  - Model refactoring
+- Useful for:
+  - DevOps pipelines
+  - Model synchronization with codebases
+
+## 8. Extensibility
+- Python-native → easy to extend or wrap  
+- Can be combined with:
+  - Data pipelines
+  - APIs
+  - Other modeling or visualization tools  
+
+## 9. Lightweight & Dependency-Free Design
+- Minimal overhead
+- Easy installation (`pip install pyArchimate`)
+- Suitable for embedding in larger systems
+
+## 10. Cross-Tool Compatibility
+- Outputs standard ArchiMate XML  
+- Compatible with tools like:
+  - Archi
+  - Other EA platforms supporting ArchiMate  
+
+---
+
+# Typical Use Cases
+
+### 1. Architecture-as-Code
+- Define enterprise architecture in Python
+- Version control models (Git)
+- Automate updates
+
+### 2. Model Generation
+- Generate diagrams from:
+  - Infrastructure definitions
+  - Cloud configurations
+  - Microservice architectures  
+
+### 3. Model Transformation
+- Convert or refactor existing models
+- Apply bulk updates across large architectures
+
+### 4. Integration with DevOps
+- Embed architecture validation into pipelines  
+- Ensure architecture consistency with deployments  
+
+### 5. Analysis & Reporting
+- Extract relationships and dependencies  
+- Build custom analytics or reports on architecture data  
+
+---
+
+# Strengths
+
+- Programmatic control over architecture models  
+- Strong alignment with ArchiMate standard  
+- Lightweight and easy to integrate  
+- Enables automation (a major gap in traditional EA tools)
+
+---
+
+# Limitations (Important Context)
+
+- No built-in graphical editor (code-first only)  
+- Limited layout/styling capabilities compared to GUI tools  
+- Requires understanding of ArchiMate concepts  
+- Visualization typically handled by external tools  
+```
