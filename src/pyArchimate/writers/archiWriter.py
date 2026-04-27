@@ -306,7 +306,7 @@ def archi_writer(model: Model, file_path: str) -> str:
     """
 
     root = et.fromstring(xml)
-    xsi_url = 'http://www.w3.org/2001/XMLSchema-instance'
+    xsi_url = 'http://www.w3.org/2001/XMLSchema-instance' # NOSONAR
     xsi = et.QName(xsi_url, 'type')
     folders = _create_folders(root)
 

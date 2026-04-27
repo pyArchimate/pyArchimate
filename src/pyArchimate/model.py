@@ -202,13 +202,6 @@ class Model:
         self.orgs = defaultdict(list)
         self.theme = 'archi'
 
-        # with open(os.path.join(__location__, 'archimate3_Diagram.xsd'), 'r') as _f:
-        #     self.schemaD = _f.read()
-        # with open(os.path.join(__location__, 'archimate3_Model.xsd'), 'r') as _f:
-        #     self.schemaM = _f.read()
-        # with open(os.path.join(__location__, 'archimate3_View.xsd'), 'r') as _f:
-        #     self.schemaV = _f.read()
-
     def add(self, concept_type=None, name=None, uuid=None, desc=None, folder=None, profile=None):
         """
         Method to add a new Element in this model
