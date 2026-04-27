@@ -944,7 +944,6 @@ class View:
             )
         self.parent: "Model" = cast("Model", parent)
         self.model: "Model" = cast("Model", parent)
-        self.view = self  # root of the node tree
         self._uuid = set_id(uuid)
         self.name = name
         self.desc = desc
@@ -953,6 +952,10 @@ class View:
         self.conns_dict: dict[str, Connection] = defaultdict(Connection)
         self._properties: dict[str, object] = {}
         self.folder = folder
+
+    @property
+    def view(self) -> "View":
+        return self
 
     def delete(self):
         _id = self.uuid

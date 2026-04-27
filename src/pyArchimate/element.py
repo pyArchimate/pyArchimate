@@ -89,9 +89,8 @@ class Element:
             raise ArchimateConceptTypeError(f"Invalid Element type '{elem_type}'")
         if ARCHI_CATEGORY[elem_type] == 'Relationship':
             raise ArchimateConceptTypeError(f"Element type '{elem_type}' cannot be a Relationship type")
-        if parent is not None:
-            if not hasattr(parent, "elems_dict"):
-                raise ValueError('Element class parent should be a class Model instance!')
+        if parent is not None and not hasattr(parent, "elems_dict"):
+            raise ValueError('Element class parent should be a class Model instance!')
 
         # Attribute and data structure initialization
         self._uuid: str = set_id(uuid)
