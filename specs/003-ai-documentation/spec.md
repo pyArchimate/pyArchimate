@@ -65,16 +65,16 @@ A user browsing the repository's `README.md` finds a clearly marked link to `AI.
 
 **Acceptance Scenarios**:
 
-1. **Given** the README exists, **When** rendered on GitHub, **Then** it contains a working hyperlink to `AI.md` and to the tutorial document.
+1. **Given** the README exists, **When** rendered on GitHub, **Then** it contains a working hyperlink to `AI.md` and to `docs/tutorial.md`.
 2. **Given** the link to `AI.md` in the README, **When** clicked, **Then** it navigates directly to the structured documentation file.
 
 ---
 
 ### Edge Cases
 
-- What happens when the generation script is run on a repository with uncommitted changes to the public API — does it reflect staged or committed state?
-- How does the tutorial behave if the user has an older version of the library installed that lacks a referenced feature?
-- What happens when `AI.md` is regenerated and the diff is large — is there a review step or is it fully automated?
+- The generation script reads the working tree state of `docs/` and source files; uncommitted changes are reflected in the output. Maintainers should commit changes before regenerating `AI.md` for release purposes.
+- The tutorial targets the current stable release; users on older versions may encounter API differences. The tutorial MUST clearly state the minimum supported version at the top.
+- `AI.md` is fully overwritten on each regeneration run with no review step — the prior version is recoverable via git history.
 
 ## Requirements *(mandatory)*
 
@@ -83,13 +83,14 @@ A user browsing the repository's `README.md` finds a clearly marked link to `AI.
 - **FR-001**: The repository MUST contain a file `AI.md` at the root level that describes the library's core purpose, object model, supported formats, key operations, and known limitations.
 - **FR-002**: `AI.md` MUST be written in structured markdown with no conversational language, filler phrases, or first-person narrative.
 - **FR-003**: `AI.md` MUST be optimized for consumption by AI language models: dense, precise, consistently structured, and free of ambiguity.
-- **FR-004**: `README.md` MUST include a link to `AI.md` and to the new user tutorial.
-- **FR-005**: The repository MUST contain a new user tutorial document that covers loading, inspecting, modifying, and saving an ArchiMate model with complete, runnable code examples.
+- **FR-004**: `README.md` MUST include a link to `AI.md` and to `docs/tutorial.md`.
+- **FR-005**: The repository MUST contain a new user tutorial at `docs/tutorial.md` that covers loading, inspecting, modifying, and saving an ArchiMate model with complete, runnable code examples. The tutorial MUST state the minimum supported library version at the top.
 - **FR-006**: The tutorial MUST include best-practice guidance alongside the code examples (e.g., recommended patterns, common mistakes to avoid).
-- **FR-007**: A generation script MUST exist that can produce or update `AI.md` using AI-assisted tooling, requiring only a single command invocation.
-- **FR-008**: The generation script MUST be documented with instructions for maintainers on when and how to run it.
+- **FR-007**: A generation script MUST exist that produces or fully regenerates `AI.md` using AI-assisted tooling, requiring only a single command invocation. The script MUST use the repository source files and the `docs/` folder as its input context.
+- **FR-008**: The generation script MUST be documented with instructions for maintainers on when and how to run it — specifically, it MUST be re-run whenever the `docs/` folder is updated to keep `AI.md` in sync.
 - **FR-009**: `AI.md` MUST be version-controlled alongside the source code so it is always available without running any tooling.
 - **FR-010**: The generation script MUST NOT require credentials or API keys to be hard-coded; it MUST read them from environment variables or a standard configuration location.
+- **FR-011**: `AI.md` MUST accurately reflect the current content of the `docs/` folder; it is a derived artefact and MUST be regenerated after any significant documentation update.
 
 ### Key Entities
 
@@ -114,7 +115,7 @@ A user browsing the repository's `README.md` finds a clearly marked link to `AI.
 - The `AI.md` file will initially be authored manually (or with AI assistance during this feature), with the generation script used for future updates rather than the initial creation.
 - The tutorial will target Python developers who are familiar with the language but new to ArchiMate and the library; no prior ArchiMate knowledge is assumed.
 - The generation script will use an external AI API (such as the Anthropic or OpenAI API) that the maintainer has access to; cost and rate limits are the maintainer's responsibility.
-- The tutorial document will live under the `docs/` directory or as a standalone `TUTORIAL.md` at the repository root — the exact location is to be confirmed during planning.
+- The tutorial document lives at `docs/tutorial.md`, alongside the existing Sphinx documentation tree.
 - Existing Sphinx/ReadTheDocs documentation is out of scope for this feature; `AI.md` and the tutorial are supplementary, not replacements.
 - The generation script is a developer/maintainer tool and does not need to run in CI by default, though it may be wired into an optional workflow in a follow-up.
 - Mobile or web-based viewing of documentation is not a concern — GitHub markdown rendering is the primary target.
