@@ -44,8 +44,7 @@ def _embed_object(o: Any, remove_props: bool) -> None:
         if o.name is not None:
             o.prop('Identifier', o.name)
     elif o.props != {}:
-        pat = r'[#]*properties\s*=\s*(\{[\s\S]*\})[;]*'
-        desc = '' if o.desc is None else re.sub(pat, '', o.desc, flags=re.DOTALL)
+        desc = '' if o.desc is None else re.sub(_PROPS_PAT, '', o.desc, flags=re.DOTALL)
         desc += desc.strip(' \n') + '\n\nproperties = ' + json.dumps(o.props, indent=2) + '\n'
         o.desc = desc
         if remove_props:
@@ -53,39 +52,55 @@ def _embed_object(o: Any, remove_props: bool) -> None:
                 o.remove_prop(x)
 
 
+_PROPS_PAT = r'[#]*properties\s*=\s*(\{[\s\S]*\})[;]*'
+
+
+def _apply_rel_identity_props(o: Any, p: Any) -> None:
+    if p is None:
+        return
+    o.name = p.get('name')
+    o.desc = p.get('documentation')
+    if 'isDirected' in p and o.type == ArchiType.Association:
+        o.is_directed = str(p['isDirected']).lower() == 'true'
+    if 'access' in p and o.type == ArchiType.Access:
+        o.access_type = p['access']
+    if 'influence_strength' in p and o.type == ArchiType.Influence:
+        o.influence_strength = p['influence_strength']
+    for key, val in p.items():
+        o.prop(key, val)
+
+
+def _expand_relationship(o: Any, clean_doc: bool) -> None:
+    if o.prop('Identifier') is not None:
+        raw = o.prop('Identifier')
+        match = re.findall(_PROPS_PAT, str(raw), re.M)
+        if match:
+            p = json.loads(match[0])
+            o.remove_prop('Identifier')
+            _apply_rel_identity_props(o, p)
+    if clean_doc:
+        o.desc = None if o.desc is None else re.sub(_PROPS_PAT, '', o.desc, flags=re.DOTALL)
+
+
+def _expand_element(o: Any, clean_doc: bool) -> None:
+    if o.desc is None:
+        return
+    match = re.findall(_PROPS_PAT, o.desc, re.M)
+    if len(match) == 1:
+        props = json.loads(match[0])
+        o.desc = re.sub(_PROPS_PAT, '', o.desc, flags=re.DOTALL).strip(' \n')
+        for key, val in props.items():
+            o.prop(key, val)
+    if clean_doc:
+        o.desc = None if o.desc is None else re.sub(_PROPS_PAT, '', o.desc, flags=re.DOTALL)
+
+
 def _expand_object(o: Any, clean_doc: bool) -> None:
     from .relationship import Relationship
-    pat = r'[#]*properties\s*=\s*(\{[\s\S]*\})[;]*'
     if isinstance(o, Relationship):
-        if o.prop('Identifier') is not None:
-            p = o.prop('Identifier')
-            match = re.findall(pat, str(p), re.M)
-            if len(match) > 0:
-                p = json.loads(match[0])
-                o.remove_prop('Identifier')
-                if p is not None:
-                    o.name = p['name'] if 'name' in p else None
-                    o.desc = p['documentation'] if 'documentation' in p else None
-                    if 'isDirected' in p and o.type == ArchiType.Association:
-                        o.is_directed = True if str(p['isDirected']).lower() == 'true' else False
-                    if 'access' in p and o.type == ArchiType.Access:
-                        o.access_type = p['access']
-                    if 'influence_strength' in p and o.type == ArchiType.Influence:
-                        o.influence_strength = p['influence_strength']
-                    for key, val in p.items():
-                        o.prop(key, val)
-        if clean_doc:
-            o.desc = None if o.desc is None else re.sub(pat, '', o.desc, flags=re.DOTALL)
+        _expand_relationship(o, clean_doc)
     elif isinstance(o, (View, Element)):
-        if o.desc is not None:
-            match = re.findall(pat, o.desc, re.M)
-            if len(match) == 1:
-                props = json.loads(match[0])
-                o.desc = re.sub(pat, '', o.desc, flags=re.DOTALL).strip(' \n')
-                for key, val in props.items():
-                    o.prop(key, val)
-                if clean_doc:
-                    o.desc = None if o.desc is None else re.sub(pat, '', o.desc, flags=re.DOTALL)
+        _expand_element(o, clean_doc)
 
 
 

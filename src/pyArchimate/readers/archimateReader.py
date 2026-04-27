@@ -162,6 +162,24 @@ def _apply_conn_style(conn, style_xml, ns):
     conn.line_width = style_xml.get('lineWidth')
 
 
+def _get_xml_text(elem, tag, ns):
+    found = elem.find(ns + tag)
+    return None if found is None else found.text
+
+
+def _read_view_connection(view, c, ns, merge_flg):
+    _uuid_c = None if merge_flg else c.get('identifier')
+    _c = view.add_connection(
+        ref=c.get('relationshipRef'),
+        source=c.get('source'),
+        target=c.get('target'),
+        uuid=_uuid_c,
+    )
+    _apply_conn_style(_c, c.find(ns + 'style'), ns)
+    for bp in c.findall(ns + 'bendpoint'):
+        _c.add_bendpoint(Point(bp.get('x'), bp.get('y')))
+
+
 def _read_views(model, root, ns, xsi, pdef_merge_map, merge_flg):
     views_xml = root.find(ns + 'views')
     if views_xml is None:
@@ -172,26 +190,15 @@ def _read_views(model, root, ns, xsi, pdef_merge_map, merge_flg):
             model.views_dict[_uuid].delete()
         _v = model.add(
             ArchiType.View,
-            name=None if v.find(ns + 'name') is None else v.find(ns + 'name').text,
+            name=_get_xml_text(v, 'name', ns),
             uuid=_uuid,
-            desc=None if v.find(ns + 'documentation') is None else v.find(ns + 'documentation').text,
+            desc=_get_xml_text(v, 'documentation', ns),
         )
         _read_props(_v, v, ns, pdef_merge_map, model)
         for n in v.findall(ns + 'node'):
             _add_node(_v, n, ns, xsi, model, merge_flg)
         for c in v.findall(ns + 'connection'):
-            _uuid_c = c.get('identifier')
-            if merge_flg and _uuid_c is not None:
-                _uuid_c = None
-            _c = _v.add_connection(
-                ref=c.get('relationshipRef'),
-                source=c.get('source'),
-                target=c.get('target'),
-                uuid=_uuid_c,
-            )
-            _apply_conn_style(_c, c.find(ns + 'style'), ns)
-            for bp in c.findall(ns + 'bendpoint'):
-                _c.add_bendpoint(Point(bp.get('x'), bp.get('y')))
+            _read_view_connection(_v, c, ns, merge_flg)
 
 
 def _walk_orgs(item, ns, model, folder=''):
