@@ -393,8 +393,8 @@ from src.pyArchimate.relationship import _resolve_and_validate_ref
 def test_resolve_and_validate_ref_invalid_type_raises():
     """Non-str, non-Element, non-uuid object raises ValueError (line 100)."""
     m = Model('rr-invalid')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    b = m.add(ArchiType.ApplicationService, 'B')
+    m.add(ArchiType.ApplicationComponent, 'A')
+    m.add(ArchiType.ApplicationService, 'B')
     with pytest.raises(ValueError, match="not an instance"):
         _resolve_and_validate_ref(42, m.elems_dict, m.rels_dict, 'source')
 
