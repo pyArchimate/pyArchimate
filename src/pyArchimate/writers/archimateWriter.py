@@ -293,8 +293,8 @@ def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
     """
 
     root = et.fromstring(xml)
-    nsp_url = 'http://www.opengroup.org/xsd/archimate/3.0/'
-    xsi_url = 'http://www.w3.org/2001/XMLSchema-instance'
+    nsp_url = 'http://www.opengroup.org/xsd/archimate/3.0/' # NOSONAR
+    xsi_url = 'http://www.w3.org/2001/XMLSchema-instance' # NOSONAR
     xsi = et.QName(xsi_url, 'type')
     ns_find: dict[str, str] = {'ns': nsp_url}
 
