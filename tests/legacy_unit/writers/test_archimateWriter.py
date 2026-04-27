@@ -9,4 +9,4 @@ def test_archimate_writer_produces_valid_xml():
     xml_content = archimate_writer(model)
     root = etree.fromstring(xml_content.encode('utf-8'))
     ns = {'ns': 'http://www.opengroup.org/xsd/archimate/3.0/'} # NOSONAR
-    assert root.find('ns:elements', namespaces=ns) is not None
+    assert root.find('ns:elements', namespaces=ns) is not None  # NOSONAR — lxml find() returns None at runtime; stubs omit Optional

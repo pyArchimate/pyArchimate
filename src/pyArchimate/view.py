@@ -41,6 +41,12 @@ def _apply_justify_right(nodes: list[Any], max_in_row: int, max_w: float, gap_x:
             _e.rx = max_w - _e.w - gap_x
 
 
+def _next_row_x(justify: str, row: int, elem_w: float, gap_x: float) -> int:
+    if justify == 'center':
+        return 40 if row % 2 == 0 else 40 + int((elem_w + gap_x) / 2)
+    return 40
+
+
 def _classify_outer_quadrant(angle: float) -> str:
     if 135 <= angle < 225:
         return 'R'
@@ -504,11 +510,7 @@ class Node:
             max_row_h = max(max_row_h, _e.h)
             ba_x += _e.w + gap_x
             if n % max_in_row == 0:
-                row = n // max_in_row
-                if justify == 'center':
-                    ba_x = 40 if row % 2 == 0 else 40 + int((_e.w + gap_x) / 2)
-                else:
-                    ba_x = 40
+                ba_x = _next_row_x(justify, n // max_in_row, _e.w, gap_x)
                 ba_y += max_row_h + gap_y
                 max_row_h = h
             n += 1
