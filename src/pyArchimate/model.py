@@ -126,7 +126,7 @@ def _expand_object(o: Any, clean_doc: bool) -> None:
     from .relationship import Relationship
     if isinstance(o, Relationship):
         _expand_relationship(o, clean_doc)
-    elif isinstance(o, (View, Element)):
+    else:
         _expand_element(o, clean_doc)
 
 
