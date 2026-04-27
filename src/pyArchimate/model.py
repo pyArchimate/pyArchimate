@@ -30,6 +30,64 @@ __mod__ = __name__.split('.')[-1]
 ARCHIMATE_EXCEPTION_GROUP = (ArchimateConceptTypeError,)
 
 
+def _matches_rel(r: Any, rel_type: Optional[str], elem_uuid: str, wants_in: bool, wants_out: bool) -> bool:
+    if wants_in and r.target.uuid == elem_uuid:
+        return rel_type is None or r.type == rel_type
+    if wants_out and r.source.uuid == elem_uuid:
+        return rel_type is None or r.type == rel_type
+    return False
+
+
+def _embed_object(o: Any, remove_props: bool) -> None:
+    from .relationship import Relationship
+    if isinstance(o, Relationship):
+        if o.name is not None:
+            o.prop('Identifier', o.name)
+    elif o.props != {}:
+        pat = r'[#]*properties\s*=\s*(\{[\s\S]*\})[;]*'
+        desc = '' if o.desc is None else re.sub(pat, '', o.desc, flags=re.DOTALL)
+        desc += desc.strip(' \n') + '\n\nproperties = ' + json.dumps(o.props, indent=2) + '\n'
+        o.desc = desc
+        if remove_props:
+            for x in o.props.copy():
+                o.remove_prop(x)
+
+
+def _expand_object(o: Any, clean_doc: bool) -> None:
+    from .relationship import Relationship
+    pat = r'[#]*properties\s*=\s*(\{[\s\S]*\})[;]*'
+    if isinstance(o, Relationship):
+        if o.prop('Identifier') is not None:
+            p = o.prop('Identifier')
+            match = re.findall(pat, str(p), re.M)
+            if len(match) > 0:
+                p = json.loads(match[0])
+                o.remove_prop('Identifier')
+                if p is not None:
+                    o.name = p['name'] if 'name' in p else None
+                    o.desc = p['documentation'] if 'documentation' in p else None
+                    if 'isDirected' in p and o.type == ArchiType.Association:
+                        o.is_directed = True if str(p['isDirected']).lower() == 'true' else False
+                    if 'access' in p and o.type == ArchiType.Access:
+                        o.access_type = p['access']
+                    if 'influence_strength' in p and o.type == ArchiType.Influence:
+                        o.influence_strength = p['influence_strength']
+                    for key, val in p.items():
+                        o.prop(key, val)
+        if clean_doc:
+            o.desc = None if o.desc is None else re.sub(pat, '', o.desc, flags=re.DOTALL)
+    elif isinstance(o, (View, Element)):
+        if o.desc is not None:
+            match = re.findall(pat, o.desc, re.M)
+            if len(match) == 1:
+                props = json.loads(match[0])
+                o.desc = re.sub(pat, '', o.desc, flags=re.DOTALL).strip(' \n')
+                for key, val in props.items():
+                    o.prop(key, val)
+                if clean_doc:
+                    o.desc = None if o.desc is None else re.sub(pat, '', o.desc, flags=re.DOTALL)
+
+
 
 def default_color(elem_type: str, theme: Any = DEFAULT_THEME) -> str:
     """
@@ -437,25 +495,14 @@ class Model:
         :type direction: str
         :return: [Relationship]
         :rtype: list
-
-
         """
         if elem is None:
             return None
-        result = []
         direction = direction.lower()
-        if rel_type is not None:
-            if 'in' in direction or 'both' in direction:
-                result += [r for r in self.rels_dict.values() if r.target.uuid == elem.uuid and rel_type == r.type]
-            if 'out' in direction or 'both' in direction:
-                result += [r for r in self.rels_dict.values() if r.source.uuid == elem.uuid and rel_type == r.type]
-            return result
-        else:
-            if 'in' in direction or 'both' in direction:
-                result += [r for r in self.rels_dict.values() if r.target.uuid == elem.uuid]
-            if 'out' in direction or 'both' in direction:
-                result += [r for r in self.rels_dict.values() if r.source.uuid == elem.uuid]
-            return result
+        wants_in = 'in' in direction or 'both' in direction
+        wants_out = 'out' in direction or 'both' in direction
+        return [r for r in self.rels_dict.values()
+                if _matches_rel(r, rel_type, elem.uuid, wants_in, wants_out)]
 
     def filter_relationships(self, fct):
         """
@@ -601,105 +648,26 @@ class Model:
         so we embed the properties before exporting the model there
 
         """
-
-        from .relationship import Relationship
-
-        def _embed(o):
-            """
-            Local function to embed the properties of an object
-
-            :param o:   Method/View/Element/Relationship object
-
-            """
-            if isinstance(o, Relationship):
-                # For relationship, we embed all properties in a single one called 'Identifier'
-                # to cope with ARIS limitation
-                if o.name is not None:
-                    o.prop('Identifier', o.name)
-                # if o.desc is not None:
-                #     p['documentation'] = o.desc
-                # if o.type == ArchiType.Association:
-                #     p['isDirected'] = o.is_directed
-                # elif o.type == ArchiType.Access:
-                #     p['access'] = o.access_type
-                # elif o.type == ArchiType.Influence:
-                #     p['influence_strength'] = o.influence_strength
-                # for key, val in o.props.items():
-                #     p[key] = val
-                # o.prop('Identifier', o.name)
-
-            elif o.props != {} and (isinstance(o, View) or isinstance(o, Element) or isinstance(o, Model)):
-                # Else we embed properties art the end of the description field
-                pat = r'[#]*properties\s*=\s*(\{[\s\S]*\})[;]*'
-                # Get the concept description and remove any existing embedded properties tag
-                desc = '' if o.desc is None else re.sub(pat, '', o.desc, flags=re.DOTALL)
-                # add the properties tag in the concept desc
-                desc += desc.strip(' \n') + '\n\nproperties = ' + json.dumps(o.props, indent=2) + '\n'
-                o.desc = desc
-                if remove_props:
-                    for x in o.props.copy():
-                        o.remove_prop(x)
-
-        _embed(self)
+        _embed_object(self, remove_props)
         for v in self.views_dict.values():
-            _embed(v)
+            _embed_object(v, remove_props)
         for e in self.elems_dict.values():
-            _embed(e)
+            _embed_object(e, remove_props)
         for r in self.rels_dict.values():
-            _embed(r)
+            _embed_object(r, remove_props)
 
     def expand_props(self, clean_doc=True):
         """
         Method to expand model's concepts desc attribute properties tag into concept's properties
 
         """
-
-        from .relationship import Relationship
-
-        def _expand(o, clean_doc):
-            pat = r'[#]*properties\s*=\s*(\{[\s\S]*\})[;]*'
-            if isinstance(o, Relationship):
-                if o.prop('Identifier') is not None:
-                    p = o.prop('Identifier')
-                    match = re.findall(pat, str(p), re.M)
-                    if len(match) > 0:
-                        p = json.loads(match[0])
-                        o.remove_prop('Identifier')
-                        if p is not None:
-                            o.name = p['name'] if 'name' in p else None
-                            o.desc = p['documentation'] if 'documentation' in p else None
-                            if 'isDirected' in p and o.type == ArchiType.Association:
-                                o.is_directed = True if str(p['isDirected']).lower() == 'true' else False
-                            if 'access' in p and o.type == ArchiType.Access:
-                                o.access_type = p['access']
-                            if 'influence_strength' in p and o.type == ArchiType.Influence:
-                                o.influence_strength = p['influence_strength']
-                            for key, val in p.items():
-                                o.prop(key, val)
-                if clean_doc:
-                    o.desc = None if o.desc is None else re.sub(pat, '', o.desc, flags=re.DOTALL)
-
-            elif isinstance(o, View) or isinstance(o, Element) or isinstance(o, Model):
-                # Get the concept description and remove any existing embedded properties tag
-                if o.desc is not None:
-                    match = re.findall(pat, o.desc, re.M)
-                    if len(match) == 1:
-                        # get the properties
-                        props = json.loads(match[0])
-                        # and clean up the desc attribute
-                        o.desc = re.sub(pat, '', o.desc, flags=re.DOTALL).strip(' \n')
-                        for key, val in props.items():
-                            o.prop(key, val)
-                        if clean_doc:
-                            o.desc = None if o.desc is None else re.sub(pat, '', o.desc, flags=re.DOTALL)
-
-        _expand(self, clean_doc)
+        _expand_object(self, clean_doc)
         for v in self.views_dict.values():
-            _expand(v, clean_doc)
+            _expand_object(v, clean_doc)
         for e in self.elems_dict.values():
-            _expand(e, clean_doc)
+            _expand_object(e, clean_doc)
         for r in self.rels_dict.values():
-            _expand(r, clean_doc)
+            _expand_object(r, clean_doc)
 
     def check_invalid_conn(self):
         """

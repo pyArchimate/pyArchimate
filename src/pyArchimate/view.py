@@ -17,6 +17,41 @@ if TYPE_CHECKING:
     from .model import Model
 
 # ---------------------------------------------------------------------------
+# Module-level helpers
+# ---------------------------------------------------------------------------
+
+def _sort_nodes(nodes: list[Any], sort: str) -> list[Any]:
+    s = sort.lower()
+    if 'asc' in s:
+        return sorted(nodes, key=lambda x: x.w * x.h)
+    if 'desc' in s:
+        return sorted(nodes, key=lambda x: x.w * x.h, reverse=True)
+    return nodes
+
+
+def _apply_justify_right(nodes: list[Any], max_in_row: int, max_w: float, gap_x: float) -> None:
+    remainder = len(nodes) % max_in_row
+    right_start = len(nodes) - remainder
+    for i in range(len(nodes), right_start, -1):
+        _e = nodes[i - 1]
+        _e.rx = max_w - _e.w - gap_x
+        max_w = _e.rx
+    if max_in_row == 1:
+        for _e in nodes:
+            _e.rx = max_w - _e.w - gap_x
+
+
+def _classify_outer_quadrant(angle: float) -> str:
+    if 135 <= angle < 225:
+        return 'R'
+    if 225 <= angle < 315:
+        return 'B'
+    if angle >= 315 or angle < 45:
+        return 'L'
+    return 'T'
+
+
+# ---------------------------------------------------------------------------
 # Colour helper
 # ---------------------------------------------------------------------------
 
@@ -455,12 +490,7 @@ class Node:
         ba_y = 40
         max_row_h = h
         n = 1
-        if 'asc' in sort.lower():
-            nodes = sorted(self.nodes, key=lambda x: x.w * x.h, reverse=False)
-        elif 'desc' in sort.lower():
-            nodes = sorted(self.nodes, key=lambda x: x.w * x.h, reverse=True)
-        else:
-            nodes = self.nodes
+        nodes = _sort_nodes(self.nodes, sort)
         for _e in nodes:
             if recurse:
                 _e.resize(max_in_row=max_in_row, keep_kids_size=keep_kids_size,
@@ -487,13 +517,7 @@ class Node:
         self.w = max_w
         self.h = max_h
         if justify == 'right':
-            for i in range(len(nodes), len(nodes) - len(nodes) % max_in_row, -1):
-                _e = nodes[i - 1]
-                _e.rx = max_w - _e.w - gap_x
-                max_w = _e.rx
-            if max_in_row == 1:
-                for _e in nodes:
-                    _e.rx = max_w - _e.w - gap_x
+            _apply_justify_right(nodes, max_in_row, max_w, gap_x)
 
     def conns(self, rel_type=None):
         """Return connections to/from this node, optionally filtered by type."""
@@ -581,30 +605,25 @@ class Node:
         position.dy = dy
         position.gap_x = (abs(dx) - self.w / 2) * (1 if dx > 0 else -1)
         position.gap_y = (abs(dy) - self.h / 2) * (1 if dy > 0 else -1)
-        pos = '*'
         angle = math.atan2(dy, dx) * 180 / math.pi
         if angle < 0:
             angle += 360
         angle = (360 - angle) % 360
         position.angle = angle
-        if not (self.cy - self.h / 2 < point.y < self.cy + self.h / 2) and not (
-                self.cx - self.w / 2 < point.x < self.cx + self.w / 2):
-            if 135 <= angle < 225:
-                pos = 'R'
-            elif 225 <= angle < 315:
-                pos = 'B'
-            elif angle >= 315 or angle < 45:
-                pos = 'L'
-            else:
-                pos = 'T'
-        if (angle > 270 or angle < 90) and (self.cy - self.h / 2 < point.y < self.cy + self.h / 2):
+        in_y_band = self.cy - self.h / 2 < point.y < self.cy + self.h / 2
+        in_x_band = self.cx - self.w / 2 < point.x < self.cx + self.w / 2
+        if not in_y_band and not in_x_band:
+            pos = _classify_outer_quadrant(angle)
+        elif (angle > 270 or angle < 90) and in_y_band:
             pos = 'L!'
-        elif angle > 180 and (self.cx - self.w / 2 < point.x < self.cx + self.w / 2):
+        elif angle > 180 and in_x_band:
             pos = 'B!'
-        elif angle < 180 and (self.cx - self.w / 2 < point.x < self.cx + self.w / 2):
+        elif angle < 180 and in_x_band:
             pos = 'T!'
-        elif self.cy - self.h / 2 < point.y < self.cy + self.h / 2:
+        elif in_y_band:
             pos = 'R!'
+        else:
+            pos = '*'
         position.orientation = pos
         return position
 
