@@ -106,6 +106,8 @@ A user browsing the repository's `README.md` finds a clearly marked link to `AI.
 - **FR-012**: The generation script MUST validate the structural integrity of the generated content (specifically: valid Markdown syntax and presence of all mandatory sections: Summary, Overview, Core Purpose, Conceptual Model, Features, Use Cases, Strengths, Limitations) and MUST NOT overwrite `AI.md` if the AI process fails or produces invalid content.
 - **FR-013**: The generation script MUST be implemented in Python to ensure consistency with the library's codebase and existing developer tooling.
 - **FR-014**: All code examples provided in `docs/tutorial.md` MUST be automatically verified for correctness by a dedicated test (e.g., as part of the integration test suite) to prevent regression.
+- **FR-015**: the `docs/tutorial.md` MUST include all basic guidance on Archimate standard (with references) so that an inexperienced Archimate user can understand what it is about. This guidance could be hidden by experienced Archimate users.
+- **FR-016**: pyArchimate non-conformance to the latest Archimate standard and to the Archi tool import/export functions is reported and subject to future pyArchimate releases 
 
 ### Key Entities
 
@@ -128,10 +130,10 @@ A user browsing the repository's `README.md` finds a clearly marked link to `AI.
 ## Assumptions
 
 - The `AI.md` file will initially be authored manually (or with AI assistance during this feature), with the generation script used for future updates rather than the initial creation. The initial draft content provided in the [Sample Content for AI.md](#sample-content-for-aimd) section at the bottom of this specification is considered the starting baseline authored by the initial requester.
-- The tutorial will target Python developers who are familiar with the language but new to ArchiMate and the library; no prior ArchiMate knowledge is assumed.
+- The tutorial will target Python developers who are familiar with the language but new to ArchiMate and the library; no prior ArchiMate knowledge is assumed and guidance on Archimate standard will be given if needed.
 - The generation script assumes the availability of the `claude code` CLI tool for execution and context processing.
 - The generation script will use an external AI API (such as the Anthropic or OpenAI API) that the maintainer has access to; cost and rate limits are the maintainer's responsibility.
-- The tutorial document lives at `docs/tutorial.md`, alongside the existing Sphinx documentation tree.
+- The tutorial document lives at `docs/tutorial.md`, alongside the existing Sphinx documentation tree, but is referenced in the introduction of the Sphinx documentation.
 - Existing Sphinx/ReadTheDocs documentation is out of scope for this feature; `AI.md` and the tutorial are supplementary, not replacements.
 - The generation script is a developer/maintainer tool and does not need to run in CI by default, though it may be wired into an optional workflow in a follow-up.
 - Mobile or web-based viewing of documentation is not a concern — GitHub markdown rendering is the primary target.
@@ -303,5 +305,6 @@ The library implements key ArchiMate concepts as Python objects:
 - No built-in graphical editor (code-first only)  
 - Limited layout/styling capabilities compared to GUI tools  
 - Requires understanding of ArchiMate concepts  
-- Visualization typically handled by external tools  
+- Visualization typically handled by external tools
+- List of pyArchimate non-conformances to the latest Archimate standard and to the Archi tool import/export functions  
 ```
