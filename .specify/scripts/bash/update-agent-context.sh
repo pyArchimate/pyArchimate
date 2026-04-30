@@ -101,19 +101,27 @@ NEW_PROJECT_TYPE=""
 #==============================================================================
 
 log_info() {
-    echo "INFO: $1"
+    local msg="$1"
+    echo "INFO: $msg"
+    return 0
 }
 
 log_success() {
-    echo "✓ $1"
+    local msg="$1"
+    echo "✓ $msg"
+    return 0
 }
 
 log_error() {
-    echo "ERROR: $1" >&2
+    local msg="$1"
+    echo "ERROR: $msg" >&2
+    return 0
 }
 
 log_warning() {
-    echo "WARNING: $1" >&2
+    local msg="$1"
+    echo "WARNING: $msg" >&2
+    return 0
 }
 
 # Cleanup function for temporary files
@@ -123,7 +131,7 @@ cleanup() {
     trap - EXIT INT TERM
     rm -f /tmp/agent_update_*_$$
     rm -f /tmp/manual_additions_$$
-    exit $exit_code
+    return $exit_code
 }
 
 # Set up cleanup trap
@@ -160,6 +168,7 @@ validate_environment() {
         log_warning "Template file not found at $TEMPLATE_FILE"
         log_warning "Creating new agent files will fail"
     fi
+    return 0
 }
 
 #==============================================================================
@@ -169,13 +178,14 @@ validate_environment() {
 extract_plan_field() {
     local field_pattern="$1"
     local plan_file="$2"
-    
+
     grep "^\*\*${field_pattern}\*\*: " "$plan_file" 2>/dev/null | \
         head -1 | \
         sed "s|^\*\*${field_pattern}\*\*: ||" | \
         sed 's/^[ \t]*//;s/[ \t]*$//' | \
         grep -v "NEEDS CLARIFICATION" | \
         grep -v "^N/A$" || echo ""
+    return 0
 }
 
 parse_plan_data() {
@@ -240,6 +250,7 @@ format_technology_stack() {
         done
         echo "$result"
     fi
+    return 0
 }
 
 #==============================================================================
@@ -248,12 +259,13 @@ format_technology_stack() {
 
 get_project_structure() {
     local project_type="$1"
-    
+
     if [[ "$project_type" == *"web"* ]]; then
         echo "backend/\\nfrontend/\\ntests/"
     else
         echo "src/\\ntests/"
     fi
+    return 0
 }
 
 get_commands_for_language() {
@@ -273,11 +285,13 @@ get_commands_for_language() {
             echo "# Add commands for $lang"
             ;;
     esac
+    return 0
 }
 
 get_language_conventions() {
     local lang="$1"
     echo "$lang: Follow standard conventions"
+    return 0
 }
 
 create_new_agent_file() {
@@ -514,14 +528,12 @@ update_existing_agent_file() {
     fi
     
     # Ensure Cursor .mdc files have YAML frontmatter for auto-inclusion
-    if [[ "$target_file" == *.mdc ]]; then
-        if ! head -1 "$temp_file" | grep -q '^---'; then
-            local frontmatter_file
-            frontmatter_file=$(mktemp) || { rm -f "$temp_file"; return 1; }
-            printf '%s\n' "---" "description: Project Development Guidelines" "globs: [\"**/*\"]" "alwaysApply: true" "---" "" > "$frontmatter_file"
-            cat "$temp_file" >> "$frontmatter_file"
-            mv "$frontmatter_file" "$temp_file"
-        fi
+    if [[ "$target_file" == *.mdc ]] && ! head -1 "$temp_file" | grep -q '^---'; then
+        local frontmatter_file
+        frontmatter_file=$(mktemp) || { rm -f "$temp_file"; return 1; }
+        printf '%s\n' "---" "description: Project Development Guidelines" "globs: [\"**/*\"]" "alwaysApply: true" "---" "" > "$frontmatter_file"
+        cat "$temp_file" >> "$frontmatter_file"
+        mv "$frontmatter_file" "$temp_file"
     fi
 
     # Move temp file to target atomically
@@ -556,11 +568,9 @@ update_agent_file() {
     # Create directory if it doesn't exist
     local target_dir
     target_dir=$(dirname "$target_file")
-    if [[ ! -d "$target_dir" ]]; then
-        if ! mkdir -p "$target_dir"; then
-            log_error "Failed to create directory: $target_dir"
-            return 1
-        fi
+    if [[ ! -d "$target_dir" ]] && ! mkdir -p "$target_dir"; then
+        log_error "Failed to create directory: $target_dir"
+        return 1
     fi
     
     if [[ ! -f "$target_file" ]]; then
@@ -784,6 +794,7 @@ print_summary() {
     
     echo
     log_info "Usage: $0 [claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|junie|kilocode|auggie|roo|codebuddy|amp|shai|tabnine|kiro-cli|agy|bob|vibe|qodercli|kimi|trae|pi|iflow|generic]"
+    return 0
 }
 
 #==============================================================================
@@ -829,6 +840,7 @@ main() {
         log_error "Agent context update completed with errors"
         exit 1
     fi
+    return 0
 }
 
 # Execute main function if script is run directly
