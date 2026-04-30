@@ -82,7 +82,7 @@ def _read_relationships(model, root, ns, xsi, pdef_merge_map, merge_flg):
                 name=name,
                 desc=desc,
                 access_type=r.get('accessType'),
-                influence_strength=r.get('modifier'),
+                influence_strength=r.get('influenceStrength') or r.get('modifier'),
             )
             if r.get('isDirected') == 'true':
                 rel.is_directed = True

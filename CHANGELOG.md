@@ -1,3 +1,26 @@
+## v1.1.0 (2026-04-30)
+
+### Feat
+
+- **archimate-compliance**: enable BusinessInteraction element creation (previously commented out in checker_rules.yml)
+- **archimate-compliance**: preserve influence strength metadata across export/import cycles with canonical `influenceStrength` field
+- **archimate-compliance**: preserve relationship documentation text from Archi `<documentation>` elements
+
+### Fix
+
+- **archimate-readers**: add fallback mapping from legacy `modifier` field to canonical `influenceStrength` for backward compatibility
+- **archimate-writers**: write `influenceStrength` instead of incorrect `strength` field name for influence relationships
+- **archimate-readers**: correct documentation extraction from `<documentation>` element in relationship import
+
+### Tests
+
+- add 8 unit tests for BusinessInteraction element creation and round-trip
+- add 7 unit tests for influence strength round-trip and legacy field support
+- add 11 unit tests for relationship documentation preservation including edge cases (Unicode, special chars, long text)
+- add 3 integration tests for complete round-trip fidelity across all three fixes
+- add 25 BDD acceptance scenarios covering all three compliance fixes
+- achieve 94% test coverage with 453 total tests
+
 ## v1.0.1 (2026-04-30)
 
 ### Fix

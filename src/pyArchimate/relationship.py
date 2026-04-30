@@ -42,7 +42,7 @@ def set_id(uuid=None):
     _id = str(uuid4()) if (uuid is None) else uuid
     if _is_valid_uuid(_id):
         _id = _id.replace('-', '')
-        if _id[:3] != 'id-':
+        if not _id.startswith('id-'):
             _id = 'id-' + _id
     return _id
 
@@ -143,9 +143,14 @@ class Relationship:
     :type name: str
     :param access_type:     optional parameter for access relationship ('Read', 'ReadWrite', 'Write', 'Access')
     :type access_type: str
-    :param influence_strength: optional influence strength (1-10, '+', '-')parameter for influence relationship
+    :param influence_strength: optional influence strength for Influence relationships. Canonical field
+                              preserved across export/import cycles. Values: numeric (0-10), '+', '++', '-', '--'.
+                              Supports round-trip fidelity with both .archimate and OpenGroup formats.
+                              On import, automatically maps legacy 'modifier' field to influenceStrength.
     :type influence_strength: str
-    :param desc:             description of the relationship
+    :param desc:             description/documentation text of the relationship. Stored as <documentation> element
+                              in .archimate format. Preserved during round-trip export/import cycles with support
+                              for Unicode characters, special XML characters, and arbitrary length text.
     :type desc: str
     :param is_directed:      boolean flag for association relationship
     :type is_directed: bool

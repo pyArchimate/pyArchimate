@@ -80,6 +80,13 @@ class Element:
     :return: Element object
     :rtype: Element
 
+    Example::
+
+        from pyArchimate import ArchiType
+        from pyArchimate.model import Model
+        m = Model('example')
+        bi = m.add(ArchiType.BusinessInteraction, 'Customer Service Interaction', desc='Handles customer interactions')
+
     """
 
     def __init__(self, elem_type=None, name=None, uuid=None, desc=None, folder=None, parent=None, profile=None):

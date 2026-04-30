@@ -34,3 +34,25 @@ def test_archimate_writer_with_views_to_file(tmp_path):
     archimate_writer(model, str(out))
     assert out.exists()
     assert out.stat().st_size > 0
+
+
+def test_archimate_writer_exports_business_interaction():
+    """Test that BusinessInteraction elements are exported correctly to OpenGroup format."""
+    from src.pyArchimate import ArchiType
+    model = simple_archimate_model('bi-opengroup-export')
+    model.add(ArchiType.BusinessInteraction, 'Service Interaction', desc='Service interactions')
+    xml_content = archimate_writer(model)
+    root = etree.fromstring(xml_content.encode('utf-8'))
+    ns = {'ns': 'http://www.opengroup.org/xsd/archimate/3.0/'}  # NOSONAR — XML namespace URI, not a network request
+    # Find BusinessInteraction element
+    elements = root.find('ns:elements', namespaces=ns)
+    bi_elements = [e for e in elements.findall('ns:element', namespaces=ns)  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
+                   if e.get('{http://www.w3.org/2001/XMLSchema-instance}type') == 'BusinessInteraction']  # NOSONAR — XML namespace URI, not a network request
+    assert len(bi_elements) > 0
+    bi_elem = bi_elements[0]
+    name = bi_elem.find('ns:name', namespaces=ns)
+    assert name is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
+    assert name.text == 'Service Interaction'
+    doc = bi_elem.find('ns:documentation', namespaces=ns)
+    assert doc is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
+    assert doc.text == 'Service interactions'
