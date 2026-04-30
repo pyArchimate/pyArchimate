@@ -62,8 +62,15 @@ class TextAlignment(str, Enum):
 
 
 class ArchiType(str, Enum):
-    """
-    Enumeration of Archimate Element & Relationships types
+    """Enumeration of ArchiMate element and relationship types.
+
+    Members cover all ArchiMate 3.x layers: Strategy, Motivation, Business,
+    Application, Technology, Physical, and Implementation & Migration.
+
+    Business layer elements include: BusinessActor, BusinessRole,
+    BusinessCollaboration, BusinessInterface, BusinessProcess,
+    BusinessFunction, BusinessInteraction, BusinessEvent, BusinessService,
+    BusinessObject, Contract, Representation, and Product.
     """
 
     # Business Layer

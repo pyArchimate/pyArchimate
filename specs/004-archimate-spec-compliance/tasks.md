@@ -47,29 +47,29 @@ This task list covers three critical P1 gaps in ArchiMate 3.x spec compliance:
 
 ### Configuration Changes
 
-- [ ] T009 [US1] Uncomment `BusinessInteraction: Business` in `src/pyArchimate/checker_rules.yml` (line 99)
-- [ ] T010 [US1] Verify `BusinessInteraction` is defined in `src/pyArchimate/enums.py` (already exists at line 76)
+- [X] T009 [US1] Uncomment `BusinessInteraction: Business` in `src/pyArchimate/checker_rules.yml` (line 99)
+- [X] T010 [US1] Verify `BusinessInteraction` is defined in `src/pyArchimate/enums.py` (already exists at line 76)
 
 ### Unit Tests
 
-- [ ] T011 [P] [US1] Implement test `test_create_business_interaction` in `tests/unit/test_element.py` (verify creation without validation error)
-- [ ] T012 [P] [US1] Implement test `test_import_business_interaction_from_both_formats` in `tests/unit/test_readers/test_archiReader.py` (verify import from both .archimate and OpenGroup formats; existing readers handle both once category mapping enabled by T009)
-- [ ] T013 [P] [US1] Implement test `test_export_business_interaction_to_archimate` in `tests/unit/test_writers/test_archiWriter.py`
-- [ ] T014 [P] [US1] Implement test `test_export_business_interaction_to_opengroup` in `tests/unit/test_writers/test_archimateWriter.py`
+- [X] T011 [P] [US1] Implement test `test_create_business_interaction` in `tests/unit/test_element.py` (verify creation without validation error)
+- [X] T012 [P] [US1] Implement test `test_import_business_interaction_from_both_formats` in `tests/unit/test_readers/test_archiReader.py` (verify import from both .archimate and OpenGroup formats; existing readers handle both once category mapping enabled by T009)
+- [X] T013 [P] [US1] Implement test `test_export_business_interaction_to_archimate` in `tests/unit/test_writers/test_archiWriter.py`
+- [X] T014 [P] [US1] Implement test `test_export_business_interaction_to_opengroup` in `tests/unit/test_writers/test_archimateWriter.py`
 
 ### Integration Tests
 
-- [ ] T015 [US1] Implement integration test `test_business_interaction_roundtrip` in `tests/integration/test_archimate_roundtrip.py` (export → import → verify identity)
+- [X] T015 [US1] Implement integration test `test_business_interaction_roundtrip` in `tests/integration/test_archimate_roundtrip.py` (export → import → verify identity)
 
 ### Documentation
 
-- [ ] T016 [US1] Update docstring for `BusinessInteraction` in element validation code with usage example
-- [ ] T017 [US1] Add BusinessInteraction example to `specs/004-archimate-spec-compliance/quickstart.md` section "Fix 1"
-- [ ] T018 [US1] Document BusinessInteraction support in `src/pyArchimate/enums.py` ArchiType enum docstring
+- [X] T016 [US1] Update docstring for `BusinessInteraction` in element validation code with usage example
+- [X] T017 [US1] Add BusinessInteraction example to `specs/004-archimate-spec-compliance/quickstart.md` section "Fix 1"
+- [X] T018 [US1] Document BusinessInteraction support in `src/pyArchimate/enums.py` ArchiType enum docstring
 
 ### BDD Tests
 
-- [ ] T019 [US1] Implement BDD steps for `business_interaction.feature` scenarios in `tests/features/steps/business_interaction_steps.py`
+- [X] T019 [US1] Implement BDD steps for `business_interaction.feature` scenarios in `tests/features/steps/business_interaction_steps.py`
 
 ---
 
