@@ -40,7 +40,7 @@ def test_archimate_writer_exports_business_interaction():
     """Test that BusinessInteraction elements are exported correctly to OpenGroup format."""
     from src.pyArchimate import ArchiType
     model = simple_archimate_model('bi-opengroup-export')
-    bi = model.add(ArchiType.BusinessInteraction, 'Service Interaction', desc='Service interactions')
+    model.add(ArchiType.BusinessInteraction, 'Service Interaction', desc='Service interactions')
     xml_content = archimate_writer(model)
     root = etree.fromstring(xml_content.encode('utf-8'))
     ns = {'ns': 'http://www.opengroup.org/xsd/archimate/3.0/'}

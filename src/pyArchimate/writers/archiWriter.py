@@ -122,7 +122,7 @@ def _write_relationship(folders: dict[str, _Element], rel: object, xsi: et.QName
         r.set("directed", str(is_directed).lower())
     influence_strength = getattr(rel, 'influence_strength', None)
     if influence_strength is not None:
-        r.set("influenceStrength", influence_strength)  # Write canonical influenceStrength field for round-trip preservation
+        r.set("influenceStrength", influence_strength)
     desc = getattr(rel, 'desc', None)
     if desc is not None:
         doc = et.SubElement(r, 'documentation')

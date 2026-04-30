@@ -9,6 +9,8 @@ import tempfile
 from behave import given, when, then  # type: ignore[import-untyped]
 from lxml import etree
 
+_SAFE_XML_PARSER = etree.XMLParser(resolve_entities=False, no_network=True)
+
 from src.pyArchimate import ArchiType
 from src.pyArchimate.model import Model
 from src.pyArchimate.writers.archimateWriter import archimate_writer
@@ -259,7 +261,7 @@ def step_strength_stored(context, strength):
 @then("the influenceStrength field is written to the relationship")
 def step_influencestrength_written(context):
     """Verify influenceStrength attribute is written to relationship element."""
-    root = etree.parse(context.export_path).getroot()
+    root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     found = False
     for elem in root.iter():
         # Look for elements with InfluenceRelationship type
@@ -275,7 +277,7 @@ def step_influencestrength_written(context):
 @then('the strength value "{strength}" is preserved in the XML')
 def step_strength_preserved_in_xml(context, strength):
     """Verify the strength value is preserved in XML."""
-    root = etree.parse(context.export_path).getroot()
+    root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     found = False
     for elem in root.iter():
         xsi_type = elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
@@ -346,7 +348,7 @@ def step_strength_value_preserved(context):
 @then('the exported file uses "influenceStrength" (canonical field)')
 def step_canonical_field_used(context):
     """Verify canonical influenceStrength attribute is used in export."""
-    root = etree.parse(context.export_path).getroot()
+    root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     found = False
     for elem in root.iter():
         if elem.get('influenceStrength') is not None:
@@ -358,7 +360,7 @@ def step_canonical_field_used(context):
 @then("the file is compatible with modern tools")
 def step_file_compatible(context):
     """Verify the exported file is compatible with modern tools."""
-    root = etree.parse(context.export_path).getroot()
+    root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     assert root is not None, "File should be valid XML"
     # Check that it uses influenceStrength (not modifier)
     has_influencestrength = False
@@ -588,7 +590,7 @@ def step_doc_not_truncated(context):
 @then("the documentation element is written to the XML")
 def step_doc_element_written(context):
     """Verify documentation element is written to XML."""
-    root = etree.parse(context.export_path).getroot()
+    root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     found = False
     for doc_elem in root.iter():
         if 'documentation' in doc_elem.tag.lower():
@@ -600,7 +602,7 @@ def step_doc_element_written(context):
 @then('the text content is "Processes read this data"')
 def step_xml_content_matches(context):
     """Verify the XML text content matches."""
-    root = etree.parse(context.export_path).getroot()
+    root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     expected_text = "Processes read this data"
     # Look for documentation in relationship elements
     for elem in root.iter():

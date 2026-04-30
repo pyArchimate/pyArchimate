@@ -6,13 +6,17 @@ and OpenGroup exchange formats, verifying round-trip fidelity and spec complianc
 
 import tempfile
 
-from behave import given, when, then  # type: ignore[import-untyped]
+from behave import given, then, when  # type: ignore[import-untyped]
 from lxml import etree
 
 from src.pyArchimate import ArchiType
 from src.pyArchimate.constants import ARCHI_CATEGORY
 from src.pyArchimate.model import Model
 from src.pyArchimate.writers.archimateWriter import archimate_writer
+
+_SAFE_XML_PARSER = etree.XMLParser(resolve_entities=False, no_network=True)
+_ARCHIMATE_NS = "http://www.archimatetool.com/archimate"
+_OPENGROUP_NS = "http://www.opengroup.org/xsd/archimate/3.0/"
 
 
 # Helper: Create sample .archimate file with BusinessInteraction
@@ -213,7 +217,7 @@ def step_properties_preserved(context):
 @then("the BusinessInteraction elements are written to the file")
 def step_bi_written_to_file(context):
     """Verify BusinessInteraction elements were written to exported file."""
-    root = etree.parse(context.export_path).getroot()
+    root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     # Check all elements for BusinessInteraction type
     found = False
     for elem in root.iter():
@@ -227,25 +231,25 @@ def step_bi_written_to_file(context):
 @then("the exported file is valid ArchiMate XML")
 def step_valid_archimate_xml(context):
     """Verify the exported .archimate file is valid XML."""
-    root = etree.parse(context.export_path).getroot()
+    root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     assert root is not None, "File should be valid XML"
     # Check for archimate namespace
-    assert "archimate" in root.tag or "archimate" in str(root.nsmap), "Should have archimate namespace"
+    assert _ARCHIMATE_NS in root.nsmap.values(), "Should have archimate namespace"
 
 
 @then("the exported file is valid OpenGroup XML")
 def step_valid_opengroup_xml(context):
     """Verify the exported OpenGroup file is valid XML."""
-    root = etree.parse(context.export_path).getroot()
+    root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     assert root is not None, "File should be valid XML"
     # Check for opengroup namespace
-    assert "opengroup.org" in root.tag or "opengroup.org" in str(root.nsmap), "Should have OpenGroup namespace"
+    assert _OPENGROUP_NS in root.nsmap.values(), "Should have OpenGroup namespace"
 
 
 @then("the BusinessInteraction element type is preserved")
 def step_bi_type_preserved(context):
     """Verify BusinessInteraction type is preserved in .archimate export."""
-    root = etree.parse(context.export_path).getroot()
+    root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     # Check all elements for BusinessInteraction type attribute
     found = False
     for elem in root.iter():
@@ -259,7 +263,7 @@ def step_bi_type_preserved(context):
 @then("the element type mapping is correct")
 def step_type_mapping_correct(context):
     """Verify BusinessInteraction type mapping in OpenGroup export."""
-    root = etree.parse(context.export_path).getroot()
+    root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     # Find all elements with BusinessInteraction type
     bi_elems = root.findall(".//{http://www.opengroup.org/xsd/archimate/3.0/}element[@{http://www.w3.org/2001/XMLSchema-instance}type='BusinessInteraction']")
     assert len(bi_elems) > 0, "BusinessInteraction type mapping should be correct"
@@ -290,7 +294,7 @@ def step_type_remains_bi(context):
 @then("the BusinessInteraction elements are correctly mapped and written")
 def step_bi_correctly_mapped(context):
     """Verify BusinessInteraction elements are correctly mapped in OpenGroup export."""
-    root = etree.parse(context.export_path).getroot()
+    root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     # Find BusinessInteraction elements in OpenGroup format
     bi_elems = root.findall(".//{http://www.opengroup.org/xsd/archimate/3.0/}element[@{http://www.w3.org/2001/XMLSchema-instance}type='BusinessInteraction']")
     assert len(bi_elems) > 0, "BusinessInteraction should be correctly mapped and written"

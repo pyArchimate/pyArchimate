@@ -158,7 +158,7 @@ def _parse_rel_attributes(elem: Any, e: Any) -> None:
         elem.influence_strength = e.get("strength")
     doc = e.find('documentation')
     if doc is not None:
-        elem.desc = doc.text  # Extract relationship documentation from <documentation> element for round-trip preservation
+        elem.desc = doc.text
     for p in e.findall('property'):
         elem.prop(p.get('key'), p.get('value'))
 

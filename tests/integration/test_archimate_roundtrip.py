@@ -7,8 +7,6 @@ export/import cycles without loss or corruption.
 import tempfile
 from pathlib import Path
 
-import pytest
-
 from src.pyArchimate import ArchiType
 from src.pyArchimate.model import Model
 
