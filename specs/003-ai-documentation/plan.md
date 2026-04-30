@@ -10,7 +10,7 @@ Deliver three artefacts: a machine-readable `AI.md` reference document at the re
 ## Technical Context
 
 **Language/Version**: Python 3.10+ (pyproject.toml `requires-python = ">=3.10,<4.0"`); ruff targets 3.12  
-**Primary Dependencies**: `subprocess` (stdlib) for `claude code` CLI invocation; `mistune` (Markdown AST parser) for structural validation; `lxml` (already in project); `pytest` for tutorial verification  
+**Primary Dependencies**: `subprocess` (stdlib) for `claude code` CLI invocation; `pymarkdownlnt` (already in `lint` group) for structural validation; `lxml` (already in project); `pytest` for tutorial verification  
 **Storage**: File I/O only — no database. Outputs: `AI.md` (root), `docs/tutorial.md`, `scripts/README.md`  
 **Testing**: `pytest` for integration tests (`tests/integration/test_tutorial.py`); `pymarkdownlnt` for Markdown linting  
 **Target Platform**: Developer workstation (Linux/macOS), `claude code` CLI in PATH; GitHub markdown rendering as primary view target  
@@ -29,7 +29,7 @@ Deliver three artefacts: a machine-readable `AI.md` reference document at the re
 | II. Testing Standards (TDD) | ✅ PASS | Test stubs written before implementation for T003, T004, T015, T009; T008 harness before T007 content |
 | III. UX Consistency | ✅ PASS | Single-command invocation; error messages include resolution steps per FR-012 |
 | IV. Performance | ✅ PASS | Script is async by nature (subprocess); < 5 min goal is explicit in SC-003 |
-| V. Security | ✅ PASS | FR-010 mandates env-var credentials; T015 adds an assertion test confirming no hard-coded secrets |
+| V. Security | ✅ PASS | FR-010 mandates env-var credentials; T015 adds an assertion test confirming no hard-coded secrets; no new dependencies introduce supply-chain risk (`pymarkdownlnt` already in project) |
 | VI. State Management | ✅ PASS | State transitions documented in data-model.md: `raw_source → ai_generated → validated_doc` |
 | VII. System Integrity | ✅ PASS | FR-012: script MUST NOT overwrite `AI.md` if validation fails; T003 implements this gate |
 | VIII. Durability | ✅ PASS | `AI.md` version-controlled alongside source (FR-009); no migration paths required |

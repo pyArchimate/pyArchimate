@@ -40,7 +40,7 @@
 US1 → US2 → US3 → US4
 
 ### Parallel Opportunities [P]
-- T005, T006, T014 (US1 context gathering and AI.md content)
+- T005, T006 (US1 context gathering; T014 sequential after T005)
 - T008 (US2 testing infrastructure)
 
 ### Implementation Strategy
