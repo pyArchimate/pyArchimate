@@ -150,11 +150,13 @@ def _parse_rel_attributes(elem: Any, e: Any) -> None:
         elem.access_type = AccessType.Write
     if e.get('directed') is not None:
         elem.is_directed = e.get('directed') == "true"
-    if e.get('strength') is not None:
+    if e.get('influenceStrength') is not None:
+        elem.influence_strength = e.get("influenceStrength")
+    elif e.get('strength') is not None:
         elem.influence_strength = e.get("strength")
     doc = e.find('documentation')
     if doc is not None:
-        elem.desc = e.text
+        elem.desc = doc.text
     for p in e.findall('property'):
         elem.prop(p.get('key'), p.get('value'))
 

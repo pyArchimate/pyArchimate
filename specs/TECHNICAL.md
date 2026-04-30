@@ -167,12 +167,60 @@ The following patterns and practices have been established for API-level integra
   - Schemas (DTOs): 100%
   - Services: 50-60% (complementary unit tests for edge cases)
 
+## XML Round-Trip Testing and Field Mapping Patterns
+
+The following patterns ensure data fidelity when reading, modifying, and writing XML-based ArchiMate formats:
+
+### Round-Trip Fidelity Testing
+
+- **Test Structure**: Create integration tests that verify export/import cycles:
+  1. Create model with specific data (elements, relationships, metadata)
+  2. Export to target format (.archimate or OpenGroup XML)
+  3. Re-import the exported file
+  4. Assert that imported data matches original exactly (or within expected transformations)
+  5. Export again and compare to previous export (ensuring idempotency)
+
+- **Metadata Preservation**: When testing round-trip fidelity for metadata fields:
+  - Create test fixtures with known metadata values in test files (place in `tests/fixtures/archimate_v3/`)
+  - Verify field names are correctly mapped during import (canonical Python names in model)
+  - Verify field names are correctly written during export (format-specific names in XML)
+  - Test both happy path (valid values) and edge cases (empty, special characters, Unicode)
+
+### Field Name Mapping (Multi-Format Support)
+
+- **Canonical Field Storage**: Store metadata using Python snake_case field names internally (e.g., `influence_strength`, `description`)
+- **Format-Specific Mapping**: When reading/writing different formats:
+  - `.archimate` format (Archi tool): Use format-specific field names in XML (e.g., `influenceStrength`, `<documentation>` element)
+  - OpenGroup exchange format: Use format-specific field names (e.g., `influenceStrength` attribute)
+  - Map these format names to canonical Python names when importing; reverse map when exporting
+  
+- **Legacy Field Support**: When importing, support deprecated/legacy field names with fallback logic:
+  - Example: Read `modifier` field if `influenceStrength` is missing, store as `influence_strength`
+  - Document the fallback chain (primary name → legacy names)
+  - Always write using the primary/canonical name on export (ensuring forward compatibility)
+
+- **Implementation Location**: Place mapping logic in reader helpers (e.g., `_archireader_helpers.py`)
+  - Create helper functions for field extraction: `extract_field(elem, primary_name, *legacy_names)`
+  - This centralizes mapping rules and reduces duplication across readers
+
+### Test Fixture Management
+
+- **Fixture Directory**: Store sample ArchiMate files in `tests/fixtures/archimate_v3/`
+  - Include files with known metadata (influence strength values, documentation text)
+  - Include files with edge cases (empty fields, Unicode characters, special XML characters, long text)
+  - Include files created by external tools (Archi) to verify interoperability
+
+- **Fixture Naming**: Use descriptive names to indicate fixture purpose:
+  - `business_interaction_simple.archimate` - Basic element with no metadata
+  - `influence_relationship_with_strength.archimate` - Relationship with strength metadata
+  - `documented_relationship_unicode.archimate` - Relationship with Unicode documentation
+
 ### Requirements Traceability
 
 - **Explicit Mapping**: Maintain a Requirements Traceability Matrix linking:
-  - Functional Requirements (FR-001, FR-002, etc.) ? Task IDs
-  - Success Criteria (SC-001, SC-002, etc.) ? Test Functions
-  - User Stories (US1, US2, US3) ? Test Modules
+  - Functional Requirements (FR-001, FR-002, etc.) → Task IDs
+  - Success Criteria (SC-001, SC-002, etc.) → Test Functions
+  - User Stories (US1, US2, US3) → Test Modules
 - **Verification**: Use this matrix to verify:
   - 100% of requirements have corresponding tasks
   - 100% of tasks are marked complete

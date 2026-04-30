@@ -46,6 +46,20 @@ Elements span the full ArchiMate 3 layer stack: **Strategy, Motivation, Business
 - No write support for ARIS AML
 - Not designed for interactive or real-time use — batch/scripting oriented
 
+## ArchiMate v3.x Compliance
+
+pyArchimate now supports ArchiMate 3.x specification compliance with the following features:
+
+### Supported Features
+
+- ✅ **BusinessInteraction elements**: Full support for creating, importing, and exporting BusinessInteraction elements
+- ✅ **Influence strength metadata**: Complete round-trip preservation of influence relationship strength (both `.archimate` and OpenGroup formats)
+- ✅ **Relationship documentation**: Full preservation of relationship documentation/description text during import and export
+
+### Known Gaps
+
+See [Gap Analysis Documentation](docs/archimate-gaps.md) for detailed analysis of specification alignment and areas for future enhancement (P2/P3).
+
 ## Metamodel
 
 ![](docs/metaModel.png)
