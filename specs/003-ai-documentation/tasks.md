@@ -18,19 +18,19 @@
 - [X] T014 Add "Non-Conformances" section to `AI.md` listing known deviations from the current ArchiMate standard and Archi import/export compatibility gaps (FR-016)
 
 ## Phase 4: New User Tutorial (US2) [US2]
-- [ ] T007 Create `docs/tutorial.md` with step-by-step ArchiMate model examples, including ArchiMate standard background guidance with references (FR-015) in a collapsible section for experienced users
-- [ ] T008 [P] [US2] Implement tutorial code snippet verification in `tests/integration/test_tutorial.py`
+- [X] T007 Create `docs/tutorial.md` with step-by-step ArchiMate model examples, including ArchiMate standard background guidance with references (FR-015) in a collapsible section for experienced users
+- [X] T008 [P] [US2] Implement tutorial code snippet verification in `tests/integration/test_tutorial.py`
 
 ## Phase 5: Automated Documentation Regeneration (US3) [US3]
-- [ ] T009 Implement full regeneration script logic in `scripts/generate_ai_docs.py`
-- [ ] T010 Verify idempotency of the generation script
+- [X] T009 Implement full regeneration script logic in `scripts/generate_ai_docs.py`
+- [X] T010 Verify idempotency of the generation script
 
 ## Phase 6: README Discoverability (US4) [US4]
-- [ ] T011 Update `README.md` to include links to `AI.md` and `docs/tutorial.md`
+- [X] T011 Update `README.md` to include links to `AI.md` and `docs/tutorial.md`
 
 ## Final Phase: Polish & Cross-Cutting
-- [ ] T012 Add documentation instructions for maintainers in `scripts/README.md`
-- [ ] T013 Final validation of all success criteria (SC-001 to SC-006)
+- [X] T012 Add documentation instructions for maintainers in `scripts/README.md`
+- [X] T013 Final validation of all success criteria (SC-001 to SC-006)
 
 ---
 

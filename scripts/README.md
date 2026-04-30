@@ -57,6 +57,30 @@ Renders all `.puml` files in `docs/diagrams/` to `.png` using the PlantUML web s
 ### `create_documentation.sh`
 Builds the project's Sphinx documentation into `build/html`.
 
+### `generate_ai_docs.py`
+
+Regenerates `AI.md` from the current state of `docs/` using the Claude CLI.
+
+**When to run:** Re-run whenever the `docs/` folder is updated to keep `AI.md`
+in sync with the library.
+
+**Prerequisites:**
+
+- Python 3.10+
+- `claude` CLI in `PATH` (install via `pip install claude-code`)
+- `ANTHROPIC_API_KEY` environment variable set
+
+**Usage:**
+
+```bash
+export ANTHROPIC_API_KEY=<your-key>
+python scripts/generate_ai_docs.py
+```
+
+The script validates the generated content (required sections and Markdown
+syntax) before overwriting `AI.md`. If validation fails, `AI.md` is not
+modified and an error is printed to stderr.
+
 ---
 
 ## Prerequisites

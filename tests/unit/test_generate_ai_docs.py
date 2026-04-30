@@ -1,4 +1,4 @@
-"""Unit tests for scripts/generate_ai_docs.py (T003, T004, T015)."""
+"""Unit tests for scripts/generate_ai_docs.py (T003, T004, T010, T015)."""
 import os
 import sys
 from pathlib import Path
@@ -132,3 +132,17 @@ class TestGenerateAiMd:
             with pytest.raises(SystemExit):
                 gen.generate_ai_md()
         assert not (tmp_path / "AI.md").exists()
+
+
+class TestIdempotency:
+    """Verify structural idempotency guarantee (T010, US3-AC3)."""
+
+    def test_validate_structure_is_deterministic(self) -> None:
+        content = "\n".join(f"# {s}" for s in gen.REQUIRED_SECTIONS)
+        assert gen.validate_markdown_structure(content) == []
+        assert gen.validate_markdown_structure(content) == []
+
+    def test_current_ai_md_passes_structural_validation(self) -> None:
+        ai_md = gen.AI_MD_PATH.read_text(encoding="utf-8")
+        missing = gen.validate_markdown_structure(ai_md)
+        assert missing == [], f"AI.md missing sections: {missing}"
