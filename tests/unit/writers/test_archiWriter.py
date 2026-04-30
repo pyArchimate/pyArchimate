@@ -38,10 +38,10 @@ def test_archi_writer_exports_business_interaction(tmp_path):
     root = etree.parse(str(target)).getroot()
     # Find BusinessInteraction element
     bi_elements = root.findall(".//element[@xsi:type='archimate:BusinessInteraction']",
-                               namespaces={'xsi': 'http://www.w3.org/2001/XMLSchema-instance'})
+                               namespaces={'xsi': 'http://www.w3.org/2001/XMLSchema-instance'})  # NOSONAR — XML namespace URI, not a network request
     assert len(bi_elements) > 0
     bi_elem = bi_elements[0]
     assert bi_elem.get('name') == 'Customer Interaction'
     doc = bi_elem.find('documentation')
-    assert doc is not None
+    assert doc is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
     assert doc.text == 'Handles customers'
