@@ -107,7 +107,7 @@ A user browsing the repository's `README.md` finds a clearly marked link to `AI.
 - **FR-013**: The generation script MUST be implemented in Python to ensure consistency with the library's codebase and existing developer tooling.
 - **FR-014**: All code examples provided in `docs/tutorial.md` MUST be automatically verified for correctness by a dedicated test (e.g., as part of the integration test suite) to prevent regression.
 - **FR-015**: the `docs/tutorial.md` MUST include all basic guidance on Archimate standard (with references) so that an inexperienced Archimate user can understand what it is about. This guidance could be hidden by experienced Archimate users.
-- **FR-016**: pyArchimate non-conformance to the latest Archimate standard and to the Archi tool import/export functions is reported and subject to future pyArchimate releases 
+- **FR-016**: `AI.md` MUST include a "Non-Conformances" section listing known deviations from the current ArchiMate standard and known Archi import/export compatibility gaps, sourced from existing documentation and codebase comments. These items are documented for transparency and flagged as candidates for future pyArchimate releases.
 
 ### Key Entities
 
@@ -133,7 +133,7 @@ A user browsing the repository's `README.md` finds a clearly marked link to `AI.
 - The tutorial will target Python developers who are familiar with the language but new to ArchiMate and the library; no prior ArchiMate knowledge is assumed and guidance on Archimate standard will be given if needed.
 - The generation script assumes the availability of the `claude code` CLI tool for execution and context processing.
 - The generation script will use an external AI API (such as the Anthropic or OpenAI API) that the maintainer has access to; cost and rate limits are the maintainer's responsibility.
-- The tutorial document lives at `docs/tutorial.md`, alongside the existing Sphinx documentation tree, but is referenced in the introduction of the Sphinx documentation.
+- The tutorial document lives at `docs/tutorial.md`, alongside the existing Sphinx documentation tree. Updating Sphinx/ReadTheDocs documentation to reference the tutorial is **out of scope** for this feature and should be addressed in a follow-up.
 - Existing Sphinx/ReadTheDocs documentation is out of scope for this feature; `AI.md` and the tutorial are supplementary, not replacements.
 - The generation script is a developer/maintainer tool and does not need to run in CI by default, though it may be wired into an optional workflow in a follow-up.
 - Mobile or web-based viewing of documentation is not a concern — GitHub markdown rendering is the primary target.
