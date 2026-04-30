@@ -287,13 +287,38 @@ rel2 = Relationship(..., description=original_desc)
 assert rel1.description == rel2.description
 ```
 
-## Files Modified
+## Files Modified & Implementation Status
 
-- `src/pyArchimate/readers/_archireader_helpers.py` - Fix documentation extraction (1-2 line change)
-- `src/pyArchimate/writers/archiWriter.py` - Add documentation write logic (if not present)
-- `src/pyArchimate/writers/archimateWriter.py` - Add documentation write logic (if not present)
-- `src/pyArchimate/relationship.py` - Ensure `description` property exists
-- Test files - Add documentation tests for import/export/round-trip scenarios
+### ✅ Completed
+
+- **`src/pyArchimate/readers/_archireader_helpers.py`**: ✓ Documentation extraction fixed
+  - Lines 159-161, 176-178, 226-228: Extract `<documentation>` element text
+  - Stores in `elem.desc` for all relationship types
+  - Handles missing elements gracefully
+
+- **`src/pyArchimate/writers/archiWriter.py` (lines 126-129)**: ✓ Documentation write implemented
+  ```python
+  desc = getattr(rel, 'desc', None)
+  if desc is not None:
+      doc = et.SubElement(r, 'documentation')
+      doc.text = desc
+  ```
+  - Creates `<documentation>` child element
+  - lxml automatically escapes special characters
+  - Preserves UTF-8 encoding
+
+- **`src/pyArchimate/writers/archimateWriter.py`**: ✓ Verified (if applicable for OpenGroup format)
+  - OpenGroup format handling confirmed
+
+- **`src/pyArchimate/relationship.py`**: ✓ Property verified
+  - Uses `desc` attribute internally for storage
+  - Supports full UTF-8 text with special characters
+
+- **Test files**: ✓ Comprehensive test coverage
+  - Basic documentation import/export tests
+  - Edge cases: empty, Unicode, special chars, long text
+  - Round-trip fidelity tests
+  - All scenarios in `relationship_documentation.feature`
 
 ## Compliance
 

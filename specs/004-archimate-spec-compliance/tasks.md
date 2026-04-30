@@ -106,9 +106,9 @@ This task list covers three critical P1 gaps in ArchiMate 3.x spec compliance:
 
 ### Documentation
 
-- [ ] T030 [US2] Update `src/pyArchimate/relationship.py` class docstring with influence_strength field documentation
-- [ ] T031 [US2] Add influence strength examples to `specs/004-archimate-spec-compliance/quickstart.md` section "Fix 2"
-- [ ] T032 [US2] Update `specs/004-archimate-spec-compliance/contracts/influence-strength-field-mapping.md` with implementation notes from actual code
+- [X] T030 [US2] Update `src/pyArchimate/relationship.py` class docstring with influence_strength field documentation
+- [X] T031 [US2] Add influence strength examples to `specs/004-archimate-spec-compliance/quickstart.md` section "Fix 2"
+- [X] T032 [US2] Update `specs/004-archimate-spec-compliance/contracts/influence-strength-field-mapping.md` with implementation notes from actual code
 
 ### BDD Tests
 
@@ -151,9 +151,9 @@ This task list covers three critical P1 gaps in ArchiMate 3.x spec compliance:
 
 ### Documentation
 
-- [ ] T046 [US3] Update `src/pyArchimate/relationship.py` class docstring with `description` field documentation
-- [ ] T047 [US3] Add relationship documentation examples to `specs/004-archimate-spec-compliance/quickstart.md` section "Fix 3"
-- [ ] T048 [US3] Update `specs/004-archimate-spec-compliance/contracts/relationship-documentation-preservation.md` with implementation notes
+- [X] T046 [US3] Update `src/pyArchimate/relationship.py` class docstring with `description` field documentation
+- [X] T047 [US3] Add relationship documentation examples to `specs/004-archimate-spec-compliance/quickstart.md` section "Fix 3"
+- [X] T048 [US3] Update `specs/004-archimate-spec-compliance/contracts/relationship-documentation-preservation.md` with implementation notes
 
 ### BDD Tests
 
@@ -178,15 +178,15 @@ This task list covers three critical P1 gaps in ArchiMate 3.x spec compliance:
 
 ### Documentation Completion
 
-- [ ] T057 Update `CHANGELOG.md` with feature summary and all three fixes (format: Conventional Commits)
-- [ ] T058 [P] Update `specs/004-archimate-spec-compliance/quickstart.md` "Success Criteria Checklist" to reflect actual coverage
-- [ ] T059 [P] Update `specs/004-archimate-spec-compliance/data-model.md` "Testing Strategy" section with actual test results
-- [ ] T060 [P] Add inline code comments where documentation extraction and field mapping occur (no more than 1-line per fix location)
+- [X] T057 Update `CHANGELOG.md` with feature summary and all three fixes (format: Conventional Commits)
+- [X] T058 [P] Update `specs/004-archimate-spec-compliance/quickstart.md` "Success Criteria Checklist" to reflect actual coverage
+- [X] T059 [P] Update `specs/004-archimate-spec-compliance/data-model.md` "Testing Strategy" section with actual test results
+- [X] T060 [P] Add inline code comments where documentation extraction and field mapping occur (no more than 1-line per fix location)
 
 ### Specification Updates
 
-- [ ] T061 Update `specs/004-archimate-spec-compliance/spec.md` status from "Draft" to "Implemented"
-- [ ] T062 Add "Implementation Notes" section to `specs/004-archimate-spec-compliance/spec.md` documenting final implementation choices
+- [X] T061 Update `specs/004-archimate-spec-compliance/spec.md` status from "Draft" to "Implemented"
+- [X] T062 Add "Implementation Notes" section to `specs/004-archimate-spec-compliance/spec.md` documenting final implementation choices
 
 ---
 
@@ -204,7 +204,7 @@ This task list covers three critical P1 gaps in ArchiMate 3.x spec compliance:
 
 - [X] T068 Create summary commit: `git log --oneline 004-archimate-spec-compliance...develop` (capture all work commits) - ✅ Commit created (95ab511)
 - [X] T069 Prepare PR description summarizing all three fixes, test coverage, and documentation updates - ✅ PR body prepared
-- [ ] T070 Ready for code review and merge to develop (waiting for GitHub PR creation)
+- [X] T070 Ready for code review and merge to develop - ✅ All documentation complete, ready for PR creation
 
 ---
 

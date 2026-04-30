@@ -183,12 +183,36 @@ rel2 = imported_model.get_relationships()[0]
 assert rel1.influence_strength == rel2.influence_strength  # ✓ Preserved
 ```
 
-## Files Modified
+## Files Modified & Implementation Status
 
-- `src/pyArchimate/readers/archimateReader.py` - Update field name + fallback
-- `src/pyArchimate/writers/archiWriter.py` - Update field name from "strength" to "influenceStrength"
-- `src/pyArchimate/relationship.py` - Document property; ensure setter stores value
-- Test files - Add round-trip and fallback tests
+### ✅ Completed
+
+- **`src/pyArchimate/readers/archimateReader.py` (line 85)**: ✓ Implemented fallback logic
+  ```python
+  influence_strength=r.get('influenceStrength') or r.get('modifier'),
+  ```
+  - Reads canonical `influenceStrength` first
+  - Falls back to legacy `modifier` for backward compatibility
+  - Transparent field mapping to Python property
+
+- **`src/pyArchimate/writers/archiWriter.py` (line 125)**: ✓ Writes canonical field name
+  ```python
+  r.set("influenceStrength", influence_strength)
+  ```
+  - Now uses correct canonical field name instead of "strength"
+  - Ensures consistency with OpenGroup format and reader expectations
+
+- **`src/pyArchimate/relationship.py`**: ✓ Property fully documented
+  - Class docstring updated with detailed field description (lines 130-145)
+  - Property getter/setter properly implemented (lines 459-480)
+  - Stores as `_influence_strength` internal attribute
+  - Setter validates only writes for Influence relationship type
+
+- **Test files**: ✓ Comprehensive test coverage
+  - Unit tests for round-trip fidelity
+  - Integration tests for all format combinations
+  - Legacy modifier fallback tests
+  - BDD acceptance scenarios
 
 ## Compliance
 
