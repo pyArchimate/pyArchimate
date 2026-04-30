@@ -8,7 +8,7 @@ def test_archimate_writer_produces_valid_xml():
     model = simple_archimate_model()
     xml_content = archimate_writer(model)
     root = etree.fromstring(xml_content.encode('utf-8'))
-    ns = {'ns': 'http://www.opengroup.org/xsd/archimate/3.0/'}
+    ns = {'ns': 'http://www.opengroup.org/xsd/archimate/3.0/'}  # NOSONAR — XML namespace URI, not a network request
     assert root.find('ns:elements', namespaces=ns) is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
 
 
@@ -16,7 +16,7 @@ def test_archimate_writer_with_views_produces_view_xml():
     model = model_with_views()
     xml_content = archimate_writer(model)
     root = etree.fromstring(xml_content.encode('utf-8'))
-    ns = {'ns': 'http://www.opengroup.org/xsd/archimate/3.0/'}
+    ns = {'ns': 'http://www.opengroup.org/xsd/archimate/3.0/'}  # NOSONAR — XML namespace URI, not a network request
     # views element must be present and contain a diagram
     views = root.find('ns:views', namespaces=ns)
     assert views is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
