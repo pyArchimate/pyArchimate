@@ -230,11 +230,10 @@ def step_bi_written_to_file(context):
 
 @then("the exported file is valid ArchiMate XML")
 def step_valid_archimate_xml(context):
-    """Verify the exported .archimate file is valid XML."""
+    """Verify the exported file is valid ArchiMate XML (OpenGroup exchange format)."""
     root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     assert root is not None, "File should be valid XML"
-    # Check for archimate namespace
-    assert _ARCHIMATE_NS in root.nsmap.values(), "Should have archimate namespace"
+    assert _OPENGROUP_NS in root.nsmap.values(), "Should have OpenGroup ArchiMate namespace"
 
 
 @then("the exported file is valid OpenGroup XML")
