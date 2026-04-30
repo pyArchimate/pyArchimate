@@ -53,7 +53,7 @@ This task list covers three critical P1 gaps in ArchiMate 3.x spec compliance:
 ### Unit Tests
 
 - [ ] T011 [P] [US1] Implement test `test_create_business_interaction` in `tests/unit/test_element.py` (verify creation without validation error)
-- [ ] T012 [P] [US1] Implement test `test_import_business_interaction_from_archimate` in `tests/unit/test_readers/test_archiReader.py`
+- [ ] T012 [P] [US1] Implement test `test_import_business_interaction_from_both_formats` in `tests/unit/test_readers/test_archiReader.py` (verify import from both .archimate and OpenGroup formats; existing readers handle both once category mapping enabled by T009)
 - [ ] T013 [P] [US1] Implement test `test_export_business_interaction_to_archimate` in `tests/unit/test_writers/test_archiWriter.py`
 - [ ] T014 [P] [US1] Implement test `test_export_business_interaction_to_opengroup` in `tests/unit/test_writers/test_archimateWriter.py`
 

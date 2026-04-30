@@ -12,6 +12,7 @@
 - Q1: Feature scope and priority staging → A: P1 only (BusinessInteraction, influence strength, documentation)
 - Q2: Out-of-scope requirements handling → C: Move P2/P3 to separate "Future Features" section
 - Q3: Influence strength field naming → B: Use `influenceStrength` for both .archimate and OpenGroup formats
+- Q4: FR-004 OpenGroup import coverage → B: Update T012 to explicitly test both .archimate and OpenGroup import formats; existing reader handles both once category mapping is enabled
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -78,7 +79,7 @@ A developer imports an Archi .archimate file containing relationships with docum
 - **FR-001**: System MUST uncomment and enable `BusinessInteraction` in `ARCHI_CATEGORY` so that `Element.__init__` accepts it as a valid element type
 - **FR-002**: System MUST allow creation of `Element` instances with `elem_type=ArchiType.BusinessInteraction` without validation errors
 - **FR-003**: System MUST correctly parse and import `BusinessInteraction` elements from .archimate files
-- **FR-004**: System MUST correctly parse and import `BusinessInteraction` elements from OpenGroup exchange format files
+- **FR-004**: System MUST correctly parse and import `BusinessInteraction` elements from OpenGroup exchange format files (covered by existing OpenGroup reader once ARCHI_CATEGORY category mapping is enabled in FR-001)
 - **FR-005**: System MUST correctly export `BusinessInteraction` elements to both .archimate and OpenGroup exchange formats with proper type mapping
 - **FR-006**: System MUST read influence strength metadata consistently using the field name `influenceStrength` for both OpenGroup exchange format and .archimate format (mapping legacy `modifier` field to `influenceStrength` transparently during import)
 - **FR-007**: System MUST write influence strength metadata using the field name `influenceStrength` for both OpenGroup and .archimate export formats
