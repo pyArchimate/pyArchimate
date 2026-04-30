@@ -126,7 +126,7 @@ def test_relationship_profile_id_none_when_unset(model_with_rel):
 
 
 def test_relationship_set_profile(model_with_rel):
-    m, _, _, rel = model_with_rel
+    _, _, _, rel = model_with_rel
     rel.set_profile('MyProfile')
     assert rel.profile_id is not None
 
@@ -301,7 +301,7 @@ def test_relationship_delete_removes_visual_connections():
 # ---------------------------------------------------------------------------
 
 def test_relationship_source_setter_with_element(model_with_rel):
-    m, src, dst, rel = model_with_rel
+    m, _, _, rel = model_with_rel
     new_src = m.add(ArchiType.ApplicationComponent, 'NewSrc')
     # Use string UUID to avoid module-identity isinstance failure in full suite
     rel.source = new_src.uuid
@@ -309,7 +309,7 @@ def test_relationship_source_setter_with_element(model_with_rel):
 
 
 def test_relationship_target_setter_with_element(model_with_rel):
-    m, src, dst, rel = model_with_rel
+    m, _, _, rel = model_with_rel
     new_dst = m.add(ArchiType.ApplicationService, 'NewDst')
     # Use string UUID to avoid module-identity isinstance failure in full suite
     rel.target = new_dst.uuid
