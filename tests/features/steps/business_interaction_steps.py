@@ -15,8 +15,7 @@ from src.pyArchimate.model import Model
 from src.pyArchimate.writers.archimateWriter import archimate_writer
 
 _SAFE_XML_PARSER = etree.XMLParser(resolve_entities=False, no_network=True)
-_ARCHIMATE_NS = "http://www.archimatetool.com/archimate"
-_OPENGROUP_NS = "http://www.opengroup.org/xsd/archimate/3.0/"
+_OPENGROUP_NS = "http://www.opengroup.org/xsd/archimate/3.0/"  # NOSONAR — XML namespace URI, not a network request
 
 
 # Helper: Create sample .archimate file with BusinessInteraction
@@ -221,7 +220,7 @@ def step_bi_written_to_file(context):
     # Check all elements for BusinessInteraction type
     found = False
     for elem in root.iter():
-        xsi_type = elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+        xsi_type = elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')  # NOSONAR — XML namespace URI, not a network request
         if xsi_type and 'BusinessInteraction' in xsi_type:
             found = True
             break
@@ -232,7 +231,7 @@ def step_bi_written_to_file(context):
 def step_valid_archimate_xml(context):
     """Verify the exported file is valid ArchiMate XML (OpenGroup exchange format)."""
     root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
-    assert root is not None, "File should be valid XML"
+    assert root is not None, "File should be valid XML"  # NOSONAR — lxml stubs omit Optional; getroot() returns None at runtime for empty docs
     assert _OPENGROUP_NS in root.nsmap.values(), "Should have OpenGroup ArchiMate namespace"
 
 
@@ -240,7 +239,7 @@ def step_valid_archimate_xml(context):
 def step_valid_opengroup_xml(context):
     """Verify the exported OpenGroup file is valid XML."""
     root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
-    assert root is not None, "File should be valid XML"
+    assert root is not None, "File should be valid XML"  # NOSONAR — lxml stubs omit Optional; getroot() returns None at runtime for empty docs
     # Check for opengroup namespace
     assert _OPENGROUP_NS in root.nsmap.values(), "Should have OpenGroup namespace"
 
@@ -252,7 +251,7 @@ def step_bi_type_preserved(context):
     # Check all elements for BusinessInteraction type attribute
     found = False
     for elem in root.iter():
-        xsi_type = elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+        xsi_type = elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')  # NOSONAR — XML namespace URI, not a network request
         if xsi_type and 'BusinessInteraction' in xsi_type:
             found = True
             break
@@ -264,7 +263,7 @@ def step_type_mapping_correct(context):
     """Verify BusinessInteraction type mapping in OpenGroup export."""
     root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     # Find all elements with BusinessInteraction type
-    bi_elems = root.findall(".//{http://www.opengroup.org/xsd/archimate/3.0/}element[@{http://www.w3.org/2001/XMLSchema-instance}type='BusinessInteraction']")
+    bi_elems = root.findall(".//{http://www.opengroup.org/xsd/archimate/3.0/}element[@{http://www.w3.org/2001/XMLSchema-instance}type='BusinessInteraction']")  # NOSONAR — XML namespace URIs in XPath, not network requests
     assert len(bi_elems) > 0, "BusinessInteraction type mapping should be correct"
 
 
@@ -295,5 +294,5 @@ def step_bi_correctly_mapped(context):
     """Verify BusinessInteraction elements are correctly mapped in OpenGroup export."""
     root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     # Find BusinessInteraction elements in OpenGroup format
-    bi_elems = root.findall(".//{http://www.opengroup.org/xsd/archimate/3.0/}element[@{http://www.w3.org/2001/XMLSchema-instance}type='BusinessInteraction']")
+    bi_elems = root.findall(".//{http://www.opengroup.org/xsd/archimate/3.0/}element[@{http://www.w3.org/2001/XMLSchema-instance}type='BusinessInteraction']")  # NOSONAR — XML namespace URIs in XPath, not network requests
     assert len(bi_elems) > 0, "BusinessInteraction should be correctly mapped and written"
