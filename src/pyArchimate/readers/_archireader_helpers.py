@@ -152,6 +152,8 @@ def _parse_rel_attributes(elem: Any, e: Any) -> None:
         elem.is_directed = e.get('directed') == "true"
     if e.get('influenceStrength') is not None:
         elem.influence_strength = e.get("influenceStrength")
+    elif e.get('modifier') is not None:
+        elem.influence_strength = e.get("modifier")
     elif e.get('strength') is not None:
         elem.influence_strength = e.get("strength")
     doc = e.find('documentation')
