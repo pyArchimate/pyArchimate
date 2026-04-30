@@ -113,7 +113,7 @@ def test_element_profile_id_none_when_unset(model_with_elem):
 
 
 def test_element_set_profile_creates_profile(model_with_elem):
-    m, e = model_with_elem
+    _, e = model_with_elem
     e.set_profile('MyProfile')
     assert e.profile_id is not None
 

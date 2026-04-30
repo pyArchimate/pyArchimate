@@ -217,13 +217,13 @@ def test_view_get_or_create_node_found(simple_view):
 
 
 def test_view_get_or_create_node_not_found_no_create(simple_view):
-    m, v, *_ = simple_view
+    _, v, *_ = simple_view
     result = v.get_or_create_node(elem='Ghost', elem_type=ArchiType.ApplicationComponent)
     assert result is None
 
 
 def test_view_get_or_create_node_create_elem_and_node(simple_view):
-    m, v, *_ = simple_view
+    _, v, *_ = simple_view
     node = v.get_or_create_node(
         elem='NewComp',
         elem_type=ArchiType.ApplicationComponent,
@@ -234,7 +234,7 @@ def test_view_get_or_create_node_create_elem_and_node(simple_view):
 
 
 def test_view_get_or_create_node_create_node_only(simple_view):
-    m, v, a, *_ = simple_view
+    _, v, a, *_ = simple_view
     # Remove existing node first
     existing = v.get_or_create_node(elem=a)
     existing.delete()
@@ -243,7 +243,7 @@ def test_view_get_or_create_node_create_node_only(simple_view):
 
 
 def test_view_get_or_create_connection_found(simple_view):
-    _, v, a, b, rel, na, nb, conn = simple_view
+    _, v, _, _, rel, na, nb, conn = simple_view
     found = v.get_or_create_connection(rel=rel, source=na, target=nb)
     assert found is conn
 
@@ -256,9 +256,9 @@ def test_view_get_or_create_connection_none_rel_none_source():
 
 
 def test_view_get_or_create_connection_create(simple_view):
-    m, v, a, b, rel, na, nb, conn = simple_view
+    m, v, a, _, _, na, _, _ = simple_view
     c2 = m.add(ArchiType.ApplicationFunction, 'FuncC')
-    rel2 = m.add_relationship(ArchiType.Serving, source=a, target=c2)
+    m.add_relationship(ArchiType.Serving, source=a, target=c2)
     nc = v.add(ref=c2.uuid, x=400, y=10, w=120, h=55)
     result = v.get_or_create_connection(rel=None, source=na, target=nc,
                                         rel_type=ArchiType.Serving, create_conn=True)
@@ -266,7 +266,7 @@ def test_view_get_or_create_connection_create(simple_view):
 
 
 def test_view_get_or_create_connection_no_rel_type_returns_none(simple_view):
-    _, v, a, b, rel, na, nb, _ = simple_view
+    _, v, _, _, rel, na, nb, _ = simple_view
     result = v.get_or_create_connection(rel=None, source=na, target=nb, rel_type=None)
     assert result is None
 
@@ -304,7 +304,7 @@ def test_node_desc(simple_view):
 
 
 def test_node_ref_setter_with_element(simple_view):
-    m, v, a, b, *_ = simple_view
+    m, v, a, _, *_ = simple_view
     c = m.add(ArchiType.ApplicationComponent, 'Another')
     na = v.add(ref=a.uuid, x=0, y=0)
     na.ref = c
@@ -312,7 +312,7 @@ def test_node_ref_setter_with_element(simple_view):
 
 
 def test_node_ref_setter_with_uuid_string(simple_view):
-    m, v, a, b, *_ = simple_view
+    m, v, a, _, *_ = simple_view
     c = m.add(ArchiType.ApplicationComponent, 'Another2')
     na = v.add(ref=a.uuid, x=0, y=0)
     na.ref = c.uuid
@@ -320,14 +320,14 @@ def test_node_ref_setter_with_uuid_string(simple_view):
 
 
 def test_node_getnodes_no_filter(simple_view):
-    _, v, a, *_ = simple_view
+    _, v, _, *_ = simple_view
     na = v.nodes[0]
     result = na.getnodes()
     assert isinstance(result, list)
 
 
 def test_node_getnodes_with_type(simple_view):
-    _, v, a, *_ = simple_view
+    _, v, _, *_ = simple_view
     na = v.nodes[0]
     result = na.getnodes(elem_type=ArchiType.ApplicationComponent)
     assert isinstance(result, list)
@@ -351,43 +351,43 @@ def test_node_is_inside_with_point(simple_view):
 
 
 def test_node_conns_unfiltered(simple_view):
-    _, _, _, _, _, na, nb, conn = simple_view
+    _, _, _, _, _, na, _, conn = simple_view
     result = na.conns()
     assert conn in result
 
 
 def test_node_conns_filtered_by_type(simple_view):
-    _, _, _, _, _, na, nb, conn = simple_view
+    _, _, _, _, _, na, _, conn = simple_view
     result = na.conns(rel_type=ArchiType.Serving)
     assert conn in result
 
 
 def test_node_in_conns(simple_view):
-    _, _, _, _, _, na, nb, conn = simple_view
+    _, _, _, _, _, _, nb, conn = simple_view
     result = nb.in_conns()
     assert conn in result
 
 
 def test_node_in_conns_filtered(simple_view):
-    _, _, _, _, _, na, nb, conn = simple_view
+    _, _, _, _, _, _, nb, conn = simple_view
     result = nb.in_conns(rel_type=ArchiType.Serving)
     assert conn in result
 
 
 def test_node_out_conns(simple_view):
-    _, _, _, _, _, na, nb, conn = simple_view
+    _, _, _, _, _, na, _, conn = simple_view
     result = na.out_conns()
     assert conn in result
 
 
 def test_node_out_conns_filtered(simple_view):
-    _, _, _, _, _, na, nb, conn = simple_view
+    _, _, _, _, _, na, _, conn = simple_view
     result = na.out_conns(rel_type=ArchiType.Serving)
     assert conn in result
 
 
 def test_node_delete_removes_connection(simple_view):
-    m, v, a, b, rel, na, nb, conn = simple_view
+    _, v, _, _, _, na, _, conn = simple_view
     conn_id = conn.uuid
     na.delete()
     assert conn_id not in v.conns_dict
@@ -408,7 +408,7 @@ def test_connection_type(simple_view):
 
 
 def test_connection_access_type(simple_view):
-    m, v, a, b, rel, na, nb, _ = simple_view
+    m, v, a, _, _, na, _, _ = simple_view
     data = m.add(ArchiType.DataObject, 'D')
     access_rel = m.add_relationship(ArchiType.Access, source=a, target=data)
     nd = v.add(ref=data.uuid, x=350, y=10, w=120, h=55)
@@ -418,7 +418,7 @@ def test_connection_access_type(simple_view):
 
 
 def test_connection_is_directed(simple_view):
-    m, v, a, b, rel, na, nb, _ = simple_view
+    m, v, a, _, _, na, _, _ = simple_view
     c2 = m.add(ArchiType.ApplicationFunction, 'F')
     assoc = m.add_relationship(ArchiType.Association, source=a, target=c2)
     nf = v.add(ref=c2.uuid, x=350, y=10, w=120, h=55)
@@ -428,7 +428,7 @@ def test_connection_is_directed(simple_view):
 
 
 def test_connection_influence_strength(simple_view):
-    m, v, a, b, rel, na, nb, _ = simple_view
+    m, v, _, b, _, _, nb, _ = simple_view
     c3 = m.add(ArchiType.ApplicationFunction, 'G')
     inf_rel = m.add_relationship(ArchiType.Influence, source=b, target=c3)
     ng = v.add(ref=c3.uuid, x=350, y=10, w=120, h=55)
@@ -438,7 +438,7 @@ def test_connection_influence_strength(simple_view):
 
 
 def test_connection_ref_setter(simple_view):
-    m, v, a, b, rel, na, nb, conn = simple_view
+    m, _, a, _, _, _, _, conn = simple_view
     c = m.add(ArchiType.ApplicationFunction, 'H')
     rel2 = m.add_relationship(ArchiType.Serving, source=a, target=c)
     conn.ref = rel2.uuid
@@ -446,7 +446,7 @@ def test_connection_ref_setter(simple_view):
 
 
 def test_connection_source_setter_with_node(simple_view):
-    m, v, a, b, rel, na, nb, conn = simple_view
+    m, v, _, _, _, _, _, conn = simple_view
     c = m.add(ArchiType.ApplicationComponent, 'Cx')
     nc = v.add(ref=c.uuid, x=0, y=100, w=120, h=55)
     conn.source = nc
@@ -454,7 +454,7 @@ def test_connection_source_setter_with_node(simple_view):
 
 
 def test_connection_target_setter_with_node(simple_view):
-    m, v, a, b, rel, na, nb, conn = simple_view
+    m, v, _, _, _, _, _, conn = simple_view
     c = m.add(ArchiType.ApplicationService, 'Cy')
     nc = v.add(ref=c.uuid, x=0, y=200, w=120, h=55)
     conn.target = nc
@@ -504,7 +504,7 @@ def test_connection_remove_all_bendpoints(simple_view):
 
 
 def test_connection_delete(simple_view):
-    m, v, a, b, rel, na, nb, conn = simple_view
+    m, v, _, _, _, _, _, conn = simple_view
     conn_id = conn.uuid
     conn.delete()
     assert conn_id not in v.conns_dict
@@ -597,13 +597,13 @@ def test_nested_node_ry_setter(view_with_nested_node):
 
 
 def test_nested_node_rx_setter_negative(view_with_nested_node):
-    _, _, _, _, parent_node, child_node = view_with_nested_node
+    *_, child_node = view_with_nested_node
     child_node.rx = -5
     assert child_node.rx == 0
 
 
 def test_nested_node_ry_setter_negative(view_with_nested_node):
-    _, _, _, _, parent_node, child_node = view_with_nested_node
+    *_, child_node = view_with_nested_node
     child_node.ry = -5
     assert child_node.ry == 0
 
@@ -623,7 +623,7 @@ def test_parent_node_y_setter_propagates_to_child(view_with_nested_node):
 
 
 def test_node_add_with_nested_rel_type(view_with_nested_node):
-    m, v, a, b, parent_node, _ = view_with_nested_node
+    m, _, _, _, parent_node, _ = view_with_nested_node
     c = m.add(ArchiType.ApplicationComponent, 'Another')
     child2 = parent_node.add(ref=c.uuid, x=10, y=10, nested_rel_type=ArchiType.Composition)
     assert child2 is not None
@@ -632,7 +632,7 @@ def test_node_add_with_nested_rel_type(view_with_nested_node):
 
 
 def test_node_delete_with_children(view_with_nested_node):
-    m, v, a, b, parent_node, child_node = view_with_nested_node
+    m, _, _, _, parent_node, child_node = view_with_nested_node
     child_id = child_node.uuid
     parent_node.delete(recurse=True)
     assert child_id not in m.nodes_dict
@@ -643,26 +643,26 @@ def test_node_delete_with_children(view_with_nested_node):
 # ---------------------------------------------------------------------------
 
 def test_connection_l_shape(simple_view):
-    _, _, _, _, _, na, nb, conn = simple_view
+    *_, conn = simple_view
     conn.l_shape(direction=0)
     # If nodes don't overlap at those coords, a bendpoint is added
     assert isinstance(conn.bendpoints, list)
 
 
 def test_connection_l_shape_direction1(simple_view):
-    _, _, _, _, _, na, nb, conn = simple_view
+    *_, conn = simple_view
     conn.l_shape(direction=1)
     assert isinstance(conn.bendpoints, list)
 
 
 def test_connection_s_shape(simple_view):
-    _, _, _, _, _, na, nb, conn = simple_view
+    *_, conn = simple_view
     conn.s_shape(direction=0)
     assert isinstance(conn.bendpoints, list)
 
 
 def test_connection_s_shape_direction1(simple_view):
-    _, _, _, _, _, na, nb, conn = simple_view
+    *_, conn = simple_view
     conn.s_shape(direction=1)
     assert isinstance(conn.bendpoints, list)
 
@@ -672,7 +672,7 @@ def test_connection_s_shape_direction1(simple_view):
 # ---------------------------------------------------------------------------
 
 def test_connection_ref_setter_with_relationship_object(simple_view):
-    m, v, a, b, rel, na, nb, conn = simple_view
+    m, _, a, _, _, _, _, conn = simple_view
     c = m.add(ArchiType.ApplicationFunction, 'F')
     rel2 = m.add_relationship(ArchiType.Serving, source=a, target=c)
     conn.ref = rel2  # pass Relationship object (has .uuid)
@@ -680,7 +680,7 @@ def test_connection_ref_setter_with_relationship_object(simple_view):
 
 
 def test_connection_source_setter_with_string(simple_view):
-    m, v, a, b, rel, na, nb, conn = simple_view
+    m, v, _, _, _, _, _, conn = simple_view
     c = m.add(ArchiType.ApplicationComponent, 'Cx')
     nc = v.add(ref=c.uuid, x=0, y=100, w=120, h=55)
     conn.source = nc.uuid  # plain string — falls through to else
@@ -688,7 +688,7 @@ def test_connection_source_setter_with_string(simple_view):
 
 
 def test_connection_target_setter_with_string(simple_view):
-    m, v, a, b, rel, na, nb, conn = simple_view
+    m, v, _, _, _, _, _, conn = simple_view
     c = m.add(ArchiType.ApplicationService, 'Cy')
     nc = v.add(ref=c.uuid, x=0, y=200, w=120, h=55)
     conn.target = nc.uuid  # plain string — falls through to else
@@ -697,7 +697,7 @@ def test_connection_target_setter_with_string(simple_view):
 
 def test_connection_source_setter_with_uuid_object(simple_view):
     """Covers the hasattr(elem, 'uuid') branch in Connection.source setter."""
-    m, v, a, b, rel, na, nb, conn = simple_view
+    m, v, _, _, _, _, _, conn = simple_view
 
     class FakeNode:
         def __init__(self, uuid):
@@ -711,7 +711,7 @@ def test_connection_source_setter_with_uuid_object(simple_view):
 
 def test_connection_target_setter_with_uuid_object(simple_view):
     """Covers the hasattr(elem, 'uuid') branch in Connection.target setter."""
-    m, v, a, b, rel, na, nb, conn = simple_view
+    m, v, _, _, _, _, _, conn = simple_view
 
     class FakeNode:
         def __init__(self, uuid):
@@ -1216,28 +1216,28 @@ def vertical_view():
 
 def test_connection_l_shape_adds_bendpoint(vertical_view):
     """l_shape(direction=0) adds a bendpoint when nodes are vertically separated."""
-    _, _, _, _, _, na, nb, conn = vertical_view
+    *_, conn = vertical_view
     conn.l_shape(direction=0)
     assert len(conn.bendpoints) > 0
 
 
 def test_connection_l_shape_direction1_adds_bendpoint(vertical_view):
     """l_shape(direction=1) adds a bendpoint when nodes are vertically separated."""
-    _, _, _, _, _, na, nb, conn = vertical_view
+    *_, conn = vertical_view
     conn.l_shape(direction=1)
     assert len(conn.bendpoints) > 0
 
 
 def test_connection_s_shape_direction0_adds_bendpoints(vertical_view):
     """s_shape(direction=0) adds 2 bendpoints when nodes don't overlap."""
-    _, _, _, _, _, na, nb, conn = vertical_view
+    *_, conn = vertical_view
     conn.s_shape(direction=0)
     assert len(conn.bendpoints) == 2
 
 
 def test_connection_s_shape_direction1_adds_bendpoints(vertical_view):
     """s_shape(direction=1) adds 2 bendpoints when nodes don't overlap."""
-    _, _, _, _, _, na, nb, conn = vertical_view
+    *_, conn = vertical_view
     conn.s_shape(direction=1)
     assert len(conn.bendpoints) == 2
 
@@ -1372,14 +1372,14 @@ def test_connection_valid_ref_not_in_rels_dict_raises(simple_view):
 
 def test_connection_valid_source_not_in_nodes_dict_raises(simple_view):
     """Covers line 727: source is a valid string but not in nodes_dict."""
-    m, v, a, b, rel, na, nb, conn = simple_view
+    _, v, _, _, rel, _, nb, _ = simple_view
     with pytest.raises(ValueError):
         Connection(ref=rel.uuid, source='nonexistent-node-uuid', target=nb, parent=v)
 
 
 def test_connection_valid_target_not_in_nodes_dict_raises(simple_view):
     """Covers line 737: target is a valid string but not in nodes_dict."""
-    m, v, a, b, rel, na, nb, conn = simple_view
+    _, v, _, _, rel, na, _, _ = simple_view
     with pytest.raises(ValueError):
         Connection(ref=rel.uuid, source=na, target='nonexistent-node-uuid', parent=v)
 
@@ -1426,7 +1426,7 @@ def test_view_get_or_create_node_no_node_no_create():
 
 def test_view_get_or_create_connection_with_name_creates_rel(simple_view):
     """Named lookup finds no match, creates new rel → covers lines 1023, 1035."""
-    m, v, a, b, rel, na, nb, conn = simple_view
+    m, v, _, _, _, na, _, _ = simple_view
     new_svc = m.add(ArchiType.ApplicationService, 'NewS')
     nn = v.add(ref=new_svc.uuid, x=400, y=10)
     result = v.get_or_create_connection(
@@ -1450,7 +1450,7 @@ def test_view_get_or_create_connection_duck_type_no_type_returns_none(simple_vie
 
 def test_view_get_or_create_connection_no_conn_create_false(simple_view):
     """Existing rel but no connection, create_conn=False → covers line 1050."""
-    m, v, a, b, rel, na, nb, conn = simple_view
+    _, v, _, _, rel, na, nb, conn = simple_view
     conn.delete()
     result = v.get_or_create_connection(rel=rel, source=na, target=nb)
     assert result is None

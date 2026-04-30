@@ -161,23 +161,23 @@ def test_find_elements_no_criteria(simple_model):
 # ---------------------------------------------------------------------------
 
 def test_find_relationships_with_type_both(simple_model):
-    m, src, dst, rel = simple_model
+    m, src, _, rel = simple_model
     result = m.find_relationships(ArchiType.Serving, src, direction='both')
     assert rel in result
 
 
 def test_find_relationships_out_only(simple_model):
-    m, src, dst, rel = simple_model
+    m, src, _, rel = simple_model
     assert rel in m.find_relationships(ArchiType.Serving, src, direction='out')
 
 
 def test_find_relationships_in_only(simple_model):
-    m, src, dst, rel = simple_model
+    m, _, dst, rel = simple_model
     assert rel in m.find_relationships(ArchiType.Serving, dst, direction='in')
 
 
 def test_find_relationships_no_type(simple_model):
-    m, src, dst, rel = simple_model
+    m, src, _, rel = simple_model
     result = m.find_relationships(None, src, direction='both')
     assert rel in result
 
@@ -188,7 +188,7 @@ def test_find_relationships_none_elem(simple_model):
 
 
 def test_filter_relationships(simple_model):
-    m, src, dst, rel = simple_model
+    m, _, _, rel = simple_model
     result = m.filter_relationships(lambda r: r.name == 'serves')
     assert rel in result
 
