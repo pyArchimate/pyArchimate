@@ -22,3 +22,10 @@ Thumbs.db
 .specify/init-options.json
 .specify/integration.json
 .env
+
+# Legacy test output files (written to CWD by legacy_integration tests)
+tests/out*.archimate
+tests/out*.xml
+tests/out*.csv
+tests/MyModel.xml
+tests/Untitled.archimate
