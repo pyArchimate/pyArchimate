@@ -4,18 +4,18 @@
 003-ai-documentation
 
 ## Phase 1: Setup
-- [ ] T001 Create `scripts/generate_ai_docs.py` scaffolding
-- [ ] T002 Initialize `tests/integration/test_tutorial.py`
+- [X] T001 Create `scripts/generate_ai_docs.py` scaffolding
+- [X] T002 Initialize `tests/integration/test_tutorial.py`
 
 ## Phase 2: Foundational
-- [ ] T003 Implement Markdown structural validation (header checks) in `scripts/generate_ai_docs.py`
-- [ ] T004 Implement error handling for `claude code` execution in `scripts/generate_ai_docs.py`
-- [ ] T015 Implement and test environment-variable credential reading in `scripts/generate_ai_docs.py` (FR-010); add a test asserting no credentials are hard-coded
+- [X] T003 Implement Markdown structural validation (header checks) in `scripts/generate_ai_docs.py`
+- [X] T004 Implement error handling for `claude code` execution in `scripts/generate_ai_docs.py`
+- [X] T015 Implement and test environment-variable credential reading in `scripts/generate_ai_docs.py` (FR-010); add a test asserting no credentials are hard-coded
 
 ## Phase 3: AI Consumption of Library Context (US1) [US1]
-- [ ] T005 [P] Create initial draft of `AI.md` based on spec baseline
-- [ ] T006 Implement logic to extract docs context for `claude code` in `scripts/generate_ai_docs.py`
-- [ ] T014 Add "Non-Conformances" section to `AI.md` listing known deviations from the current ArchiMate standard and Archi import/export compatibility gaps (FR-016)
+- [X] T005 [P] Create initial draft of `AI.md` based on spec baseline
+- [X] T006 Implement logic to extract docs context for `claude code` in `scripts/generate_ai_docs.py`
+- [X] T014 Add "Non-Conformances" section to `AI.md` listing known deviations from the current ArchiMate standard and Archi import/export compatibility gaps (FR-016)
 
 ## Phase 4: New User Tutorial (US2) [US2]
 - [ ] T007 Create `docs/tutorial.md` with step-by-step ArchiMate model examples, including ArchiMate standard background guidance with references (FR-015) in a collapsible section for experienced users
