@@ -5,7 +5,8 @@ set -euo pipefail
 server_base="${PLANTUML_SERVER:-https://www.plantuml.com/plantuml}"
 
 plantuml_encode() {
-  python3 - "$1" <<'PY'
+  local file="$1"
+  python3 - "$file" <<'PY'
 import sys, zlib, base64
 
 std_b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -19,11 +20,12 @@ encoded = base64.b64encode(compressed).decode('utf-8').rstrip('=')
 translated = encoded.translate(str.maketrans(std_b64, puml_b64))
 print(translated)
 PY
+  return $?
 }
 
 for file in docs/diagrams/*.puml; do
   echo "Rendering $file"
-  if [ ! -f "$file" ]; then
+  if [[ ! -f "$file" ]]; then
     echo "Missing $file, skipping." >&2
     continue
   fi

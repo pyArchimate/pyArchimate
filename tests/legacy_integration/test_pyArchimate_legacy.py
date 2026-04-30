@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import unittest
 from pathlib import Path
@@ -6,7 +7,19 @@ from pathlib import Path
 import pytest
 
 from src.pyArchimate.logger import log, log_set_level, log_to_stderr
-from src.pyArchimate.pyArchimate import *
+from src.pyArchimate.pyArchimate import (
+    AccessType,
+    ArchiType,
+    ArchimateConceptTypeError,
+    ArchimateRelationshipError,
+    Model,
+    Node,
+    Point,
+    Writers,
+    check_valid_relationship,
+    get_default_rel_type,
+    register_writer,
+)
 
 TEST_DIR = Path(__file__).resolve().parent
 FIXTURES_DIR = TEST_DIR.parent / "fixtures"
@@ -126,7 +139,7 @@ class MyTestCase(unittest.TestCase):
         m.prop('version', '2.0')
         self.assertEqual(m.prop('version'), '2.0')
         m.remove_prop('version')
-        self.assertTrue((m.prop('version') is None))
+        self.assertIsNone(m.prop('version'))
         m.add(concept_type=ArchiType.ApplicationComponent, name='coco')
         m.write('out.xml')
         m2 = Model('another model')
@@ -148,10 +161,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(e.prop('author'), 'xavier')
         e.prop('version', 1)
         self.assertEqual(e.prop('version'), True)
-        # e.prop('list', ['a', 'b', 'c'])
-        # self.assertEqual(e.prop('list'), ['a', 'b', 'c'])
-        # e.prop('list', ['a', 'b', 'c', 'd'])
-        # self.assertEqual(e.prop('list'), ['a', 'b', 'c', 'd'])
         m.write('out.archimate')
 
     def test_node_label(self):
@@ -161,26 +170,17 @@ class MyTestCase(unittest.TestCase):
         n = v.get_or_create_node(elem='Data Object', elem_type=ArchiType.DataObject,     create_node=True, create_elem=True)
         n.label_expression = '${name}\n________'
         m.write('out.archimate', writer=Writers.archi)
-        return
-        e, e2, rel = add_some_elems(m)
-        v = m.add(ArchiType.View, 'New View using new method')
-        n = v.add(e, 100, 150)
-        n2 = v.add(e2, 40, 50)
-        n3 = n2.get_or_create_node(elem='APP', elem_type=ArchiType.ApplicationComponent,
-                                  create_node=True, create_elem=True)
-        n4 = n2.get_or_create_node()
-        n.label = 'APP'
 
     def test_add_elem(self):
         log.name = "test_add_elem"
         m = create_model()
         try:
             e = m.add(name="coco", concept_type='bad_type')
-            self.assertFalse(True)
+            self.fail("Should have raised ArchimateConceptTypeError")
         except ArchimateConceptTypeError:
             # Oops!
             e = m.add(concept_type="ApplicationCollaboration", name='SIA', desc="New way to create Element")
-        self.assertTrue(e.uuid in m.elems_dict)
+        self.assertIn(e.uuid, m.elems_dict)
         e.prop('cmdb', '12345')
         self.assertEqual(e.prop('cmdb'), '12345')
         self.assertEqual(e.name, "SIA")
@@ -225,7 +225,7 @@ class MyTestCase(unittest.TestCase):
         e2 = n2.concept
         e2.prop("version", "1")
         e1.merge(e2, merge_props=True)
-        self.assertFalse(e2.uuid in m.elems_dict)
+        self.assertNotIn(e2.uuid, m.elems_dict)
         self.assertEqual(e1.prop('version'), '1')
         m.write('out.xml')
 
@@ -241,7 +241,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(r.type, "Flow")
         self.assertEqual(r.source.uuid, e.uuid)
         self.assertEqual(r.target.uuid, e2.uuid)
-        self.assertTrue(r.uuid in m.rels_dict)
+        self.assertIn(r.uuid, m.rels_dict)
 
         # Try
         m.write('out.xml')
@@ -323,12 +323,6 @@ class MyTestCase(unittest.TestCase):
         v2.get_or_create_connection(source=n3b, target=n4b, rel_type=ArchiType.Flow, create_conn=True)
         n2b.resize()
         n2.delete(delete_from_model=True, recurse=False)
-        # e2.delete()
-        # n3.delete(delete_from_model=True)
-        e4 = n4.concept
-        # n4.delete(delete_from_model=True)
-        # e4.delete()
-        # self.assertTrue(e4.uuid not in m.elems_dict)
         m.check_invalid_conn()
 
         m.write('out.archimate', writer=Writers.archi)
@@ -389,20 +383,20 @@ class MyTestCase(unittest.TestCase):
         eid = e.uuid
         vid = v.uuid
 
-        self.assertTrue(vid in m.views_dict)
-        self.assertTrue(nid in m.nodes_dict)
-        self.assertTrue(n2id in m.nodes_dict)
-        self.assertTrue(cid in m.conns_dict)
+        self.assertIn(vid, m.views_dict)
+        self.assertIn(nid, m.nodes_dict)
+        self.assertIn(n2id, m.nodes_dict)
+        self.assertIn(cid, m.conns_dict)
 
         v.delete()
         del v
 
         self.assertEqual(len(m.views), 1)
-        self.assertTrue(vid not in m.views_dict)
-        self.assertTrue(nid not in m.elems_dict)
-        self.assertTrue(n2id not in m.elems_dict)
-        self.assertTrue(cid not in m.conns_dict)
-        self.assertTrue(eid in m.elems_dict)
+        self.assertNotIn(vid, m.views_dict)
+        self.assertNotIn(nid, m.elems_dict)
+        self.assertNotIn(n2id, m.elems_dict)
+        self.assertNotIn(cid, m.conns_dict)
+        self.assertIn(eid, m.elems_dict)
         m.write()
 
     def test_export_import(self):
@@ -464,7 +458,7 @@ class MyTestCase(unittest.TestCase):
                                      ArchiType.ApplicationCollaboration,
                                      raise_flg=True
                                      )
-            self.assertFalse(True)
+            self.fail("check_valid_relationship should have raised ArchimateRelationshipError")
         except ArchimateRelationshipError:
             pass
 
@@ -473,8 +467,8 @@ class MyTestCase(unittest.TestCase):
                                      ArchiType.ApplicationCollaboration,
                                      ArchiType.ApplicationCollaboration,
                                      raise_flg=True)
-        except:
-            self.assertFalse(True)
+        except Exception:
+            self.fail("check_valid_relationship should not have raised an exception")
 
 
     def test_node_position(self):
@@ -504,7 +498,7 @@ class MyTestCase(unittest.TestCase):
         n2.x = 200
         n2.y = 200
         pos = n1.get_obj_pos(n2)
-        self.assertTrue(pos.angle == 315)
+        self.assertEqual(pos.angle, 315)
         self.assertEqual(pos.gap_y, 145)
         self.assertEqual(pos.gap_x, 80)
         self.assertEqual(pos.orientation, "B")
@@ -527,8 +521,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(pos.gap_x, 50)
 
         pt = Point(0, -25)
-        pos = n1.get_point_pos(pt)
-        # print(pos.__dict__)
+        n1.get_point_pos(pt)
         self.assertTrue(n1.is_inside(point=pt))
         m.write()
 
@@ -645,20 +638,20 @@ class MyTestCase(unittest.TestCase):
         b = m.add(ArchiType.BusinessObject, 'B')
         r = m.add_relationship(ArchiType.Access, a, b, name='ACCESS', access_type=AccessType.Write)
         m.embed_props()
-        self.assertTrue('properties' in m.desc)
-        self.assertTrue(r.name in r.prop('Identifier'))
+        self.assertIn('properties', m.desc)
+        self.assertIn(r.name, r.prop('Identifier'))
         for p in m.props.copy():
             m.remove_prop(p)
         for p in r.props.copy():
             if p != 'Identifier':
                 r.remove_prop(p)
         r.AccessType = AccessType.Read
-        self.assertTrue(m.prop('author') is None)
+        self.assertIsNone(m.prop('author'))
         m.expand_props()
         self.assertEqual(m.prop('author'), 'Xavier')
         self.assertEqual(m.prop('version'), '1')
-        self.assertTrue('properties' not in m.desc)
-        self.assertTrue(r.AccessType == AccessType.Read)
+        self.assertNotIn('properties', m.desc)
+        self.assertEqual(r.AccessType, AccessType.Read)
         self.assertEqual(r.name, 'ACCESS')
         m.write("test.archimate", 1)  # writer=Writers.archi)
         del m
@@ -701,12 +694,7 @@ class MyTestCase(unittest.TestCase):
                                        source=e1, target=e2, create_conn=True)
         e1.fill_color = '#FF0000'
         e2.fill_color = '#00FF00'
-        # e2.ref = 'id-123456'
-        xml = m.write('out.xml')
-
-        # xmlschema.validate(xml, m.schemaD)
-        # xmlschema.validate(xml, m.schemaM)
-        # xmlschema.validate(xml, m.schemaV)
+        m.write('out.xml')
 
     def test_merge_models(self):
         log.name = "test_merge_models"
@@ -743,7 +731,7 @@ class MyTestCase(unittest.TestCase):
         r.name = "relationship!"
         m.embed_props()
         m.write('MyModel.xml')
-        self.assertTrue(r.prop('Identifier') is not None)
+        self.assertIsNotNone(r.prop('Identifier'))
 
     def test_move_node(self):
         log.name = "test_move_node"
@@ -754,9 +742,9 @@ class MyTestCase(unittest.TestCase):
         m.add_relationship(ArchiType.Aggregation, n1.concept, n2.concept)
         n2.move(n1)
         n1.resize()
-        self.assertTrue(n2.parent.uuid == n1.uuid)
-        self.assertTrue(n2.uuid in n1.nodes_dict)
-        self.assertFalse(n2.uuid in v.nodes_dict)
+        self.assertEqual(n2.parent.uuid, n1.uuid)
+        self.assertIn(n2.uuid, n1.nodes_dict)
+        self.assertNotIn(n2.uuid, v.nodes_dict)
         m.write('out.xml')
 
     def test_default_rel(self):
@@ -777,12 +765,12 @@ class MyTestCase(unittest.TestCase):
         c = v.get_or_create_connection(rel_type=ArchiType.Flow, source=n1, target=n2)
         m.check_invalid_nodes()
         m.check_invalid_conn()
-        id = n1.uuid
+        node_id = n1.uuid
         e1 = m.elems_dict.pop(n1.concept.uuid)
         inv_n = m.check_invalid_nodes()
         inv_c = m.check_invalid_conn()
-        self.assertTrue(id in inv_n)
-        log.info(f" Orphan Node with ID {id} effectively detected")
+        self.assertIn(node_id, inv_n)
+        log.info(f" Orphan Node with ID {node_id} effectively detected")
 
     def test_new_arch_reader(self):
         log.name = "test_new_arch_reader"
@@ -826,29 +814,29 @@ class MyTestCase(unittest.TestCase):
         m.write('out.archimate', writer=Writers.archi) # write out
         m.read('out.archimate') # and read back to ensure profiles are kept on elements
         for p in m.profiles: # check
-            self.assertTrue(len(m.profiles) == 4)
-            self.assertTrue(p.name is not None)
-        self.assertTrue(len([x.profile_name for x in m.elements if x.profile_name is not None]) == 2)
-        self.assertTrue(len([x.profile_name for x in m.relationships if x.profile_name is not None]) == 1)
+            self.assertEqual(len(m.profiles), 4)
+            self.assertIsNotNone(p.name)
+        self.assertEqual(len([x.profile_name for x in m.elements if x.profile_name is not None]), 2)
+        self.assertEqual(len([x.profile_name for x in m.relationships if x.profile_name is not None]), 1)
 
         # get the first element
         e = m.elements[0]
         # set a new profile & test
         e.set_profile('test')
         p = m.get_profile('test')
-        self.assertTrue(p.name == 'test')
+        self.assertEqual(p.name, 'test')
 
         # remove profile names 'test'
         for p in m.profiles:
             if p.name == 'test':
                 p.delete()
                 break
-        self.assertTrue(e.profile_name is None)
+        self.assertIsNone(e.profile_name)
 
         # set it back and only remove it from the selected element
         e.set_profile('test')
         e.reset_profile()
-        self.assertTrue(e.profile_name is None)
+        self.assertIsNone(e.profile_name)
 
 if __name__ == '__main__':
     unittest.main()
