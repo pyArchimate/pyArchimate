@@ -202,3 +202,35 @@ def test_archimate_reader_merges_property_with_conflicting_definition():
     root = etree.fromstring(MERGE_PROP_MODEL)
     archimate_reader(model, root, merge_flg=True)
     assert any(name.startswith('propid-') for name in model.pdefs)
+
+
+# ArchiMate 3.x Compliance: BusinessInteraction
+BUSINESS_INTERACTION_OPENGROUP_MODEL = """<?xml version='1.0'?>
+<model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+  <name>bi-opengroup-test</name>
+  <elements>
+    <element identifier="bi-1" xsi:type="BusinessInteraction">
+      <name>Customer Service Interaction</name>
+      <documentation>Handles customer service interactions</documentation>
+      <properties/>
+    </element>
+  </elements>
+  <relationships/>
+  <views>
+    <diagrams/>
+  </views>
+</model>
+"""
+
+
+def test_archimate_reader_imports_business_interaction_opengroup():
+    """Test that BusinessInteraction elements can be imported from OpenGroup exchange format."""
+    root = etree.fromstring(BUSINESS_INTERACTION_OPENGROUP_MODEL)
+    model = Model("bi-opengroup")
+    archimate_reader(model, root)
+
+    assert "bi-1" in model.elems_dict
+    bi = model.elems_dict["bi-1"]
+    assert bi.name == "Customer Service Interaction"
+    assert str(bi.type) == "BusinessInteraction"
+    assert bi.desc == "Handles customer service interactions"

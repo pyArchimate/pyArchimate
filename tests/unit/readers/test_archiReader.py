@@ -54,3 +54,32 @@ def test_archi_reader_handles_properties_and_profiles():
     elem = model.elems_dict["elem-actor"]
     assert elem.folder.endswith("/Business")
     assert elem.desc == "actor desc"
+
+
+# ArchiMate 3.x Compliance: BusinessInteraction
+BUSINESS_INTERACTION_ARCHI_MODEL = """<?xml version='1.0'?>
+<archimate:model xmlns:archimate="http://www.archimatetool.com/archimate"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 name="bi-test">
+  <folder name="Business">
+    <element xsi:type="archimate:BusinessInteraction" name="Customer Interaction" id="bi-1">
+      <documentation>Handles customer interactions</documentation>
+      <property key="type" value="primary"/>
+    </element>
+  </folder>
+</archimate:model>
+"""
+
+
+def test_archi_reader_imports_business_interaction():
+    """Test that BusinessInteraction elements can be imported from .archimate format."""
+    root = etree.fromstring(BUSINESS_INTERACTION_ARCHI_MODEL)
+    model = Model("bi-import")
+    archi_reader(model, root)
+
+    assert "bi-1" in model.elems_dict
+    bi = model.elems_dict["bi-1"]
+    assert bi.name == "Customer Interaction"
+    assert str(bi.type) == "BusinessInteraction"
+    assert bi.desc == "Handles customer interactions"
+    assert bi.props["type"] == "primary"

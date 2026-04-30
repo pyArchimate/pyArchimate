@@ -230,3 +230,36 @@ def test_element_delete_removes_related_relationships():
     rel_id = rel.uuid
     dst.delete()
     assert rel_id not in m.rels_dict
+
+
+# ---------------------------------------------------------------------------
+# ArchiMate 3.x Compliance: BusinessInteraction
+# ---------------------------------------------------------------------------
+
+def test_create_business_interaction():
+    """Test that BusinessInteraction element can be created without validation errors."""
+    m = Model('bi-test')
+    bi = m.add(ArchiType.BusinessInteraction, 'Customer Service Interaction', desc='Interaction element')
+    assert bi is not None
+    assert bi.name == 'Customer Service Interaction'
+    assert bi.type == ArchiType.BusinessInteraction
+    assert bi.uuid in m.elems_dict
+
+
+def test_business_interaction_has_properties():
+    """Test that BusinessInteraction element can store properties."""
+    m = Model('bi-props-test')
+    bi = m.add(ArchiType.BusinessInteraction, 'Test BI')
+    bi.prop('owner', 'business-team')
+    assert bi.props['owner'] == 'business-team'
+
+
+def test_business_interaction_can_relate_to_other_elements():
+    """Test that BusinessInteraction can participate in relationships."""
+    m = Model('bi-rel-test')
+    bi = m.add(ArchiType.BusinessInteraction, 'Interaction')
+    actor = m.add(ArchiType.BusinessActor, 'Actor')
+    rel = m.add_relationship(ArchiType.Association, source=bi, target=actor)
+    assert rel is not None
+    assert rel.source.uuid == bi.uuid
+    assert rel.target.uuid == actor.uuid
