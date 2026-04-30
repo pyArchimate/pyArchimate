@@ -13,12 +13,13 @@ run_command() {
     output=$(eval "$command_to_run" 2>&1) || exit_code=$?
     exit_code=${exit_code:-0}
     
-    if [ $exit_code -ne 0 ]; then
+    if [[ $exit_code -ne 0 ]]; then
         echo -e "\033[0;31m[ERROR] Command failed (Exit Code $exit_code): $command_to_run\033[0m" >&2
         echo -e "\033[0;31m$output\033[0m" >&2
-        
+
         exit $exit_code
     fi
+    return 0
 }
 
 # Installing UV (Python package manager)

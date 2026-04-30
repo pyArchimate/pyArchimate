@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import unittest
 from pathlib import Path
@@ -6,7 +7,19 @@ from pathlib import Path
 import pytest
 
 from src.pyArchimate.logger import log, log_set_level, log_to_stderr
-from src.pyArchimate.pyArchimate import *
+from src.pyArchimate.pyArchimate import (
+    AccessType,
+    ArchiType,
+    ArchimateConceptTypeError,
+    ArchimateRelationshipError,
+    Model,
+    Node,
+    Point,
+    Writers,
+    check_valid_relationship,
+    get_default_rel_type,
+    register_writer,
+)
 
 TEST_DIR = Path(__file__).resolve().parent
 FIXTURES_DIR = TEST_DIR.parent / "fixtures"
@@ -148,10 +161,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(e.prop('author'), 'xavier')
         e.prop('version', 1)
         self.assertEqual(e.prop('version'), True)
-        # e.prop('list', ['a', 'b', 'c'])
-        # self.assertEqual(e.prop('list'), ['a', 'b', 'c'])
-        # e.prop('list', ['a', 'b', 'c', 'd'])
-        # self.assertEqual(e.prop('list'), ['a', 'b', 'c', 'd'])
         m.write('out.archimate')
 
     def test_node_label(self):
@@ -161,22 +170,13 @@ class MyTestCase(unittest.TestCase):
         n = v.get_or_create_node(elem='Data Object', elem_type=ArchiType.DataObject,     create_node=True, create_elem=True)
         n.label_expression = '${name}\n________'
         m.write('out.archimate', writer=Writers.archi)
-        return
-        e, e2, rel = add_some_elems(m)
-        v = m.add(ArchiType.View, 'New View using new method')
-        n = v.add(e, 100, 150)
-        n2 = v.add(e2, 40, 50)
-        n3 = n2.get_or_create_node(elem='APP', elem_type=ArchiType.ApplicationComponent,
-                                  create_node=True, create_elem=True)
-        n4 = n2.get_or_create_node()
-        n.label = 'APP'
 
     def test_add_elem(self):
         log.name = "test_add_elem"
         m = create_model()
         try:
             e = m.add(name="coco", concept_type='bad_type')
-            self.assertFalse(True)
+            self.fail("Should have raised ArchimateConceptTypeError")
         except ArchimateConceptTypeError:
             # Oops!
             e = m.add(concept_type="ApplicationCollaboration", name='SIA', desc="New way to create Element")
@@ -323,12 +323,6 @@ class MyTestCase(unittest.TestCase):
         v2.get_or_create_connection(source=n3b, target=n4b, rel_type=ArchiType.Flow, create_conn=True)
         n2b.resize()
         n2.delete(delete_from_model=True, recurse=False)
-        # e2.delete()
-        # n3.delete(delete_from_model=True)
-        e4 = n4.concept
-        # n4.delete(delete_from_model=True)
-        # e4.delete()
-        # self.assertTrue(e4.uuid not in m.elems_dict)
         m.check_invalid_conn()
 
         m.write('out.archimate', writer=Writers.archi)
@@ -464,7 +458,7 @@ class MyTestCase(unittest.TestCase):
                                      ArchiType.ApplicationCollaboration,
                                      raise_flg=True
                                      )
-            self.assertFalse(True)
+            self.fail("check_valid_relationship should have raised ArchimateRelationshipError")
         except ArchimateRelationshipError:
             pass
 
@@ -473,8 +467,8 @@ class MyTestCase(unittest.TestCase):
                                      ArchiType.ApplicationCollaboration,
                                      ArchiType.ApplicationCollaboration,
                                      raise_flg=True)
-        except:
-            self.assertFalse(True)
+        except Exception:
+            self.fail("check_valid_relationship should not have raised an exception")
 
 
     def test_node_position(self):
@@ -527,8 +521,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(pos.gap_x, 50)
 
         pt = Point(0, -25)
-        pos = n1.get_point_pos(pt)
-        # print(pos.__dict__)
+        n1.get_point_pos(pt)
         self.assertTrue(n1.is_inside(point=pt))
         m.write()
 
@@ -701,12 +694,7 @@ class MyTestCase(unittest.TestCase):
                                        source=e1, target=e2, create_conn=True)
         e1.fill_color = '#FF0000'
         e2.fill_color = '#00FF00'
-        # e2.ref = 'id-123456'
-        xml = m.write('out.xml')
-
-        # xmlschema.validate(xml, m.schemaD)
-        # xmlschema.validate(xml, m.schemaM)
-        # xmlschema.validate(xml, m.schemaV)
+        m.write('out.xml')
 
     def test_merge_models(self):
         log.name = "test_merge_models"
@@ -777,12 +765,12 @@ class MyTestCase(unittest.TestCase):
         c = v.get_or_create_connection(rel_type=ArchiType.Flow, source=n1, target=n2)
         m.check_invalid_nodes()
         m.check_invalid_conn()
-        id = n1.uuid
+        node_id = n1.uuid
         e1 = m.elems_dict.pop(n1.concept.uuid)
         inv_n = m.check_invalid_nodes()
         inv_c = m.check_invalid_conn()
-        self.assertTrue(id in inv_n)
-        log.info(f" Orphan Node with ID {id} effectively detected")
+        self.assertTrue(node_id in inv_n)
+        log.info(f" Orphan Node with ID {node_id} effectively detected")
 
     def test_new_arch_reader(self):
         log.name = "test_new_arch_reader"
