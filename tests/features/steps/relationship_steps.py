@@ -6,15 +6,19 @@ across export/import cycles in both .archimate and OpenGroup exchange formats.
 
 import tempfile
 
-from behave import given, when, then  # type: ignore[import-untyped]
+from behave import given, then, when  # type: ignore[import-untyped]
 from lxml import etree
-
-_SAFE_XML_PARSER = etree.XMLParser(resolve_entities=False, no_network=True)
 
 from src.pyArchimate import ArchiType
 from src.pyArchimate.model import Model
 from src.pyArchimate.writers.archimateWriter import archimate_writer
 
+_SAFE_XML_PARSER = etree.XMLParser(resolve_entities=False, no_network=True)
+_ARCHIMATE_EXT = '.archimate'
+_XSI_TYPE_ATTR = '{http://www.w3.org/2001/XMLSchema-instance}type'  # NOSONAR — XML namespace URI, not a network request
+_INFLUENCE_REL_NAME = "Influence Rel"
+_SERVING_REL_NAME = "Serving Rel"
+_REIMPORT_REL_ASSERT = "Should have at least one relationship after reimport"
 
 # ============================================================================
 # Helper Functions
@@ -36,7 +40,7 @@ def _create_archimate_with_influence(strength: str) -> str:
   </folder>
 </archimate:model>
 """
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.archimate', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix=_ARCHIMATE_EXT, delete=False) as f:
         f.write(xml)
         return f.name
 
@@ -56,7 +60,7 @@ def _create_archimate_with_legacy_modifier(strength: str) -> str:
   </folder>
 </archimate:model>
 """
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.archimate', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix=_ARCHIMATE_EXT, delete=False) as f:
         f.write(xml)
         return f.name
 
@@ -78,7 +82,7 @@ def _create_archimate_with_documentation(doc_text: str) -> str:
   </folder>
 </archimate:model>
 """
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.archimate', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix=_ARCHIMATE_EXT, delete=False) as f:
         f.write(xml)
         return f.name
 
@@ -121,7 +125,7 @@ def step_relationship_with_strength(context, strength):
         ArchiType.Influence,
         context.source_elem,
         context.target_elem,
-        name="Influence Rel",
+        name=_INFLUENCE_REL_NAME,
         influence_strength=strength
     )
     context.test_relationship = rel
@@ -141,7 +145,7 @@ def step_create_influence_with_strength(context, strength):
         ArchiType.Influence,
         context.source_elem,
         context.target_elem,
-        name="Influence Rel",
+        name=_INFLUENCE_REL_NAME,
         influence_strength=strength
     )
     context.test_relationship = rel
@@ -197,7 +201,7 @@ def step_create_influence_when(context, strength):
         ArchiType.Influence,
         context.source_elem,
         context.target_elem,
-        name="Influence Rel",
+        name=_INFLUENCE_REL_NAME,
         influence_strength=strength
     )
     context.test_relationship = rel
@@ -222,7 +226,7 @@ def step_create_another_influence(context, strength):
 @when("I export the model to .archimate format")
 def step_export_model_archimate(context):
     """Export the model to .archimate format."""
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.archimate', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix=_ARCHIMATE_EXT, delete=False) as f:
         context.export_path = f.name
     if not hasattr(context, 'temp_files'):
         context.temp_files = []
@@ -265,7 +269,7 @@ def step_influencestrength_written(context):
     found = False
     for elem in root.iter():
         # Look for elements with InfluenceRelationship type
-        xsi_type = elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+        xsi_type = elem.get(_XSI_TYPE_ATTR)
         if xsi_type and 'Influence' in xsi_type:
             # Check if it has influenceStrength attribute
             if elem.get('influenceStrength') is not None:
@@ -280,7 +284,7 @@ def step_strength_preserved_in_xml(context, strength):
     root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     found = False
     for elem in root.iter():
-        xsi_type = elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+        xsi_type = elem.get(_XSI_TYPE_ATTR)
         if xsi_type and 'Influence' in xsi_type:
             if elem.get('influenceStrength') == strength:
                 found = True
@@ -307,7 +311,7 @@ def step_strength_preserved(context, strength):
     """Verify the influence strength is preserved in round-trip."""
     if not hasattr(context, 'reimported_rel'):
         rels = context.reimported_model.relationships
-        assert len(rels) > 0, "Should have at least one relationship after reimport"
+        assert len(rels) > 0, _REIMPORT_REL_ASSERT
         context.reimported_rel = rels[0]
     assert context.reimported_rel.influence_strength == strength, \
         f"Expected preserved strength '{strength}', got '{context.reimported_rel.influence_strength}'"
@@ -318,7 +322,7 @@ def step_strength_matches_original(context):
     """Verify the relationship strength matches the original."""
     if not hasattr(context, 'reimported_rel'):
         rels = context.reimported_model.relationships
-        assert len(rels) > 0, "Should have at least one relationship after reimport"
+        assert len(rels) > 0, _REIMPORT_REL_ASSERT
         context.reimported_rel = rels[0]
     assert context.reimported_rel.influence_strength == context.original_strength, \
         f"Strength should match original: {context.original_strength}, got {context.reimported_rel.influence_strength}"
@@ -361,7 +365,6 @@ def step_canonical_field_used(context):
 def step_file_compatible(context):
     """Verify the exported file is compatible with modern tools."""
     root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
-    assert root is not None, "File should be valid XML"
     # Check that it uses influenceStrength (not modifier)
     has_influencestrength = False
     has_modifier = False
@@ -431,7 +434,7 @@ def step_relationship_with_description(context, description):
         ArchiType.Serving,
         context.source_elem,
         context.target_elem,
-        name="Serving Rel",
+        name=_SERVING_REL_NAME,
         desc=description
     )
     context.test_relationship = rel
@@ -457,7 +460,7 @@ def step_relationship_empty_doc(context):
         ArchiType.Serving,
         context.source_elem,
         context.target_elem,
-        name="Serving Rel",
+        name=_SERVING_REL_NAME,
         desc=""
     )
     context.test_relationship = rel
@@ -476,7 +479,7 @@ def step_relationship_long_doc(context, long_text):
         ArchiType.Serving,
         context.source_elem,
         context.target_elem,
-        name="Serving Rel",
+        name=_SERVING_REL_NAME,
         desc=long_text
     )
     context.test_relationship = rel
@@ -497,7 +500,7 @@ def step_relationship_special_chars_doc(context):
         ArchiType.Serving,
         context.source_elem,
         context.target_elem,
-        name="Serving Rel",
+        name=_SERVING_REL_NAME,
         desc=special_text
     )
     context.test_relationship = rel
@@ -547,7 +550,7 @@ def step_access_relationship_properties(context):
 def step_export_and_reimport_relationship(context):
     """Export and re-import the relationship."""
     # Export to .archimate format
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.archimate', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix=_ARCHIMATE_EXT, delete=False) as f:
         context.export_path = f.name
     if not hasattr(context, 'temp_files'):
         context.temp_files = []
@@ -599,30 +602,32 @@ def step_doc_element_written(context):
     assert found, "Documentation element should be written to XML"
 
 
+def _is_relationship_elem(elem) -> bool:
+    tag = elem.tag.lower()
+    if 'relationship' in tag:
+        return True
+    if 'element' in tag:
+        xsi_type = elem.get(_XSI_TYPE_ATTR)
+        return bool(xsi_type and 'Relationship' in xsi_type)
+    return False
+
+
+def _has_doc_with_text(elem, expected: str) -> bool:
+    return any(
+        'documentation' in child.tag.lower() and (child.text or "") == expected
+        for child in elem
+    )
+
+
 @then('the text content is "Processes read this data"')
 def step_xml_content_matches(context):
     """Verify the XML text content matches."""
     root = etree.parse(context.export_path, _SAFE_XML_PARSER).getroot()
     expected_text = "Processes read this data"
-    # Look for documentation in relationship elements
     for elem in root.iter():
-        # Check if this is a relationship element
-        is_rel = False
-        if 'relationship' in elem.tag.lower():
-            is_rel = True
-        elif 'element' in elem.tag.lower():
-            xsi_type = elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
-            if xsi_type and 'Relationship' in xsi_type:
-                is_rel = True
-
-        if is_rel:
-            # Check if this relationship has documentation with the expected text
-            for child in elem:
-                if 'documentation' in child.tag.lower():
-                    text = child.text or ""
-                    if text == expected_text:
-                        return
-    assert False, f"Documentation with text '{expected_text}' not found in relationships"
+        if _is_relationship_elem(elem) and _has_doc_with_text(elem, expected_text):
+            return
+    raise AssertionError(f"Documentation with text '{expected_text}' not found in relationships")
 
 
 @then('the documentation text is preserved as "{expected_text}"')
@@ -630,7 +635,7 @@ def step_doc_preserved_as(context, expected_text):
     """Verify documentation text is preserved as expected."""
     if not hasattr(context, 'reimported_rel'):
         rels = context.reimported_model.relationships
-        assert len(rels) > 0, "Should have at least one relationship after reimport"
+        assert len(rels) > 0, _REIMPORT_REL_ASSERT
         context.reimported_rel = rels[0]
     assert context.reimported_rel.desc == expected_text, \
         f"Expected '{expected_text}', got '{context.reimported_rel.desc}'"
@@ -641,7 +646,7 @@ def step_desc_matches_original(context):
     """Verify relationship description matches the original."""
     if not hasattr(context, 'reimported_rel'):
         rels = context.reimported_model.relationships
-        assert len(rels) > 0, "Should have at least one relationship after reimport"
+        assert len(rels) > 0, _REIMPORT_REL_ASSERT
         context.reimported_rel = rels[0]
     # Check if we have an original_description to compare against
     original_desc = getattr(context, 'original_description', None)
@@ -658,7 +663,7 @@ def step_doc_remains_empty(context):
     """Verify empty documentation remains empty."""
     if not hasattr(context, 'reimported_rel'):
         rels = context.reimported_model.relationships
-        assert len(rels) > 0, "Should have at least one relationship after reimport"
+        assert len(rels) > 0, _REIMPORT_REL_ASSERT
         context.reimported_rel = rels[0]
     # Empty string or None are both considered empty
     assert context.reimported_rel.desc in ("", None), \
@@ -676,10 +681,10 @@ def step_doc_preserved_exactly(context):
     """Verify documentation is preserved exactly."""
     if not hasattr(context, 'reimported_rel'):
         rels = context.reimported_model.relationships
-        assert len(rels) > 0, "Should have at least one relationship after reimport"
+        assert len(rels) > 0, _REIMPORT_REL_ASSERT
         context.reimported_rel = rels[0]
     assert context.reimported_rel.desc == context.original_description, \
-        f"Documentation not preserved exactly"
+        "Documentation not preserved exactly"
 
 
 @then("the full text is accessible")
@@ -687,10 +692,10 @@ def step_full_text_accessible(context):
     """Verify the full text is accessible."""
     if not hasattr(context, 'reimported_rel'):
         rels = context.reimported_model.relationships
-        assert len(rels) > 0, "Should have at least one relationship after reimport"
+        assert len(rels) > 0, _REIMPORT_REL_ASSERT
         context.reimported_rel = rels[0]
     assert context.reimported_rel.desc == context.original_description, \
-        f"Full text should be accessible and match original"
+        "Full text should be accessible and match original"
 
 
 @then("the Unicode characters are preserved exactly")
@@ -698,10 +703,10 @@ def step_unicode_preserved_exactly(context):
     """Verify Unicode characters are preserved exactly."""
     if not hasattr(context, 'reimported_rel'):
         rels = context.reimported_model.relationships
-        assert len(rels) > 0, "Should have at least one relationship after reimport"
+        assert len(rels) > 0, _REIMPORT_REL_ASSERT
         context.reimported_rel = rels[0]
     assert context.reimported_rel.desc == context.original_description, \
-        f"Unicode characters should be preserved"
+        "Unicode characters should be preserved"
 
 
 @then('the documentation reads "{expected_text}" (or equivalent encoding)')
@@ -709,7 +714,7 @@ def step_doc_reads_as(context, expected_text):  # noqa: F841
     """Verify the documentation reads as expected."""
     if not hasattr(context, 'reimported_rel'):
         rels = context.reimported_model.relationships
-        assert len(rels) > 0, "Should have at least one relationship after reimport"
+        assert len(rels) > 0, _REIMPORT_REL_ASSERT
         context.reimported_rel = rels[0]
     assert context.reimported_rel.desc is not None, "Documentation should not be None"
     assert len(context.reimported_rel.desc) > 0, "Documentation should not be empty"
@@ -720,7 +725,7 @@ def step_special_chars_escaped_preserved(context):
     """Verify special characters are properly escaped and preserved."""
     if not hasattr(context, 'reimported_rel'):
         rels = context.reimported_model.relationships
-        assert len(rels) > 0, "Should have at least one relationship after reimport"
+        assert len(rels) > 0, _REIMPORT_REL_ASSERT
         context.reimported_rel = rels[0]
     assert context.reimported_rel.desc == context.original_description, \
         f"Special characters should be preserved: expected '{context.original_description}', got '{context.reimported_rel.desc}'"
@@ -731,10 +736,10 @@ def step_doc_reads_correctly(context):
     """Verify documentation reads correctly after re-import."""
     if not hasattr(context, 'reimported_rel'):
         rels = context.reimported_model.relationships
-        assert len(rels) > 0, "Should have at least one relationship after reimport"
+        assert len(rels) > 0, _REIMPORT_REL_ASSERT
         context.reimported_rel = rels[0]
     assert context.reimported_rel.desc == context.original_description, \
-        f"Documentation should read correctly after re-import"
+        "Documentation should read correctly after re-import"
 
 
 @then("all three documentation texts are preserved correctly")
@@ -744,7 +749,7 @@ def step_all_three_docs_preserved(context):
     assert len(reimported_rels) >= 3, f"Should have at least 3 relationships, got {len(reimported_rels)}"
 
     reimported_docs = [r.desc for r in reimported_rels[:3]]
-    for original, reimported in zip(context.original_descriptions, reimported_docs):
+    for original, reimported in zip(context.original_descriptions, reimported_docs, strict=True):
         assert original == reimported, f"Expected '{original}', got '{reimported}'"
 
 

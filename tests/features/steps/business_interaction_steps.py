@@ -16,6 +16,7 @@ from src.pyArchimate.writers.archimateWriter import archimate_writer
 
 _SAFE_XML_PARSER = etree.XMLParser(resolve_entities=False, no_network=True)
 _OPENGROUP_NS = "http://www.opengroup.org/xsd/archimate/3.0/"  # NOSONAR — XML namespace URI, not a network request
+_TEST_BI_NAME = "Test Interaction"
 
 
 # Helper: Create sample .archimate file with BusinessInteraction
@@ -81,7 +82,7 @@ def step_bi_enabled(context):
 @given('I have an .archimate file containing a BusinessInteraction element')
 def step_archimate_with_bi(context):
     """Create a sample .archimate file with BusinessInteraction."""
-    file_path = _create_archimate_with_bi("Test Interaction", "Test description")
+    file_path = _create_archimate_with_bi(_TEST_BI_NAME, "Test description")
     context.temp_files.append(file_path)
     context.temp_file = file_path
 
@@ -89,7 +90,7 @@ def step_archimate_with_bi(context):
 @given('I have an OpenGroup exchange file containing a BusinessInteraction element')
 def step_opengroup_with_bi(context):
     """Create a sample OpenGroup exchange file with BusinessInteraction."""
-    file_path = _create_opengroup_with_bi("Test Interaction", "Test description")
+    file_path = _create_opengroup_with_bi(_TEST_BI_NAME, "Test description")
     context.temp_files.append(file_path)
     context.temp_file = file_path
 
@@ -101,7 +102,7 @@ def step_model_with_bi(context):
         context.model = Model("bdd-test")
     context.bi_element = context.model.add(
         ArchiType.BusinessInteraction,
-        "Test Interaction",
+        _TEST_BI_NAME,
         desc="Test element description"
     )
 
@@ -210,7 +211,7 @@ def step_element_available(context):
 @then("the element properties are preserved")
 def step_properties_preserved(context):
     """Verify element properties are preserved during import."""
-    assert context.imported_bi.name == "Test Interaction", f"Expected 'Test Interaction', got {context.imported_bi.name}"
+    assert context.imported_bi.name == _TEST_BI_NAME, f"Expected 'Test Interaction', got {context.imported_bi.name}"
 
 
 @then("the BusinessInteraction elements are written to the file")
