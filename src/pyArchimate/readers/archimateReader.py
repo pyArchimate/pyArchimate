@@ -3,14 +3,15 @@ import sys
 from typing import Any, Optional
 
 try:
-    from ..constants import RGBA, NAMED_COLORS
+    from ..constants import NAMED_COLORS, RGBA
     from ..enums import ArchiType
     from ..helpers.logging import log
     from ..view import Point
 except ImportError:
     sys.path.insert(0, "..")
-    from pyArchimate import RGBA, ArchiType, Point, log  # type: ignore[no-redef,attr-defined]
-    from constants import NAMED_COLORS  # type: ignore[no-redef,attr-defined]
+    from constants import NAMED_COLORS  # type: ignore[import-not-found,no-redef]
+
+    from pyArchimate import RGBA, ArchiType, Point, log  # type: ignore[attr-defined,no-redef]
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -39,9 +40,9 @@ def _normalize_color_on_import(color_str: Optional[str]) -> Optional[str]:
     return None
 
 
-def _extract_visual_style_properties(elem_xml, ns) -> dict[str, Any]:
+def _extract_visual_style_properties(elem_xml: Any, ns: str) -> dict[str, Any]:
     """Extract visual style properties (fillColor, lineColor, lineWidth, transparency) from element."""
-    style = {}
+    style: dict[str, Any] = {}
     props_xml = elem_xml.find(ns + 'properties')
     if props_xml is None:
         return style
@@ -59,15 +60,15 @@ def _extract_visual_style_properties(elem_xml, ns) -> dict[str, Any]:
                 if normalized:
                     style[key] = normalized
             elif key == 'lineWidth':
-                width = float(val)
-                if width >= 0:
-                    style[key] = width
+                width_val = float(val)
+                if width_val >= 0:
+                    style[key] = width_val
                 else:
                     log.warning(f"Invalid lineWidth on import (negative): {val}")
             elif key == 'transparency':
-                alpha = float(val)
-                if 0.0 <= alpha <= 1.0:
-                    style[key] = alpha
+                alpha_val = float(val)
+                if 0.0 <= alpha_val <= 1.0:
+                    style[key] = alpha_val
                 else:
                     log.warning(f"Invalid transparency on import (out of range): {val}")
         except (ValueError, TypeError) as e:
@@ -75,7 +76,7 @@ def _extract_visual_style_properties(elem_xml, ns) -> dict[str, Any]:
     return style
 
 
-def _build_hierarchy_from_parents(model, parent_map: dict[str, Optional[str]]) -> None:
+def _build_hierarchy_from_parents(model: Any, parent_map: dict[str, Optional[str]]) -> None:
     """
     Build parent-child hierarchy after all elements are loaded.
     parent_map: dict of {child_uuid: parent_uuid}
@@ -112,11 +113,18 @@ def _read_pdefs(model, root, ns, merge_flg):
     return pdef_merge_map
 
 
-def _read_props(obj, xml_elem, ns, pdef_merge_map, model):
+def _read_props(obj: Any, xml_elem: Any, ns: str, pdef_merge_map: dict[str, str], model: Any) -> None:
     props = xml_elem.find(ns + 'properties')
     if props is None:
         return
     for p in props.findall(ns + 'property'):
+        # Skip visual style properties (fillColor, lineColor, lineWidth, transparency)
+        # which have 'key' but not 'propertyDefinitionRef'
+        if p.get('propertyDefinitionRef') is None:
+            if p.get('key') in ('fillColor', 'lineColor', 'lineWidth', 'transparency'):
+                continue
+            # Unknown property format, skip it
+            continue
         _id = pdef_merge_map[p.get('propertyDefinitionRef')]
         obj.prop(model.pdefs[_id], p.find(ns + 'value').text)
 
