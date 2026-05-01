@@ -61,7 +61,7 @@ def _parse_node_attributes(node: Any, child: Any, parent: Any) -> None:
         elif ft_name == 'labelExpression':
             node.label_expression = ft.get('value')
         elif ft_name == 'iconColor':
-            node.iconColor = ft.get('value')
+            node.icon_color = ft.get('value')
         elif ft_name == 'gradient':
             node.gradient = ft.get('value')
     node.text_alignment = child.get('textAlignment')

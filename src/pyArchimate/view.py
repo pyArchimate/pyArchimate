@@ -245,7 +245,7 @@ class Node:
         self.text_position = None
         self.label_expression: Optional[str] = None
         self.border_type: Optional[str] = None
-        self.iconColor = None
+        self.icon_color = None
         self.gradient = None
 
     # --- lifecycle ---
