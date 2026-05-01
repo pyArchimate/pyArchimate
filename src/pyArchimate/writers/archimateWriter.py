@@ -64,7 +64,12 @@ def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
             cat = 'Technology'
         if e.folder is None:
             e.folder = '/' + cat
-        elem = et.SubElement(elems, 'element', {'identifier': e.uuid, str(xsi): e.type})
+        elem_attrs = {'identifier': e.uuid, str(xsi): e.type}
+        # Add parentId if element has a parent
+        parent_uuid = getattr(e, '_parent_uuid', None)
+        if parent_uuid:
+            elem_attrs['parentId'] = parent_uuid
+        elem = et.SubElement(elems, 'element', elem_attrs)
         if e.name is None:
             e.name = e.type
         if e.name is not None:
@@ -79,6 +84,26 @@ def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
             all_props['viewpoint'] = slug  # last one wins if multi; handled via repeated write below
         if e.props:
             _write_properties(elem, e.props, model)
+        # Write visual style properties
+        visual_style = getattr(e, '_visual_style', {})
+        if visual_style:
+            pp = elem.find('properties')
+            if pp is None:
+                pp = et.SubElement(elem, 'properties')
+            for key in ['fillColor', 'lineColor', 'lineWidth', 'transparency']:
+                if key in visual_style:
+                    p = et.SubElement(pp, 'property', key=key)
+                    pv = et.SubElement(p, 'value')
+                    pv.text = str(visual_style[key])
+        # Write junction type if set
+        junction_type = getattr(e, 'junction_type', None)
+        if junction_type:
+            pp = elem.find('properties')
+            if pp is None:
+                pp = et.SubElement(elem, 'properties')
+            p = et.SubElement(pp, 'property', key='junctionType')
+            pv = et.SubElement(p, 'value')
+            pv.text = junction_type
         # Write viewpoint associations as separate properties (supports multi-viewpoint)
         for slug in getattr(e, 'viewpoints', []):
             vp_prop_id = _get_prop_def_id(model, 'viewpoint')

@@ -59,6 +59,9 @@ INFLUENCE_STRENGTH = {
     '10': '10'
 }
 
+# Junction types (for Junction elements)
+JUNCTION_TYPES = {'and', 'or', 'xor'}
+
 # ===== Reader/Writer Configuration =====
 
 

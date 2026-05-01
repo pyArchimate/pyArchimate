@@ -99,17 +99,17 @@ class TestGetChildrenQuery:
 class TestGetAncestorsQuery:
     """Test Model.get_ancestors() query method."""
 
-    def test_get_ancestors_root_returns_self(self):
-        """Test get_ancestors of root returns list with just self."""
+    def test_get_ancestors_root_returns_empty(self):
+        """Test get_ancestors of root returns empty list."""
         model = Model('TestModel')
         root = model.add(ArchiType.BusinessProcess, 'Root')
 
         result = model.get_ancestors(root.uuid)
 
-        assert result == [root]
+        assert result == []
 
     def test_get_ancestors_direct_child(self):
-        """Test get_ancestors of direct child."""
+        """Test get_ancestors of direct child returns only parent."""
         model = Model('TestModel')
         root = model.add(ArchiType.BusinessProcess, 'Root')
         child = model.add(ArchiType.BusinessFunction, 'Child')
@@ -117,10 +117,10 @@ class TestGetAncestorsQuery:
 
         result = model.get_ancestors(child.uuid)
 
-        assert result == [child, root]
+        assert result == [root]
 
     def test_get_ancestors_deeply_nested(self):
-        """Test get_ancestors of deeply nested element."""
+        """Test get_ancestors of deeply nested element (excludes self)."""
         model = Model('TestModel')
         elements = [model.add(ArchiType.BusinessProcess, f'Elem{i}') for i in range(5)]
 
@@ -129,11 +129,11 @@ class TestGetAncestorsQuery:
 
         result = model.get_ancestors(elements[4].uuid)
 
-        # Should be in reverse order: elem4, elem3, elem2, elem1, elem0
-        assert result == elements[::-1]
+        # Should be in reverse order, excluding the element itself: elem3, elem2, elem1, elem0
+        assert result == elements[3::-1]
 
-    def test_get_ancestors_includes_self_first(self):
-        """Test that get_ancestors includes the element itself as first item."""
+    def test_get_ancestors_includes_parent_first(self):
+        """Test that get_ancestors includes the parent as first item."""
         model = Model('TestModel')
         parent = model.add(ArchiType.BusinessProcess, 'Parent')
         child = model.add(ArchiType.BusinessFunction, 'Child')
@@ -141,7 +141,7 @@ class TestGetAncestorsQuery:
 
         result = model.get_ancestors(child.uuid)
 
-        assert result[0] == child
+        assert result[0] == parent
 
     def test_get_ancestors_excludes_non_ancestors(self):
         """Test that get_ancestors doesn't include non-ancestor elements."""
@@ -397,7 +397,12 @@ class TestQueryConsistency:
         ancestors = model.get_ancestors(leaf.uuid)
         descendants_of_root = model.get_descendants(root.uuid)
 
-        assert leaf in [a for a in ancestors]
+        # Ancestors should not include the element itself
+        assert leaf not in ancestors
+        # But should include its parents
+        assert mid in ancestors
+        assert root in ancestors
+        # Descendants should include leaf
         assert leaf in descendants_of_root
 
     def test_root_and_leaf_consistency(self):

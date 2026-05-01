@@ -3650,5 +3650,5 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.10,<3.15"
-content-hash = "d55f686d65ce388ffc74a6e8a4971ea4f62a9efe38c5eff976ab379c0b4941bb"
+python-versions = ">=3.10,<4.0"
+content-hash = "27fff6fc43ddf6e7f2c41f0b3e299f05b3412275b1f954eb66a90d9d9aa80ba6"
