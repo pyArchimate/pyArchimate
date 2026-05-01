@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="Combined P3 Features Test" id="id-combined-001" version="4.9.0">
+  <folder name="Business" id="id-bus-folder" type="business">
+    <element xsi:type="archimate:BusinessProcess" name="Customer Order" id="id-cust-proc" folder="/Business/Sales">
+      <documentation>Main order processing workflow</documentation>
+      <property key="fillColor" value="#FFFFB5"/>
+      <property key="viewpoint" value="business_process"/>
+    </element>
+    <element xsi:type="archimate:BusinessFunction" name="Validate Order" id="id-val-func" parentId="id-cust-proc" folder="/Business/Sales">
+      <documentation>Validates order details - level 1 child</documentation>
+      <property key="fillColor" value="#FFE0B2"/>
+      <property key="lineColor" value="#FF6F00"/>
+      <property key="lineWidth" value="1.5"/>
+    </element>
+    <element xsi:type="archimate:BusinessFunction" name="Check Items" id="id-check-func" parentId="id-cust-proc" folder="/Business/Sales">
+      <documentation>Checks order items - level 1 child</documentation>
+      <property key="fillColor" value="#C8E6C9"/>
+    </element>
+    <element xsi:type="archimate:BusinessProcess" name="Validate SKU" id="id-sku-proc" parentId="id-val-func" folder="/Business/Sales">
+      <documentation>Validates SKU codes - level 2 grandchild</documentation>
+      <property key="fillColor" value="#B3E5FC"/>
+      <property key="lineColor" value="#0288D1"/>
+      <property key="transparency" value="0.8"/>
+    </element>
+    <element xsi:type="archimate:BusinessProcess" name="Validate Price" id="id-price-proc" parentId="id-val-func" folder="/Business/Sales">
+      <documentation>Validates pricing - level 2 grandchild</documentation>
+      <property key="fillColor" value="#F8BBD0"/>
+      <property key="lineWidth" value="2.0"/>
+    </element>
+  </folder>
+  <folder name="Application" id="id-app-folder" type="application">
+    <element xsi:type="archimate:ApplicationComponent" name="Order System" id="id-order-app" folder="/Application/Systems">
+      <documentation>Core order management system</documentation>
+      <property key="fillColor" value="#B5FFFF"/>
+      <property key="viewpoint" value="application_cooperation"/>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="Validation Module" id="id-val-app" parentId="id-order-app" folder="/Application/Systems">
+      <documentation>Handles order validation - child component</documentation>
+      <property key="fillColor" value="#B5FFFF"/>
+      <property key="lineColor" value="#00897B"/>
+      <property key="transparency" value="0.9"/>
+    </element>
+  </folder>
+  <folder name="Other" id="id-other-folder" type="other">
+    <element xsi:type="archimate:Junction" name="Decision Point" id="id-decision-junc">
+      <documentation>Central decision junction</documentation>
+      <property key="junctionType" value="xor"/>
+      <property key="fillColor" value="#E0E0E0"/>
+    </element>
+    <element xsi:type="archimate:Junction" name="Parallel Split" id="id-parallel-junc" parentId="id-cust-proc">
+      <documentation>Parallel processing split - child of main process</documentation>
+      <property key="junctionType" value="and"/>
+    </element>
+  </folder>
+  <folder name="Relations" id="id-rel-folder" type="relations">
+    <element xsi:type="archimate:FlowRelationship" id="id-flow-val" source="id-cust-proc" target="id-decision-junc">
+      <documentation>Flow to decision point</documentation>
+    </element>
+    <element xsi:type="archimate:FlowRelationship" id="id-flow-val-func" source="id-decision-junc" target="id-val-func">
+      <documentation>Flow to validation function</documentation>
+    </element>
+    <element xsi:type="archimate:RealizationRelationship" id="id-real-app" source="id-order-app" target="id-cust-proc">
+      <documentation>Application realizes business process</documentation>
+    </element>
+  </folder>
+  <folder name="Views" id="id-views-folder" type="diagrams"/>
+</archimate:model>

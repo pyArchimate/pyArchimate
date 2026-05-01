@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="Junctions and Flow Test" id="id-junction-001" version="4.9.0">
+  <folder name="Business" id="id-bus-folder" type="business">
+    <element xsi:type="archimate:BusinessProcess" name="Request Received" id="id-start-001">
+      <documentation>Starts workflow</documentation>
+    </element>
+    <element xsi:type="archimate:BusinessProcess" name="Process Payment" id="id-proc-pay">
+      <documentation>Payment processing</documentation>
+    </element>
+    <element xsi:type="archimate:BusinessProcess" name="Reject Request" id="id-proc-reject">
+      <documentation>Request rejection</documentation>
+    </element>
+    <element xsi:type="archimate:BusinessProcess" name="Notify User" id="id-end-001">
+      <documentation>Final notification</documentation>
+    </element>
+  </folder>
+  <folder name="Other" id="id-other-folder" type="other">
+    <element xsi:type="archimate:Junction" name="Decision AND" id="id-junc-and">
+      <property key="junctionType" value="and"/>
+    </element>
+    <element xsi:type="archimate:Junction" name="Decision OR" id="id-junc-or">
+      <property key="junctionType" value="or"/>
+    </element>
+    <element xsi:type="archimate:Junction" name="Decision XOR" id="id-junc-xor">
+      <property key="junctionType" value="xor"/>
+    </element>
+  </folder>
+  <folder name="Relations" id="id-rel-folder" type="relations">
+    <element xsi:type="archimate:FlowRelationship" id="id-flow-001" source="id-start-001" target="id-junc-and">
+      <documentation>Input to AND junction</documentation>
+    </element>
+    <element xsi:type="archimate:FlowRelationship" id="id-flow-002" source="id-junc-and" target="id-proc-pay">
+      <documentation>Flow from AND to payment</documentation>
+    </element>
+    <element xsi:type="archimate:FlowRelationship" id="id-flow-003" source="id-junc-and" target="id-proc-reject">
+      <documentation>Flow from AND to reject</documentation>
+    </element>
+    <element xsi:type="archimate:FlowRelationship" id="id-flow-004" source="id-proc-pay" target="id-junc-xor">
+      <documentation>Flow to XOR decision</documentation>
+    </element>
+    <element xsi:type="archimate:FlowRelationship" id="id-flow-005" source="id-junc-xor" target="id-end-001">
+      <documentation>Flow from XOR to end</documentation>
+    </element>
+  </folder>
+  <folder name="Views" id="id-views-folder" type="diagrams"/>
+</archimate:model>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="Grouped Elements Test" id="id-grouped-001" version="4.9.0">
+  <folder name="Business" id="id-bus-folder" type="business">
+    <element xsi:type="archimate:BusinessProcess" name="Order Processing" id="id-proc-001">
+      <documentation>Root process for order handling</documentation>
+    </element>
+    <element xsi:type="archimate:BusinessFunction" name="Validate Order" id="id-func-001" parentId="id-proc-001">
+      <documentation>Level 1 child: validates order details</documentation>
+    </element>
+    <element xsi:type="archimate:BusinessFunction" name="Check Inventory" id="id-func-002" parentId="id-proc-001">
+      <documentation>Level 1 child: checks stock availability</documentation>
+    </element>
+    <element xsi:type="archimate:BusinessProcess" name="Validate Details" id="id-proc-002" parentId="id-func-001">
+      <documentation>Level 2 grandchild: sub-function of validation</documentation>
+    </element>
+    <element xsi:type="archimate:BusinessProcess" name="Verify Payload" id="id-proc-003" parentId="id-func-001">
+      <documentation>Level 2 grandchild: another sub-function</documentation>
+    </element>
+  </folder>
+  <folder name="Relations" id="id-rel-folder" type="relations"/>
+  <folder name="Views" id="id-views-folder" type="diagrams"/>
+</archimate:model>
