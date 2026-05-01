@@ -1,8 +1,9 @@
 """Element module - extracted from the legacy monolith."""
 
-from typing import TYPE_CHECKING, Optional, cast
+import re
+from typing import TYPE_CHECKING, Any, Optional, cast
 
-from .constants import ARCHI_CATEGORY
+from .constants import ARCHI_CATEGORY, NAMED_COLORS
 from .enums import ArchiType
 from .exceptions import ArchimateConceptTypeError
 
@@ -54,6 +55,27 @@ def set_id(uuid: Optional[str] = None) -> str:
         if _id[:3] != 'id-':
             _id = 'id-' + _id
     return _id
+
+
+def _normalize_color(color: Optional[str]) -> Optional[str]:
+    """
+    Normalize a color to lowercase hex format.
+
+    :param color: Color as hex (#RRGGBB) or named color, or None
+    :return: Normalized hex color (#rrggbb) or None
+    :raises ValueError: If color format is invalid or color name unknown
+    """
+    if color is None:
+        return None
+    color = str(color).strip()
+    if color.startswith('#'):
+        if not re.match(r'^#[0-9a-fA-F]{6}$', color):
+            raise ValueError(f"Invalid hex color: {color} (expected #RRGGBB)")
+        return color.lower()
+    named = NAMED_COLORS.get(color.lower())
+    if named:
+        return named
+    raise ValueError(f"Unknown color: {color} (hex or named color expected)")
 
 
 class Element:
@@ -111,6 +133,8 @@ class Element:
         self._profile: Optional[str] = profile
         self.junction_type: Optional[str] = None
         self._viewpoints: list[str] = []  # list of canonical viewpoint slugs
+        self._parent_uuid: Optional[str] = None
+        self._visual_style: dict[str, Any] = {}
 
     def delete(self) -> None:
         """
@@ -120,6 +144,7 @@ class Element:
         It also deletes all relationships that have this element as source or target and
         it deletes all visual nodes referring to this element (and conns) from views
 
+        Children are orphaned rather than cascaded (Phase 2 behavior).
         """
         _id = self.uuid
 
@@ -134,6 +159,26 @@ class Element:
             if r.source.uuid == _id or r.target.uuid == _id:
                 r.delete()
                 del r
+
+        # P3 Phase 2: Clean up stale viewpoint references (bonus fix)
+        for vp_id in self._viewpoints:
+            self.parent._viewpoint_elements.get(vp_id, set()).discard(_id)
+
+        # P3 Phase 2: Orphan children instead of cascading
+        for child_uuid in self.parent._element_children.get(_id, set()).copy():
+            child = self.parent.elems_dict.get(child_uuid)
+            if child:
+                child._parent_uuid = None
+            if child_uuid in self.parent._element_hierarchy:
+                del self.parent._element_hierarchy[child_uuid]
+        if _id in self.parent._element_children:
+            del self.parent._element_children[_id]
+
+        # P3 Phase 2: Remove self from parent's children
+        if self._parent_uuid is not None:
+            self.parent._element_children.get(self._parent_uuid, set()).discard(_id)
+            if _id in self.parent._element_hierarchy:
+                del self.parent._element_hierarchy[_id]
 
         # remove this element's id from parent's dictionaries
         if _id in self.parent.elems_dict:
@@ -412,6 +457,139 @@ class Element:
             self._viewpoints.remove(viewpoint_id)
             if self.parent is not None:
                 self.parent._viewpoint_elements.get(viewpoint_id, set()).discard(self._uuid)
+
+    @property
+    def parent_uuid(self) -> Optional[str]:
+        """Get the parent element UUID (for hierarchical grouping).
+
+        :return: Parent element UUID or None if this is a root element
+        :rtype: Optional[str]
+        """
+        return self._parent_uuid
+
+    def set_fill_color(self, color: Optional[str]) -> None:
+        """Set the fill color of this element.
+
+        :param color: Hex color (#RRGGBB), named color, or None to use default
+        :type color: Optional[str]
+        :raises ValueError: If color format is invalid
+        """
+        if color is None:
+            self._visual_style.pop('fillColor', None)
+        else:
+            self._visual_style['fillColor'] = _normalize_color(color)
+
+    def set_line_color(self, color: Optional[str]) -> None:
+        """Set the line/border color of this element.
+
+        :param color: Hex color (#RRGGBB), named color, or None to use default
+        :type color: Optional[str]
+        :raises ValueError: If color format is invalid
+        """
+        if color is None:
+            self._visual_style.pop('lineColor', None)
+        else:
+            self._visual_style['lineColor'] = _normalize_color(color)
+
+    def set_line_width(self, width: Optional[float]) -> None:
+        """Set the line/border width of this element.
+
+        :param width: Width in pixels (≥ 0), or None to use default
+        :type width: Optional[float]
+        :raises ValueError: If width is negative
+        :raises TypeError: If width is not numeric
+        """
+        if width is None:
+            self._visual_style.pop('lineWidth', None)
+        else:
+            if not isinstance(width, (int, float)):
+                raise TypeError(f"Line width must be number, got {type(width).__name__}")
+            if width < 0:
+                raise ValueError(f"Line width must be non-negative number, got {width}")
+            self._visual_style['lineWidth'] = float(width)
+
+    def set_transparency(self, alpha: Optional[float]) -> None:
+        """Set the transparency/opacity of this element.
+
+        :param alpha: Opacity 0.0 (transparent) to 1.0 (opaque), or None to use default
+        :type alpha: Optional[float]
+        :raises ValueError: If alpha is out of range
+        :raises TypeError: If alpha is not numeric
+        """
+        if alpha is None:
+            self._visual_style.pop('transparency', None)
+        else:
+            if not isinstance(alpha, (int, float)):
+                raise TypeError(f"Transparency must be number, got {type(alpha).__name__}")
+            if alpha < 0.0 or alpha > 1.0:
+                raise ValueError(f"Transparency must be 0.0-1.0, got {alpha}")
+            self._visual_style['transparency'] = float(alpha)
+
+    def set_visual_style(self, fill_color: Optional[str] = None, line_color: Optional[str] = None,
+                        line_width: Optional[float] = None, transparency: Optional[float] = None) -> None:
+        """Set multiple visual style properties at once.
+
+        :param fill_color: Fill color (hex or named)
+        :param line_color: Line color (hex or named)
+        :param line_width: Line width in pixels (≥ 0)
+        :param transparency: Opacity 0.0-1.0
+        :raises ValueError: If any property is invalid
+        """
+        if fill_color is not None:
+            self.set_fill_color(fill_color)
+        if line_color is not None:
+            self.set_line_color(line_color)
+        if line_width is not None:
+            self.set_line_width(line_width)
+        if transparency is not None:
+            self.set_transparency(transparency)
+
+    def get_fill_color(self) -> Optional[str]:
+        """Get the fill color of this element.
+
+        :return: Hex color (#rrggbb) or None if not set (use default)
+        :rtype: Optional[str]
+        """
+        return self._visual_style.get('fillColor')
+
+    def get_line_color(self) -> Optional[str]:
+        """Get the line/border color of this element.
+
+        :return: Hex color (#rrggbb) or None if not set (use default)
+        :rtype: Optional[str]
+        """
+        return self._visual_style.get('lineColor')
+
+    def get_line_width(self) -> Optional[float]:
+        """Get the line/border width of this element.
+
+        :return: Width in pixels or None if not set (use default)
+        :rtype: Optional[float]
+        """
+        return self._visual_style.get('lineWidth')
+
+    def get_transparency(self) -> Optional[float]:
+        """Get the transparency/opacity of this element.
+
+        :return: Opacity 0.0-1.0 or None if not set (use default)
+        :rtype: Optional[float]
+        """
+        return self._visual_style.get('transparency')
+
+    def get_visual_style(self) -> dict[str, Any]:
+        """Get all visual style properties as a dictionary.
+
+        :return: Dictionary with fillColor, lineColor, lineWidth, transparency (only set values)
+        :rtype: dict[str, Any]
+        """
+        return dict(self._visual_style)
+
+    def reset_visual_style(self) -> None:
+        """Reset all custom visual styles to defaults.
+
+        :return: None
+        """
+        self._visual_style.clear()
 
 
 __all__ = ["Element"]

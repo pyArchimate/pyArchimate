@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="Styled Elements Test" id="id-styled-001" version="4.9.0">
+  <folder name="Business" id="id-bus-folder" type="business">
+    <element xsi:type="archimate:BusinessProcess" name="Process Red" id="id-proc-red">
+      <documentation>Process with red fill</documentation>
+      <property key="fillColor" value="#ff0000"/>
+    </element>
+    <element xsi:type="archimate:BusinessProcess" name="Process Custom" id="id-proc-custom">
+      <documentation>Process with custom style</documentation>
+      <property key="fillColor" value="#0066FF"/>
+      <property key="lineColor" value="#000000"/>
+      <property key="lineWidth" value="2.0"/>
+      <property key="transparency" value="0.9"/>
+    </element>
+  </folder>
+  <folder name="Application" id="id-app-folder" type="application">
+    <element xsi:type="archimate:ApplicationComponent" name="App Blue" id="id-app-blue">
+      <documentation>Application with blue fill</documentation>
+      <property key="fillColor" value="#0000ff"/>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="App Transparent" id="id-app-trans">
+      <documentation>Application with transparency</documentation>
+      <property key="fillColor" value="#00ff00"/>
+      <property key="transparency" value="0.5"/>
+    </element>
+  </folder>
+  <folder name="Technology &amp; Physical" id="id-tech-folder" type="technology">
+    <element xsi:type="archimate:TechnologyService" name="Tech Yellow" id="id-tech-yellow">
+      <documentation>Technology with yellow fill</documentation>
+      <property key="fillColor" value="#ffff00"/>
+      <property key="lineColor" value="#ff00ff"/>
+      <property key="lineWidth" value="3.5"/>
+    </element>
+  </folder>
+  <folder name="Relations" id="id-rel-folder" type="relations"/>
+  <folder name="Views" id="id-views-folder" type="diagrams"/>
+</archimate:model>

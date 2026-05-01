@@ -11,6 +11,7 @@ import lxml.etree as et
 from .constants import (
     ARCHI_CATEGORY,
     DEFAULT_THEME,
+    MAX_DEPTH,
     MODEL_READER_REGISTRY,
     OPERATION_ERROR_MESSAGES,
 )
@@ -203,6 +204,8 @@ class Model:
         self.theme = 'archi'
         self._viewpoint_elements: dict[str, set[str]] = {}  # slug → set of element UUIDs
         self._viewpoint_views: dict[str, str] = {}          # view UUID → primary viewpoint slug
+        self._element_hierarchy: dict[str, Optional[str]] = {}  # child_uuid → parent_uuid
+        self._element_children: dict[str, set[str]] = {}        # parent_uuid → child_uuids
 
     def add(self, concept_type=None, name=None, uuid=None, desc=None, folder=None, profile=None):
         """
@@ -829,6 +832,159 @@ class Model:
         validate_viewpoint_slug(viewpoint_id)
         return [v for uid, v in self.views_dict.items()
                 if self._viewpoint_views.get(uid) == viewpoint_id]
+
+    def _would_create_cycle(self, parent_uuid: str, child_uuid: str) -> bool:
+        """Check if adding child_uuid as a child of parent_uuid would create a cycle.
+
+        :param parent_uuid: UUID of potential parent
+        :param child_uuid: UUID of potential child
+        :return: True if cycle would be created, False otherwise
+        """
+        visited: set[str] = set()
+        current: Optional[str] = parent_uuid
+        while current is not None:
+            if current == child_uuid:
+                return True
+            if current in visited:
+                return True
+            visited.add(current)
+            if len(visited) > MAX_DEPTH + 1:
+                return True
+            current = self._element_hierarchy.get(current)
+        return False
+
+    def _get_depth(self, elem_uuid: str) -> int:
+        """Get the nesting depth of an element (0 = root).
+
+        :param elem_uuid: Element UUID
+        :return: Depth level
+        """
+        depth = 0
+        current = self._element_hierarchy.get(elem_uuid)
+        while current is not None:
+            depth += 1
+            current = self._element_hierarchy.get(current)
+        return depth
+
+    def add_child(self, parent_uuid: str, child_uuid: str) -> None:
+        """Add a parent-child relationship between two elements.
+
+        :param parent_uuid: UUID of parent element
+        :param child_uuid: UUID of child element
+        :raises KeyError: If parent or child UUID not in model
+        :raises ValueError: If child already has parent, cycle would be created, or max depth exceeded
+        """
+        if parent_uuid not in self.elems_dict:
+            raise KeyError(f"Parent element {parent_uuid} not found")
+        if child_uuid not in self.elems_dict:
+            raise KeyError(f"Child element {child_uuid} not found")
+        if self._element_hierarchy.get(child_uuid) is not None:
+            raise ValueError(f"Element {child_uuid} already has parent {self._element_hierarchy.get(child_uuid)}")
+        if self._would_create_cycle(parent_uuid, child_uuid):
+            raise ValueError(f"Cycle detected: cannot add {child_uuid} as child of {parent_uuid}")
+        if self._get_depth(parent_uuid) + 1 >= MAX_DEPTH:
+            raise ValueError(f"Max nesting depth {MAX_DEPTH} exceeded")
+        self._element_hierarchy[child_uuid] = parent_uuid
+        self._element_children.setdefault(parent_uuid, set()).add(child_uuid)
+        self.elems_dict[child_uuid]._parent_uuid = parent_uuid
+
+    def remove_child(self, parent_uuid: str, child_uuid: str) -> None:
+        """Remove a parent-child relationship (orphan the child).
+
+        :param parent_uuid: UUID of parent element
+        :param child_uuid: UUID of child element
+        :raises KeyError: If parent or child UUID not in model
+        :raises ValueError: If child is not actually a child of parent
+        """
+        if parent_uuid not in self.elems_dict or child_uuid not in self.elems_dict:
+            raise KeyError("Parent or child element not found")
+        if self._element_hierarchy.get(child_uuid) != parent_uuid:
+            raise ValueError(f"{child_uuid} is not a child of {parent_uuid}")
+        del self._element_hierarchy[child_uuid]
+        self._element_children.get(parent_uuid, set()).discard(child_uuid)
+        if not self._element_children.get(parent_uuid):
+            self._element_children.pop(parent_uuid, None)
+        self.elems_dict[child_uuid]._parent_uuid = None
+
+    def get_parent(self, elem_uuid: str) -> Optional[Element]:
+        """Get the parent element of a given element.
+
+        :param elem_uuid: Element UUID
+        :return: Parent Element or None if root
+        """
+        parent_uuid = self._element_hierarchy.get(elem_uuid)
+        return self.elems_dict.get(parent_uuid) if parent_uuid else None
+
+    def get_children(self, elem_uuid: str) -> list[Element]:
+        """Get all direct children of a given element.
+
+        :param elem_uuid: Element UUID
+        :return: List of child Elements (empty if no children)
+        """
+        return [self.elems_dict[uid] for uid in self._element_children.get(elem_uuid, set())
+                if uid in self.elems_dict]
+
+    def get_ancestors(self, elem_uuid: str) -> list[Element]:
+        """Get all ancestors of an element from the element itself to the root.
+
+        :param elem_uuid: Element UUID
+        :return: List of Elements [elem, parent, grandparent, ..., root]
+        """
+        result: list[Element] = []
+        visited: set[str] = set()
+        current: Optional[str] = elem_uuid
+        while current is not None:
+            if current in visited:
+                break
+            visited.add(current)
+            if current in self.elems_dict:
+                result.append(self.elems_dict[current])
+            current = self._element_hierarchy.get(current)
+        return result
+
+    def get_descendants(self, elem_uuid: str) -> list[Element]:
+        """Get all descendants of an element in breadth-first order.
+
+        :param elem_uuid: Element UUID
+        :return: List of descendant Elements (excludes the element itself)
+        """
+        from collections import deque
+        result: list[Element] = []
+        visited: set[str] = set()
+        queue: deque[str] = deque([elem_uuid])
+        while queue:
+            uid = queue.popleft()
+            if uid in visited:
+                continue
+            visited.add(uid)
+            if uid != elem_uuid and uid in self.elems_dict:
+                result.append(self.elems_dict[uid])
+            queue.extend(self._element_children.get(uid, set()))
+        return result
+
+    def get_depth(self, elem_uuid: str) -> int:
+        """Get the nesting depth of an element (0 = root).
+
+        :param elem_uuid: Element UUID
+        :return: Depth level
+        """
+        return self._get_depth(elem_uuid)
+
+    def get_root_elements(self) -> list[Element]:
+        """Get all root elements (elements with no parent).
+
+        :return: List of root Elements
+        """
+        return [e for e in self.elems_dict.values()
+                if self._element_hierarchy.get(e.uuid) is None]
+
+    def get_leaf_elements(self) -> list[Element]:
+        """Get all leaf elements (elements with no children).
+
+        :return: List of leaf Elements
+        """
+        return [e for e in self.elems_dict.values()
+                if not self._element_children.get(e.uuid)]
 
 
 __all__ = ["Model"]
