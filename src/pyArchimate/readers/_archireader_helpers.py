@@ -177,7 +177,16 @@ def _process_folder_element(e: Any, model: Any, xsi: str, merge_flg: bool, folde
     if doc is not None:
         elem.desc = doc.text
     for p in e.findall('property'):
-        elem.prop(p.get('key'), p.get('value'))
+        if p.get('key') == 'viewpoint':
+            slug = (p.get('value') or '').strip().lower()
+            if slug:
+                from ..viewpoint_registry import get_viewpoint
+                if get_viewpoint(slug) is not None:
+                    elem.assign_viewpoint(slug)
+                else:
+                    log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
+        else:
+            elem.prop(p.get('key'), p.get('value'))
     if type_e == 'Junction':
         elem.junction_type = e.get('type') if e.get('type') is not None else 'and'
 
@@ -228,6 +237,14 @@ def get_folders_view(tag: Any, model: Any, xsi: str, folder_path: str = '') -> N
             elem.desc = e.text
         for p in e.findall('property'):
             elem.prop(p.get('key'), p.get('value'))
+        # Read view-level primary viewpoint from 'viewpoint' XML attribute
+        vp_attr = (e.get('viewpoint') or '').strip().lower()
+        if vp_attr:
+            from ..viewpoint_registry import get_viewpoint
+            if get_viewpoint(vp_attr) is not None:
+                elem.set_primary_viewpoint(vp_attr)
+            else:
+                log.warning(f"Unknown viewpoint slug '{vp_attr}' on view ignored")
         get_node(e, elem, xsi)
         get_connection(e, elem)
     for f in tag.findall('folder'):

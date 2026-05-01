@@ -89,6 +89,9 @@ def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName) ->
         doc.text = desc
     for k, v in getattr(elem, 'props', {}).items():
         et.SubElement(e, 'property', key=k, value=str(v))
+    # Write element-level viewpoint associations as properties
+    for slug in getattr(elem, 'viewpoints', []):
+        et.SubElement(e, 'property', key='viewpoint', value=slug)
     profile_id = getattr(elem, 'profile_id', None)
     if profile_id is not None:
         e.set('profiles', profile_id)
@@ -272,6 +275,10 @@ def _write_view_element(view_folder: _Element, view: object, xsi: et.QName) -> N
         'name': getattr(view, 'name', ''),
         'id': getattr(view, 'uuid', ''),
     })
+    # Write primary viewpoint as an XML attribute on the view element
+    primary_vp = getattr(view, 'primary_viewpoint', None)
+    if primary_vp is not None:
+        e.set('viewpoint', primary_vp)
     for n in getattr(view, 'nodes', []):
         _add_node(view, e, n, xsi)
     view_desc = getattr(view, 'desc', None)

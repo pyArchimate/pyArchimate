@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       identifier="id-test-model">
+  <name>Viewpoint Test</name>
+  <elements>
+    <element identifier="id-actor-1" xsi:type="BusinessActor">
+      <name>Test Actor</name>
+      <properties>
+        <property propertyDefinitionRef="propid-1">
+          <value>stakeholder</value>
+        </property>
+      </properties>
+    </element>
+  </elements>
+  <views>
+    <diagrams>
+      <view identifier="id-view-1" viewpoint="stakeholder" xsi:type="Diagram">
+        <name>Stakeholder View</name>
+      </view>
+    </diagrams>
+  </views>
+</model>

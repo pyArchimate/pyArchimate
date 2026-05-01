@@ -59,6 +59,20 @@ def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
                 desc=desc,
             )
         _read_props(elem, e, ns, pdef_merge_map, model)
+        # Read element-level viewpoint associations stored as properties
+        props_xml = e.find(ns + 'properties')
+        if props_xml is not None:
+            for p in props_xml.findall(ns + 'property'):
+                prop_id = p.get('propertyDefinitionRef')
+                if prop_id in pdef_merge_map and model.pdefs.get(pdef_merge_map[prop_id]) == 'viewpoint':
+                    val_xml = p.find(ns + 'value')
+                    slug = (val_xml.text or '').strip().lower() if val_xml is not None else ''
+                    if slug:
+                        from ..viewpoint_registry import get_viewpoint
+                        if get_viewpoint(slug) is not None:
+                            elem.assign_viewpoint(slug)
+                        else:
+                            log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
 
 
 def _read_relationships(model, root, ns, xsi, pdef_merge_map, merge_flg):
@@ -195,6 +209,14 @@ def _read_views(model, root, ns, xsi, pdef_merge_map, merge_flg):
             desc=_get_xml_text(v, 'documentation', ns),
         )
         _read_props(_v, v, ns, pdef_merge_map, model)
+        # Read view-level primary viewpoint from 'viewpoint' XML attribute
+        vp_attr = (v.get('viewpoint') or '').strip().lower()
+        if vp_attr:
+            from ..viewpoint_registry import get_viewpoint
+            if get_viewpoint(vp_attr) is not None:
+                _v.set_primary_viewpoint(vp_attr)
+            else:
+                log.warning(f"Unknown viewpoint slug '{vp_attr}' on view ignored")
         for n in v.findall(ns + 'node'):
             _add_node(_v, n, ns, xsi, model, merge_flg)
         for c in v.findall(ns + 'connection'):

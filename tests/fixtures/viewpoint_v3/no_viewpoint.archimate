@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:archimate="http://www.archimatetool.com/archimate"
+    name="Legacy Model" id="id-legacy" version="5.0.0">
+  <folder name="Business" id="id-biz" type="business">
+    <element xsi:type="archimate:BusinessActor" name="Actor" id="id-a1"/>
+  </folder>
+</archimate:model>

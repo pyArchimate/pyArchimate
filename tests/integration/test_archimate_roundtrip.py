@@ -9,6 +9,7 @@ from pathlib import Path
 
 from src.pyArchimate import ArchiType
 from src.pyArchimate.model import Model
+from src.pyArchimate.writers.archimateWriter import archimate_writer
 
 
 def test_business_interaction_roundtrip_archimate_format():
@@ -192,3 +193,77 @@ def test_all_three_fixes_together():
         assert flow_rel2.desc == 'Primary service flow'
     finally:
         Path(temp_path).unlink(missing_ok=True)
+
+
+# ---------------------------------------------------------------------------
+# Viewpoint round-trip integration tests (US4)
+# ---------------------------------------------------------------------------
+
+def test_viewpoint_roundtrip_archimate(tmp_path):
+    """Element viewpoint assignment survives archi format round-trip."""
+    m = Model(name='Viewpoint RT Test')
+    elem = m.add(ArchiType.BusinessActor, 'Test Actor')
+    elem.assign_viewpoint('stakeholder')
+    out = tmp_path / 'vp_test.archimate'
+    m.write(str(out))
+    m2 = Model(name='Reload')
+    m2.read(str(out))
+    actors = [e for e in m2.elements if e.name == 'Test Actor']
+    assert len(actors) == 1
+    assert 'stakeholder' in actors[0].viewpoints
+
+
+def test_viewpoint_roundtrip_opengroup(tmp_path):
+    """Element viewpoint assignment survives OpenGroup format round-trip."""
+    m = Model(name='Viewpoint RT Test OG')
+    elem = m.add(ArchiType.BusinessActor, 'Test Actor')
+    elem.assign_viewpoint('capability')
+    out = tmp_path / 'vp_test.xml'
+    archimate_writer(m, str(out))
+    m2 = Model(name='Reload')
+    m2.read(str(out))
+    actors = [e for e in m2.elements if e.name == 'Test Actor']
+    assert len(actors) == 1
+    assert 'capability' in actors[0].viewpoints
+
+
+def test_viewpoint_multi_assignment_roundtrip(tmp_path):
+    """Multi-viewpoint assignment is preserved in round-trip."""
+    m = Model(name='Multi VP Test')
+    elem = m.add(ArchiType.BusinessActor, 'Multi VP Actor')
+    elem.assign_viewpoint('stakeholder')
+    elem.assign_viewpoint('technology')
+    out = tmp_path / 'multivp.archimate'
+    m.write(str(out))
+    m2 = Model(name='Reload')
+    m2.read(str(out))
+    actors = [e for e in m2.elements if e.name == 'Multi VP Actor']
+    assert len(actors) == 1
+    assert 'stakeholder' in actors[0].viewpoints
+    assert 'technology' in actors[0].viewpoints
+
+
+def test_viewpoint_backward_compatibility():
+    """Files without viewpoint metadata still import correctly."""
+    fixture = Path(__file__).parent.parent / 'fixtures' / 'viewpoint_v3' / 'no_viewpoint.archimate'
+    m = Model(name='Legacy')
+    m.read(str(fixture))
+    elems = m.elements
+    assert len(elems) > 0
+    for e in elems:
+        assert e.viewpoints == []
+
+
+def test_view_primary_viewpoint_roundtrip_archimate(tmp_path):
+    """View primary viewpoint survives archi format round-trip."""
+    m = Model(name='View VP RT Test')
+    m.add(ArchiType.BusinessActor, 'Actor')
+    view = m.add(ArchiType.View, 'Tech View')
+    view.set_primary_viewpoint('technology')
+    out = tmp_path / 'view_vp.archimate'
+    m.write(str(out))
+    m2 = Model(name='Reload')
+    m2.read(str(out))
+    views = m2.find_views('Tech View')
+    assert len(views) == 1
+    assert views[0].primary_viewpoint == 'technology'

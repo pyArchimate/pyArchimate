@@ -110,6 +110,7 @@ class Element:
         self._properties: dict[str, object] = {}
         self._profile: Optional[str] = profile
         self.junction_type: Optional[str] = None
+        self._viewpoints: list[str] = []  # list of canonical viewpoint slugs
 
     def delete(self) -> None:
         """
@@ -376,6 +377,41 @@ class Element:
 
         """
         self.folder = None
+
+    @property
+    def viewpoints(self) -> list[str]:
+        """Return the list of assigned viewpoint slugs.
+
+        :return: list of canonical viewpoint slug strings
+        :rtype: list[str]
+        """
+        return list(self._viewpoints)
+
+    def assign_viewpoint(self, viewpoint_id: str) -> None:
+        """Assign a standard ArchiMate 3.x viewpoint slug to this element.
+
+        :param viewpoint_id: canonical viewpoint slug (e.g. 'stakeholder')
+        :type viewpoint_id: str
+        :raises ValueError: if viewpoint_id is not a recognised slug
+        """
+        from .viewpoint_registry import validate_viewpoint_slug
+        validate_viewpoint_slug(viewpoint_id)
+        if viewpoint_id not in self._viewpoints:
+            self._viewpoints.append(viewpoint_id)
+            if self.parent is not None:
+                vp_elems = self.parent._viewpoint_elements.setdefault(viewpoint_id, set())
+                vp_elems.add(self._uuid)
+
+    def remove_viewpoint(self, viewpoint_id: str) -> None:
+        """Remove a viewpoint slug assignment; silently ignores unknown slugs.
+
+        :param viewpoint_id: canonical viewpoint slug to remove
+        :type viewpoint_id: str
+        """
+        if viewpoint_id in self._viewpoints:
+            self._viewpoints.remove(viewpoint_id)
+            if self.parent is not None:
+                self.parent._viewpoint_elements.get(viewpoint_id, set()).discard(self._uuid)
 
 
 __all__ = ["Element"]

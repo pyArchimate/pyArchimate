@@ -1,7 +1,7 @@
 # Implementation Plan: ArchiMate v3.x Specification Compliance
 
 **Branch**: `develop` (to be created via git hook) | **Date**: 2026-04-30 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `/specs/003-archimate-spec-compliance/spec.md`
+**Input**: Feature specification from `/specs/004-archimate-spec-compliance/spec.md`
 
 ## Summary
 
@@ -17,7 +17,7 @@ Close three critical ArchiMate 3.x specification gaps in pyArchimate: enable `Bu
 **Project Type**: Library (Python package for ArchiMate model creation and exchange)  
 **Performance Goals**: No new performance targets (library, not runtime-sensitive)  
 **Constraints**: Backward compatible; no breaking changes to public API  
-**Scale/Scope**: Lightweight fixes affecting 6 primary files; 11 functional requirements
+**Scale/Scope**: P1 — surgical fixes to 6 files; 11 FRs (complete). P2 — viewpoint support adding 2 new files + updates to 6 existing; 7 FRs (FR-012–FR-018)
 
 ## Constitution Check
 
@@ -41,14 +41,36 @@ Close three critical ArchiMate 3.x specification gaps in pyArchimate: enable `Bu
 
 ✅ **Cross-Platform Consistency (IX)**: File format handling is platform-agnostic (lxml is cross-platform); fixes apply equally across all supported platforms.
 
-**Gate Status**: ✅ PASS - Feature aligns with all constitution principles.
+**Gate Status**: ✅ PASS (P1) - Feature aligns with all constitution principles for User Stories 1–3.
+
+### Constitution Check — P2 (User Story 4: Viewpoints)
+
+✅ **Code Quality (I)**: New `viewpoint.py` and `viewpoint_registry.py` introduce well-named, single-purpose classes. Registry constants are immutable; no magic numbers.
+
+✅ **Testing Standards (II/TDD)**: BDD feature files (T078) and unit tests (T100–T105) must be written before implementation tasks (T074–T099). Tasks have been ordered accordingly in Phase 7.
+
+✅ **User Experience Consistency (III)**: New API methods (`assign_viewpoint`, `get_elements_by_viewpoint`) follow existing naming conventions in model.py/element.py.
+
+✅ **Performance Requirements (IV)**: Viewpoint lookups use dict-based O(1) registry; no scanning loops introduced.
+
+✅ **Security Practices (V)**: No new input surfaces; viewpoint slugs are validated against a closed registry set.
+
+⚠️ **State Management (VI)**: `ViewpointAssociation` lifecycle must define behaviour when a viewpoint is removed from an element or a viewpoint is deleted from the registry. Implement guard in `element.remove_viewpoint()` and document transitions.
+
+✅ **System Integrity (VII)**: Round-trip tests (T106–T109) enforce accuracy of viewpoint metadata through export/import cycles.
+
+⚠️ **Durability & Interoperability (VIII)**: Files from external tools (Archi, Sparx) may encode viewpoint names differently. Implement name-normalization logic (T081, T084) analogous to the `modifier`→`influenceStrength` fallback in P1; log unrecognised names rather than failing silently.
+
+✅ **Cross-Platform Consistency (IX)**: Viewpoint storage uses dicts and lxml — both are cross-platform.
+
+**Gate Status**: ⚠️ CONDITIONAL PASS (P2) — proceed after addressing Principle VI lifecycle rules and Principle VIII normalisation fallback (tracked in T081, T084, T085, T099).
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/003-archimate-spec-compliance/
+specs/004-archimate-spec-compliance/
 ├── plan.md                     # This file
 ├── spec.md                     # Feature specification (completed)
 ├── research.md                 # Phase 0: Dependency and field name research
@@ -62,8 +84,8 @@ specs/003-archimate-spec-compliance/
 
 ```text
 src/pyArchimate/
-├── enums.py                              # Update: uncomment BusinessInteraction in ArchiType
-├── checker_rules.yml                     # Update: uncomment BusinessInteraction category mapping
+├── enums.py                              # No changes needed (BusinessInteraction already present in ArchiType)
+├── checker_rules.yml                     # Updated: uncommented BusinessInteraction category mapping
 ├── element.py                            # No changes (validation will pass once checker_rules.yml is updated)
 ├── relationship.py                       # Update: document influence strength field name
 ├── readers/
@@ -155,8 +177,8 @@ To be generated in `quickstart.md`:
 ## Artifacts Generated
 
 ✅ **plan.md** - Implementation plan (this file)  
-⏳ **research.md** - To be generated (Phase 0)  
-⏳ **data-model.md** - To be generated (Phase 1)  
-⏳ **quickstart.md** - To be generated (Phase 1)  
-⏳ **contracts/** - To be generated (Phase 1)  
-⏳ **tasks.md** - To be generated (Phase 2 via `/speckit.tasks`)
+✅ **research.md** - Generated 2026-04-30  
+✅ **data-model.md** - Generated 2026-04-30 (updated with P2 testing strategy)  
+✅ **quickstart.md** - Generated 2026-04-30 (includes all three P1 fixes + success checklist)  
+✅ **contracts/** - Generated 2026-04-30 (influence-strength-field-mapping.md, relationship-documentation-preservation.md)  
+✅ **tasks.md** - Generated 2026-04-30 (T001–T070 P1 complete; T071–T120 P2 pending)

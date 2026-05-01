@@ -1489,3 +1489,29 @@ def test_classify_outer_quadrant_top():
     assert _classify_outer_quadrant(45) == 'T'
     assert _classify_outer_quadrant(90) == 'T'
     assert _classify_outer_quadrant(134.9) == 'T'
+
+
+# ---------------------------------------------------------------------------
+# ArchiMate 3.x Compliance: View primary viewpoint
+# ---------------------------------------------------------------------------
+
+@pytest.fixture()
+def sample_model():
+    return Model('sample-view')
+
+
+def test_view_primary_viewpoint(sample_model):
+    view = cast(View, sample_model.add(ArchiType.View, 'Test View'))
+    view.set_primary_viewpoint('technology')
+    assert view.primary_viewpoint == 'technology'
+
+
+def test_view_primary_viewpoint_invalid(sample_model):
+    view = cast(View, sample_model.add(ArchiType.View, 'Test View'))
+    with pytest.raises(ValueError):
+        view.set_primary_viewpoint('not_valid')
+
+
+def test_view_primary_viewpoint_default_is_none(sample_model):
+    view = cast(View, sample_model.add(ArchiType.View, 'Test View'))
+    assert view.primary_viewpoint is None

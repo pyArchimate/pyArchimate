@@ -405,3 +405,46 @@ For issues or questions about these fixes:
 2. Review `data-model.md` for entity definitions
 3. Consult contracts in `contracts/` for format specifications
 4. Refer to `plan.md` for architecture overview
+
+---
+
+## Viewpoint Assignment and Filtering
+
+### What's Available
+
+All 13 standard ArchiMate 3.x viewpoints are defined as canonical slugs:
+`stakeholder`, `capability`, `organization`, `actor`, `technology`, `physical`,
+`service`, `implementation`, `migration`, `strategy`, `business`, `application`, `infrastructure`
+
+### Quick Test
+
+```python
+from src.pyArchimate import ArchiType
+from src.pyArchimate.model import Model
+
+model = Model(name='Viewpoint Demo')
+
+# List all available viewpoints
+for vp in model.get_viewpoints():
+    print(f"{vp.id}: {vp.name}")
+
+# Assign viewpoints to an element
+actor = model.add(ArchiType.BusinessActor, 'CTO')
+actor.assign_viewpoint('stakeholder')
+actor.assign_viewpoint('technology')
+print(actor.viewpoints)  # ['stakeholder', 'technology']
+
+# Filter elements by viewpoint
+stakeholders = model.get_elements_by_viewpoint('stakeholder')
+
+# Set primary viewpoint on a view
+view = model.add(ArchiType.View, 'Technology View')
+view.set_primary_viewpoint('technology')
+print(view.primary_viewpoint)  # 'technology'
+
+# Remove a viewpoint assignment
+actor.remove_viewpoint('technology')
+
+# Filter views by primary viewpoint
+tech_views = model.get_views_by_viewpoint('technology')
+```

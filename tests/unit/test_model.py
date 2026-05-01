@@ -580,3 +580,47 @@ def test_expand_props_relationship_influence_strength():
     rel.prop('Identifier', f'properties = {payload}')
     m.expand_props()
     assert rel.influence_strength == '5'
+
+
+# ---------------------------------------------------------------------------
+# ArchiMate 3.x Compliance: Viewpoint filtering queries
+# ---------------------------------------------------------------------------
+
+def test_viewpoint_filtering_queries(simple_model):
+    m, *_ = simple_model
+    a = m.add(ArchiType.BusinessActor, 'Actor A')
+    b = m.add(ArchiType.BusinessActor, 'Actor B')
+    a.assign_viewpoint('stakeholder')
+    b.assign_viewpoint('capability')
+    result = m.get_elements_by_viewpoint('stakeholder')
+    assert a in result
+    assert b not in result
+
+
+def test_get_viewpoints_returns_all(simple_model):
+    m, *_ = simple_model
+    vps = m.get_viewpoints()
+    assert len(vps) == 13
+
+
+def test_get_views_by_viewpoint(simple_model):
+    m, *_ = simple_model
+    v1 = cast(View, m.add(ArchiType.View, 'View Tech'))
+    v2 = cast(View, m.add(ArchiType.View, 'View Cap'))
+    v1.set_primary_viewpoint('technology')
+    v2.set_primary_viewpoint('capability')
+    result = m.get_views_by_viewpoint('technology')
+    assert v1 in result
+    assert v2 not in result
+
+
+def test_get_elements_by_viewpoint_invalid_slug(simple_model):
+    m, *_ = simple_model
+    with pytest.raises(ValueError):
+        m.get_elements_by_viewpoint('not_a_slug')
+
+
+def test_get_views_by_viewpoint_invalid_slug(simple_model):
+    m, *_ = simple_model
+    with pytest.raises(ValueError):
+        m.get_views_by_viewpoint('not_a_slug')

@@ -73,8 +73,21 @@ def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
         if e.desc is not None and e.desc != '':
             e_desc = et.SubElement(elem, 'documentation')
             e_desc.text = e.desc
+        # Merge viewpoint slugs as extra properties before writing
+        all_props = dict(e.props)
+        for slug in getattr(e, 'viewpoints', []):
+            all_props['viewpoint'] = slug  # last one wins if multi; handled via repeated write below
         if e.props:
             _write_properties(elem, e.props, model)
+        # Write viewpoint associations as separate properties (supports multi-viewpoint)
+        for slug in getattr(e, 'viewpoints', []):
+            vp_prop_id = _get_prop_def_id(model, 'viewpoint')
+            pp = elem.find('properties')
+            if pp is None:
+                pp = et.SubElement(elem, 'properties')
+            p = et.SubElement(pp, 'property', propertyDefinitionRef=vp_prop_id)
+            pv = et.SubElement(p, 'value')
+            pv.text = slug
 
 
 def _write_rel_attrs(elem: _Element, e: Any, model: Model) -> None:
@@ -263,10 +276,15 @@ def _write_views(root: _Element, model: Model, xsi: et.QName) -> None:
     views = et.SubElement(root, 'views')
     diag = et.SubElement(views, 'diagrams')
     for _v in model.views:
-        view_elem = et.SubElement(diag, 'view', attrib={
+        view_attrib: dict[str, str] = {
             'identifier': _v.uuid,
             str(xsi): 'Diagram'
-        })
+        }
+        # Write primary viewpoint as XML attribute on the view element
+        primary_vp = getattr(_v, 'primary_viewpoint', None)
+        if primary_vp is not None:
+            view_attrib['viewpoint'] = primary_vp
+        view_elem = et.SubElement(diag, 'view', attrib=view_attrib)
         if _v.name is not None:
             v_name = et.SubElement(view_elem, 'name')
             v_name.text = _v.name

@@ -3,17 +3,25 @@
 **Feature Branch**: `004-archimate-spec-compliance`  
 **Created**: 2026-04-30  
 **Completed**: 2026-04-30  
-**Status**: Implemented  
+**Status**: P1 Implemented | P2 Pending  
 **Input**: User description: "Make the pyArchimate library compliant with Archimate v3.x specification using the content @Archimategap.md for context"
 
 ## Clarifications
 
 ### Session 2026-04-30
 
+**P1 Clarifications** (User Stories 1-3):
 - Q1: Feature scope and priority staging → A: P1 only (BusinessInteraction, influence strength, documentation)
 - Q2: Out-of-scope requirements handling → C: Move P2/P3 to separate "Future Features" section
 - Q3: Influence strength field naming → B: Use `influenceStrength` for both .archimate and OpenGroup formats
 - Q4: FR-004 OpenGroup import coverage → B: Update T012 to explicitly test both .archimate and OpenGroup import formats; existing reader handles both once category mapping is enabled
+
+**P2 Clarifications** (User Story 4 - ArchiMate Perspectives and Viewpoints):
+- Q5: Viewpoint scope → A: Support all 13 standard ArchiMate 3.x viewpoints (stakeholder, capability, organization, actor, technology, physical, service, implementation, migration, strategy, business, application, infrastructure)
+- Q6: Multi-viewpoint assignment → B: Support N:M viewpoint-to-element/view associations with filtering/querying API
+- Q7: Viewpoint metadata → B: Capture ID, name, and description per viewpoint (expand later if needed)
+- Q8: Perspectives vs. Viewpoints → B: Treat as separate concepts; Viewpoints are P2 structural lenses; Perspectives (stakeholder overlays) deferred to P3
+- Q9: Exchange format mapping → C: Support both view-level (primary viewpoint per view) and element-level (secondary assignments) viewpoint associations
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -93,7 +101,7 @@ A developer imports an Archi .archimate file containing relationships with docum
 
 - **BusinessInteraction**: An ArchiMate element representing a business-level interaction concept, with relationships to other business elements
 - **InfluenceRelationship**: A relationship with strength metadata indicating influence level between elements
-- **DocumentedRelationship**: Any relationship that may have documentation text attached describing its purpose or semantics
+- **DocumentedRelationship**: Any relationship that may have documentation text attached (stored in `desc` attribute); serialised as `<documentation>` element in .archimate format
 
 ## Success Criteria *(mandatory)*
 
@@ -122,11 +130,38 @@ The following user stories and requirements have been identified but are deferre
 
 A developer using ArchiMate viewpoints (e.g., stakeholder view, capability view) in external models needs to import and work with viewpoint-aware models in pyArchimate. Currently, perspectives and viewpoints are not first-class concepts, limiting semantic fidelity and forcing workarounds.
 
-**Deferred Requirements**:
-- System MUST represent ArchiMate viewpoint concepts as first-class domain objects in the model
-- System MUST correctly parse viewpoint definitions from exchange format files
-- System MUST associate views and elements with their assigned viewpoints
-- System MUST preserve viewpoint associations through export operations
+**Clarified Scope** (from session 2026-04-30):
+- **Viewpoints**: 13 standard ArchiMate 3.x structural lenses (stakeholder, capability, organization, actor, technology, physical, service, implementation, migration, strategy, business, application, infrastructure)
+- **Perspectives**: Deferred to P3; not part of this story
+- **Multi-assignment**: Elements and views may be associated with multiple viewpoints
+- **Metadata per viewpoint**: ID, name, description (extensible for future versions)
+- **Association levels**: Both view-level (primary viewpoint per view) and element-level (secondary assignments) supported
+
+**Functional Requirements**:
+- **FR-012**: System MUST represent each of the 13 standard viewpoint definitions as first-class objects (`Viewpoint` entity with `id` string slug, `name`, and `description`)
+- **FR-013**: System MUST associate views with their primary viewpoint (view-level metadata via `view.primary_viewpoint`)
+- **FR-014**: System MUST associate elements with zero or more viewpoints via `element.assign_viewpoint(viewpoint_id)` (element-level N:M relationship)
+- **FR-015**: System MUST correctly parse viewpoint associations from both .archimate and OpenGroup exchange formats
+- **FR-016**: System MUST preserve viewpoint associations through export operations (round-trip fidelity for both formats)
+- **FR-017**: System MUST support querying/filtering elements and views by assigned viewpoint slug via `model.get_elements_by_viewpoint(viewpoint_id)` and `model.get_views_by_viewpoint(viewpoint_id)`
+- **FR-018**: System MUST store viewpoint metadata (id slug, name, description) and expose it via `model.get_viewpoints()`
+
+**Viewpoint ID Convention**: The `viewpoint_id` parameter throughout the API is a **canonical string slug** matching the standard ArchiMate 3.x viewpoint name in lowercase with underscores (e.g., `'stakeholder'`, `'capability'`, `'technology'`). UUIDs and integer IDs are not used.
+
+**Acceptance Scenarios**:
+
+1. **Given** a developer has imported pyArchimate, **When** they call `model.get_viewpoints()`, **Then** all 13 standard ArchiMate viewpoints are returned with their id, name, and description
+2. **Given** an element in a model, **When** the developer calls `element.assign_viewpoint('stakeholder')` and then `element.assign_viewpoint('capability')`, **Then** `element.viewpoints` returns both viewpoints without conflict
+3. **Given** a model with elements assigned to the 'technology' viewpoint, **When** the developer calls `model.get_elements_by_viewpoint('technology')`, **Then** only elements tagged with that viewpoint are returned
+4. **Given** a model with viewpoint-annotated elements and views, **When** exported to .archimate and re-imported, **Then** all viewpoint associations are preserved identically
+5. **Given** a legacy .archimate file with no viewpoint metadata, **When** imported, **Then** the file parses successfully with all elements having an empty viewpoints list
+
+**Success Criteria**:
+- **SC-007**: All 13 standard viewpoints (stakeholder, capability, organization, actor, technology, physical, service, implementation, migration, strategy, business, application, infrastructure) defined and queryable by slug
+- **SC-008**: Round-trip fidelity: import file with viewpoints → export → re-import → viewpoint metadata identical for both .archimate and OpenGroup formats
+- **SC-009**: Filtering API: `model.get_elements_by_viewpoint('stakeholder')` returns exactly the elements tagged with that viewpoint
+- **SC-010**: Multi-assignment: single element can belong to 2+ viewpoints without error or data loss
+- **SC-011**: Backward compatibility: existing files without viewpoint data import without error or regression
 
 ### User Story 5 - Support Complete ArchiMate Notation (Priority: P3)
 
