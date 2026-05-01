@@ -1,10 +1,10 @@
 # P3: Complete ArchiMate Notation Support - Task Breakdown
 
 **Feature**: 005-archimate-notation-support  
-**Status**: Phase 1 Design Complete → Phase 2 COMPLETE ✅ → Phase 3 COMPLETE ✅ → Phase 4 COMPLETE ✅ → Phase 5 COMPLETE ✅  
+**Status**: Phase 1 Design Complete → Phase 2 COMPLETE ✅ → Phase 3 COMPLETE ✅ → Phase 4 COMPLETE ✅ → Phase 5 COMPLETE ✅ → Phase 6 COMPLETE ✅  
 **Total Tasks**: 68 (T001-T068)  
-**Completed**: Phase 2 (T001-T024) + Phase 3 (T025-T033) + Phase 4 (T034-T039) + Phase 5 (T040-T047) - 129 tests passing  
-**Timeline**: 22-30 dev days (8 phases) | Phase 2-5: ~4 days (ahead of schedule)  
+**Completed**: Phase 2 (T001-T024) + Phase 3 (T025-T033) + Phase 4 (T034-T039) + Phase 5 (T040-T047) + Phase 6 (T048-T054) - 156 tests passing  
+**Timeline**: 22-30 dev days (8 phases) | Phase 2-6: ~5 days (ahead of schedule)  
 **Generated**: 2026-05-01 | Updated: 2026-05-01
 
 ---
@@ -136,7 +136,7 @@ Tasks organized by phase and user story. Each task is independently specific and
 
 ---
 
-## Phase 6: Advanced Features (T056-T062)
+## Phase 6: Advanced Features (T048-T054) ✅ COMPLETE
 
 **Goal**: Query optimization, performance, advanced traversal  
 **Duration**: 2 days  
@@ -144,16 +144,16 @@ Tasks organized by phase and user story. Each task is independently specific and
 
 ### Performance & Optimization
 
-- [ ] T048 [P] Implement _would_create_cycle() private helper for O(depth) cycle detection in `src/pyArchimate/model.py`
-- [ ] T049 [P] Implement _get_depth() private helper in `src/pyArchimate/model.py`
-- [ ] T050 Create performance benchmark tests (1000+ element models) in `tests/performance/`
-- [ ] T051 Verify cycle detection <1ms and queries <10ms on large models
+- [x] T048 [P] Implement _would_create_cycle() private helper for O(depth) cycle detection in `src/pyArchimate/model.py` (already done)
+- [x] T049 [P] Implement _get_depth() private helper in `src/pyArchimate/model.py` (already done)
+- [x] T050 Create performance benchmark tests (1000+ element models) in `tests/performance/`
+- [x] T051 Verify cycle detection <1ms and queries <10ms on large models (all pass <1ms)
 
 ### Advanced Queries
 
-- [ ] T052 [P] Implement get_siblings(elem_uuid) helper in `src/pyArchimate/model.py`
-- [ ] T053 [P] Implement find_by_hierarchy_path(path) helper in `src/pyArchimate/model.py`
-- [ ] T054 Create test_advanced_queries.py in `tests/unit/`
+- [x] T052 [P] Implement get_siblings(elem_uuid) helper in `src/pyArchimate/model.py`
+- [x] T053 [P] Implement find_by_hierarchy_path(path) helper in `src/pyArchimate/model.py`
+- [x] T054 Create test_advanced_queries.py in `tests/unit/` (17 tests)
 
 ---
 
@@ -301,8 +301,34 @@ Test Team:             T031-T032, T037-T038 (round-trip tests)
 
 ---
 
-**Status**: ✅ Phase 2 COMPLETE | ✅ Phase 3 COMPLETE | ✅ Phase 4 COMPLETE | ✅ Phase 5 COMPLETE | Phase 6 Ready
-**Next**: Phase 6 advanced features (T048-T054)
+**Status**: ✅ Phase 2 COMPLETE | ✅ Phase 3 COMPLETE | ✅ Phase 4 COMPLETE | ✅ Phase 5 COMPLETE | ✅ Phase 6 COMPLETE | Phase 7 Ready
+**Next**: Phase 7 BDD & Documentation (T055-T066)
+
+---
+
+## Phase 6 Completion Summary (May 1, 2026)
+
+**Delivered**:
+- ✅ Verified private helpers _would_create_cycle() and _get_depth() already implemented
+- ✅ Implemented Model.get_siblings(elem_uuid) for O(n) sibling lookup
+- ✅ Implemented Model.find_by_hierarchy_path(path) with wildcard support for path queries
+- ✅ Added private helper _traverse_by_path() for recursive path traversal
+- ✅ 17 comprehensive unit tests for advanced queries (get_siblings, find_by_hierarchy_path)
+- ✅ 10 performance benchmark tests for 1000+ element models
+- ✅ Verified performance: cycle detection <1ms, queries <10ms on large hierarchies
+
+**Advanced Query Features**:
+- get_siblings(elem_uuid): Returns all elements with same parent (O(n) where n=siblings)
+- find_by_hierarchy_path(path): Find elements by path like '/Parent/Child' (supports wildcards)
+- Path examples: '/Root', '/Parent/Child/Grandchild', '/Parent/Child/*', '/Root/*'
+
+**Test Coverage**:
+- 17/17 advanced query unit tests PASSING
+- 10/10 performance benchmark tests PASSING
+- All tests verify performance on 100-1100+ element models
+- Tests cover edge cases: missing parents, empty paths, wildcard matching, deep chains
+
+**Phase 6 Status**: Ready for Phase 7 (BDD & Documentation)
 
 ---
 
