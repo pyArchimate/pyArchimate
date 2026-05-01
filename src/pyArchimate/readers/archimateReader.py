@@ -196,11 +196,11 @@ def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
         visual_style = _extract_visual_style_properties(e, ns)
         if visual_style:
             visual_style_map[_uuid] = visual_style
-        
+
         props_xml = e.find(ns + 'properties')
         _apply_viewpoint_props(elem, props_xml, ns, pdef_merge_map, model)
         _apply_junction_type_props(elem, props_xml, ns)
-        
+
     return parent_map, visual_style_map
 
 
