@@ -5,13 +5,13 @@
 
 ## Summary
 
-Deliver three artefacts: a machine-readable `AI.md` reference document at the repository root, a `docs/tutorial.md` for new users, and a Python regeneration script at `scripts/generate_ai_docs.py` that invokes `claude code` to keep `AI.md` in sync with the library. A `tests/integration/test_tutorial.py` suite verifies that every tutorial code snippet executes without error against the current library. `README.md` is updated with navigation links to both new documents.
+Deliver three artefacts: a machine-readable `AI.md` reference document at the repository root, a `docs/tutorial/tutorial.md` for new users, and a Python regeneration script at `scripts/generate_ai_docs.py` that invokes `claude code` to keep `AI.md` in sync with the library. A `tests/integration/test_tutorial.py` suite verifies that every tutorial code snippet executes without error against the current library. `README.md` is updated with navigation links to both new documents.
 
 ## Technical Context
 
 **Language/Version**: Python 3.10+ (pyproject.toml `requires-python = ">=3.10,<4.0"`); ruff targets 3.12  
 **Primary Dependencies**: `subprocess` (stdlib) for `claude code` CLI invocation; `pymarkdownlnt` (already in `lint` group) for structural validation; `lxml` (already in project); `pytest` for tutorial verification  
-**Storage**: File I/O only — no database. Outputs: `AI.md` (root), `docs/tutorial.md`, `scripts/README.md`  
+**Storage**: File I/O only — no database. Outputs: `AI.md` (root), `docs/tutorial/tutorial.md`, `scripts/README.md`  
 **Testing**: `pytest` for integration tests (`tests/integration/test_tutorial.py`); `pymarkdownlnt` for Markdown linting  
 **Target Platform**: Developer workstation (Linux/macOS), `claude code` CLI in PATH; GitHub markdown rendering as primary view target  
 **Project Type**: Developer tooling script + documentation artefacts (not a new package or service)  
