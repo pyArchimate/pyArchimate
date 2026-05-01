@@ -983,14 +983,14 @@ class Model:
                 if uid in self.elems_dict]
 
     def get_ancestors(self, elem_uuid: str) -> list[Element]:
-        """Get all ancestors of an element from the element itself to the root.
+        """Get all ancestors of an element (parent, grandparent, ..., root).
 
         :param elem_uuid: Element UUID
-        :return: List of Elements [elem, parent, grandparent, ..., root]
+        :return: List of ancestor Elements [parent, grandparent, ..., root] (excludes the element itself)
         """
         result: list[Element] = []
         visited: set[str] = set()
-        current: Optional[str] = elem_uuid
+        current: Optional[str] = self._element_hierarchy.get(elem_uuid)
         while current is not None:
             if current in visited:
                 break
