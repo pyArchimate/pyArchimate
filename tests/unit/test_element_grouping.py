@@ -341,15 +341,15 @@ class TestGetAncestors:
     """Test get_ancestors method."""
 
     def test_get_ancestors_root(self):
-        """Test ancestors of root element (should be just itself)."""
+        """Test ancestors of root element (should be empty)."""
         model = Model('TestModel')
         root = model.add(ArchiType.BusinessProcess, 'Root')
 
         ancestors = model.get_ancestors(root.uuid)
-        assert ancestors == [root]
+        assert ancestors == []
 
     def test_get_ancestors_direct_child(self):
-        """Test ancestors of direct child."""
+        """Test ancestors of direct child (should be just parent)."""
         model = Model('TestModel')
         root = model.add(ArchiType.BusinessProcess, 'Root')
         child = model.add(ArchiType.BusinessFunction, 'Child')
@@ -357,10 +357,10 @@ class TestGetAncestors:
         model.add_child(root.uuid, child.uuid)
 
         ancestors = model.get_ancestors(child.uuid)
-        assert ancestors == [child, root]
+        assert ancestors == [root]
 
     def test_get_ancestors_nested(self):
-        """Test ancestors of deeply nested element."""
+        """Test ancestors of deeply nested element (excludes self)."""
         model = Model('TestModel')
         elements = [model.add(ArchiType.BusinessProcess, f'Elem{i}') for i in range(5)]
 
@@ -368,7 +368,8 @@ class TestGetAncestors:
             model.add_child(elements[i].uuid, elements[i+1].uuid)
 
         ancestors = model.get_ancestors(elements[4].uuid)
-        assert ancestors == elements[::-1]
+        # Should be [elem3, elem2, elem1, elem0] - excludes elem4 itself
+        assert ancestors == elements[:4][::-1]
 
 
 class TestGetDescendants:

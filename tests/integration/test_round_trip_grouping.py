@@ -118,12 +118,11 @@ class TestRoundTripGrouping:
 
             level4_2 = m2.elems_dict[level4.uuid]
             ancestors = m2.get_ancestors(level4_2.uuid)
-            # get_ancestors returns [element, parent, grandparent, ..., root]
-            assert len(ancestors) == 4
-            assert ancestors[0].uuid == level4.uuid
-            assert ancestors[1].uuid == level3.uuid
-            assert ancestors[2].uuid == level2.uuid
-            assert ancestors[3].uuid == level1.uuid
+            # get_ancestors returns [parent, grandparent, ..., root] (excludes element itself)
+            assert len(ancestors) == 3
+            assert ancestors[0].uuid == level3.uuid
+            assert ancestors[1].uuid == level2.uuid
+            assert ancestors[2].uuid == level1.uuid
         finally:
             Path(temp_path).unlink(missing_ok=True)
 
@@ -360,10 +359,10 @@ class TestRoundTripGrouping:
             m2 = Model('grouping-deep-reload')
             m2.read(temp_path)
 
-            # Verify depth: get_ancestors returns [element, parent, grandparent, ..., root]
+            # Verify depth: get_ancestors returns [parent, grandparent, ..., root] (excludes element itself)
             leaf2 = m2.elems_dict[elements[-1].uuid]
             ancestors2 = m2.get_ancestors(leaf2.uuid)
-            assert len(ancestors2) == 5  # 5 elements in the chain
+            assert len(ancestors2) == 4  # 4 ancestors (5 elements - 1 for self)
         finally:
             Path(temp_path).unlink(missing_ok=True)
 

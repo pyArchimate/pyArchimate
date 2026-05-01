@@ -34,7 +34,7 @@ def step_create_element(context, element_type, element_name):
 
 
 @given("I have a model with {count} {element_types} named {names}")
-def step_create_multiple_elements(context, _count, element_types, names):
+def step_create_multiple_elements(context, count, element_types, names):
     """Create multiple elements of the same type."""
     if not hasattr(context, 'model'):
         context.model = Model('test-model')
@@ -63,9 +63,9 @@ def step_add_child(context, child_name, parent_name):
     context.model.add_child(parent.uuid, child.uuid)
 
 
-@when("I add each {element_type} as a child of {parent_name}")
-def step_add_multiple_children(context, _element_type, parent_name):
-    """Add multiple elements as children of a parent."""
+@when("I add all {element_type} elements as children of {parent_name}")
+def step_add_multiple_children(context, element_type, parent_name):
+    """Add all elements of a specific type as children of a parent."""
     parent = context.elements[parent_name.strip("'\"")]
 
     # Find all elements of this type (recently added)
@@ -128,7 +128,7 @@ def step_import_model_the(context):
     step_import_model(context)
 
 
-@when("I remove {child_name} from {parent_name}")
+@when("I remove {child_name} as a child of {parent_name}")
 def step_remove_child(context, child_name, parent_name):
     """Remove a parent-child relationship."""
     parent = context.elements[parent_name.strip("'\"")]
@@ -201,10 +201,10 @@ def step_check_child(context, parent_name, child_name):
     assert any(c.uuid == child.uuid for c in children), f"Child {child_name} not found"
 
 
-@then("{element_name} should have no parent")
+@then('"{element_name}" should have no parent')
 def step_check_no_parent(context, element_name):
     """Verify element has no parent."""
-    elem = context.elements[element_name.strip("'\"")]
+    elem = context.elements[element_name]
     parent = context.model.get_parent(elem.uuid)
     assert parent is None, f"Expected no parent, got {parent}"
 
@@ -312,6 +312,140 @@ def step_check_specific_siblings(context, element_name, sibling_names):
     expected_names = {n.strip("'\"") for n in sibling_names.split(' and ')}
     actual_names = {s.name for s in siblings}
     assert actual_names == expected_names, f"Expected {expected_names}, got {actual_names}"
+
+
+@given("I have a model with this hierarchy:")
+def step_create_hierarchy_from_table(context):
+    """Create elements and hierarchy from a table."""
+    if not hasattr(context, 'model'):
+        context.model = Model('test-model')
+        context.elements = {}
+
+    for row in context.table:
+        parent_name = row['Parent']
+        child_name = row['Child']
+        grandchild_name = row['Grandchild']
+
+        # Create parent if not exists
+        if parent_name not in context.elements:
+            parent = context.model.add(ArchiType.BusinessProcess, parent_name)
+            context.elements[parent_name] = parent
+
+        # Create child if not exists
+        if child_name not in context.elements:
+            child = context.model.add(ArchiType.BusinessFunction, child_name)
+            context.elements[child_name] = child
+
+        # Create grandchild if not exists
+        if grandchild_name not in context.elements:
+            grandchild = context.model.add(ArchiType.BusinessObject, grandchild_name)
+            context.elements[grandchild_name] = grandchild
+
+        # Set up relationships
+        parent = context.elements[parent_name]
+        child = context.elements[child_name]
+        grandchild = context.elements[grandchild_name]
+
+        # Add child to parent if not already
+        if context.model.get_parent(child.uuid) != parent:
+            context.model.add_child(parent.uuid, child.uuid)
+
+        # Add grandchild to child if not already
+        if context.model.get_parent(grandchild.uuid) != child:
+            context.model.add_child(child.uuid, grandchild.uuid)
+
+
+@given('"{child_name}" is a child of "{parent_name}"')
+def step_set_parent_child(context, child_name, parent_name):
+    """Set up a parent-child relationship."""
+    parent = context.elements[parent_name]
+    child = context.elements[child_name]
+    context.model.add_child(parent.uuid, child.uuid)
+
+
+@when('I try to add "{child_name}" as a child of "{parent_name}"')
+def step_try_add_child(context, child_name, parent_name):
+    """Try to add a parent-child relationship and capture any error."""
+    parent = context.elements[parent_name]
+    child = context.elements[child_name]
+    try:
+        context.model.add_child(parent.uuid, child.uuid)
+        context.cycle_error = None
+    except ValueError as e:
+        context.cycle_error = str(e)
+
+
+@then('adding "{child_name}" as a child of "{parent_name}" should fail')
+def step_adding_should_fail(context, child_name, parent_name):
+    """Verify that adding child-parent relationship fails due to cycle."""
+    parent = context.elements[parent_name]
+    child = context.elements[child_name]
+    try:
+        context.model.add_child(parent.uuid, child.uuid)
+        assert False, "Expected add_child to raise ValueError"
+    except ValueError as e:
+        context.cycle_error = str(e)
+
+
+@then('the error should mention cycle detection')
+def step_check_cycle_error(context):
+    """Verify the error message mentions cycle detection."""
+    assert context.cycle_error is not None, "Expected an error"
+    assert 'cycle' in context.cycle_error.lower(), f"Error should mention cycle: {context.cycle_error}"
+
+
+@then('"{parent_name}" should have {count} descendant of depth {depth}')
+def step_check_descendant_depth(context, parent_name, count, depth):
+    """Verify element has descendants at specific depth."""
+    parent = context.elements[parent_name]
+    descendants = context.model.get_descendants(parent.uuid)
+    # Filter by depth
+    matching = [d for d in descendants if context.model.get_depth(d.uuid) == int(depth)]
+    assert len(matching) == int(count), f"Expected {count} descendants at depth {depth}, got {len(matching)}"
+
+
+@then('the children should still exist in the model')
+def step_check_children_exist(context):
+    """Verify children still exist after parent deletion."""
+    assert hasattr(context, 'children_uuids'), "Need to have captured children UUIDs"
+    for uuid in context.children_uuids:
+        assert uuid in context.model.elems_dict, f"Child {uuid} should still exist"
+
+
+@then('all children should have no parent')
+def step_check_orphaned_children(context):
+    """Verify orphaned children have no parent."""
+    assert hasattr(context, 'children_uuids'), "Need to have captured children UUIDs"
+    for uuid in context.children_uuids:
+        parent = context.model.get_parent(uuid)
+        assert parent is None, f"Child {uuid} should have no parent"
+
+
+@then('I query for elements at path {path}')
+def step_then_query_path(context, path):
+    """Query for elements by path (used as continuation with And)."""
+    path = path.strip("'\"")
+    context.last_query_results = context.model.find_by_hierarchy_path(path)
+
+
+@given('I have a model with 2 BusinessFunctions as children of "{parent_name}"')
+def step_create_children_for_parent(context, parent_name):
+    """Create a parent with multiple children."""
+    if not hasattr(context, 'model'):
+        context.model = Model('test-model')
+        context.elements = {}
+
+    parent = context.model.add(ArchiType.BusinessProcess, parent_name)
+    context.elements[parent_name] = parent
+    context.children_uuids = []
+
+    for i in range(1, 3):
+        child = context.model.add(ArchiType.BusinessFunction, f'Child {i}')
+        context.elements[f'Child {i}'] = child
+        context.model.add_child(parent.uuid, child.uuid)
+        context.children_uuids.append(child.uuid)
+
+
 
 
 @then("all elements should exist with correct types")

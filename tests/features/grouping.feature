@@ -30,14 +30,14 @@ Feature: Element Grouping and Hierarchy Management
     Given I have a model with a BusinessProcess called "Parent"
     And I have a model with a BusinessProcess called "Child"
     And "Child" is a child of "Parent"
-    When I remove "Child" from "Parent"
+    When I remove "Child" as a child of "Parent"
     Then "Child" should have no parent
     And "Parent" should have no children
 
   Scenario: Get all siblings of an element
     Given I have a model with a BusinessProcess called "Parent"
     And I have a model with 3 BusinessFunctions named "Child 1", "Child 2", "Child 3"
-    When I add each BusinessFunction as a child of "Parent"
+    When I add all BusinessFunction elements as children of "Parent"
     Then each child should have 2 siblings
     And the siblings of "Child 1" should be "Child 2" and "Child 3"
 
@@ -57,4 +57,4 @@ Feature: Element Grouping and Hierarchy Management
     And I have a model with 2 BusinessFunctions as children of "Parent"
     When I delete "Parent"
     Then the children should still exist in the model
-    And they should have no parent
+    And all children should have no parent
