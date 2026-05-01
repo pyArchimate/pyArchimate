@@ -1,10 +1,17 @@
 # pyArchimate package
 
-[![test](https://github.com/pyArchimate/pyArchimate/actions/workflows/ci.yml/badge.svg)](https://github.com/pyArchimate/pyArchimate/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![PyPI](https://img.shields.io/pypi/v/pyArchimate.svg)](https://pypi.org/project/pyArchimate/)
 [![codecov](https://codecov.io/gh/pyArchimate/pyArchimate/graph/badge.svg?token=H7728VH5TG)](https://codecov.io/gh/pyArchimate/pyArchimate)
-[![Python Version](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Release](https://github.com/pyArchimate/pyArchimate/actions/workflows/release.yml/badge.svg)](https://github.com/pyArchimate/pyArchimate/actions/workflows/release.yml) [PyPI release](https://pypi.org/project/pyArchimate/)
+[![test](https://github.com/pyArchimate/pyArchimate/actions/workflows/ci.yml/badge.svg)](https://github.com/pyArchimate/pyArchimate/actions/workflows/ci.yml)
+[![Release](https://github.com/pyArchimate/pyArchimate/actions/workflows/release.yml/badge.svg)](https://github.com/pyArchimate/pyArchimate/actions/workflows/release.yml)
+
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=pyArchimate_pyArchimate&metric=alert_status)](https://sonarcloud.io/project/overview?id=pyArchimate_pyArchimate)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=pyArchimate_pyArchimate&metric=bugs)](https://sonarcloud.io/project/overview?id=pyArchimate_pyArchimate)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=pyArchimate_pyArchimate&metric=security_rating)](https://sonarcloud.io/project/overview?id=pyArchimate_pyArchimate)
+[![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=pyArchimate_pyArchimate&metric=sqale_rating)](https://sonarcloud.io/project/overview?id=pyArchimate_pyArchimate)
+[![Docs](https://readthedocs.org/projects/pyarchimate/badge/?version=latest)](https://pyarchimate.readthedocs.io)
 
 Documentation: [readthedocs.org](https://pyarchimate.readthedocs.io)
 
@@ -45,6 +52,11 @@ Elements span the full ArchiMate 3 layer stack: **Strategy, Motivation, Business
 - No GUI, no diagram renderer
 - No write support for ARIS AML
 - Not designed for interactive or real-time use — batch/scripting oriented
+
+## Documentation
+
+- [AI.md](AI.md) — machine-readable reference for AI-assisted tooling and developer onboarding
+- [Tutorial](docs/tutorial/tutorial.md) — step-by-step guide for new users with runnable code examples
 
 ## ArchiMate v3.x Compliance
 

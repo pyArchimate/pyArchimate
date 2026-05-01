@@ -3,6 +3,8 @@
 **/*.bak
 .vscode/
 __pycache__
+.mypy_cache/
+.ruff_cache/
 build/
 .coverage
 *.pyc
@@ -18,14 +20,8 @@ Thumbs.db
 .claude/skills/
 .github/agents/
 .github/prompts/
+.specify/feature.json
 .specify/integrations/
 .specify/init-options.json
 .specify/integration.json
 .env
-
-# Legacy test output files (written to CWD by legacy_integration tests)
-tests/out*.archimate
-tests/out*.xml
-tests/out*.csv
-tests/MyModel.xml
-tests/Untitled.archimate
