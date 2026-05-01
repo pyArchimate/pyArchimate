@@ -216,13 +216,10 @@ def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path
             continue
         src, dst = endpoints
         if merge_flg and e.get('id') in model.rels_dict:
-            elem = model.rels_dict(e.get('id'))
+            elem = model.rels_dict[e.get('id')]
         else:
             elem = model.add_relationship(rel_type=type_e, name=e.get('name'), uuid=e.get('id'),
                                           source=src, target=dst, profile=e.get('profiles'))
-        if elem is None:
-            log.warning(f'Invalid {src.uuid} or {dst.uuid}')
-            continue
         elem.folder = folder
         _parse_rel_attributes(elem, e)
     for f in tag.findall('folder'):

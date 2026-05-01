@@ -1,7 +1,8 @@
 from lxml import etree
 
+from src.pyArchimate import ArchiType
 from src.pyArchimate.pyArchimate import Model
-from src.pyArchimate.readers.archimateReader import archimate_reader
+from src.pyArchimate.readers.archimateReader import _apply_viewpoint_props, archimate_reader
 
 OPEN_MODEL = """<?xml version='1.0'?>
 <model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
@@ -234,3 +235,185 @@ def test_archimate_reader_imports_business_interaction_opengroup():
     assert bi.name == "Customer Service Interaction"
     assert str(bi.type) == "BusinessInteraction"
     assert bi.desc == "Handles customer service interactions"
+
+
+# ---------------------------------------------------------------------------
+# Coverage gap tests
+# ---------------------------------------------------------------------------
+
+UNKNOWN_VP_MODEL = """<?xml version='1.0'?>
+<model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+  <name>unknown-vp</name>
+  <elements/>
+  <relationships/>
+  <views>
+    <diagrams>
+      <view identifier="view-u" viewpoint="no-such-viewpoint">
+        <name>Unknown VP View</name>
+      </view>
+    </diagrams>
+  </views>
+</model>"""
+
+
+def test_assign_viewpoint_unknown_slug_does_not_raise():
+    """_assign_viewpoint logs a warning and continues for unknown slugs (line 50)."""
+    root = etree.fromstring(UNKNOWN_VP_MODEL)
+    model = Model("uvp")
+    archimate_reader(model, root)
+    assert "view-u" in model.views_dict
+
+
+def test_apply_viewpoint_props_skips_unknown_prop_def_ref():
+    """Property with propertyDefinitionRef not in pdef_merge_map is silently skipped (line 59)."""
+    ns = '{http://www.opengroup.org/xsd/archimate/3.0/}'
+    props_xml = etree.fromstring(
+        b"<properties xmlns='http://www.opengroup.org/xsd/archimate/3.0/'>"
+        b"  <property propertyDefinitionRef='unknown-id'><value>val</value></property>"
+        b"</properties>"
+    )
+    model = Model("t")
+    elem = model.add(ArchiType.ApplicationComponent, "App")
+    _apply_viewpoint_props(elem, props_xml, ns, {}, model)
+    assert elem.viewpoints == []
+
+
+LINE_COLOR_ALPHA_MODEL = """<?xml version='1.0'?>
+<model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+  <name>lca</name>
+  <elements>
+    <element identifier="e1" xsi:type="ApplicationComponent"><name>App</name></element>
+    <element identifier="e2" xsi:type="ApplicationComponent"><name>App2</name></element>
+  </elements>
+  <relationships>
+    <relationship identifier="r1" xsi:type="Association" source="e1" target="e2"/>
+  </relationships>
+  <views>
+    <diagrams>
+      <view identifier="v1">
+        <name>V</name>
+        <node identifier="n1" xsi:type="Element" elementRef="e1" x="0" y="0" w="100" h="50">
+          <style>
+            <lineColor r="10" g="20" b="30" a="64"/>
+          </style>
+        </node>
+        <node identifier="n2" xsi:type="Element" elementRef="e2" x="200" y="0" w="100" h="50"/>
+        <connection identifier="c1" relationshipRef="r1" source="n1" target="n2"/>
+      </view>
+    </diagrams>
+  </views>
+</model>"""
+
+
+def test_apply_node_style_line_color_with_alpha():
+    """lineColor with alpha attribute sets lc_opacity (line 130)."""
+    root = etree.fromstring(LINE_COLOR_ALPHA_MODEL)
+    model = Model("lca")
+    archimate_reader(model, root)
+    node = model.nodes_dict["n1"]
+    assert node.lc_opacity == 64
+
+
+def test_apply_conn_style_no_style_element():
+    """Connection without <style> element does not raise (line 178)."""
+    root = etree.fromstring(LINE_COLOR_ALPHA_MODEL)
+    model = Model("lca2")
+    archimate_reader(model, root)
+    assert "c1" in model.conns_dict
+
+
+NON_ELEMENT_NODE_MODEL = """<?xml version='1.0'?>
+<model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+  <name>non-elem</name>
+  <elements>
+    <element identifier="e1" xsi:type="ApplicationComponent"><name>App</name></element>
+  </elements>
+  <relationships/>
+  <views>
+    <diagrams>
+      <view identifier="v1">
+        <name>V</name>
+        <node identifier="n-elem" xsi:type="Element" elementRef="e1" x="0" y="0" w="100" h="50"/>
+        <node identifier="n-cont" xsi:type="Container" x="10" y="10" w="200" h="100"/>
+        <node identifier="n-label" xsi:type="Label" x="0" y="200" w="100" h="50"/>
+      </view>
+    </diagrams>
+  </views>
+</model>"""
+
+
+def test_add_node_non_element_type():
+    """Non-Element xsi:type nodes take the else branch in _add_node (lines 154-158)."""
+    root = etree.fromstring(NON_ELEMENT_NODE_MODEL)
+    model = Model("ne")
+    archimate_reader(model, root)
+    assert "n-cont" in model.nodes_dict
+    assert "n-label" in model.nodes_dict
+
+
+MERGE_VIEW_MODEL = """<?xml version='1.0'?>
+<model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+  <name>merge-view</name>
+  <elements/>
+  <relationships/>
+  <views>
+    <diagrams>
+      <view identifier="view-1">
+        <name>Main View</name>
+      </view>
+    </diagrams>
+  </views>
+</model>"""
+
+
+def test_read_views_merge_deletes_existing_view():
+    """Second read with merge_flg=True deletes and re-creates existing view (line 216)."""
+    root = etree.fromstring(MERGE_VIEW_MODEL)
+    model = Model("mv")
+    archimate_reader(model, root)
+    assert "view-1" in model.views_dict
+    archimate_reader(model, root, merge_flg=True)
+    assert "view-1" in model.views_dict
+
+
+def test_add_node_merge_skips_existing_uuid():
+    """_add_node with merge_flg=True sets uuid=None for already-known nodes (line 143)."""
+    root = etree.fromstring(LINE_COLOR_ALPHA_MODEL)
+    model = Model("nm")
+    archimate_reader(model, root)
+    count_before = len(model.nodes_dict)
+    archimate_reader(model, root, merge_flg=True)
+    assert len(model.nodes_dict) == count_before
+
+
+ORG_VIEW_REF_MODEL = """<?xml version='1.0'?>
+<model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+  <name>org-view-ref</name>
+  <elements>
+    <element identifier="e1" xsi:type="ApplicationComponent"><name>App</name></element>
+  </elements>
+  <relationships/>
+  <views>
+    <diagrams>
+      <view identifier="view-1">
+        <name>Main View</name>
+      </view>
+    </diagrams>
+  </views>
+  <organizations>
+    <item>
+      <label>MyFolder</label>
+      <item identifierRef="view-1"/>
+      <item identifierRef="e1"/>
+    </item>
+  </organizations>
+</model>"""
+
+
+def test_walk_orgs_sets_folder_on_view_direct_ref():
+    """_walk_orgs sets folder on a view directly referenced by identifierRef (line 247)."""
+    root = etree.fromstring(ORG_VIEW_REF_MODEL)
+    model = Model("ovr")
+    archimate_reader(model, root)
+    assert model.views_dict["view-1"].folder == "/MyFolder"
+    assert model.elems_dict["e1"].folder == "/MyFolder"
