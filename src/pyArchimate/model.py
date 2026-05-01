@@ -986,5 +986,64 @@ class Model:
         return [e for e in self.elems_dict.values()
                 if not self._element_children.get(e.uuid)]
 
+    def get_siblings(self, elem_uuid: str) -> list[Element]:
+        """Get all sibling elements (elements with same parent).
+
+        :param elem_uuid: UUID of element to find siblings for
+        :return: List of sibling Elements (excludes elem_uuid itself)
+        :raises KeyError: If element UUID not in model
+        """
+        if elem_uuid not in self.elems_dict:
+            raise KeyError(f"Element {elem_uuid} not found in model")
+        parent_uuid = self._element_hierarchy.get(elem_uuid)
+        if parent_uuid is None:
+            return []
+        siblings = self._element_children.get(parent_uuid, set())
+        return [e for e in [self.elems_dict[uuid] for uuid in siblings]
+                if e.uuid != elem_uuid]
+
+    def find_by_hierarchy_path(self, path: str) -> list[Element]:
+        """Find elements by hierarchy path (e.g., '/parent/child/element').
+
+        Supports wildcard matching at end: '/parent/child/*' matches all children of child.
+
+        :param path: Hierarchy path string starting with '/', levels separated by '/'
+        :return: List of matching Elements
+        """
+        if not path:
+            return []
+        parts = [p for p in path.split('/') if p]
+        if not parts:
+            return []
+        results = []
+        wildcard = parts[-1] == '*'
+        if wildcard:
+            parts = parts[:-1]
+        self._traverse_by_path(parts, self.get_root_elements(), results, wildcard)
+        return results
+
+    def _traverse_by_path(self, path_parts: list[str], current_elements: list[Element],
+                         results: list[Element], wildcard: bool) -> None:
+        """Traverse hierarchy to find elements matching path."""
+        if not path_parts:
+            if wildcard:
+                for elem in current_elements:
+                    results.extend(self.get_children(elem.uuid))
+            else:
+                results.extend(current_elements)
+            return
+        target_name = path_parts[0]
+        remaining_parts = path_parts[1:]
+        for elem in current_elements:
+            if elem.name == target_name or target_name == '*':
+                if remaining_parts:
+                    self._traverse_by_path(remaining_parts, self.get_children(elem.uuid),
+                                         results, wildcard)
+                else:
+                    if wildcard:
+                        results.extend(self.get_children(elem.uuid))
+                    else:
+                        results.append(elem)
+
 
 __all__ = ["Model"]
