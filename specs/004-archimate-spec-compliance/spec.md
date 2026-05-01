@@ -101,7 +101,7 @@ A developer imports an Archi .archimate file containing relationships with docum
 
 - **BusinessInteraction**: An ArchiMate element representing a business-level interaction concept, with relationships to other business elements
 - **InfluenceRelationship**: A relationship with strength metadata indicating influence level between elements
-- **DocumentedRelationship**: Any relationship that may have documentation text attached (stored in `desc` attribute); serialised as `<documentation>` element in .archimate format
+- **DocumentedRelationship**: Any relationship that may have documentation text attached describing its purpose or semantics
 
 ## Success Criteria *(mandatory)*
 
