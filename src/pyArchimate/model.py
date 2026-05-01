@@ -1015,7 +1015,7 @@ class Model:
         parts = [p for p in path.split('/') if p]
         if not parts:
             return []
-        results = []
+        results: list[Element] = []
         wildcard = parts[-1] == '*'
         if wildcard:
             parts = parts[:-1]
