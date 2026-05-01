@@ -1,3 +1,27 @@
+## v1.1.0 (2026-05-01)
+
+### Feat
+
+- enable ArchiMate 3.x spec compliance
+
+### Fix
+
+- **test**: resolve all 18 open SonarCloud issues on PR #47
+- **test**: add missing NOSONAR tags in test_archimateWriter
+- **test**: mark SonarCloud false positives in business_interaction_steps
+- **test**: mark SonarCloud false positives in test_archiWriter
+- **test**: correct namespace assertion in BDD ArchiMate export step
+- **compliance**: address SonarCloud hotspots and add helper coverage
+- **ci**: set PYTHONUTF8=1 to prevent UnicodeEncodeError on Windows
+- **tests**: replace unused local variables with _ (S1481)
+- resolve SonarCloud CRITICAL and MAJOR issues
+
+### Refactor
+
+- rename spec from 003 to 004
+- **tests**: suppress S5332 false positives for XML namespace URIs
+- modernize bash scripts and update poetry.lock
+
 ## v1.0.1 (2026-04-30)
 
 ### Fix
