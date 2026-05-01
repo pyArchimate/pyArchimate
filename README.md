@@ -56,7 +56,7 @@ Elements span the full ArchiMate 3 layer stack: **Strategy, Motivation, Business
 ## Documentation
 
 - [AI.md](AI.md) — machine-readable reference for AI-assisted tooling and developer onboarding
-- [Tutorial](docs/tutorial.md) — step-by-step guide for new users with runnable code examples
+- [Tutorial](docs/tutorial/tutorial.md) — step-by-step guide for new users with runnable code examples
 
 ## ArchiMate v3.x Compliance
 

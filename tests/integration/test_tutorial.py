@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_TUTORIAL_PATH = _REPO_ROOT / "docs" / "tutorial.md"
+_TUTORIAL_PATH = _REPO_ROOT / "docs" / "tutorial" / "tutorial.md"
 
 
 def _extract_python_blocks(text: str) -> list[str]:
@@ -24,8 +24,9 @@ def _tutorial_blocks() -> list[tuple[int, str]]:
 
 
 @pytest.mark.parametrize("index,block", _tutorial_blocks())
-def test_tutorial_code_block(index: int, block: str, tmp_path: Path) -> None:
+def test_tutorial_code_block(index: int, block: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Each Python block in docs/tutorial.md must execute without raising."""
+    monkeypatch.chdir(tmp_path)
     namespace: dict = {
         "__builtins__": __builtins__,
         "tmp_path": tmp_path,
