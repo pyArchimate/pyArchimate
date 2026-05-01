@@ -163,6 +163,20 @@ def _parse_rel_attributes(elem: Any, e: Any) -> None:
         elem.prop(p.get('key'), p.get('value'))
 
 
+def _apply_elem_property(elem: Any, p: Any) -> None:
+    if p.get('key') != 'viewpoint':
+        elem.prop(p.get('key'), p.get('value'))
+        return
+    slug = (p.get('value') or '').strip().lower()
+    if not slug:
+        return
+    from ..viewpoint_registry import get_viewpoint
+    if get_viewpoint(slug) is not None:
+        elem.assign_viewpoint(slug)
+    else:
+        log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
+
+
 def _process_folder_element(e: Any, model: Any, xsi: str, merge_flg: bool, folder: str) -> None:
     type_e = e.get(xsi + 'type').split(':')[1]
     if 'Relationship' in type_e or 'ArchimateDiagramModel' in type_e:
@@ -177,16 +191,7 @@ def _process_folder_element(e: Any, model: Any, xsi: str, merge_flg: bool, folde
     if doc is not None:
         elem.desc = doc.text
     for p in e.findall('property'):
-        if p.get('key') == 'viewpoint':
-            slug = (p.get('value') or '').strip().lower()
-            if slug:
-                from ..viewpoint_registry import get_viewpoint
-                if get_viewpoint(slug) is not None:
-                    elem.assign_viewpoint(slug)
-                else:
-                    log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
-        else:
-            elem.prop(p.get('key'), p.get('value'))
+        _apply_elem_property(elem, p)
     if type_e == 'Junction':
         elem.junction_type = e.get('type') if e.get('type') is not None else 'and'
 
