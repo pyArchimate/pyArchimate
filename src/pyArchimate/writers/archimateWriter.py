@@ -95,6 +95,15 @@ def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
                     p = et.SubElement(pp, 'property', key=key)
                     pv = et.SubElement(p, 'value')
                     pv.text = str(visual_style[key])
+        # Write junction type if set
+        junction_type = getattr(e, 'junction_type', None)
+        if junction_type:
+            pp = elem.find('properties')
+            if pp is None:
+                pp = et.SubElement(elem, 'properties')
+            p = et.SubElement(pp, 'property', key='junctionType')
+            pv = et.SubElement(p, 'value')
+            pv.text = junction_type
         # Write viewpoint associations as separate properties (supports multi-viewpoint)
         for slug in getattr(e, 'viewpoints', []):
             vp_prop_id = _get_prop_def_id(model, 'viewpoint')

@@ -591,5 +591,31 @@ class Element:
         """
         self._visual_style.clear()
 
+    def set_junction_type(self, junction_type: Optional[str]) -> None:
+        """
+        Set the junction type for a Junction element.
+
+        :param junction_type: Junction type ('and', 'or', 'xor') or None
+        :type junction_type: Optional[str]
+        :raises ValueError: If junction_type is not valid
+        """
+        if junction_type is None:
+            self.junction_type = None
+            return
+        junction_type_lower = str(junction_type).lower().strip()
+        from .constants import JUNCTION_TYPES
+        if junction_type_lower not in JUNCTION_TYPES:
+            raise ValueError(f"Invalid junction type: {junction_type}. Must be one of {JUNCTION_TYPES}")
+        self.junction_type = junction_type_lower
+
+    def get_junction_type(self) -> Optional[str]:
+        """
+        Get the junction type for a Junction element.
+
+        :return: Junction type ('and', 'or', 'xor') or None if not set
+        :rtype: Optional[str]
+        """
+        return self.junction_type
+
 
 __all__ = ["Element"]

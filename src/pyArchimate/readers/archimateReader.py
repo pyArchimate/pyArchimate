@@ -170,6 +170,17 @@ def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
                             elem.assign_viewpoint(slug)
                         else:
                             log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
+            for p in props_xml.findall(ns + 'property'):
+                key = p.get('key')
+                if key == 'junctionType':
+                    val_elem = p.find(ns + 'value')
+                    if val_elem is not None:
+                        junction_type = (val_elem.text or '').strip().lower()
+                        if junction_type:
+                            try:
+                                elem.set_junction_type(junction_type)
+                            except ValueError as e:
+                                log.warning(f"Invalid junctionType on import: {e}")
     return parent_map, visual_style_map
 
 
