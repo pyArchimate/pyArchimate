@@ -80,7 +80,10 @@ def _normalize_color(color: Optional[str]) -> Optional[str]:
 
 class Element:
     """
-    Class to manage Element artifacts
+    Class to manage Element artifacts with visual styling and hierarchy support.
+
+    Supports ArchiMate v3.x elements with optional parent-child relationships,
+    custom visual styles (colors, transparency), and junction type semantics.
 
     :param name: Name of the element
     :type name: str
@@ -97,7 +100,23 @@ class Element:
     :param profile: element profile identifier
     :type profile: str
 
-    :raises ArchimateConceptTypeError: Exception raised on elem_type or parent tyme error
+    **Visual Styling (P3)**:
+    - Use set_fill_color(color), set_line_color(color) to customize appearance
+    - Supports hex colors (#RRGGBB) and named colors (e.g., 'red', 'blue')
+    - Use set_line_width(width) and set_transparency(alpha) for additional styling
+    - All visual properties are preserved during XML export/import round-trips
+
+    **Hierarchy (P3)**:
+    - Elements can be organized into parent-child relationships via Model.add_child()
+    - Use get_parent() to retrieve parent, get_siblings() for neighbors
+    - Junction elements (AND/OR/XOR) use set_junction_type() for semantics
+
+    **Junction Types (P3)**:
+    - Junction elements support type validation: 'and', 'or', 'xor'
+    - Use set_junction_type(type_str) to set junction semantics
+    - Junction types are validated on set and preserved in round-trip exports
+
+    :raises ArchimateConceptTypeError: Exception raised on elem_type or parent type error
 
     :return: Element object
     :rtype: Element
@@ -107,7 +126,21 @@ class Element:
         from pyArchimate import ArchiType
         from pyArchimate.model import Model
         m = Model('example')
-        bi = m.add(ArchiType.BusinessInteraction, 'Customer Service Interaction', desc='Handles customer interactions')
+
+        # Create elements
+        process = m.add(ArchiType.BusinessProcess, 'Order Processing')
+        func = m.add(ArchiType.BusinessFunction, 'Order Fulfillment')
+        junction = m.add(ArchiType.Junction, 'Decision Point')
+
+        # Build hierarchy
+        m.add_child(process.uuid, func.uuid)
+
+        # Style elements
+        process.set_fill_color('#ffeb3b')
+        process.set_transparency(0.9)
+
+        # Set junction semantics
+        junction.set_junction_type('and')
 
     """
 
