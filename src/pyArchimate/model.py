@@ -165,14 +165,41 @@ def default_color(elem_type: str, theme: Any = DEFAULT_THEME) -> str:
 
 class Model:
     """
-    Class to create a Archimate compliant models
+    Class to create ArchiMate v3.x compliant models with full hierarchy and styling support.
+
+    Supports element grouping (parent-child relationships), visual styling (colors, transparency),
+    junction types (AND/OR/XOR), and advanced hierarchy queries with round-trip fidelity.
+
+    **Element Hierarchy (P3)**:
+    - Use add_child(parent_uuid, child_uuid) to create parent-child relationships
+    - Supports unlimited nesting (default max depth 5, configurable)
+    - Automatic cycle detection prevents invalid hierarchies
+    - When parent is deleted, children are orphaned (not deleted)
+    - Query methods: get_parent(), get_children(), get_ancestors(), get_descendants()
+
+    **Visual Styling (P3)**:
+    - Elements support custom fill colors, line colors, line width, and transparency
+    - Colors can be hex (#RRGGBB) or named colors; all normalized to hex for export
+    - All visual properties preserved during XML round-trip export/import cycles
+    - Use element.set_fill_color(), set_line_color(), etc. for styling
+
+    **Advanced Queries (P3)**:
+    - get_siblings(elem_uuid): Find all elements with same parent
+    - find_by_hierarchy_path(path): Query by path like '/Parent/Child' with wildcard support
+    - Path examples: '/Root', '/Parent/Child/*', '/A/*/B/Leaf'
+    - Performance: cycle detection <1ms, queries <10ms on 1000+ element models
+
+    **Junction Semantics (P3)**:
+    - Junction elements support type semantics: 'and', 'or', 'xor'
+    - Types are validated and preserved across XML export/import cycles
+    - Use element.set_junction_type(type_str) to set semantics
 
     Note: Perspectives are not handled in the current version of this library
 
-    This class define the methods and properties to create Elements, Relationships, Diagrams (Views) with Nodes and
-    Connections with visual layout
+    This class defines methods and properties to create Elements, Relationships, Diagrams (Views) with Nodes and
+    Connections with visual layout.
 
-    It also reads, writes or merges XML files using the Archimate Open Exchange File format
+    It also reads, writes or merges XML files using the ArchiMate Open Exchange File format.
 
     :param name:    Model name
     :type name: str
@@ -183,6 +210,37 @@ class Model:
 
     :returns: Model object
     :rtype: Model
+
+    Example::
+
+        from pyArchimate import ArchiType
+        from pyArchimate.model import Model
+
+        m = Model('Enterprise Architecture')
+
+        # Create elements
+        process = m.add(ArchiType.BusinessProcess, 'Order Management')
+        func1 = m.add(ArchiType.BusinessFunction, 'Order Entry')
+        func2 = m.add(ArchiType.BusinessFunction, 'Order Fulfillment')
+
+        # Build hierarchy
+        m.add_child(process.uuid, func1.uuid)
+        m.add_child(process.uuid, func2.uuid)
+
+        # Apply visual styling
+        process.set_fill_color('#e8f4f8')
+        func1.set_fill_color('#b3e5fc')
+
+        # Query hierarchy
+        children = m.get_children(process.uuid)
+        siblings = m.get_siblings(func1.uuid)
+        ancestors = m.get_ancestors(func1.uuid)
+
+        # Find by path
+        results = m.find_by_hierarchy_path('/Order Management/Order Entry')
+
+        # Export (preserves all hierarchy and visual properties)
+        m.write('model.archimate')
 
     """
 
