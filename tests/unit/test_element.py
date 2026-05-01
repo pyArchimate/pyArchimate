@@ -222,6 +222,11 @@ def test_element_merge_without_props(model_with_elem):
     assert other.uuid not in m.elems_dict
 
 
+@pytest.fixture()
+def sample_model():
+    return Model('sample')
+
+
 def test_element_delete_removes_related_relationships():
     m = Model('del-test')
     src = m.add(ArchiType.ApplicationComponent, 'A')
@@ -263,3 +268,48 @@ def test_business_interaction_can_relate_to_other_elements():
     assert rel is not None
     assert rel.source.uuid == bi.uuid
     assert rel.target.uuid == actor.uuid
+
+
+# ---------------------------------------------------------------------------
+# ArchiMate 3.x Compliance: Viewpoint Assignment
+# ---------------------------------------------------------------------------
+
+def test_element_viewpoint_assignment(sample_model):
+    elem = sample_model.add(ArchiType.BusinessActor, 'Test Actor')
+    elem.assign_viewpoint('stakeholder')
+    assert 'stakeholder' in elem.viewpoints
+
+
+def test_element_viewpoint_removal(sample_model):
+    elem = sample_model.add(ArchiType.BusinessActor, 'Test Actor')
+    elem.assign_viewpoint('stakeholder')
+    elem.remove_viewpoint('stakeholder')
+    assert 'stakeholder' not in elem.viewpoints
+
+
+def test_multi_viewpoint_assignment(sample_model):
+    elem = sample_model.add(ArchiType.BusinessActor, 'Test Actor')
+    elem.assign_viewpoint('stakeholder')
+    elem.assign_viewpoint('capability')
+    assert 'stakeholder' in elem.viewpoints
+    assert 'capability' in elem.viewpoints
+
+
+def test_invalid_viewpoint_raises(sample_model):
+    elem = sample_model.add(ArchiType.BusinessActor, 'Test Actor')
+    with pytest.raises(ValueError):
+        elem.assign_viewpoint('not_a_real_viewpoint')
+
+
+def test_element_viewpoint_no_duplicate(sample_model):
+    """Assigning the same viewpoint twice does not create a duplicate."""
+    elem = sample_model.add(ArchiType.BusinessActor, 'Test Actor')
+    elem.assign_viewpoint('stakeholder')
+    elem.assign_viewpoint('stakeholder')
+    assert elem.viewpoints.count('stakeholder') == 1
+
+
+def test_element_remove_viewpoint_silent_on_unknown(sample_model):
+    """Removing a viewpoint not assigned silently ignores the call."""
+    elem = sample_model.add(ArchiType.BusinessActor, 'Test Actor')
+    elem.remove_viewpoint('stakeholder')  # should not raise

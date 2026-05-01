@@ -2,9 +2,9 @@
 
 **Feature**: ArchiMate v3.x Specification Compliance  
 **Branch**: `004-archimate-spec-compliance`  
-**Date**: 2026-04-30  
-**Status**: Ready for Implementation  
-**Total Tasks**: 27 | **Documentation Tasks**: 5
+**Date**: 2026-04-30 (updated 2026-05-01)  
+**Status**: P1 Complete | P2 Complete | P3 Planned  
+**Total Tasks**: 120 (P1 + P2) | **P1 Tasks (T001-T070)**: ✅ Complete | **P2 Tasks (T071-T120)**: ✅ Complete
 
 ---
 
@@ -354,10 +354,123 @@ Complete all three P1 user stories (T009-T049):
 
 ---
 
-## Next Steps After Task Completion
+## Next Steps After P1 Task Completion
 
 1. **Merge PR**: Merge `004-archimate-spec-compliance` branch to `develop`
-2. **Tag Release**: Create version tag (e.g., `v1.0.2`) per semantic versioning
+2. **Tag Release**: Create version tag (e.g., `v1.1.0`) per semantic versioning
 3. **Future Work**: P2/P3 features documented in `specs/004-archimate-spec-compliance/spec.md` "Future Features" section
 4. **Monitoring**: Track user adoption and feedback on the three compliance fixes
+
+---
+
+## Phase 7: User Story 4 - Support ArchiMate Perspectives and Viewpoints (P2)
+
+**Goal**: Implement first-class viewpoint support for all 13 standard ArchiMate 3.x viewpoints with N:M assignment, filtering API, and round-trip fidelity  
+**Independent Test**: Create element → assign viewpoints → export → import → verify viewpoint assignments preserved  
+**Acceptance Criteria**: All 13 standard viewpoints accessible; elements/views support multi-assignment; filtering API works; round-trip fidelity
+
+### Phase 7.1: Setup & Data Model
+
+- [X] T071 [US4] Create Viewpoint entity class in `src/pyArchimate/viewpoint.py` with properties: id, name, description
+- [X] T072 [P] [US4] Add 13 standard viewpoint definitions to `src/pyArchimate/viewpoint_registry.py` (stakeholder, capability, organization, actor, technology, physical, service, implementation, migration, strategy, business, application, infrastructure)
+- [X] T073 [P] [US4] Create ViewpointAssociation class for N:M relationships in `src/pyArchimate/viewpoint.py`
+- [X] T074 [US4] Update `src/pyArchimate/model.py` to add viewpoint registry and association storage (viewpoints_dict, viewpoint_associations_dict)
+- [X] T075 [P] [US4] Update `src/pyArchimate/element.py` to support viewpoint associations via property accessors
+- [X] T076 [P] [US4] Update `src/pyArchimate/view.py` to support primary viewpoint assignment via property accessor
+- [X] T077 [US4] Create test fixtures in `tests/fixtures/viewpoint_v3/` with sample .archimate and OpenGroup files containing viewpoint associations
+- [X] T078 [P] [US4] Create BDD feature files: `tests/features/viewpoint_assignment.feature`, `tests/features/viewpoint_filtering.feature`, `tests/features/viewpoint_roundtrip.feature`
+
+### Phase 7.2: Reader Implementation
+
+- [X] T079 [US4] Update `src/pyArchimate/readers/_archireader_helpers.py` to extract view-level viewpoint assignments (read primary viewpoint from view element metadata)
+- [X] T080 [US4] Update `src/pyArchimate/readers/_archireader_helpers.py` to extract element-level viewpoint associations (read from relationship/property elements)
+- [X] T081 [US4] Create viewpoint name normalization mapping in `src/pyArchimate/readers/_archireader_helpers.py` (canonical slug resolution)
+- [X] T082 [US4] Update `src/pyArchimate/readers/archimateReader.py` to extract view-level viewpoint properties
+- [X] T083 [US4] Update `src/pyArchimate/readers/archimateReader.py` to extract element-level viewpoint associations from properties
+- [X] T084 [US4] Create viewpoint name normalization in `src/pyArchimate/readers/archimateReader.py`
+- [X] T085 [US4] Implement invalid viewpoint ID detection with graceful error logging in readers (warn, don't fail)
+- [X] T086 [US4] Verify backward compatibility: files without viewpoint associations import without error
+
+### Phase 7.3: Writer Implementation
+
+- [X] T087 [US4] Update `src/pyArchimate/writers/archiWriter.py` to write view-level viewpoint associations
+- [X] T088 [US4] Update `src/pyArchimate/writers/archiWriter.py` to write element-level viewpoint associations as properties
+- [X] T089 [US4] Verify lxml escaping handles viewpoint names/descriptions with special characters in `src/pyArchimate/writers/archiWriter.py`
+- [X] T090 [US4] Update `src/pyArchimate/writers/archimateWriter.py` to write view-level viewpoint properties
+- [X] T091 [US4] Update `src/pyArchimate/writers/archimateWriter.py` to write element-level viewpoint associations
+
+### Phase 7.4: Model API & Filtering
+
+- [X] T092 [US4] Implement `model.get_elements_by_viewpoint(viewpoint_id)` query method in `src/pyArchimate/model.py`
+- [X] T093 [US4] Implement `model.get_views_by_viewpoint(viewpoint_id)` query method in `src/pyArchimate/model.py`
+- [X] T094 [US4] Implement `model.get_viewpoints()` returning all available viewpoint definitions in `src/pyArchimate/model.py`
+- [X] T095 [US4] Implement `element.viewpoints` property returning list of assigned viewpoints in `src/pyArchimate/element.py`
+- [X] T096 [US4] Implement `view.primary_viewpoint` property with getter/setter in `src/pyArchimate/view.py`
+- [X] T097 [US4] Implement `element.assign_viewpoint(viewpoint_id)` and `element.remove_viewpoint(viewpoint_id)` in `src/pyArchimate/element.py`
+- [X] T098 [US4] Implement `view.set_primary_viewpoint(viewpoint_id)` method in `src/pyArchimate/view.py`
+- [X] T099 [US4] Implement viewpoint ID validation in registry (reject invalid assignments with clear error message)
+
+### Phase 7.5: Tests
+
+- [X] T100 [P] [US4] Implement `test_viewpoint_entity_creation` in `tests/unit/test_viewpoint.py` (create, verify id/name/description)
+- [X] T101 [P] [US4] Implement `test_viewpoint_registry` in `tests/unit/test_viewpoint.py` (all 13 standard viewpoints accessible)
+- [X] T102 [P] [US4] Implement `test_element_viewpoint_assignment` in `tests/unit/test_element.py` (assign/query/remove viewpoints)
+- [X] T103 [P] [US4] Implement `test_view_primary_viewpoint` in `tests/unit/test_view.py` (get/set primary viewpoint)
+- [X] T104 [P] [US4] Implement `test_multi_viewpoint_assignment` in `tests/unit/test_element.py` (element in 2+ viewpoints without conflict)
+- [X] T105 [P] [US4] Implement `test_viewpoint_filtering_queries` in `tests/unit/test_model.py` (get_elements_by_viewpoint, get_views_by_viewpoint)
+- [X] T106 [P] [US4] Implement `test_viewpoint_roundtrip_archimate` in `tests/integration/test_archimate_roundtrip.py` (create → export Archi → import → verify associations)
+- [X] T107 [P] [US4] Implement `test_viewpoint_roundtrip_opengroup` in `tests/integration/test_archimate_roundtrip.py` (create → export OpenGroup → import → verify associations)
+- [X] T108 [P] [US4] Implement `test_viewpoint_multi_assignment_roundtrip` in `tests/integration/test_archimate_roundtrip.py` (element with 2+ viewpoints preserved)
+- [X] T109 [US4] Implement `test_viewpoint_backward_compatibility` in `tests/integration/test_archimate_roundtrip.py` (files without viewpoints still import correctly)
+- [X] T110 [US4] Implement BDD steps for `viewpoint_assignment.feature` in `tests/features/steps/viewpoint_steps.py` (create, assign, verify scenarios)
+- [X] T111 [US4] Implement BDD steps for `viewpoint_filtering.feature` in `tests/features/steps/viewpoint_steps.py` (query and filter operation scenarios)
+- [X] T112 [US4] Implement BDD steps for `viewpoint_roundtrip.feature` in `tests/features/steps/viewpoint_steps.py` (full round-trip scenarios)
+
+### Phase 7.6: Documentation & Quality Gates
+
+- [X] T113 [US4] Update `src/pyArchimate/viewpoint.py` class docstring with usage examples and metadata field descriptions
+- [X] T114 [P] [US4] Add viewpoint examples to `specs/004-archimate-spec-compliance/quickstart.md` section "Viewpoint Assignment and Filtering"
+- [X] T115 [US4] Create `specs/004-archimate-spec-compliance/contracts/viewpoint-associations.md` documenting XML mapping for view-level and element-level associations
+- [X] T116 [P] [US4] Update `CHANGELOG.md` with viewpoint support entry in `v1.2.0` section
+- [X] T117 [US4] Run linting: `ruff check src/pyArchimate/` (must pass with no errors) - ✅ Passed
+- [X] T118 [US4] Run type checking: `mypy src/pyArchimate/` (must pass with no errors) - ✅ Passed
+- [X] T119 [US4] Run full test suite: `pytest tests/ --cov=src/pyArchimate --cov-report=html` (verify 90%+ coverage maintained) - ✅ 90% coverage, 421 tests
+- [X] T120 [US4] Verify no regressions: `pytest tests/unit/ tests/integration/` (all existing tests must still pass) - ✅ 421 passed
+
+---
+
+## Phase 7 Task Dependencies
+
+```
+Phase 7.1: Data Model (T071-T078)
+    ↓
+Phase 7.2: Readers (T079-T086) ← → Phase 7.3: Writers (T087-T091) [parallel]
+    ↓
+Phase 7.4: API & Filtering (T092-T099)
+    ↓
+Phase 7.5: Tests (T100-T112)
+    ↓
+Phase 7.6: Documentation & QA (T113-T120)
+```
+
+## Phase 7 Parallel Execution Opportunities
+
+**Data Model** (all [P] tasks): T072, T073, T075, T076, T078 run in parallel after T071
+**Readers**: T079-T080, T082-T083 run in parallel (different reader files)
+**Writers**: T087-T088, T090-T091 run in parallel (different writer files)
+**Tests**: T100-T108 all run in parallel across separate test files
+
+---
+
+## Phase 7 Success Metrics
+
+| Metric | Target |
+|--------|--------|
+| Viewpoints defined | 13 standard ArchiMate 3.x |
+| Round-trip fidelity | 100% for both .archimate and OpenGroup |
+| Query API coverage | get_elements_by_viewpoint, get_views_by_viewpoint, get_viewpoints |
+| Multi-assignment | N:M with no conflicts |
+| Test coverage | 90%+ maintained |
+| BDD scenarios | 15+ passing across 3 feature files |
+| Regressions | 0 |
 

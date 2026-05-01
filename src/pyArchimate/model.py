@@ -201,6 +201,8 @@ class Model:
         self.labels_dict = {}
         self.orgs = defaultdict(list)
         self.theme = 'archi'
+        self._viewpoint_elements: dict[str, set[str]] = {}  # slug → set of element UUIDs
+        self._viewpoint_views: dict[str, str] = {}          # view UUID → primary viewpoint slug
 
     def add(self, concept_type=None, name=None, uuid=None, desc=None, folder=None, profile=None):
         """
@@ -790,6 +792,43 @@ class Model:
         for r in self.conns:
             r.line_color = default_color('Relationship', theme)
         self.theme = theme
+
+    def get_viewpoints(self):
+        """Return all 13 standard ArchiMate 3.x viewpoints.
+
+        :return: list of Viewpoint objects
+        :rtype: list[Viewpoint]
+        """
+        from .viewpoint_registry import STANDARD_VIEWPOINTS
+        return list(STANDARD_VIEWPOINTS)
+
+    def get_elements_by_viewpoint(self, viewpoint_id: str) -> list[Any]:
+        """Return elements assigned to the given viewpoint slug.
+
+        :param viewpoint_id: canonical viewpoint slug
+        :type viewpoint_id: str
+        :return: list of Element objects
+        :rtype: list[Element]
+        :raises ValueError: if viewpoint_id is not a recognised slug
+        """
+        from .viewpoint_registry import validate_viewpoint_slug
+        validate_viewpoint_slug(viewpoint_id)
+        uuids = self._viewpoint_elements.get(viewpoint_id, set())
+        return [self.elems_dict[uid] for uid in uuids if uid in self.elems_dict]
+
+    def get_views_by_viewpoint(self, viewpoint_id: str) -> list[Any]:
+        """Return views whose primary viewpoint matches the given slug.
+
+        :param viewpoint_id: canonical viewpoint slug
+        :type viewpoint_id: str
+        :return: list of View objects
+        :rtype: list[View]
+        :raises ValueError: if viewpoint_id is not a recognised slug
+        """
+        from .viewpoint_registry import validate_viewpoint_slug
+        validate_viewpoint_slug(viewpoint_id)
+        return [v for uid, v in self.views_dict.items()
+                if self._viewpoint_views.get(uid) == viewpoint_id]
 
 
 __all__ = ["Model"]

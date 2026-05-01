@@ -952,6 +952,7 @@ class View:
         self.conns_dict: dict[str, Connection] = defaultdict(Connection)
         self._properties: dict[str, object] = {}
         self.folder = folder
+        self._primary_viewpoint: Optional[str] = None
 
     @property
     def view(self) -> "View":
@@ -1017,6 +1018,28 @@ class View:
 
     def remove_folder(self):
         self.folder = None
+
+    @property
+    def primary_viewpoint(self) -> Optional[str]:
+        """Return the primary viewpoint slug for this view.
+
+        :return: canonical viewpoint slug or None
+        :rtype: str | None
+        """
+        return self._primary_viewpoint
+
+    def set_primary_viewpoint(self, viewpoint_id: str) -> None:
+        """Set the primary viewpoint slug for this view.
+
+        :param viewpoint_id: canonical viewpoint slug (e.g. 'technology')
+        :type viewpoint_id: str
+        :raises ValueError: if viewpoint_id is not a recognised slug
+        """
+        from .viewpoint_registry import validate_viewpoint_slug
+        validate_viewpoint_slug(viewpoint_id)
+        self._primary_viewpoint = viewpoint_id
+        if self.model is not None:
+            self.model._viewpoint_views[self._uuid] = viewpoint_id
 
     def get_or_create_node(self, elem: object = None, elem_type: Optional[str] = None,
                            x: int = 0, y: int = 0, w: int = 120, h: int = 55,

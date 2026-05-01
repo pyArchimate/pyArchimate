@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:archimate="http://www.archimatetool.com/archimate"
+    name="Viewpoint Test" id="id-test-model" version="5.0.0">
+  <folder name="Business" id="id-business" type="business">
+    <element xsi:type="archimate:BusinessActor" name="Test Actor" id="id-actor-1">
+      <property key="viewpoint" value="stakeholder"/>
+    </element>
+  </folder>
+  <folder name="Views" id="id-views" type="diagrams">
+    <element xsi:type="archimate:ArchimateDiagramModel" name="Stakeholder View"
+             id="id-view-1" viewpoint="stakeholder"/>
+  </folder>
+</archimate:model>
