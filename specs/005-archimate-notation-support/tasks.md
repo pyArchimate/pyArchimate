@@ -19,8 +19,8 @@ Tasks organized by phase and user story. Each task is independently specific and
 - Phase 4: Writer Integration (XML export with fidelity)
 - Phase 5: Junction Semantics (AND/OR/XOR validation)
 - Phase 6: Advanced Features (Query optimization, performance)
-- Phase 7: Testing & Documentation
-- Phase 8: Release & Polish
+- Phase 7: Testing & Documentation (BDD acceptance tests)
+- Phase 8: Sphinx Documentation (Full API reference and guides)
 
 ---
 
@@ -186,16 +186,32 @@ Tasks organized by phase and user story. Each task is independently specific and
 
 ---
 
-## Phase 8: Release (T067-T068)
+## Phase 8: Sphinx Documentation Updates (T067-T078)
 
-**Goal**: Tag release and prepare v1.3.0  
-**Duration**: 1 day  
-**Deliverable**: v1.3.0 tag and release notes
+**Goal**: Update Sphinx documentation for P3 features with proper API reference and user guides  
+**Duration**: 2-3 days  
+**Deliverable**: Complete Sphinx documentation with P3 API reference and usage guides
 
-### Release Tasks
+### Documentation Content Creation
 
-- [ ] T067 Create git tag v1.3.0 with comprehensive release notes
-- [ ] T068 Update version in pyproject.toml and __init__.py to 1.3.0
+- [ ] T067 [P] Create `docs/api/element.rst` with full Element API documentation for P3 methods (colors, transparency, junction types)
+- [ ] T068 [P] Create `docs/api/model.rst` with full Model API documentation for hierarchy and query methods
+- [ ] T069 Create `docs/guides/element-hierarchy.rst` for parent-child relationships, queries, and best practices
+- [ ] T070 Create `docs/guides/visual-styling.rst` for color customization, transparency, and visual appearance
+- [ ] T071 Create `docs/guides/junction-types.rst` for AND/OR/XOR junction semantics and validation
+
+### Documentation Examples & Reference
+
+- [ ] T072 [P] Create `docs/examples/hierarchy_examples.rst` with working code examples for grouping and queries
+- [ ] T073 [P] Create `docs/examples/styling_examples.rst` with visual style customization examples
+- [ ] T074 Create `docs/p3-quick-reference.rst` as consolidated P3 API quick reference page
+
+### Documentation Integration & Validation
+
+- [ ] T075 Update `docs/index.rst` to include P3 features in main navigation and guides section
+- [ ] T076 Update `docs/api-reference.rst` to link to new P3 API documentation pages
+- [ ] T077 Update `docs/changelog.rst` to document P3 feature summary
+- [ ] T078 Validate Sphinx build: `sphinx-build -W docs/ build/docs/` (no warnings as errors)
 
 ---
 
@@ -272,8 +288,8 @@ Test Team:             T031-T032, T037-T038 (round-trip tests)
 | Phase 5 | T040-T047 | Junction semantics | 2 |
 | Phase 6 | T048-T054 | Advanced features | 2 |
 | Phase 7 | T055-T066 | BDD + docs | 3 |
-| Phase 8 | T067-T068 | Release | 1 |
-| **TOTAL** | **68** | | **22-30 days** |
+| Phase 8 | T067-T078 | Sphinx documentation | 2-3 |
+| **TOTAL** | **78** | | **23-32 days** |
 
 ---
 
@@ -302,7 +318,7 @@ Test Team:             T031-T032, T037-T038 (round-trip tests)
 ---
 
 **Status**: ✅ Phase 2 COMPLETE | ✅ Phase 3 COMPLETE | ✅ Phase 4 COMPLETE | ✅ Phase 5 COMPLETE | ✅ Phase 6 COMPLETE | ✅ Phase 7 COMPLETE
-**Next**: Phase 8 Release (T067-T068)
+**Next**: Phase 8 Sphinx Documentation (T067-T078)
 
 ---
 
