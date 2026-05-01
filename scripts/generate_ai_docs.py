@@ -18,6 +18,8 @@ AI_MD_PATH = REPO_ROOT / "AI.md"
 DOCS_DIR = REPO_ROOT / "docs"
 CLAUDE_TIMEOUT = 300  # seconds — SC-003: must complete within 5 minutes
 
+_NOT_MODIFIED = "AI.md was NOT modified."
+
 REQUIRED_SECTIONS = [
     "Summary",
     "Overview",
@@ -106,18 +108,18 @@ def generate_ai_md() -> None:
         content = run_claude(prompt)
     except RuntimeError as exc:
         print(f"ERROR: Generation failed — {exc}", file=sys.stderr)
-        print("AI.md was NOT modified.", file=sys.stderr)
+        print(_NOT_MODIFIED, file=sys.stderr)
         sys.exit(1)
 
     missing = validate_markdown_structure(content)
     if missing:
         print(f"ERROR: Output missing required sections: {missing}", file=sys.stderr)
-        print("AI.md was NOT modified.", file=sys.stderr)
+        print(_NOT_MODIFIED, file=sys.stderr)
         sys.exit(1)
 
     if not validate_markdown_syntax(content):
         print("ERROR: Output failed Markdown syntax validation.", file=sys.stderr)
-        print("AI.md was NOT modified.", file=sys.stderr)
+        print(_NOT_MODIFIED, file=sys.stderr)
         sys.exit(1)
 
     AI_MD_PATH.write_text(content, encoding="utf-8")
