@@ -1,3 +1,9 @@
+## v1.2.0 (2026-05-01)
+
+### Feat
+
+- Complete ArchiMate v3.x specification compliance (P1+P2) (#51)
+
 ## v1.1.0 (2026-05-01)
 
 ### Feat
