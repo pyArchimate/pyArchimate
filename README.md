@@ -53,6 +53,11 @@ Elements span the full ArchiMate 3 layer stack: **Strategy, Motivation, Business
 - No write support for ARIS AML
 - Not designed for interactive or real-time use — batch/scripting oriented
 
+## Documentation
+
+- [AI.md](AI.md) — machine-readable reference for AI-assisted tooling and developer onboarding
+- [Tutorial](docs/tutorial/tutorial.md) — step-by-step guide for new users with runnable code examples
+
 ## ArchiMate v3.x Compliance
 
 pyArchimate now supports ArchiMate 3.x specification compliance with the following features:
