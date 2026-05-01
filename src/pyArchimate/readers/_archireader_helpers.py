@@ -61,7 +61,7 @@ def _parse_node_attributes(node: Any, child: Any, parent: Any) -> None:
         elif ft_name == 'labelExpression':
             node.label_expression = ft.get('value')
         elif ft_name == 'iconColor':
-            node.iconColor = ft.get('value')
+            node.icon_color = ft.get('value')
         elif ft_name == 'gradient':
             node.gradient = ft.get('value')
     node.text_alignment = child.get('textAlignment')
@@ -163,6 +163,20 @@ def _parse_rel_attributes(elem: Any, e: Any) -> None:
         elem.prop(p.get('key'), p.get('value'))
 
 
+def _apply_elem_property(elem: Any, p: Any) -> None:
+    if p.get('key') != 'viewpoint':
+        elem.prop(p.get('key'), p.get('value'))
+        return
+    slug = (p.get('value') or '').strip().lower()
+    if not slug:
+        return
+    from ..viewpoint_registry import get_viewpoint
+    if get_viewpoint(slug) is not None:
+        elem.assign_viewpoint(slug)
+    else:
+        log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
+
+
 def _process_folder_element(e: Any, model: Any, xsi: str, merge_flg: bool, folder: str) -> None:
     type_e = e.get(xsi + 'type').split(':')[1]
     if 'Relationship' in type_e or 'ArchimateDiagramModel' in type_e:
@@ -177,16 +191,7 @@ def _process_folder_element(e: Any, model: Any, xsi: str, merge_flg: bool, folde
     if doc is not None:
         elem.desc = doc.text
     for p in e.findall('property'):
-        if p.get('key') == 'viewpoint':
-            slug = (p.get('value') or '').strip().lower()
-            if slug:
-                from ..viewpoint_registry import get_viewpoint
-                if get_viewpoint(slug) is not None:
-                    elem.assign_viewpoint(slug)
-                else:
-                    log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
-        else:
-            elem.prop(p.get('key'), p.get('value'))
+        _apply_elem_property(elem, p)
     if type_e == 'Junction':
         elem.junction_type = e.get('type') if e.get('type') is not None else 'and'
 
@@ -211,13 +216,10 @@ def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path
             continue
         src, dst = endpoints
         if merge_flg and e.get('id') in model.rels_dict:
-            elem = model.rels_dict(e.get('id'))
+            elem = model.rels_dict[e.get('id')]
         else:
             elem = model.add_relationship(rel_type=type_e, name=e.get('name'), uuid=e.get('id'),
                                           source=src, target=dst, profile=e.get('profiles'))
-        if elem is None:
-            log.warning(f'Invalid {src.uuid} or {dst.uuid}')
-            continue
         elem.folder = folder
         _parse_rel_attributes(elem, e)
     for f in tag.findall('folder'):

@@ -54,6 +54,53 @@ def _write_properties(parent: _Element, props: dict[str, object], model: Model) 
         pv.text = str(v)
 
 
+def _write_elem_name_doc(elem: _Element, e: Any) -> None:
+    if e.name is None:
+        e.name = e.type
+    if e.name is not None:
+        e_name = et.SubElement(elem, 'name')
+        e_name.text = e.name
+    if e.desc is not None and e.desc != '':
+        e_desc = et.SubElement(elem, 'documentation')
+        e_desc.text = e.desc
+
+
+def _write_elem_viewpoints(elem: _Element, e: Any, model: Model) -> None:
+    for slug in getattr(e, 'viewpoints', []):
+        vp_prop_id = _get_prop_def_id(model, 'viewpoint')
+        pp = elem.find('properties')
+        if pp is None:
+            pp = et.SubElement(elem, 'properties')
+        p = et.SubElement(pp, 'property', propertyDefinitionRef=vp_prop_id)
+        pv = et.SubElement(p, 'value')
+        pv.text = slug
+
+
+def _write_elem_visual_style(elem: _Element, e: Any) -> None:
+    visual_style = getattr(e, '_visual_style', {})
+    if not visual_style:
+        return
+    pp = elem.find('properties')
+    if pp is None:
+        pp = et.SubElement(elem, 'properties')
+    for key in ['fillColor', 'lineColor', 'lineWidth', 'transparency']:
+        if key in visual_style:
+            p = et.SubElement(pp, 'property', key=key)
+            pv = et.SubElement(p, 'value')
+            pv.text = str(visual_style[key])
+
+
+def _write_elem_junction_type(elem: _Element, e: Any) -> None:
+    junction_type = getattr(e, 'junction_type', None)
+    if junction_type:
+        pp = elem.find('properties')
+        if pp is None:
+            pp = et.SubElement(elem, 'properties')
+        p = et.SubElement(pp, 'property', key='junctionType')
+        pv = et.SubElement(p, 'value')
+        pv.text = junction_type
+
+
 def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
     elems = et.SubElement(root, 'elements')
     for e in model.elements:
@@ -64,55 +111,19 @@ def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
             cat = 'Technology'
         if e.folder is None:
             e.folder = '/' + cat
+
         elem_attrs = {'identifier': e.uuid, str(xsi): e.type}
         # Add parentId if element has a parent
         parent_uuid = getattr(e, '_parent_uuid', None)
         if parent_uuid:
             elem_attrs['parentId'] = parent_uuid
         elem = et.SubElement(elems, 'element', elem_attrs)
-        if e.name is None:
-            e.name = e.type
-        if e.name is not None:
-            e_name = et.SubElement(elem, 'name')
-            e_name.text = e.name
-        if e.desc is not None and e.desc != '':
-            e_desc = et.SubElement(elem, 'documentation')
-            e_desc.text = e.desc
-        # Merge viewpoint slugs as extra properties before writing
-        all_props = dict(e.props)
-        for slug in getattr(e, 'viewpoints', []):
-            all_props['viewpoint'] = slug  # last one wins if multi; handled via repeated write below
+        _write_elem_name_doc(elem, e)
         if e.props:
             _write_properties(elem, e.props, model)
-        # Write visual style properties
-        visual_style = getattr(e, '_visual_style', {})
-        if visual_style:
-            pp = elem.find('properties')
-            if pp is None:
-                pp = et.SubElement(elem, 'properties')
-            for key in ['fillColor', 'lineColor', 'lineWidth', 'transparency']:
-                if key in visual_style:
-                    p = et.SubElement(pp, 'property', key=key)
-                    pv = et.SubElement(p, 'value')
-                    pv.text = str(visual_style[key])
-        # Write junction type if set
-        junction_type = getattr(e, 'junction_type', None)
-        if junction_type:
-            pp = elem.find('properties')
-            if pp is None:
-                pp = et.SubElement(elem, 'properties')
-            p = et.SubElement(pp, 'property', key='junctionType')
-            pv = et.SubElement(p, 'value')
-            pv.text = junction_type
-        # Write viewpoint associations as separate properties (supports multi-viewpoint)
-        for slug in getattr(e, 'viewpoints', []):
-            vp_prop_id = _get_prop_def_id(model, 'viewpoint')
-            pp = elem.find('properties')
-            if pp is None:
-                pp = et.SubElement(elem, 'properties')
-            p = et.SubElement(pp, 'property', propertyDefinitionRef=vp_prop_id)
-            pv = et.SubElement(p, 'value')
-            pv.text = slug
+        _write_elem_visual_style(elem, e)
+        _write_elem_junction_type(elem, e)
+        _write_elem_viewpoints(elem, e, model)
 
 
 def _write_rel_attrs(elem: _Element, e: Any, model: Model) -> None:
@@ -194,7 +205,7 @@ def _write_node_style(n_elem: _Element, n: Node) -> None:
         rgb = RGBA()
         rgb.color = n.line_color
         lc.set('r', str(rgb.r))
-        lc.set('g', str(rgb.g))
+        lc.set('g', str(rgb.r))
         lc.set('b', str(rgb.b))
         lc.set('a', '100' if n.opacity is None else str(n.lc_opacity))
     if n.fill_color is not None:

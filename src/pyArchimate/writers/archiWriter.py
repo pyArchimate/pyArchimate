@@ -211,7 +211,7 @@ def _set_node_features(child: _Element, node: object) -> None:
     label_expression = getattr(node, 'label_expression', None)
     if label_expression is not None:
         et.SubElement(child, 'feature', name='labelExpression', value=label_expression)
-    icon_color = getattr(node, 'iconColor', None)
+    icon_color = getattr(node, 'icon_color', None)
     if icon_color is not None:
         et.SubElement(child, 'feature', name='iconColor', value=icon_color)
     gradient = getattr(node, 'gradient', None)

@@ -52,7 +52,7 @@ def set_id(uuid: Optional[str] = None) -> str:
     _id = str(uuid4()) if (uuid is None) else uuid
     if _is_valid_uuid(_id):
         _id = _id.replace('-', '')
-        if _id[:3] != 'id-':
+        if not _id.startswith('id-'):
             _id = 'id-' + _id
     return _id
 
