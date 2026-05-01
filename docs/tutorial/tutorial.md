@@ -66,8 +66,8 @@ A `Model` is the root container for all elements, relationships, and views.
 from pyArchimate import Model, ArchiType
 
 model = Model("e-commerce platform")
-print(model.type)   # Model
-print(model.name)   # e-commerce platform
+print(f"Model Type: {model.type}")   # Model
+print(f"Model Name: {model.name}")   # e-commerce platform
 ```
 
 ---
@@ -88,9 +88,9 @@ actor = model.add(ArchiType.BusinessActor, "Customer")
 
 rel = model.add_relationship(ArchiType.Serving, source=app, target=svc)
 
-print(len(model.elements))       # 3
-print(len(model.relationships))  # 1
-print(rel.type)                  # ArchiType.Serving
+print(f"Number of elements: {len(model.elements)}")       # 3
+print(f"Number of relationships: {len(model.relationships)}")  # 1
+print(f"Relationship type: {rel.type}")                  # Serving
 ```
 
 **Best practice:** Use the most semantically precise relationship type.
@@ -114,11 +114,10 @@ model.add(ArchiType.ApplicationService, "Authenticate")
 for elem in model.elements:
     print(f"{elem.type}: {elem.name}")
 
-app_components = [e for e in model.elements if e.type == "ApplicationComponent"]
-# ApplicationComponent: Auth Service
-# ApplicationComponent: Payment Service
-# ApplicationService: Authenticate
-print(len(app_components))  # 2
+app_components = [
+    e for e in model.elements if e.type == "ApplicationComponent"]
+print(f"Number of elements: {len(model.elements)}")  # 3
+print(f"Number of application components: {len(app_components)}")  # 2
 ```
 
 ---
@@ -141,8 +140,8 @@ node_app = view.add(app, x=0, y=0, w=120, h=55)
 node_svc = view.add(svc, x=200, y=0, w=120, h=55)
 conn = view.add_connection(rel, source=node_app, target=node_svc)
 
-print(len(view.nodes))  # 2
-print(len(view.conns))  # 1
+print(f"Number of nodes in view: {len(view.nodes)}")  # 2
+print(f"Number of connections in view: {len(view.conns)}")  # 1
 ```
 
 **Best practice:** Keep each view focused on a single concern or audience.
@@ -167,7 +166,7 @@ model.write("demo.archimate")
 
 reloaded = Model("reloaded")
 reloaded.read("demo.archimate")
-print(len(reloaded.elements))  # 2
+print(f"Number of elements after reload: {len(reloaded.elements)}")  # 2
 for elem in reloaded.elements:
     print(f"  {elem.type}: {elem.name}")
 # ApplicationComponent: Inventory Service
@@ -193,10 +192,10 @@ svc = model.add(ArchiType.ApplicationService, "Authenticate")
 model.add_relationship(ArchiType.Serving, source=app, target=svc)
 
 by_name = model.find_elements(name="Auth Service")
-print(by_name[0].name)  # Auth Service
+print(f"Found element: {by_name[0].name}")  # Auth Service
 
 outbound = model.find_relationships(ArchiType.Serving, app, direction="out")
-print(len(outbound))  # 1
+print(f"Number of outbound Serving relationships: {len(outbound)}")  # 1
 ```
 
 ---
@@ -217,10 +216,11 @@ from pyArchimate import (
 
 # Query the default relationship between two element types
 default = get_default_rel_type("ApplicationComponent", "ApplicationService")
-print(default)  # Serving
+print(f"The default relationship between 'ApplicationComponent' and 'ApplicationService' is: '{default}'")  # Serving
 
 # Validate a specific combination (returns silently if valid)
-check_valid_relationship("Serving", "ApplicationComponent", "ApplicationService")
+check_valid_relationship(
+    "Serving", "ApplicationComponent", "ApplicationService")
 
 # Invalid combination raises (or logs) an error
 try:
@@ -241,7 +241,7 @@ node_svc = view.add(svc, x=200, y=0, w=120, h=55)
 view.add_connection(rel, source=node_app, target=node_svc)
 
 invalid_conns = model.check_invalid_conn()
-print(len(invalid_conns))  # 0
+print(f"Number of invalid connections: {len(invalid_conns)}")  # 0
 ```
 
 ---
@@ -264,19 +264,19 @@ app.desc = "Handles payment processing for the checkout flow."
 # Set and read properties
 app.prop("team", "Payments")
 app.prop("tier", "critical")
-print(app.prop("team"))   # Payments
-print(app.props)          # {'team': 'Payments', 'tier': 'critical'}
+print(f"Team property: {app.prop('team')}")   # Payments
+print(f"All properties: {app.props}")          # {'team': 'Payments', 'tier': 'critical'}
 
 # Remove a property
 app.remove_prop("tier")
-print(app.props)          # {'team': 'Payments'}
+print(f"Properties after 'tier' removal: {app.props}")  # {'team': 'Payments'}
 
 # Relationships support the same interface
 svc = model.add(ArchiType.ApplicationService, "Charge Card")
 rel = model.add_relationship(ArchiType.Serving, source=app, target=svc)
 rel.desc = "Exposes the charge-card capability as a service."
 rel.prop("sla", "99.9%")
-print(rel.prop("sla"))    # 99.9%
+print(f"SLA property: {rel.prop('sla')}")    # 99.9%
 ```
 
 ---
@@ -332,7 +332,7 @@ ext.write("extension.archimate")
 
 # Merge extension into base
 base.merge("extension.archimate")
-print(len(base.elements))  # 2 — Auth Service + Payment Service
+print(f"Number of elements after merge: {len(base.elements)}")  # 2
 ```
 
 ---
@@ -356,18 +356,18 @@ pay.prop("team", "payments")
 
 # Filter elements whose name contains "Service"
 services = model.filter_elements(lambda e: "Service" in e.name)
-print(len(services))  # 3
+print(f"Number of elements with 'Service' in name: {len(services)}")  # 3
 
 # Filter by a custom property value
 identity_team = model.filter_elements(lambda e: e.prop("team") == "identity")
-print(identity_team[0].name)  # Auth Service
+print(f"Identity team element: {identity_team[0].name}")  # Auth Service
 
 # Filter relationships by source type
 model.add_relationship(ArchiType.Serving, source=auth, target=svc)
 app_rels = model.filter_relationships(
     lambda r: r.source.type == "ApplicationComponent"
 )
-print(len(app_rels))  # 1
+print(f"Number of relationships from ApplicationComponent: {len(app_rels)}")  # 1
 ```
 
 ---
@@ -387,16 +387,16 @@ model = Model("idempotent demo")
 # First call creates the element; second call returns the same object
 svc1 = model.get_or_create_element("ApplicationComponent", "Order Service", create_elem=True)
 svc2 = model.get_or_create_element("ApplicationComponent", "Order Service", create_elem=True)
-print(svc1.uuid == svc2.uuid)  # True
-print(len(model.elements))     # 1
+print(f"Same element returned? {svc1.uuid == svc2.uuid}")  # True
+print(f"Number of elements: {len(model.elements)}")  # 1
 
 # Same pattern for relationships
 app = model.add(ArchiType.ApplicationComponent, "Auth Service")
 ep  = model.add(ArchiType.ApplicationService,  "Login")
 rel1 = model.get_or_create_relationship("Serving", None, app, ep, create_rel=True)
 rel2 = model.get_or_create_relationship("Serving", None, app, ep, create_rel=True)
-print(rel1.uuid == rel2.uuid)  # True
-print(len(model.relationships)) # 1
+print(f"Same relationship returned? {rel1.uuid == rel2.uuid}")  # True
+print(f"Number of relationships: {len(model.relationships)}")  # 1
 ```
 
 ---
@@ -422,11 +422,11 @@ view.add_connection(rel, source=node_app, target=node_svc)
 
 # Apply the built-in ArchiMate color theme to all nodes
 model.default_theme("archi")
-print(node_app.fill_color)  # e.g. #ffff99 (yellow for Application layer)
+print(f"Default fill color for ApplicationComponent: {node_app.fill_color}")
 
 # Override a single node's color
 node_svc.fill_color = "#cce5ff"
-print(node_svc.fill_color)  # #cce5ff
+print(f"Custom fill color: {node_svc.fill_color}")  # #cce5ff
 ```
 
 ---
@@ -455,8 +455,8 @@ node_pay  = node_cluster.add(pay,  x=180, y=40, w=120, h=55)
 # Auto-resize the parent to fit its children with default padding
 node_cluster.resize()
 
-print(len(node_cluster.nodes))  # 2
-print(node_cluster.w > 120)     # True — expanded to fit children
+print(f"Number of child nodes: {len(node_cluster.nodes)}")  # 2
+print(f"Parent expanded to fit children? {node_cluster.w > 120}")  # True
 ```
 
 ---
@@ -487,16 +487,16 @@ conn     = view.add_connection(rel, source=node_app, target=node_db)
 
 # Route as an L-shape (one bendpoint)
 conn.l_shape()
-print(len(conn.get_all_bendpoints()))  # 1
+print(f"Number of bendpoints (L-shape): {len(conn.get_all_bendpoints())}")  # 1
 
 # Route as an S-shape (two bendpoints)
 conn.s_shape()
-print(len(conn.get_all_bendpoints()))  # 2
+print(f"Number of bendpoints (S-shape): {len(conn.get_all_bendpoints())}")  # 2
 
 # Manual bendpoint
 conn.remove_all_bendpoints()
 conn.add_bendpoint(Point(150, 50))
-print(conn.get_bendpoint(0).x)  # 150
+print(f"First bendpoint x-coordinate: {conn.get_bendpoint(0).x}")  # 150
 ```
 
 ---
@@ -531,7 +531,7 @@ view.add_connection(rel3, source=node_hub, target=ns3)
 
 # Spread connection endpoints evenly along the hub node's edges
 node_hub.distribute_connections()
-print(len(node_hub.out_conns()))  # 3
+print(f"Number of outgoing connections from hub: {len(node_hub.out_conns())}")  # 3
 ```
 
 ---
@@ -553,12 +553,12 @@ app.prop("sla",   "99.5%")
 
 # Embed properties into desc before exporting to a property-unaware tool
 model.embed_props()
-print("owner" in (app.desc or ""))  # True — properties serialised into desc
-print(app.props)                    # {} — original properties removed
+print(f"Properties serialised in desc? {'owner' in (app.desc or '')}")  # True
+print(f"Properties dict after embed: {app.props}")  # {}
 
 # Restore properties from desc after reloading
 model.expand_props()
-print(app.prop("owner"))  # supply-chain-team
+print(f"Owner property after expand: {app.prop('owner')}")  # supply-chain-team
 ```
 
 ---
@@ -584,6 +584,6 @@ log_to_stderr()
 
 ## Next Steps
 
-- Read [AI.md](../../AI.md) for a complete API and concept reference.
+- Read the [API reference](https://pyarchimate.readthedocs.io/) for a complete API and concept reference.
 - Browse the [ArchiMate 3.2 specification](https://pubs.opengroup.org/architecture/archimate3-doc/)
   for the full element and relationship catalogue.

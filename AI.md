@@ -130,6 +130,50 @@ Visual representation of a relationship between nodes.
 - Outputs standard ArchiMate XML
 - Compatible with Archi and other EA platforms supporting ArchiMate
 
+### Properties & Metadata
+
+- Attach arbitrary key/value metadata to elements, relationships, and views via `prop(key, value)`
+- Access all properties with `props` (returns dict); remove with `remove_prop(key)`
+- Free-text documentation via the `desc` attribute on elements and relationships
+- `embed_props()` / `expand_props()` for round-tripping properties through tools that strip them
+
+### Search & Filter
+
+- `find_elements(name, elem_type)` — exact match by name and/or type
+- `find_relationships(rel_type, elem, direction)` — directional relationship lookup
+- `filter_elements(predicate)` / `filter_relationships(predicate)` / `filter_views(predicate)` — lambda filtering
+
+### Validation
+
+- `check_valid_relationship(rel_type, source_type, target_type)` — validate against ArchiMate rules
+- `get_default_rel_type(source_type, target_type)` — return preferred valid relationship type
+- `model.check_invalid_conn()` — return list of broken connection IDs in the model
+
+### Idempotent Operations
+
+- `get_or_create_element(elem_type, name, create_elem=False)` — safe for re-entrant scripts
+- `get_or_create_relationship(rel_type, name, source, target, create_rel=False)` — same for relationships
+
+### Model Merging
+
+- `model.merge(file_path)` — combine a second model file into this one; deduplicates by UUID
+
+### Node Styling
+
+- `node.fill_color` / `node.line_color` — hex colour strings (`#RRGGBB`)
+- `model.default_theme(theme)` — apply built-in ArchiMate or ARIS colour palette to all nodes
+
+### Nested Nodes & Layout
+
+- `node.add(elem, x, y, w, h)` — add a child node inside a parent (containment/grouping)
+- `node.resize()` — auto-expand parent to fit children
+- `node.distribute_connections()` — spread connection endpoints evenly along node edges
+
+### Connection Routing
+
+- `conn.l_shape()` / `conn.s_shape()` — route as L or S shape with auto-placed bendpoints
+- `conn.add_bendpoint(Point)` / `conn.remove_all_bendpoints()` — manual waypoint control
+
 ---
 
 ## Typical Use Cases
@@ -173,6 +217,120 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 - Requires understanding of ArchiMate concepts
 - Visualization typically handled by external tools (e.g., Archi)
 - Not fully conformant to the complete ArchiMate 3.x specification (see Non-Conformances below)
+
+---
+
+## API Reference
+
+### Writers (enum)
+
+| Value | Format |
+|---|---|
+| `Writers.archimate` | Archi tool `.archimate` XML (default) |
+| `Writers.archi` | OpenGroup ArchiMate Exchange XML |
+| `Writers.csv` | CSV spreadsheet |
+
+### Model (API)
+
+| Method / Property | Description |
+|---|---|
+| `Model(name)` | Create a new empty model |
+| `add(concept_type, name)` | Add element or view; returns created object |
+| `add_relationship(rel_type, source, target)` | Add typed relationship between two elements |
+| `read(file_path)` | Load model from file (auto-detects format) |
+| `write(file_path, writer)` | Persist model; `writer` selects output format |
+| `merge(file_path)` | Merge a second model file in; deduplicates by UUID |
+| `find_elements(name, elem_type)` | Find elements by name and/or type string |
+| `find_relationships(rel_type, elem, direction)` | Find relationships for an element |
+| `filter_elements(predicate)` | Filter elements with a lambda predicate |
+| `filter_relationships(predicate)` | Filter relationships with a lambda predicate |
+| `filter_views(predicate)` | Filter views with a lambda predicate |
+| `get_or_create_element(elem_type, name, create_elem)` | Idempotent element lookup or creation |
+| `get_or_create_relationship(rel_type, name, src, tgt, create_rel)` | Idempotent relationship lookup or creation |
+| `check_invalid_conn()` | Return list of connection IDs with broken references |
+| `embed_props(remove_props)` | Serialise all properties into `desc` fields as JSON |
+| `expand_props(clean_doc)` | Restore properties from embedded JSON in `desc` fields |
+| `default_theme(theme)` | Apply colour theme (`"archi"` or `"aris"`) to all nodes |
+| `elements` | All elements in the model |
+| `relationships` | All relationships in the model |
+| `views` | All views in the model |
+
+### Element (API)
+
+| Method / Property | Description |
+|---|---|
+| `name` | Element name (read/write) |
+| `type` | ArchiMate type string (read/write) |
+| `desc` | Free-text documentation string |
+| `uuid` | Unique identifier |
+| `prop(key, value)` | Get (`value=None`) or set a metadata property |
+| `props` | All properties as a `dict` |
+| `remove_prop(key)` | Delete a property by key |
+
+### Relationship (API)
+
+| Method / Property | Description |
+|---|---|
+| `type` | Relationship type string (read/write) |
+| `source` | Source element |
+| `target` | Target element |
+| `desc` | Free-text documentation string |
+| `uuid` | Unique identifier |
+| `prop(key, value)` | Get or set a metadata property |
+| `props` | All properties as a `dict` |
+| `remove_prop(key)` | Delete a property by key |
+| `access_type` | For Access relationships: `"Read"`, `"Write"`, `"ReadWrite"` |
+| `influence_strength` | For Influence: `0–10`, `"+"`, `"++"`, `"-"`, `"--"` |
+| `is_directed` | For Association: `True` if directed |
+
+### View (API)
+
+| Method / Property | Description |
+|---|---|
+| `add(elem, x, y, w, h)` | Add a node for an element at given coordinates |
+| `add_connection(rel, source, target)` | Add a connection for a relationship between nodes |
+| `nodes` | All nodes in the view |
+| `conns` | All connections in the view |
+| `name` | View name |
+
+### Node (API)
+
+| Method / Property | Description |
+|---|---|
+| `add(elem, x, y, w, h)` | Add a child node nested inside this node |
+| `nodes` | Child nodes |
+| `resize(max_in_row, ...)` | Auto-expand to fit children |
+| `distribute_connections()` | Spread connection endpoints evenly along edges |
+| `out_conns(rel_type)` | Outgoing connections, optionally filtered by type |
+| `in_conns(rel_type)` | Incoming connections, optionally filtered by type |
+| `fill_color` | Fill colour as `#RRGGBB` |
+| `line_color` | Border colour as `#RRGGBB` |
+| `x`, `y`, `w`, `h` | Position and dimensions |
+| `concept` | Underlying element or relationship |
+
+### Connection (API)
+
+| Method / Property | Description |
+|---|---|
+| `l_shape()` | Route as L-shape with one auto bendpoint |
+| `s_shape()` | Route as S-shape with two auto bendpoints |
+| `add_bendpoint(Point)` | Append a waypoint to the connection path |
+| `remove_all_bendpoints()` | Clear all waypoints |
+| `get_all_bendpoints()` | Return list of all waypoints |
+| `get_bendpoint(index)` | Return waypoint at index |
+| `line_color` | Connection colour as `#RRGGBB` |
+| `source` | Source node |
+| `target` | Target node |
+
+### Module-level Functions
+
+| Function | Description |
+|---|---|
+| `check_valid_relationship(rel_type, src_type, tgt_type, raise_flg)` | Validate rel type against ArchiMate rules |
+| `get_default_rel_type(source_type, target_type)` | Return preferred valid relationship type |
+| `log_set_level(level)` | Set logging verbosity (standard `logging` levels) |
+| `log_to_file(path)` | Redirect log output to a file |
+| `log_to_stderr()` | Redirect log output to stderr |
 
 ---
 
