@@ -1,7 +1,5 @@
+lxml
 oyaml
-sphinx
-sphinx_rtd_theme
 pillow
 requests
-lxml
-build
+pytest
