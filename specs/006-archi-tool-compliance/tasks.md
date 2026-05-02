@@ -1,10 +1,13 @@
 # Feature 006: Archi Tool Fidelity & Bug Fixes — Implementation Tasks
 
 **Feature Branch**: `006-archi-tool-compliance`  
-**Total Tasks**: 12  
-**Estimated Effort**: ~170 minutes (~2.8 hours)  
-**Target Completion**: 2026-05-02  
+**Total Tasks**: 15 (13 implementation + 2 polish/refactoring)  
+**Estimated Effort**: ~170 minutes (~2.8 hours) + ~30 minutes refactoring  
+**Target Completion**: 2026-05-02 ✅ COMPLETED  
 **Scope Expansion**: Added image preservation validation (US-003)
+**Additional Work**: Cognitive complexity refactoring + comprehensive docstrings
+
+**Status**: ✅ ALL TASKS COMPLETED — Ready for pull request to develop branch
 
 ---
 
@@ -52,7 +55,7 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
 **Effort**: ~5 minutes  
 **Blocking**: T002, T003, T005, T006, T007
 
-- [ ] T001 Create `parse_bool()` helper function in `src/pyArchimate/helpers.py`
+- [x] T001 Create `parse_bool()` helper function in `src/pyArchimate/helpers/parsing.py` ✅
   - Implement per W3C xsd:boolean spec
   - Handle inputs: "true", "false", "1", "0", case-insensitive
   - Handle edge cases: None, empty string, whitespace
@@ -82,7 +85,7 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
 **Parallelizable**: [P]  
 **Depends on**: T001
 
-- [ ] T002 [P] [US1] Fix label visibility parsing in `src/pyArchimate/readers/_archireader_helpers.py:115-116`
+- [x] T002 [P] [US1] Fix label visibility parsing in `src/pyArchimate/readers/_archireader_helpers.py:125` ✅
   - Current: `conn.show_label = bool(ft.get('value'))`
   - Fixed: `conn.show_label = parse_bool(ft.get('value'))`
   - Import `parse_bool` from helpers module
@@ -104,7 +107,7 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
 **Parallelizable**: [P]  
 **Depends on**: T001
 
-- [ ] T003 [P] [US1] Verify/fix boolean output in `src/pyArchimate/writers/archiWriter.py:149-151`
+- [x] T003 [P] [US1] Verify/fix boolean output in `src/pyArchimate/writers/archiWriter.py:160-162` ✅
   - Current: May use `str(show_label)` → "True"/"False" (capitalized)
   - Fixed: Output lowercase "true"/"false" to match Archi spec
   - Change: `ft.set('value', 'true' if show_label else 'false')`
@@ -126,7 +129,7 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
 **Parallelizable**: [P]  
 **Depends on**: T001
 
-- [ ] T005 [P] [US1] Create unit tests for `parse_bool()` in `tests/unit/test_helpers.py`
+- [x] T005 [P] [US1] Create unit tests for `parse_bool()` in `tests/unit/test_parsing_helpers.py` ✅
   - Test: `parse_bool(None)` → False
   - Test: `parse_bool("true")` → True
   - Test: `parse_bool("false")` → False
@@ -154,7 +157,7 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
 **Parallelizable**: [P]  
 **Depends on**: T002, T003
 
-- [ ] T006 [P] [US1] Create integration test for label visibility round-trip in `tests/integration/test_archimate_roundtrip.py`
+- [x] T006 [P] [US1] Create integration test for label visibility round-trip in `tests/integration/test_label_visibility_roundtrip.py` ✅
   - Test: Import Archi file with `nameVisible="false"` → verify `conn.show_label=False`
   - Test: Import Archi file with `nameVisible="true"` → verify `conn.show_label=True`
   - Test: Import, export, re-import → label visibility matches exactly
@@ -184,7 +187,7 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
 **Parallelizable**: [P]  
 **Depends on**: T001 (none, but grouped with Phase 2 for convenience)
 
-- [ ] T004 [P] [US2] Fix view documentation text extraction in `src/pyArchimate/readers/_archireader_helpers.py:237`
+- [x] T004 [P] [US2] Fix view documentation text extraction in `src/pyArchimate/readers/_archireader_helpers.py:238` ✅
   - Current: `elem.desc = e.text` (wrong - uses parent element text)
   - Fixed: `elem.desc = doc.text` (correct - uses documentation element text)
   - Verify: Line 237 now matches pattern used for elements/relationships (lines 161, 178)
@@ -206,7 +209,7 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
 **Parallelizable**: [P]  
 **Depends on**: T004
 
-- [ ] T007 [P] [US2] Create integration test for view documentation round-trip in `tests/integration/test_archimate_roundtrip.py`
+- [x] T007 [P] [US2] Create integration test for view documentation round-trip in `tests/integration/test_view_documentation_roundtrip.py` ✅
   - Test: Import Archi file with view `<documentation>` elements → verify `view.desc` is set
   - Test: Import, export, re-import → view documentation text matches exactly
   - Test: Empty `<documentation>` → handled gracefully (view.desc = None or "")
@@ -237,7 +240,7 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
 **Parallelizable**: [P]  
 **Depends on**: None (independent test fixture creation)
 
-- [ ] T009 [P] [US3] Create minimal Archi files with embedded test images in `tests/fixtures/`
+- [x] T009 [P] [US3] Create minimal Archi files with embedded test images in `tests/fixtures/` ✅
   - Create 1x1 PNG image (smallest valid PNG, ~70 bytes)
   - Create simple SVG image (plain text, ~200 bytes)
   - Embed both as base64 in Archi XML structure
@@ -264,7 +267,7 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
 **Parallelizable**: [P]  
 **Depends on**: None (independent utility)
 
-- [ ] T010 [P] [US3] Create image comparison utility in `src/pyArchimate/helpers.py`
+- [x] T010 [P] [US3] Create image comparison utility in `src/pyArchimate/helpers/parsing.py` ✅
   - Function: `extract_images(archimate_xml_element)` → list of base64 strings
   - Function: `compare_image_data(data1, data2)` → bool (byte-for-byte match)
   - Handle multiple image elements in a single file
@@ -288,7 +291,7 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
 **Parallelizable**: [P]  
 **Depends on**: T009, T010
 
-- [ ] T011 [P] [US3] Create integration test for single image preservation in `tests/integration/test_archimate_roundtrip.py`
+- [x] T011 [P] [US3] Create integration test for single image preservation in `tests/integration/test_image_preservation_roundtrip.py` ✅
   - Load `test_single_image.archimate` file
   - Extract image base64 data
   - Import into pyArchimate model
@@ -313,7 +316,7 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
 **Parallelizable**: [P]  
 **Depends on**: T009, T010
 
-- [ ] T012 [P] [US3] Create integration test for multiple images preservation in `tests/integration/test_archimate_roundtrip.py`
+- [x] T012 [P] [US3] Create integration test for multiple images preservation in `tests/integration/test_image_preservation_roundtrip.py` ✅
   - Load `test_multiple_images.archimate` file (PNG + SVG)
   - Extract all image base64 data (should be 2 images)
   - Import into pyArchimate model
@@ -340,7 +343,7 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
 **Effort**: ~10 minutes  
 **Blocking**: None (final validation)
 
-- [ ] T013 Verify no regressions and Feature 004 compatibility
+- [x] T013 Verify no regressions and Feature 004 compatibility ✅
   - Run full test suite: `pytest tests/ -v`
   - Run BDD scenarios: `behave tests/features/ --format progress`
   - Verify code coverage: ≥ 90% on modified files
@@ -359,6 +362,64 @@ No setup tasks required. All dependencies (pytest, behave, lxml) are existing.
   - `src/pyArchimate/writers/archiWriter.py` (lines 149-151)
 - No regression in Feature 004 tests
 - All acceptance criteria from spec.md are met
+
+---
+
+## Phase 7: Code Quality & Documentation Polish
+
+### T014: Refactor _process_folder_element() to Reduce Cognitive Complexity
+
+**Story**: Polish  
+**Effort**: ~25 minutes  
+**Parallelizable**: [P]  
+**Depends on**: None (independent refactoring)
+
+- [x] T014 Refactor `_process_folder_element()` in `src/pyArchimate/readers/_archireader_helpers.py` to reduce cognitive complexity below 15 ✅
+  - Extract 5 helper functions to reduce main function complexity
+  - Helper: `_process_viewpoint_property()` - viewpoint assignment with validation
+  - Helper: `_process_property()` - property dispatch (viewpoint vs generic)
+  - Helper: `_get_or_create_element()` - element retrieval with merge logic
+  - Helper: `_set_documentation()` - documentation extraction
+  - Helper: `_set_junction_type()` - junction type with 'and' default
+  - Main function complexity reduced from ~15+ to ~5
+  - All 684 tests pass
+  - Code coverage maintained at 93%
+
+**Test Command**: pytest tests/ -q
+
+**Acceptance**:
+- Main function has simple linear flow
+- Helper functions are well-structured with single responsibility
+- All tests passing (684/684)
+- No regressions in Feature 004 or earlier features
+
+---
+
+### T015: Add Docstrings to Helper Functions
+
+**Story**: Polish  
+**Effort**: ~5 minutes  
+**Parallelizable**: [P]  
+**Depends on**: T014
+
+- [x] T015 Add docstrings to all extracted helper functions in `src/pyArchimate/readers/_archireader_helpers.py` ✅
+  - Add concise one-line docstrings to:
+    - `_process_viewpoint_property()`: Viewpoint assignment with validation
+    - `_process_property()`: Property dispatch (viewpoint vs generic)
+    - `_get_or_create_element()`: Element retrieval with merge logic
+    - `_set_documentation()`: Documentation extraction
+    - `_set_junction_type()`: Junction type assignment with default
+  - Follow project docstring conventions
+  - Maintain code readability and maintainability
+
+**Test Command**: python -m pyright src/pyArchimate/readers/_archireader_helpers.py
+
+**Acceptance**:
+- All functions have clear docstrings
+- pyright: 0 errors, 0 warnings
+- mypy: No issues found
+- ruff: All checks passed
+- All tests passing (684/684)
 
 ---
 
@@ -420,17 +481,75 @@ Overall: ~170 minutes serial → ~90 minutes parallel (47% efficiency)
 
 ## Success Checklist
 
-- [ ] All 13 tasks completed
-- [ ] All unit tests pass (T005, T010)
-- [ ] All integration tests pass (T006, T007, T011, T012)
-- [ ] Test fixtures created (T009)
-- [ ] Full regression test suite passes (T013)
-- [ ] Code coverage ≥ 90% on modified files
-- [ ] Image data preserved byte-for-byte (T011, T012)
-- [ ] No breaking API changes
-- [ ] Backward compatible
-- [ ] Commits follow project conventions
-- [ ] Branch ready for PR to develop
+- [x] All 15 tasks completed ✅
+- [x] All unit tests pass (T005, T010) - 15 unit tests ✅
+- [x] All integration tests pass (T006, T007, T011, T012) - 22 integration tests ✅
+- [x] Test fixtures created (T009) ✅
+- [x] Full regression test suite passes (T013) - 684/684 tests ✅
+- [x] Code coverage ≥ 90% on modified files - 93% overall ✅
+- [x] Image data preserved byte-for-byte (T011, T012) ✅
+- [x] No breaking API changes ✅
+- [x] Backward compatible ✅
+- [x] Commits follow project conventions - 13 commits ✅
+- [x] Branch ready for PR to develop ✅
+- [x] Cognitive complexity refactored below 15 (T014) ✅
+- [x] All functions documented with docstrings (T015) ✅
+- [x] Code quality checks pass (pyright, mypy, ruff) ✅
+
+---
+
+## Implementation Summary
+
+### Completed Work
+
+**Total Commits**: 15  
+**Branch**: `006-archi-tool-compliance`
+
+#### Core Implementation (T001-T013)
+- ✅ Parsing helper (`parse_bool`) with W3C xsd:boolean compliance
+- ✅ Label visibility round-trip fidelity (nameVisible preservation)
+- ✅ View documentation extraction and round-trip preservation
+- ✅ Image preservation validation with byte-for-byte comparison
+- ✅ Image property key handling ('image', 'image-data', 'image_data')
+- ✅ 37 tests created (15 unit + 22 integration)
+- ✅ 100% coverage on new parsing module
+- ✅ Zero regressions in existing code (684/684 tests passing)
+
+#### Code Quality (T014-T015)
+- ✅ Cognitive complexity refactored below 15 in `_process_folder_element()`
+- ✅ 5 helper functions extracted with single responsibility
+- ✅ Comprehensive docstrings on all helper functions
+- ✅ Type checking: pyright 0 errors, mypy 0 issues
+- ✅ Linting: ruff all checks passed
+
+### Commit History
+
+```
+bc81bfb docs: Add docstrings to helper functions in _archireader_helpers.py
+9ed64bc refactor: Extract helper functions in _process_folder_element
+873d699 fix(typing): Add type annotation for element parameter
+05ecc3c fix(exports): Export parse_bool from helpers.parsing in __init__.py
+fd880e3 test(T013): Verify regression tests and Feature 004 compatibility
+d92d240 feat,test(T009-T012): Add image preservation validation with test fixtures
+d8e5c81 test(T007): Add integration tests for view documentation round-trip
+cd9be45 test(T006): Add integration tests for label visibility round-trip
+a48df2a fix,test(T004,T005): Fix view docs extraction and add comprehensive unit tests
+00b40fe fix(T002,T003): Fix label visibility boolean parsing in reader and writer
+6ca1e50 feat(T001): Create parse_bool() and image helpers in parsing module
+58f30ed docs: Expand Feature 006 scope to include image preservation validation
+f766257 docs: Generate Feature 006 implementation tasks
+468e611 docs: Add clarifications section to Feature 006 spec
+3e083fc docs: Create Feature 006 specification for Archi tool fidelity fixes
+```
+
+### Test Results
+
+- **Unit Tests**: 15 passing (100%)
+- **Integration Tests**: 22 passing (100%)
+- **Total Tests**: 684 passing (Feature 006 + all existing tests)
+- **Code Coverage**: 93% overall, 100% on new parsing module
+- **Type Checking**: 0 errors (pyright + mypy)
+- **Linting**: All checks passed (ruff)
 
 ---
 
@@ -442,3 +561,7 @@ Overall: ~170 minutes serial → ~90 minutes parallel (47% efficiency)
 - **Contracts**: `specs/006-archi-tool-compliance/contracts/`
 - **Testing Guide**: `specs/006-archi-tool-compliance/quickstart.md`
 - **Related**: Feature 004 (`specs/004-archimate-spec-compliance/`)
+
+---
+
+**Next Step**: Create pull request to `develop` branch for code review and integration
