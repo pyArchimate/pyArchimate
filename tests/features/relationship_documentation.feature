@@ -52,7 +52,7 @@ Feature: Preserve Relationship Documentation in Round-Trip Operations
     And the full text is accessible
 
   Scenario: Preserve Unicode characters in documentation
-    Given I have a relationship with description "Handles 关系説明 interactions"
+    Given I have a relationship with description "Handles 関系説明 interactions"
     When I export and re-import the relationship
     Then the Unicode characters are preserved exactly
     And the documentation reads "Handles 関系説明 interactions" (or equivalent encoding)
