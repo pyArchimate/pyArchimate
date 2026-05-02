@@ -9,7 +9,15 @@ try:
 except ImportError:
     import sys
     sys.path.insert(0, "..")
-    from pyArchimate import AccessType, ArchiType, Node, Point, View, log, parse_bool  # type: ignore[no-redef,attr-defined]
+    from pyArchimate import (  # type: ignore[no-redef,attr-defined]
+        AccessType,
+        ArchiType,
+        Node,
+        Point,
+        View,
+        log,
+        parse_bool,
+    )
 
 
 def _parse_node_type(parent: Any, child: Any, xsi: str) -> Any:
