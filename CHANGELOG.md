@@ -1,3 +1,10 @@
+## v1.4.2 (2026-05-02)
+
+### Fix
+
+- **ci**: guard publish job to only run on tag pushes
+- **ci**: apply same Poetry/encoding fixes to release workflow
+
 ## v1.4.1 (2026-05-02)
 
 ### Fix
