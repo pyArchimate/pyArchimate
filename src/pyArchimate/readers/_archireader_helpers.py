@@ -235,7 +235,7 @@ def get_folders_view(tag: Any, model: Any, xsi: str, folder_path: str = '') -> N
         elem.folder = folder
         doc = e.find('documentation')
         if doc is not None:
-            elem.desc = e.text
+            elem.desc = doc.text
         for p in e.findall('property'):
             elem.prop(p.get('key'), p.get('value'))
         # Read view-level primary viewpoint from 'viewpoint' XML attribute
