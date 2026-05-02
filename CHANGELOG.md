@@ -1,3 +1,9 @@
+## v1.4.1 (2026-05-02)
+
+### Fix
+
+- **ci**: fix Windows Python version mismatch and behave UTF-8 encoding
+
 ## v1.4.0 (2026-05-02)
 
 ### Feat

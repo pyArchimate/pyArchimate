@@ -57,7 +57,7 @@ claude -p "Review @AI.md for accuracy since the last release tag version." --dan
 if ! git diff --quiet; then
     echo ""
     echo "💾 Committing updated artefacts (diagrams, AI.md, docs)..."
-    git add docs/diagrams/ AI.md build/html -f
+    git add docs/diagrams/ AI.md
     git commit -m "docs: regenerate diagrams, AI.md, and Sphinx docs pre-release"
 fi
 
