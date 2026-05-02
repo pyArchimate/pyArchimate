@@ -1,4 +1,43 @@
-## v1.3.0 (2026-05-01)
+## v1.3.0 (2026-05-02)
+
+### Feat
+
+- enhance model initialization and relationship handling with edge case tests
+- Complete BDD test implementations for visual styling and integration
+- Complete Phase 8 - Sphinx Documentation for P3 Features
+- Complete Phase 7 - BDD Acceptance Tests & Documentation
+- Phase 6 - Advanced features and performance optimization
+- Phase 5 - Complete junction semantics implementation
+- Complete Phase 4 - Writer Integration & Round-Trip Fidelity Validation
+- Complete Phase 3 - Reader Integration for hierarchy and visual styles
+- Implement XML import/export for element hierarchy and visual styling
+- Complete P3 Phase 2 — Core Element Grouping & Visual Style Implementation
+- Complete ArchiMate v3.x specification compliance (P1+P2)
+- **ai-docs**: implement US2–US4 — tutorial, idempotency test, README links, maintainer docs
+- **ai-docs**: implement US1 — AI.md, generation script, and test suite
+
+### Fix
+
+- **scripts**: make ANTHROPIC_API_KEY optional when claude CLI is already authenticated
+- **element**: use startswith instead of slice comparison to resolve S6659
+- **view**: rename iconColor field to snake_case icon_color to resolve S116
+- **view**: use union type expression for type hints to resolve S6546
+- Resolve ambiguous BDD steps and fix get_ancestors() semantics
+- Add type annotation to results list in find_by_hierarchy_path
+- **ci**: suppress SonarCloud version-pinning warnings and fix S8541 with --no-root
+- reverse broken tests
+- **meta**: correct license to GPL-3.0, Python badge to 3.10+, add SonarCloud/RTD badges, fix RTD theme dep
+- **ci**: suppress SonarCloud version-pinning warnings and fix S8541 with --no-root
+
+### Refactor
+
+- remove unused variables in view tests for clarity
+- remove unused variables in tests and update pyproject.toml for ruff compatibility
+- **writers**: extract helpers to reduce S3776 complexity in _write_elements
+- **readers**: extract helpers to reduce S3776 complexity in _read_elements and _read_views
+- **readers**: extract _apply_elem_property to reduce S3776 complexity in _archireader_helpers
+
+## v1.2.1 (2026-05-01)
 
 ### Feat
 
