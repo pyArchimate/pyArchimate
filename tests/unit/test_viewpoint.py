@@ -1,5 +1,4 @@
 """Unit tests for Viewpoint entity and registry."""
-import pytest
 from src.pyArchimate.viewpoint import Viewpoint
 from src.pyArchimate.viewpoint_registry import STANDARD_VIEWPOINTS, get_viewpoint
 

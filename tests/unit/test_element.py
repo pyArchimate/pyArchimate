@@ -1,10 +1,10 @@
 import pytest
 
-from src.pyArchimate import ArchiType, Element as PackageElement
+from src.pyArchimate import ArchiType
+from src.pyArchimate import Element as PackageElement
 from src.pyArchimate.element import Element
 from src.pyArchimate.exceptions import ArchimateConceptTypeError
 from src.pyArchimate.model import Model
-
 
 # ---------------------------------------------------------------------------
 # Import sanity
@@ -371,3 +371,153 @@ def test_element_merge_reassigns_source_relationship():
     # Merge other into target — the relationship source should now be target
     target.merge(other)
     assert m.rels_dict[rel_id].source.uuid == target.uuid
+
+# ---------------------------------------------------------------------------
+# Extra coverage tests
+# ---------------------------------------------------------------------------
+
+def test_is_valid_uuid_invalid_string():
+    """Line 35-36: Catch ValueError in _is_valid_uuid."""
+    from src.pyArchimate.element import _is_valid_uuid
+    assert _is_valid_uuid("not-a-uuid") is False
+
+def test_normalize_color_variants():
+    """Lines 70-78: _normalize_color logic coverage."""
+    from src.pyArchimate.element import _normalize_color
+    # Strip whitespace
+    assert _normalize_color(" #ff0000 ") == "#ff0000"
+    # Invalid hex
+    with pytest.raises(ValueError, match="Invalid hex color"):
+        _normalize_color("#GGGGGG")
+    # Named color
+    assert _normalize_color("red") == "#ff0000"
+    # Unknown color
+    with pytest.raises(ValueError, match="Unknown color"):
+        _normalize_color("banana")
+
+def test_element_delete_orphans_children():
+    """Lines 202-206, 208: verify orphaning logic in delete()."""
+    m = Model("m")
+    p = m.add(ArchiType.ApplicationComponent, "Parent")
+    c = m.add(ArchiType.ApplicationComponent, "Child")
+    m.add_child(p.uuid, c.uuid)
+
+    parent = m.get_parent(c.uuid)
+    assert parent is not None
+    assert parent.uuid == p.uuid
+
+    p.delete()
+
+    assert c.uuid in m.elems_dict
+    assert m.get_parent(c.uuid) is None
+    assert p.uuid not in m._element_children
+
+def test_element_delete_removes_from_parent():
+    """Lines 212-214: verify removal from parent's children in delete()."""
+    m = Model("m")
+    p = m.add(ArchiType.ApplicationComponent, "Parent")
+    c = m.add(ArchiType.ApplicationComponent, "Child")
+    m.add_child(p.uuid, c.uuid)
+
+    c.delete()
+    assert c.uuid not in m._element_children.get(p.uuid, set())
+
+def test_element_merge_updates_nodes_and_rels_extended():
+    """Lines 379, 383, 354-355: merge coverage."""
+    m = Model("m")
+    e1 = m.add(ArchiType.ApplicationComponent, "E1")
+    e2 = m.add(ArchiType.ApplicationComponent, "E2")
+    e1.prop("p1", "v1")
+    e2.prop("p2", "v2")
+
+    # Add a view with a node referring to e2
+    v = m.add(ArchiType.View, "V")
+    n = v.add(ref=e2.uuid, x=0, y=0, w=100, h=50)
+
+    # add_relationship(rel_type, source, target)
+    rel = m.add_relationship(ArchiType.Association, e1.uuid, e2.uuid)
+
+    e1.merge(e2, merge_props=True)
+
+    assert e1.prop("p2") == "v2"
+    assert n.ref == e1.uuid
+    assert rel.target.uuid == e1.uuid
+
+def test_parent_uuid_property():
+    """Line 501: parent_uuid coverage."""
+    m = Model("m")
+    p = m.add(ArchiType.ApplicationComponent, "Parent")
+    c = m.add(ArchiType.ApplicationComponent, "Child")
+    m.add_child(p.uuid, c.uuid)
+    assert c.parent_uuid == p.uuid
+
+def test_visual_style_setters():
+    """Lines 510-559, 571-578: visual style setters coverage."""
+    e = Element(ArchiType.ApplicationComponent, "E")
+
+    # Fill color
+    e.set_fill_color(None)
+    assert e.get_fill_color() is None
+    e.set_fill_color("red")
+    assert e.get_fill_color() == "#ff0000"
+
+    # Line color
+    e.set_line_color(None)
+    assert e.get_line_color() is None
+    e.set_line_color("blue")
+    assert e.get_line_color() == "#0000ff"
+
+    # Line width
+    e.set_line_width(None)
+    assert e.get_line_width() is None
+    e.set_line_width(5.0)
+    assert e.get_line_width() == pytest.approx(5.0)
+    with pytest.raises(TypeError):
+        e.set_line_width("string")
+    with pytest.raises(ValueError):
+        e.set_line_width(-1)
+
+    # Transparency
+    e.set_transparency(None)
+    assert e.get_transparency() is None
+    e.set_transparency(0.5)
+    assert e.get_transparency() == pytest.approx(0.5)
+    with pytest.raises(TypeError):
+        e.set_transparency("string")
+    with pytest.raises(ValueError):
+        e.set_transparency(1.5)
+
+    # Multi setter
+    e.set_visual_style(fill_color="green", line_width=10.0)
+    assert e.get_fill_color() == "#008000"
+    assert e.get_line_width() == pytest.approx(10.0)
+
+def test_visual_style_getters_and_reset():
+    """Lines 586-625: visual style getters and reset coverage."""
+    e = Element(ArchiType.ApplicationComponent, "E")
+    e.set_visual_style(fill_color="red", line_color="blue", line_width=2.0, transparency=0.8)
+
+    assert e.get_fill_color() == "#ff0000"
+    assert e.get_line_color() == "#0000ff"
+    assert e.get_line_width() == pytest.approx(2.0)
+    assert e.get_transparency() == pytest.approx(0.8)
+
+    style = e.get_visual_style()
+    assert style["fillColor"] == "#ff0000"
+
+    e.reset_visual_style()
+    assert e.get_fill_color() is None
+    assert len(e.get_visual_style()) == 0
+
+def test_junction_type_methods():
+    """Lines 635-651: junction type coverage."""
+    e = Element(ArchiType.Junction, "J")
+
+    e.set_junction_type(None)
+    assert e.get_junction_type() is None
+
+    e.set_junction_type(" AND ")
+    assert e.get_junction_type() == "and"
+
+    with pytest.raises(ValueError, match="Invalid junction type"):
+        e.set_junction_type("invalid")

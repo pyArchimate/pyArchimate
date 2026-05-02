@@ -6,10 +6,11 @@ from src.pyArchimate.exceptions import ArchimateConceptTypeError, ArchimateRelat
 from src.pyArchimate.model import Model
 from src.pyArchimate.relationship import (
     Relationship,
+    _is_valid_uuid,
+    _resolve_and_validate_ref,
     check_valid_relationship,
     get_default_rel_type,
 )
-
 
 # ---------------------------------------------------------------------------
 # Import sanity
@@ -282,6 +283,7 @@ def test_relationship_source_is_relationship():
 
 def test_relationship_delete_removes_visual_connections():
     from typing import cast
+
     from src.pyArchimate.view import View
     m = Model('del-conn-test')
     a = m.add(ArchiType.ApplicationComponent, 'A')
@@ -381,13 +383,6 @@ def test_relationship_target_is_relationship():
     # Association from c to rel1 (relationship as target)
     rel2 = m.add_relationship(ArchiType.Association, source=c.uuid, target=rel1.uuid)
     assert rel2 is not None
-
-
-# ---------------------------------------------------------------------------
-# _resolve_and_validate_ref — lines 100, 103 (error branches)
-# ---------------------------------------------------------------------------
-
-from src.pyArchimate.relationship import _is_valid_uuid, _resolve_and_validate_ref
 
 
 # ---------------------------------------------------------------------------

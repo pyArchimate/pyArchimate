@@ -7,7 +7,6 @@ from src.pyArchimate.model import Model, default_color
 from src.pyArchimate.view import View
 from tests._helpers import model_with_views
 
-
 # ---------------------------------------------------------------------------
 # Fixture
 # ---------------------------------------------------------------------------
@@ -849,3 +848,347 @@ def test_find_by_hierarchy_path_single_level_no_wildcard():
     root_elem = m.add(ArchiType.ApplicationComponent, 'RootElem')
     result = m.find_by_hierarchy_path('/RootElem')
     assert root_elem in result
+
+# ---------------------------------------------------------------------------
+# Model.__init__ edge cases
+# ---------------------------------------------------------------------------
+
+def test_model_init_with_none_name():
+    """Model.__init__ should handle None name gracefully."""
+    m = Model(None)
+    assert m.name is None
+    assert m.uuid is not None
+
+
+def test_model_init_with_empty_name():
+    """Model.__init__ should handle empty string name."""
+    m = Model('')
+    assert m.name == ''
+    assert m.uuid is not None
+
+
+def test_model_init_with_custom_uuid():
+    """Model.__init__ should accept custom UUID."""
+    custom_uuid = 'test-uuid-123'
+    m = Model('test', uuid=custom_uuid)
+    assert m.uuid == custom_uuid
+
+
+# ---------------------------------------------------------------------------
+# Model.add_relationship parameter combinations and edge cases
+# ---------------------------------------------------------------------------
+
+def test_add_relationship_minimal_params():
+    """add_relationship with minimal required parameters."""
+    m = Model('rel-test')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    b = m.add(ArchiType.ApplicationService, 'B')
+    rel = m.add_relationship(ArchiType.Serving, source=a, target=b)
+    assert rel is not None
+    assert rel.type == ArchiType.Serving
+    assert rel.source == a
+    assert rel.target == b
+
+
+def test_add_relationship_all_params():
+    """add_relationship with all possible parameters."""
+    m = Model('rel-all')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    b = m.add(ArchiType.ApplicationService, 'B')
+    rel = m.add_relationship(
+        rel_type=ArchiType.Access,
+        source=a,
+        target=b,
+        uuid='custom-rel-uuid',
+        name='test-access',
+        access_type='Read',
+        influence_strength='5',
+        desc='Test relationship',
+        is_directed=True
+    )
+    assert rel.uuid == 'custom-rel-uuid'
+    assert rel.name == 'test-access'
+    assert rel.access_type == 'Read'
+    assert rel.influence_strength == '5'
+    assert rel.desc == 'Test relationship'
+    assert rel.is_directed is True
+
+
+def test_add_relationship_invalid_source():
+    """add_relationship with invalid source should raise TypeError."""
+    m = Model('rel-invalid')
+    b = m.add(ArchiType.ApplicationService, 'B')
+    with pytest.raises(ValueError):
+        m.add_relationship(ArchiType.Serving, source="invalid", target=b)
+
+
+def test_add_relationship_invalid_target():
+    """add_relationship with invalid target should raise TypeError."""
+    m = Model('rel-invalid')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    with pytest.raises(ValueError):
+        m.add_relationship(ArchiType.Serving, source=a, target="invalid")
+
+
+def test_add_relationship_none_source():
+    """add_relationship with None source should raise TypeError."""
+    m = Model('rel-none')
+    b = m.add(ArchiType.ApplicationService, 'B')
+    with pytest.raises(ValueError):
+        m.add_relationship(ArchiType.Serving, source=None, target=b)
+
+
+def test_add_relationship_none_target():
+    """add_relationship with None target should raise TypeError."""
+    m = Model('rel-none')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    with pytest.raises(ValueError):
+        m.add_relationship(ArchiType.Serving, source=a, target=None)
+
+
+# ---------------------------------------------------------------------------
+# Model.embed_props / expand_props error cases
+# ---------------------------------------------------------------------------
+
+def test_embed_props_with_malformed_desc():
+    """embed_props should handle malformed descriptions gracefully."""
+    m = Model('embed-error')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    a.desc = "properties = {invalid json"
+    # Should not raise exception
+    m.embed_props()
+    assert a.desc is not None
+
+
+def test_expand_props_with_malformed_json():
+    """expand_props should handle malformed JSON in descriptions."""
+    m = Model('expand-error')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    a.desc = "properties = {invalid json}"
+    # Should not raise exception
+    m.expand_props()
+    # Properties should remain unchanged
+    assert a.prop('test') is None
+
+
+def test_expand_props_with_no_properties_block():
+    """expand_props should handle descriptions without properties blocks."""
+    m = Model('expand-no-props')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    a.desc = "Just a regular description"
+    original_desc = a.desc
+    m.expand_props()
+    assert a.desc == original_desc
+
+
+# ---------------------------------------------------------------------------
+# Hierarchy methods edge cases
+# ---------------------------------------------------------------------------
+
+def test_add_child_invalid_parent_uuid():
+    """add_child with invalid parent UUID should raise KeyError."""
+    m = Model('hierarchy-error')
+    child = m.add(ArchiType.ApplicationComponent, 'Child')
+    with pytest.raises(KeyError):
+        m.add_child('invalid-parent-uuid', child.uuid)
+
+
+def test_add_child_invalid_child_uuid():
+    """add_child with invalid child UUID should raise KeyError."""
+    m = Model('hierarchy-error')
+    parent = m.add(ArchiType.ApplicationComponent, 'Parent')
+    with pytest.raises(KeyError):
+        m.add_child(parent.uuid, 'invalid-child-uuid')
+
+
+def test_add_child_already_has_parent():
+    """add_child when child already has parent should raise ValueError."""
+    m = Model('hierarchy-error')
+    parent1 = m.add(ArchiType.ApplicationComponent, 'Parent1')
+    parent2 = m.add(ArchiType.ApplicationComponent, 'Parent2')
+    child = m.add(ArchiType.ApplicationComponent, 'Child')
+    m.add_child(parent1.uuid, child.uuid)
+    with pytest.raises(ValueError):
+        m.add_child(parent2.uuid, child.uuid)
+
+
+def test_add_child_cycle_detection():
+    """add_child that would create a cycle should raise ValueError."""
+    m = Model('hierarchy-cycle')
+    a = m.add(ArchiType.ApplicationComponent, 'A')
+    b = m.add(ArchiType.ApplicationComponent, 'B')
+    c = m.add(ArchiType.ApplicationComponent, 'C')
+    m.add_child(a.uuid, b.uuid)
+    m.add_child(b.uuid, c.uuid)
+    with pytest.raises(ValueError):
+        m.add_child(c.uuid, a.uuid)  # Would create cycle
+
+
+def test_remove_child_invalid_parent():
+    """remove_child with invalid parent UUID should raise KeyError."""
+    m = Model('remove-error')
+    child = m.add(ArchiType.ApplicationComponent, 'Child')
+    with pytest.raises(KeyError):
+        m.remove_child('invalid-parent', child.uuid)
+
+
+def test_remove_child_invalid_child():
+    """remove_child with invalid child UUID should raise KeyError."""
+    m = Model('remove-error')
+    parent = m.add(ArchiType.ApplicationComponent, 'Parent')
+    with pytest.raises(KeyError):
+        m.remove_child(parent.uuid, 'invalid-child')
+
+
+def test_remove_child_not_actual_child():
+    """remove_child when child is not actually a child of parent should raise ValueError."""
+    m = Model('remove-error')
+    parent1 = m.add(ArchiType.ApplicationComponent, 'Parent1')
+    parent2 = m.add(ArchiType.ApplicationComponent, 'Parent2')
+    child = m.add(ArchiType.ApplicationComponent, 'Child')
+    m.add_child(parent1.uuid, child.uuid)
+    with pytest.raises(ValueError):
+        m.remove_child(parent2.uuid, child.uuid)
+
+
+def test_get_parent_invalid_uuid():
+    """get_parent with invalid UUID should return None."""
+    m = Model('get-parent-error')
+    assert m.get_parent('invalid-uuid') is None
+
+
+def test_get_children_invalid_uuid():
+    """get_children with invalid UUID should return empty list."""
+    m = Model('get-children-error')
+    assert m.get_children('invalid-uuid') == []
+
+
+def test_get_ancestors_invalid_uuid():
+    """get_ancestors with invalid UUID should return empty list."""
+    m = Model('get-ancestors-error')
+    assert m.get_ancestors('invalid-uuid') == []
+
+
+def test_get_descendants_invalid_uuid():
+    """get_descendants with invalid UUID should return empty list."""
+    m = Model('get-descendants-error')
+    assert m.get_descendants('invalid-uuid') == []
+
+
+def test_get_siblings_invalid_uuid():
+    """get_siblings with invalid UUID should raise KeyError."""
+    m = Model('get-siblings-error')
+    with pytest.raises(KeyError):
+        m.get_siblings('invalid-uuid')
+
+
+# ---------------------------------------------------------------------------
+# find_by_hierarchy_path complex paths and edge cases
+# ---------------------------------------------------------------------------
+
+def test_find_by_hierarchy_path_complex_nested():
+    """find_by_hierarchy_path with deeply nested path."""
+    m = Model('path-complex')
+    root = m.add(ArchiType.ApplicationComponent, 'Root')
+    level1 = m.add(ArchiType.ApplicationComponent, 'Level1')
+    level2 = m.add(ArchiType.ApplicationComponent, 'Level2')
+    leaf = m.add(ArchiType.ApplicationComponent, 'Leaf')
+    m.add_child(root.uuid, level1.uuid)
+    m.add_child(level1.uuid, level2.uuid)
+    m.add_child(level2.uuid, leaf.uuid)
+    result = m.find_by_hierarchy_path('/Root/Level1/Level2/Leaf')
+    assert leaf in result
+
+
+def test_find_by_hierarchy_path_intermediate_wildcard():
+    """find_by_hierarchy_path with wildcard in middle of path."""
+    m = Model('path-mid-wildcard')
+    root = m.add(ArchiType.ApplicationComponent, 'Root')
+    branch1 = m.add(ArchiType.ApplicationComponent, 'Branch1')
+    branch2 = m.add(ArchiType.ApplicationComponent, 'Branch2')
+    leaf1 = m.add(ArchiType.ApplicationComponent, 'Leaf1')
+    leaf2 = m.add(ArchiType.ApplicationComponent, 'Leaf2')
+    m.add_child(root.uuid, branch1.uuid)
+    m.add_child(root.uuid, branch2.uuid)
+    m.add_child(branch1.uuid, leaf1.uuid)
+    m.add_child(branch2.uuid, leaf2.uuid)
+    result = m.find_by_hierarchy_path('/Root/*/Leaf1')
+    assert leaf1 in result
+    assert leaf2 not in result
+
+
+def test_find_by_hierarchy_path_empty_path():
+    """find_by_hierarchy_path with empty path should return empty list."""
+    m = Model('path-empty')
+    result = m.find_by_hierarchy_path('')
+    assert result == []
+
+
+def test_find_by_hierarchy_path_root_only():
+    """find_by_hierarchy_path with just root path."""
+    m = Model('path-root')
+    root = m.add(ArchiType.ApplicationComponent, 'Root')
+    result = m.find_by_hierarchy_path('/Root')
+    assert root in result
+
+
+def test_find_by_hierarchy_path_nonexistent_path():
+    """find_by_hierarchy_path with nonexistent path should return empty list."""
+    m = Model('path-none')
+    m.add(ArchiType.ApplicationComponent, 'Root')
+    result = m.find_by_hierarchy_path('/NonExistent')
+    assert result == []
+
+
+def test_find_by_hierarchy_path_multiple_matches():
+    """find_by_hierarchy_path with multiple possible matches."""
+    m = Model('path-multi')
+    root = m.add(ArchiType.ApplicationComponent, 'Root')
+    child1 = m.add(ArchiType.ApplicationComponent, 'Child')
+    child2 = m.add(ArchiType.ApplicationComponent, 'Child')  # Same name
+    m.add_child(root.uuid, child1.uuid)
+    m.add_child(root.uuid, child2.uuid)
+    result = m.find_by_hierarchy_path('/Root/Child')
+    assert len(result) == 2
+    assert child1 in result
+    assert child2 in result
+
+
+# ---------------------------------------------------------------------------
+# read() / merge() additional error handling
+# ---------------------------------------------------------------------------
+
+def test_model_read_invalid_xml(tmp_path):
+    """read() with invalid XML should not raise exception."""
+    xml_file = tmp_path / 'invalid.xml'
+    xml_file.write_text('<invalid><unclosed', encoding='utf-8')
+    m = Model('invalid-xml')
+    # Should not raise; XML parser is set to recover=True
+    m.read(str(xml_file))
+
+
+def test_model_merge_invalid_xml(tmp_path):
+    """merge() with invalid XML should not raise exception."""
+    xml_file = tmp_path / 'invalid_merge.xml'
+    xml_file.write_text('<invalid><unclosed', encoding='utf-8')
+    m = Model('invalid-merge')
+    # Should not raise; XML parser is set to recover=True
+    m.merge(str(xml_file))
+
+
+def test_model_read_empty_file(tmp_path):
+    """read() with empty file should not raise exception."""
+    xml_file = tmp_path / 'empty.xml'
+    xml_file.write_text('', encoding='utf-8')
+    m = Model('empty-xml')
+    # Should not raise
+    m.read(str(xml_file))
+
+
+def test_model_merge_empty_file(tmp_path):
+    """merge() with empty file should not raise exception."""
+    xml_file = tmp_path / 'empty_merge.xml'
+    xml_file.write_text('', encoding='utf-8')
+    m = Model('empty-merge')
+    # Should not raise
+    m.merge(str(xml_file))

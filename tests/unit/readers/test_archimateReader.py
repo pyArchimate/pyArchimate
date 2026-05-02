@@ -1,3 +1,6 @@
+from unittest.mock import MagicMock, patch
+
+import pytest
 from lxml import etree
 
 from src.pyArchimate import ArchiType
@@ -470,7 +473,7 @@ def test_normalize_color_on_import_valid_hex_lowercased():
 # ---------------------------------------------------------------------------
 
 def _make_props_xml(inner_xml: str) -> etree._Element:
-    ns = "http://www.opengroup.org/xsd/archimate/3.0/"
+    ns = "http://www.opengroup.org/xsd/archimate/3.0/" # NOSONAR
     return etree.fromstring(
         f'<element xmlns="{ns}"><properties>{inner_xml}</properties></element>'
     )
@@ -478,7 +481,7 @@ def _make_props_xml(inner_xml: str) -> etree._Element:
 
 def test_extract_visual_style_no_value_child_continues():
     """Property with no <value> child is skipped (line 53)."""
-    ns = "http://www.opengroup.org/xsd/archimate/3.0/"
+    ns = "http://www.opengroup.org/xsd/archimate/3.0/" # NOSONAR
     elem_xml = _make_props_xml(
         '<property xmlns="http://www.opengroup.org/xsd/archimate/3.0/" key="fillColor"/>'
     )
@@ -488,7 +491,7 @@ def test_extract_visual_style_no_value_child_continues():
 
 def test_extract_visual_style_empty_value_continues():
     """Property with empty value text is skipped (line 56)."""
-    ns = "http://www.opengroup.org/xsd/archimate/3.0/"
+    ns = "http://www.opengroup.org/xsd/archimate/3.0/" # NOSONAR
     elem_xml = _make_props_xml(
         '<property xmlns="http://www.opengroup.org/xsd/archimate/3.0/" key="fillColor">'
         '  <value xmlns="http://www.opengroup.org/xsd/archimate/3.0/">   </value>'
@@ -500,7 +503,7 @@ def test_extract_visual_style_empty_value_continues():
 
 def test_extract_visual_style_negative_line_width_warns():
     """Negative lineWidth logs warning and is not stored (line 67)."""
-    ns = "http://www.opengroup.org/xsd/archimate/3.0/"
+    ns = "http://www.opengroup.org/xsd/archimate/3.0/" # NOSONAR
     elem_xml = _make_props_xml(
         '<property xmlns="http://www.opengroup.org/xsd/archimate/3.0/" key="lineWidth">'
         '  <value xmlns="http://www.opengroup.org/xsd/archimate/3.0/">-1.0</value>'
@@ -512,7 +515,7 @@ def test_extract_visual_style_negative_line_width_warns():
 
 def test_extract_visual_style_transparency_out_of_range_warns():
     """transparency > 1.0 logs warning and is not stored (line 73)."""
-    ns = "http://www.opengroup.org/xsd/archimate/3.0/"
+    ns = "http://www.opengroup.org/xsd/archimate/3.0/" # NOSONAR
     elem_xml = _make_props_xml(
         '<property xmlns="http://www.opengroup.org/xsd/archimate/3.0/" key="transparency">'
         '  <value xmlns="http://www.opengroup.org/xsd/archimate/3.0/">1.5</value>'
@@ -524,7 +527,7 @@ def test_extract_visual_style_transparency_out_of_range_warns():
 
 def test_extract_visual_style_non_numeric_value_handled():
     """Non-numeric lineWidth value is caught by except (lines 74-75)."""
-    ns = "http://www.opengroup.org/xsd/archimate/3.0/"
+    ns = "http://www.opengroup.org/xsd/archimate/3.0/" # NOSONAR
     elem_xml = _make_props_xml(
         '<property xmlns="http://www.opengroup.org/xsd/archimate/3.0/" key="lineWidth">'
         '  <value xmlns="http://www.opengroup.org/xsd/archimate/3.0/">notanumber</value>'
@@ -677,8 +680,8 @@ def test_visual_style_applied_from_properties():
     elem = model.elems_dict["e-vs"]
     assert elem.get_fill_color() == "#ff0000"
     assert elem.get_line_color() == "#0000ff"
-    assert elem.get_line_width() == 2.0
-    assert elem.get_transparency() == 0.5
+    assert elem.get_line_width() == pytest.approx(2.0)
+    assert elem.get_transparency() == pytest.approx(0.5)
 
 
 def test_visual_style_except_blocks_do_not_raise():
@@ -709,3 +712,138 @@ def test_visual_style_except_blocks_do_not_raise():
         elem.set_transparency(2.0)
     except ValueError:
         pass
+
+def test_read_props_unknown_format_skips():
+    """Line 127: Property with no propertyDefinitionRef and unknown key is skipped."""
+    xml = """<?xml version='1.0'?>
+    <model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+      <elements>
+        <element identifier="e1" xsi:type="ApplicationComponent">
+          <name>App</name>
+          <properties>
+            <property key="unknown_key"><value>val</value></property>
+          </properties>
+        </element>
+      </elements>
+      <relationships/><views><diagrams/></views>
+    </model>
+    """
+    root = etree.fromstring(xml)
+    model = Model('t')
+    # Should not raise any error and elem should be created
+    archimate_reader(model, root)
+    assert "e1" in model.elems_dict
+
+def test_assign_valid_viewpoint():
+    """Line 137: Valid viewpoint is assigned to a view."""
+    xml = """<?xml version='1.0'?>
+    <model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+      <elements/>
+      <relationships/>
+      <views>
+        <diagrams>
+          <view identifier="v1" viewpoint="stakeholder">
+            <name>View</name>
+          </view>
+        </diagrams>
+      </views>
+    </model>
+    """
+    root = etree.fromstring(xml)
+    model = Model('t')
+    archimate_reader(model, root)
+    view = model.views_dict["v1"]
+    assert view.primary_viewpoint == "stakeholder"
+
+def test_apply_viewpoint_props_on_element():
+    """Lines 151-153: Viewpoint property on an element is applied."""
+    xml = """<?xml version='1.0'?>
+    <model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+      <propertyDefinitions>
+        <propertyDefinition identifier="pd-vp">
+          <name>viewpoint</name>
+        </propertyDefinition>
+      </propertyDefinitions>
+      <elements>
+        <element identifier="e1" xsi:type="ApplicationComponent">
+          <name>App</name>
+          <properties>
+            <property propertyDefinitionRef="pd-vp">
+              <value>stakeholder</value>
+            </property>
+          </properties>
+        </element>
+      </elements>
+      <relationships/><views><diagrams/></views>
+    </model>
+    """
+    root = etree.fromstring(xml)
+    model = Model('t')
+    archimate_reader(model, root)
+    elem = model.elems_dict["e1"]
+    assert "stakeholder" in elem.viewpoints
+
+def test_element_hierarchy_via_parent_id():
+    """Line 195: parentId attribute establishes hierarchy."""
+    xml = """<?xml version='1.0'?>
+    <model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+      <elements>
+        <element identifier="p1" xsi:type="ApplicationComponent"><name>Parent</name></element>
+        <element identifier="c1" xsi:type="ApplicationComponent" parentId="p1"><name>Child</name></element>
+      </elements>
+      <relationships/><views><diagrams/></views>
+    </model>
+    """
+    root = etree.fromstring(xml)
+    model = Model('t')
+    archimate_reader(model, root)
+    parent = model.get_parent("c1")
+    assert parent is not None
+    assert parent.uuid == "p1"
+
+def test_visual_style_application_warnings_real():
+    """Lines 418-434: log.warning is called when visual style application fails.
+    Renamed to avoid conflict with existing test_visual_style_except_blocks_do_not_raise.
+    """
+    xml = """<?xml version='1.0'?>
+    <model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+      <elements>
+        <element identifier="e1" xsi:type="ApplicationComponent">
+          <name>App</name>
+          <properties>
+            <property key="fillColor"><value>#ff0000</value></property>
+            <property key="lineColor"><value>#0000ff</value></property>
+            <property key="lineWidth"><value>2.0</value></property>
+            <property key="transparency"><value>0.5</value></property>
+          </properties>
+        </element>
+      </elements>
+      <relationships/><views><diagrams/></views>
+    </model>
+    """
+    root = etree.fromstring(xml)
+    model = Model('t')
+
+    original_add = model.add
+    mock_elem = MagicMock()
+    mock_elem.set_fill_color.side_effect = ValueError("bad color")
+    mock_elem.set_line_color.side_effect = ValueError("bad line color")
+    mock_elem.set_line_width.side_effect = TypeError("bad width")
+    mock_elem.set_transparency.side_effect = ValueError("bad alpha")
+
+    def mocked_add(*args, **kwargs):
+        if kwargs.get('uuid') == 'e1':
+            return mock_elem
+        return original_add(*args, **kwargs)
+
+    model.add = mocked_add
+    model.elems_dict['e1'] = mock_elem
+
+    with patch('src.pyArchimate.readers.archimateReader.log') as mock_log:
+        archimate_reader(model, root)
+
+        warning_calls = [call.args[0] for call in mock_log.warning.call_args_list]
+        assert any("Failed to apply fillColor" in msg for msg in warning_calls)
+        assert any("Failed to apply lineColor" in msg for msg in warning_calls)
+        assert any("Failed to apply lineWidth" in msg for msg in warning_calls)
+        assert any("Failed to apply transparency" in msg for msg in warning_calls)

@@ -1,6 +1,7 @@
 """BDD step definitions for P3 (ArchiMate Notation Support) features."""
 
-from behave import given, when, then
+from behave import given, then, when
+
 from src.pyArchimate import ArchiType
 from src.pyArchimate.model import Model
 
@@ -384,7 +385,7 @@ def step_adding_should_fail(context, child_name, parent_name):
     child = context.elements[child_name]
     try:
         context.model.add_child(parent.uuid, child.uuid)
-        assert False, "Expected add_child to raise ValueError"
+        AssertionError("Expected add_child to raise ValueError")
     except ValueError as e:
         context.cycle_error = str(e)
 

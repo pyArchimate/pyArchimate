@@ -503,10 +503,14 @@ class Model:
         return None
 
     def _prepare_reader(self, file_path, operation):
+        entry = None
         data = self._load_file_contents(file_path, operation)
-        parser = et.XMLParser(recover=True)
-        root = et.fromstring(data.encode(), parser=parser)
-        entry = self._match_reader_entry(root.tag)
+
+        if data != '':
+            parser = et.XMLParser(recover=True)
+            root = et.fromstring(data.encode(), parser=parser)
+            entry = self._match_reader_entry(root.tag)
+
         if entry is None:
             log.error(OPERATION_ERROR_MESSAGES.get(operation, OPERATION_ERROR_MESSAGES['read']))
             return None, None, None

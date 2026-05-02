@@ -9,11 +9,10 @@ import pytest
 from src.pyArchimate.logger import log, log_set_level, log_to_stderr
 from src.pyArchimate.pyArchimate import (
     AccessType,
-    ArchiType,
     ArchimateConceptTypeError,
     ArchimateRelationshipError,
+    ArchiType,
     Model,
-    Node,
     Point,
     Writers,
     check_valid_relationship,
@@ -160,7 +159,7 @@ class MyTestCase(unittest.TestCase):
         # self.assertEqual(e.prop('version'), 1)
         self.assertEqual(e.prop('author'), 'xavier')
         e.prop('version', 1)
-        self.assertEqual(e.prop('version'), True)
+        self.assertTrue(e.prop('version'))
         m.write('out.archimate')
 
     def test_node_label(self):
@@ -267,7 +266,7 @@ class MyTestCase(unittest.TestCase):
         v.prop("version", "2.1")
         self.assertEqual(v.prop('version'), '2.1')
         self.assertEqual(v.name, "New View using new method")
-        self.assertEqual(v.desc, None)
+        self.assertIsNone(v.desc)
 
         m.write()
 

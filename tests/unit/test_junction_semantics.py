@@ -4,6 +4,7 @@ Tests cover junction type validation, setter/getter methods, and edge cases.
 """
 
 import pytest
+
 from src.pyArchimate import ArchiType
 from src.pyArchimate.model import Model
 

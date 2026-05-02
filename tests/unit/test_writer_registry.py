@@ -39,8 +39,8 @@ def test_resolve_writer_with_callable_returns_it():
 
 
 def test_resolve_writer_with_int_key():
-    from src.pyArchimate.writers import _resolve_writer
     from src.pyArchimate.enums import Writers
+    from src.pyArchimate.writers import _resolve_writer
     # Writers.archimate is enum value 1 — resolve by int value
     result = _resolve_writer(Writers.archimate.value)
     assert callable(result)

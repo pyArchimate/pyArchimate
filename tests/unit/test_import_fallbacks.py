@@ -2,6 +2,7 @@ import importlib
 import sys
 from importlib.machinery import PathFinder
 
+
 def _assert_core_module_origin(module_name: str, suffix: str):
     canonical = {f"src.pyArchimate.{suffix}", f"pyArchimate.{suffix}", suffix}
     assert module_name in canonical, f"{module_name} is not a recognized core {suffix} module"

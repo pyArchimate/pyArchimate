@@ -4,6 +4,7 @@ Tests cover get_siblings() and find_by_hierarchy_path() functionality.
 """
 
 import pytest
+
 from src.pyArchimate import ArchiType
 from src.pyArchimate.model import Model
 

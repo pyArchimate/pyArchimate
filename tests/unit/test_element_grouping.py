@@ -1,6 +1,7 @@
 """Unit tests for Element grouping (P3 Phase 2)."""
 
 import pytest
+
 from src.pyArchimate import ArchiType
 from src.pyArchimate.model import Model
 

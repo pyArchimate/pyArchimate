@@ -12,9 +12,9 @@ from src.pyArchimate.view import (
     Position,
     Profile,
     View,
+    _classify_outer_quadrant,
     default_color,
 )
-
 
 # ---------------------------------------------------------------------------
 # Basic import tests
@@ -1461,9 +1461,6 @@ def test_view_get_or_create_connection_no_conn_create_false(simple_view):
 # ---------------------------------------------------------------------------
 # _classify_outer_quadrant — lines 46 ('R'), 48 ('B'), 51 ('T')
 # ---------------------------------------------------------------------------
-
-from src.pyArchimate.view import _classify_outer_quadrant
-
 
 def test_classify_outer_quadrant_right():
     """Angle in [135, 225) → 'R' (line 46)."""
