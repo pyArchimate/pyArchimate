@@ -173,6 +173,7 @@ def _parse_rel_attributes(elem: Any, e: Any) -> None:
 
 
 def _process_viewpoint_property(elem: Any, slug: str) -> None:
+    """Assign viewpoint to element if it exists in registry, log warning if not found."""
     from ..viewpoint_registry import get_viewpoint
     if get_viewpoint(slug) is not None:
         elem.assign_viewpoint(slug)
@@ -181,6 +182,7 @@ def _process_viewpoint_property(elem: Any, slug: str) -> None:
 
 
 def _process_property(elem: Any, prop: Any) -> None:
+    """Process element property, handling viewpoint assignment or generic property storage."""
     key = prop.get('key')
     if key == 'viewpoint':
         slug = (prop.get('value') or '').strip().lower()
@@ -191,6 +193,7 @@ def _process_property(elem: Any, prop: Any) -> None:
 
 
 def _get_or_create_element(e: Any, model: Any, merge_flg: bool, type_e: str) -> Any:
+    """Get existing element if merge flag is set and element exists, otherwise create new element."""
     elem_id = e.get('id')
     if merge_flg and elem_id in model.elems_dict:
         return model.elems_dict[elem_id]
@@ -199,12 +202,14 @@ def _get_or_create_element(e: Any, model: Any, merge_flg: bool, type_e: str) -> 
 
 
 def _set_documentation(elem: Any, e: Any) -> None:
+    """Extract documentation text from XML element and assign to element description."""
     doc = e.find('documentation')
     if doc is not None:
         elem.desc = doc.text
 
 
 def _set_junction_type(elem: Any, e: Any) -> None:
+    """Set junction type from XML element, defaulting to 'and' if not specified."""
     elem.junction_type = e.get('type') or 'and'
 
 
