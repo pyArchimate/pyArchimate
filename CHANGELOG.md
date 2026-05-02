@@ -1,3 +1,18 @@
+## v1.4.0 (2026-05-02)
+
+### Feat
+
+- **T001**: Create parse_bool() and image helpers in parsing module
+
+### Fix
+
+- extend ruff linting to tests and fix exception handling
+- **ci**: Update CI workflows to specify Python 3.12 and improve caching strategy
+- **typing**: Add type annotation for element parameter in extract_images_from_archimate
+- **exports**: Export parse_bool from helpers.parsing in __init__.py
+- **T002,T003**: Fix label visibility boolean parsing in reader and writer
+- **ci**: update cache condition for Python versions below 3.14 fix(release): correct tag pattern to match patch versions
+
 ## v1.3.0 (2026-05-02)
 
 ### Feat
