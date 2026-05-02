@@ -13,8 +13,8 @@ import pytest
 from lxml import etree
 
 from src.pyArchimate.model import Model
-from src.pyArchimate.writers.archiWriter import archi_writer
 from src.pyArchimate.writers.archimateWriter import archimate_writer
+from src.pyArchimate.writers.archiWriter import archi_writer
 
 FIXTURES = pathlib.Path(__file__).parent.parent / "fixtures"
 

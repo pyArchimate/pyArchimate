@@ -5,7 +5,7 @@ All classes are self-contained and carry no dependency on the legacy module.
 
 import math
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 from .constants import ARCHI_CATEGORY, DEFAULT_THEME
 from .element import Element, set_id
@@ -61,7 +61,7 @@ def _classify_outer_quadrant(angle: float) -> str:
 # Colour helper
 # ---------------------------------------------------------------------------
 
-def default_color(elem_type: str, theme: Union[str, "dict[str, str]", None] = DEFAULT_THEME) -> str:
+def default_color(elem_type: str, theme: "str | dict[str, str] | None" = DEFAULT_THEME) -> str:
     """Return the default fill colour for a node, keyed by Archimate element type."""
     _archi_colors = {
         'strategy': '#F5DEAA', 'business': "#FFFFB5", 'application': "#B5FFFF",
@@ -215,7 +215,7 @@ class Node:
         if parent is None or not (hasattr(parent, 'view') and hasattr(parent, 'model')):
             raise ValueError('Node class parent should be a class View or Node instance!')
 
-        self.parent: "Union[View, Node]" = parent
+        self.parent: "View | Node" = parent
         self._view: "View" = cast("View", parent.view)
         self._model: "Model" = cast("Model", parent.model)
 
@@ -245,7 +245,7 @@ class Node:
         self.text_position = None
         self.label_expression: Optional[str] = None
         self.border_type: Optional[str] = None
-        self.iconColor = None
+        self.icon_color = None
         self.gradient = None
 
     # --- lifecycle ---

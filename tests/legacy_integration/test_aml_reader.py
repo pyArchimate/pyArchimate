@@ -6,6 +6,7 @@ import pytest
 from src.pyArchimate.constants import ARIS_TYPE_MAP  # Import the ARIS_TYPE_MAP
 from src.pyArchimate.pyArchimate import Model
 
+
 def test_aris_aml_reader(tmp_path: Path):
     fixtures_dir = Path(__file__).parent.with_name("fixtures")
     aml_file = fixtures_dir / "aris.aml"

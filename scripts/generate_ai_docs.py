@@ -34,13 +34,12 @@ REQUIRED_SECTIONS = [
 
 
 def get_api_key() -> str:
-    """Return ANTHROPIC_API_KEY from environment (FR-010)."""
-    key = os.environ.get("ANTHROPIC_API_KEY", "")
-    if not key:
-        print("ERROR: ANTHROPIC_API_KEY is not set.", file=sys.stderr)
-        print("Set it with: export ANTHROPIC_API_KEY=<your-key>", file=sys.stderr)
-        sys.exit(1)
-    return key
+    """Return ANTHROPIC_API_KEY from environment if set, else empty string.
+
+    Not required when running inside an authenticated Claude Code session —
+    the claude CLI uses its own stored credentials in that case.
+    """
+    return os.environ.get("ANTHROPIC_API_KEY", "")
 
 
 def build_context() -> str:
@@ -77,7 +76,10 @@ def validate_markdown_syntax(content: str) -> bool:
 
 def run_claude(prompt: str) -> str:
     """Invoke claude CLI with prompt; raise RuntimeError on failure (FR-007)."""
-    env = {**os.environ, "ANTHROPIC_API_KEY": get_api_key()}
+    env = {**os.environ}
+    key = get_api_key()
+    if key:
+        env["ANTHROPIC_API_KEY"] = key
     result = subprocess.run(
         ["claude", "-p", prompt],
         capture_output=True,

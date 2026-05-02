@@ -2,55 +2,94 @@
 title pyArchimate Domain Model
 
 class Model {
-  id: str
+  uuid: str
   name: str
   desc: str
   theme: str
-  elements: list[Element]
-  relationships: list[Relationship]
-  views: list[View]
-  profiles: list[Profile]
   --
-  + add(type, name, ...) : Element|View
-  + add_relationship(type, source, target, ...) : Relationship
+  {readonly} elements: list[Element]
+  {readonly} relationships: list[Relationship]
+  {readonly} views: list[View]
+  {readonly} profiles: list[Profile]
+  --
+  + add(concept_type, name, ...) : Element|View
+  + add_child(parent_uuid, child_uuid)
+  + add_relationship(rel_type, source, target, ...) : Relationship
   + add_profile(name, concept, ...) : Profile
-  + read(file_path)
+  + read(file_path, *args, **kwargs)
   + write(file_path, writer)
   + merge(file_path)
   + find_elements(name, type) : list[Element]
-  + get_or_create_view(name, create) : View
+  + find_relationships(source, target, rel_type) : list[Relationship]
+  + find_views(name) : list[View]
+  + get_or_create_element(...) : Element
+  + get_or_create_relationship(...) : Relationship
+  + get_or_create_view(name) : View
+  + get_profile(name) : Profile
+  + prop(key, value) : any
+  + remove_prop(key)
 }
 
 class Element {
-  id: str
+  uuid: str
   name: str
   type: str
   desc: str
   folder: str
-  properties: dict
+  profile_id: str (optional)
+  parent_uuid: str (optional)
+  viewpoints: list[str]
   --
-  + prop(key, value)
+  {readonly} props: dict
+  --
   + rels(rel_type) : list[Relationship]
+  + in_rels() : list[Relationship]
+  + out_rels() : list[Relationship]
+  + set_fill_color(color)
+  + set_line_color(color)
+  + set_line_width(width)
+  + set_transparency(alpha)
+  + set_junction_type(type_str)
+  + set_profile(profile)
+  + get_fill_color() : str
+  + get_line_color() : str
+  + get_line_width() : int
+  + get_transparency() : float
+  + get_junction_type() : str
+  + get_visual_style() : dict
+  + reset_profile()
+  + reset_visual_style()
+  + prop(key, value)
+  + remove_prop(key)
+  + merge(other_element)
   + delete()
 }
 
 class Relationship {
-  id: str
+  uuid: str
   name: str
   type: str
   source: Element|Relationship
   target: Element|Relationship
   desc: str
-  access_type: str
-  influence_strength: str
+  folder: str
+  access_type: str (optional)
+  influence_strength: str (optional)
   is_directed: bool
+  profile_id: str (optional)
   --
+  {readonly} props: dict
+  --
+  + set_profile(profile)
+  + reset_profile()
   + prop(key, value)
+  + remove_prop(key)
+  + remove_folder()
   + delete()
 }
 
 class Profile {
-  id: str
+  uuid: str
   name: str
   concept: str
   --
@@ -58,42 +97,94 @@ class Profile {
 }
 
 class View {
-  id: str
+  uuid: str
   name: str
   desc: str
   folder: str
-  nodes: list[Node]
-  connections: list[Connection]
   --
-  + add(ref, x, y, ...) : Node
+  {readonly} nodes: list[Node]
+  {readonly} connections: list[Connection]
+  --
+  + add(ref, x, y, w, h, ...) : Node
   + add_connection(ref, source, target, ...) : Connection
   + get_or_create_node(elem, ...) : Node
+  + get_or_create_connection(...) : Connection
+  + set_primary_viewpoint(viewpoint_name)
+  + prop(key, value)
+  + remove_prop(key)
+  + remove_folder()
+  + delete()
 }
 
 class Node {
-  id: str
+  uuid: str
+  ref: str
+  name: str
+  desc: str
+  type: str
   concept: Element
-  cat: str {Element|Label|Container|Model}
-  x, y, w, h: int
-  fill_color, line_color: str
-  label: str
+  x, y: int
+  w, h: int
+  rx, ry: int (rotation center)
+  cx, cy: float (center coordinates)
+  fill_color: str
+  line_color: str
   --
-  + add(ref, ...) : Node {nested}
-  + resize(...)
+  {readonly} nodes: list[Node]
+  {readonly} view: View
+  {readonly} model: Model
+  --
+  + add(ref, x, y, w, h, ...) : Node
+  + get_or_create_node(...) : Node
   + move(new_parent)
+  + resize(w, h)
+  + distribute_connections()
+  + in_conns() : list[Connection]
+  + out_conns() : list[Connection]
+  + conns() : list[Connection]
+  + is_inside(x, y) : bool
   + delete()
 }
 
 class Connection {
-  id: str
+  uuid: str
+  ref: str
+  name: str
+  type: str
   concept: Relationship
   source, target: Node
-  bendpoints: list[Point]
+  access_type: str
+  influence_strength: str
+  is_directed: bool
   --
-  + add_bendpoint(Point)
+  {readonly} bendpoints: list[Point]
+  --
+  + add_bendpoint(point, index)
+  + set_bendpoint(index, point)
+  + del_bendpoint(index)
+  + get_bendpoint(index) : Point
+  + get_all_bendpoints() : list[Point]
+  + remove_all_bendpoints()
   + l_shape()
   + s_shape()
   + delete()
+}
+
+class Point {
+  x: int
+  y: int
+  idx: int
+}
+
+class Position {
+  dx: float
+  dy: float
+  gap_x: float
+  gap_y: float
+  angle: float
+  orientation: str
+  --
+  {readonly} dist: float
 }
 
 Model "1" *-- "*" Element : contains
@@ -101,17 +192,22 @@ Model "1" *-- "*" Relationship : manages
 Model "1" *-- "*" View : owns
 Model "1" o-- "*" Profile : catalogs
 
+Element "0..*" -- "0..*" Element : parent-child hierarchy
 View "1" *-- "*" Node : hosts
 View "1" *-- "*" Connection : contains
 
+Node "1" o-- "*" Node : nested nodes
+
 Node --> Element : visualizes
 Connection --> Relationship : visualizes
-Connection --> Node : source/target
+Connection --> Node : links
 
-Relationship --> Element : connects
-Relationship --> Relationship : connects (higher-order)
+Relationship --> Element : connects source/target
+Relationship --> Relationship : higher-order relationships
 
 Element "0..*" o-- "0..*" Profile : specialized by
 Relationship "0..*" o-- "0..*" Profile : specialized by
+
+Connection "0..*" -- "*" Point : defines path
 
 @enduml

@@ -12,8 +12,8 @@ author = 'Xavier Mayeur'
 version = "1"
 release = '1.0.1'
 
-import os
-import sys
+import os  # noqa: E402
+import sys  # noqa: E402
 
 sys.path.insert(0, os.path.abspath('../src'))
 # -- General configuration ---------------------------------------------------

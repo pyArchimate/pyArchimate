@@ -52,11 +52,10 @@ class TestGetApiKey:
         with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "sk-test-123"}):
             assert gen.get_api_key() == "sk-test-123"
 
-    def test_exits_when_not_set(self) -> None:
+    def test_returns_empty_string_when_not_set(self) -> None:
         env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
         with patch.dict(os.environ, env, clear=True):
-            with pytest.raises(SystemExit):
-                gen.get_api_key()
+            assert gen.get_api_key() == ""
 
 
 class TestRunClaude:

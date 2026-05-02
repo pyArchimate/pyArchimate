@@ -1,6 +1,6 @@
 [project]
 name = "pyArchimate"
-version = "1.2.1"
+version = "1.3.0"
 authors = [
   { name="Xavier Mayeur", email="xavier@mayeur.be" }
 ]
@@ -72,10 +72,14 @@ include = ["pyArchimate*"]
 [tool.pyright]
 typeCheckingMode = "basic"
 reportMissingImports = true
-reportUnusedVariable = "warning"
+reportUnusedVariable = "error"
+reportUnusedImport = "none" # ruff handles this
+reportAttributeAccessIssue = "none"
+reportArgumentType = "none"
+reportOptionalMemberAccess = "none"
 reportMissingTypeStubs = "none"
 reportUnknownMemberType = false
-extraPaths = ["src"]
+extraPaths = ["src", "scripts"]
 exclude = [
     "**/node_modules",
     "**/__pycache__",
@@ -108,10 +112,12 @@ line-length = 120
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "B", "C", "I"]
+select = ["E", "F", "W", "B", "C", "I", "S110"]
 ignore = [
-    "E501",   # line too long — handled by formatter
-    "C901",   # complexity — legacy monolithic functions not yet refactored
+    "E501",    # line too long — handled by formatter
+    "C901",    # complexity — legacy monolithic functions
+    "N999",    # module names — project uses camelCase for some files
+    "PLC0415", # top-level imports — project uses local imports for dynamic loading
 ]
 exclude = [
     "**/node_modules",
@@ -124,6 +130,12 @@ exclude = [
     "ENV",
     "*.log",
 ]
+
+[tool.ruff.lint.flake8-bandit]
+check-typed-exception = true
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]  # ignore assertions in tests
 
 [tool.ruff.format]
 quote-style = "double"

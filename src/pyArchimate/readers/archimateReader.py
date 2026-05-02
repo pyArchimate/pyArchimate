@@ -129,6 +129,45 @@ def _read_props(obj: Any, xml_elem: Any, ns: str, pdef_merge_map: dict[str, str]
         obj.prop(model.pdefs[_id], p.find(ns + 'value').text)
 
 
+def _assign_viewpoint(obj: Any, slug: str, method: str = 'assign_viewpoint') -> None:
+    from ..viewpoint_registry import get_viewpoint
+    if not slug:
+        return
+    if get_viewpoint(slug) is not None:
+        getattr(obj, method)(slug)
+    else:
+        log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
+
+
+def _apply_viewpoint_props(elem: Any, props_xml: Any, ns: str, pdef_merge_map: dict[str, str], model: Any) -> None:
+    if props_xml is None:
+        return
+    for p in props_xml.findall(ns + 'property'):
+        prop_id = p.get('propertyDefinitionRef')
+        if prop_id not in pdef_merge_map:
+            continue
+        if model.pdefs.get(pdef_merge_map[prop_id]) != 'viewpoint':
+            continue
+        val_xml = p.find(ns + 'value')
+        slug = (val_xml.text or '').strip().lower() if val_xml is not None else ''
+        _assign_viewpoint(elem, slug)
+
+
+def _apply_junction_type_props(elem: Any, props_xml: Any, ns: str) -> None:
+    if props_xml is None:
+        return
+    for p in props_xml.findall(ns + 'property'):
+        if p.get('key') == 'junctionType':
+            val_elem = p.find(ns + 'value')
+            if val_elem is not None:
+                junction_type = (val_elem.text or '').strip().lower()
+                if junction_type:
+                    try:
+                        elem.set_junction_type(junction_type)
+                    except ValueError as e:
+                        log.warning(f"Invalid junctionType on import: {e}")
+
+
 def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
     elements_xml = root.find(ns + 'elements')
     if elements_xml is None:
@@ -318,14 +357,7 @@ def _read_views(model, root, ns, xsi, pdef_merge_map, merge_flg):
             desc=_get_xml_text(v, 'documentation', ns),
         )
         _read_props(_v, v, ns, pdef_merge_map, model)
-        # Read view-level primary viewpoint from 'viewpoint' XML attribute
-        vp_attr = (v.get('viewpoint') or '').strip().lower()
-        if vp_attr:
-            from ..viewpoint_registry import get_viewpoint
-            if get_viewpoint(vp_attr) is not None:
-                _v.set_primary_viewpoint(vp_attr)
-            else:
-                log.warning(f"Unknown viewpoint slug '{vp_attr}' on view ignored")
+        _assign_viewpoint(_v, (v.get('viewpoint') or '').strip().lower(), 'set_primary_viewpoint')
         for n in v.findall(ns + 'node'):
             _add_node(_v, n, ns, xsi, model, merge_flg)
         for c in v.findall(ns + 'connection'):

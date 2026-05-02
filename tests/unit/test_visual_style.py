@@ -138,7 +138,7 @@ class TestLineWidthSetter:
 
         elem.set_line_width(2.5)
 
-        assert elem.get_line_width() == 2.5
+        assert elem.get_line_width() == pytest.approx(2.5)
 
     def test_set_line_width_int(self):
         """Test setting line width with int."""
@@ -147,7 +147,7 @@ class TestLineWidthSetter:
 
         elem.set_line_width(2)
 
-        assert elem.get_line_width() == 2.0
+        assert elem.get_line_width() == pytest.approx(2.0)
 
     def test_set_line_width_zero(self):
         """Test setting line width to zero."""
@@ -156,7 +156,7 @@ class TestLineWidthSetter:
 
         elem.set_line_width(0.0)
 
-        assert elem.get_line_width() == 0.0
+        assert elem.get_line_width() == pytest.approx(0.0)
 
     def test_set_line_width_negative_error(self):
         """Test error on negative line width."""
@@ -204,7 +204,7 @@ class TestTransparencySetter:
 
         elem.set_transparency(1)
 
-        assert elem.get_transparency() == 1.0
+        assert elem.get_transparency() == pytest.approx(1.0)
 
     def test_set_transparency_too_high(self):
         """Test error on transparency > 1.0."""
@@ -258,8 +258,8 @@ class TestSetVisualStyleBulk:
 
         assert elem.get_fill_color() == '#ff0000'
         assert elem.get_line_color() == '#0000ff'
-        assert elem.get_line_width() == 2.0
-        assert elem.get_transparency() == 0.8
+        assert elem.get_line_width() == pytest.approx(2.0)
+        assert elem.get_transparency() == pytest.approx(0.8)
 
     def test_set_visual_style_partial(self):
         """Test setting only some visual style properties."""
@@ -270,7 +270,7 @@ class TestSetVisualStyleBulk:
 
         assert elem.get_fill_color() == '#ff0000'
         assert elem.get_line_color() is None
-        assert elem.get_line_width() == 2.0
+        assert elem.get_line_width() == pytest.approx(2.0)
         assert elem.get_transparency() is None
 
     def test_set_visual_style_invalid_property(self):
@@ -429,7 +429,7 @@ class TestVisualStyleIndependence:
         elem.set_fill_color(None)
 
         assert elem.get_fill_color() is None
-        assert elem.get_line_width() == 2.0
+        assert elem.get_line_width() == pytest.approx(2.0)
 
     def test_properties_accumulate(self):
         """Test that properties accumulate correctly."""
