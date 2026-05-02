@@ -1,4 +1,5 @@
 """Parsing utilities for Archi XML and data type conversions."""
+from typing import Any
 
 
 def parse_bool(value: str | None) -> bool:
@@ -39,7 +40,7 @@ def parse_bool(value: str | None) -> bool:
     return normalized in ("true", "1")
 
 
-def extract_images_from_archimate(element) -> list[str]:
+def extract_images_from_archimate(element: Any) -> list[str]:
     """
     Extract base64-encoded image data from Archi XML element.
 
