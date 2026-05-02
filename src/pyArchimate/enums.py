@@ -22,11 +22,14 @@ class Writers(Enum):
 
 class Readers(Enum):
     """
-    Enumaration for Readers drivers
+    Enumeration for Readers drivers
+
+    Note: ARIS format (aris = 1) is deprecated and will be removed in a future version.
+    Use archi (Archi native) or archimate (OpenGroup Exchange format) instead.
     """
 
     archi = 0
-    aris = 1
+    aris = 1  # DEPRECATED: ARIS format support will be removed
     archimate = 2
 
 

@@ -9,6 +9,14 @@ pyArchimate
 
 .. toctree::
    :maxdepth: 2
+   :caption: API Reference:
+
+   api/element
+   api/model
+   modules
+
+.. toctree::
+   :maxdepth: 2
    :caption: P3 Features (v1.3.0):
 
    p3-quick-reference
@@ -18,13 +26,7 @@ pyArchimate
    examples/hierarchy_examples
    examples/styling_examples
 
-.. toctree::
-   :maxdepth: 2
-   :caption: API Reference:
 
-   api/element
-   api/model
-   modules
 
 .. toctree::
    :maxdepth: 2

@@ -16,7 +16,7 @@ from .constants import (
     OPERATION_ERROR_MESSAGES,
 )
 from .element import Element, set_id
-from .enums import ArchiType, Writers
+from .enums import ArchiType
 from .exceptions import ArchimateConceptTypeError
 from .logger import log
 from .view import Node, Profile, View
@@ -471,18 +471,28 @@ class Model:
         """
         return list(self.conns_dict.values())
 
-    def write(self, file_path=None, writer=Writers.archimate):
+    def write(self, file_path=None, writer=None):
         """
         Method to write the file_path to an Archimate file
 
-        :param file_path:
+        Auto-selects writer based on file extension if not explicitly specified:
+        - `.archimate` files use Archi native format (archiWriter)
+        - `.xml` files use OpenGroup Exchange format (archimateWriter)
+        - Default to OpenGroup Exchange format
+
+        :param file_path: Output file path
         :type file_path: str
         :param writer: writer selection (enum value, registry key, or callable) used to format the output.
-        :type writer: Writers|str|callable
-        :return:  data structure
+                      If None, auto-detects based on file_path extension.
+        :type writer: Writers|str|callable|None
+        :return:  XML data structure as string
         :rtype: str
         """
-        from .writers import _resolve_writer
+        from .writers import _detect_writer_from_extension, _resolve_writer
+
+        if writer is None:
+            writer = _detect_writer_from_extension(file_path)
+
         writer_callable = _resolve_writer(writer)
         return writer_callable(self, file_path)
 
@@ -520,15 +530,13 @@ class Model:
     def read(self, file_path, *args, **kwargs):
         """
         Method to read an Archimate file
-        The method detects automagically and read the following formats:
-        - ARIS AML
-        - Open Group Open Exchange File
-        - Archi Tool
 
-        :param file_path:
+        The method detects automatically and reads the following formats:
+        - Open Group Open Exchange File (.xml)
+        - Archi Tool (.archimate)
+
+        :param file_path: Path to the file to read
         :type file_path: str
-
-
         """
         reader, root, entry = self._prepare_reader(file_path, 'read')
         if reader is None or entry is None:
