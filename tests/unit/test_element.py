@@ -313,3 +313,61 @@ def test_element_remove_viewpoint_silent_on_unknown(sample_model):
     """Removing a viewpoint not assigned silently ignores the call."""
     elem = sample_model.add(ArchiType.BusinessActor, 'Test Actor')
     elem.remove_viewpoint('stakeholder')  # should not raise
+
+
+# ---------------------------------------------------------------------------
+# _normalize_color None path (line 69 in element.py)
+# ---------------------------------------------------------------------------
+
+def test_normalize_color_none_returns_none():
+    """_normalize_color(None) returns None (line 69)."""
+    from src.pyArchimate.element import _normalize_color
+    assert _normalize_color(None) is None
+
+
+# ---------------------------------------------------------------------------
+# element.delete with nodes in views (lines 187-188)
+# ---------------------------------------------------------------------------
+
+def test_element_delete_removes_nodes_from_views():
+    """delete() removes diagram nodes that reference this element (lines 187-188)."""
+    m = Model('del-nodes')
+    elem = m.add(ArchiType.ApplicationComponent, 'App')
+    view = m.add(ArchiType.View, 'V')
+    node = view.add(ref=elem.uuid, x=0, y=0, w=100, h=50)
+    node_id = node.uuid
+    elem.delete()
+    assert node_id not in m.nodes_dict
+
+
+# ---------------------------------------------------------------------------
+# element.delete viewpoint cleanup (line 198)
+# ---------------------------------------------------------------------------
+
+def test_element_delete_cleans_up_viewpoints():
+    """delete() removes the element UUID from viewpoint tracking sets (line 198)."""
+    m = Model('del-vp')
+    elem = m.add(ArchiType.BusinessActor, 'Actor')
+    elem.assign_viewpoint('stakeholder')
+    elem_id = elem.uuid
+    elem.delete()
+    # The element's uuid should no longer be in the viewpoint tracking set
+    assert elem_id not in m._viewpoint_elements.get('stakeholder', set())
+
+
+# ---------------------------------------------------------------------------
+# element.merge when other is SOURCE of a relationship (line 386)
+# ---------------------------------------------------------------------------
+
+def test_element_merge_reassigns_source_relationship():
+    """merge() reassigns relationships where other is the source (line 386)."""
+    m = Model('merge-src')
+    target = m.add(ArchiType.ApplicationComponent, 'Target')
+    other = m.add(ArchiType.ApplicationComponent, 'Other')
+    svc = m.add(ArchiType.ApplicationService, 'Svc')
+    # other is SOURCE of this relationship
+    rel = m.add_relationship(ArchiType.Serving, source=other, target=svc)
+    rel_id = rel.uuid
+    # Merge other into target — the relationship source should now be target
+    target.merge(other)
+    assert m.rels_dict[rel_id].source.uuid == target.uuid
