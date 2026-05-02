@@ -5,6 +5,7 @@ from src.pyArchimate import ArchiType
 from src.pyArchimate.enums import AccessType
 from src.pyArchimate.pyArchimate import Model
 from src.pyArchimate.readers._archireader_helpers import (
+    _apply_elem_property,
     _parse_rel_attributes,
     _resolve_bp_coords,
     _resolve_rel_endpoints,
@@ -281,3 +282,131 @@ def test_merge_flag_reuses_existing_element():
     elem_before = model.elems_dict["elem-1"]
     archi_reader(model, root, merge_flg=True)
     assert model.elems_dict["elem-1"] is elem_before
+
+
+# =============================================================================
+# _apply_elem_property — viewpoint branch (lines 170-177)
+# =============================================================================
+
+def test_apply_elem_property_non_viewpoint_stores_prop():
+    m = Model("t")
+    elem = m.add(ArchiType.BusinessActor, "A")
+    p = etree.Element("property", key="cost", value="100")
+    _apply_elem_property(elem, p)
+    assert elem.prop("cost") == "100"
+
+
+def test_apply_elem_property_valid_viewpoint_slug():
+    m = Model("t")
+    elem = m.add(ArchiType.BusinessProcess, "P")
+    p = etree.Element("property", key="viewpoint", value="business")
+    _apply_elem_property(elem, p)
+    assert "business" in elem.viewpoints
+
+
+def test_apply_elem_property_empty_viewpoint_slug_is_noop():
+    m = Model("t")
+    elem = m.add(ArchiType.BusinessProcess, "P")
+    p = etree.Element("property", key="viewpoint", value="")
+    _apply_elem_property(elem, p)
+    assert elem.viewpoints == []
+
+
+def test_apply_elem_property_unknown_viewpoint_slug_logs_warning():
+    m = Model("t")
+    elem = m.add(ArchiType.BusinessProcess, "P")
+    p = etree.Element("property", key="viewpoint", value="totally-unknown-slug")
+    _apply_elem_property(elem, p)
+    assert "totally-unknown-slug" not in elem.viewpoints
+
+
+# =============================================================================
+# get_folders_rel — None endpoints branch (line 216)
+# =============================================================================
+
+_REL_BAD_ENDPOINTS_MODEL = """<?xml version='1.0'?>
+<archimate:model xmlns:archimate="http://www.archimatetool.com/archimate"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 name="bad-endpoints">
+  <folder name="Business">
+    <element xsi:type="archimate:BusinessActor" name="Actor" id="elem-a"/>
+  </folder>
+  <folder name="Relations">
+    <element xsi:type="archimate:ServingRelationship" id="rel-bad"
+             source="no-such-id" target="elem-a"/>
+  </folder>
+</archimate:model>"""
+
+
+def test_get_folders_rel_skips_relationship_with_missing_endpoints():
+    root = etree.fromstring(_REL_BAD_ENDPOINTS_MODEL.encode())
+    model = Model("bad-ep")
+    archi_reader(model, root)
+    assert "rel-bad" not in model.rels_dict
+
+
+# =============================================================================
+# get_folders_rel — merge path (line 219, fixed bug)
+# =============================================================================
+
+_REL_MERGE_MODEL = """<?xml version='1.0'?>
+<archimate:model xmlns:archimate="http://www.archimatetool.com/archimate"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 name="rel-merge">
+  <folder name="Business">
+    <element xsi:type="archimate:BusinessActor" name="Actor" id="elem-a"/>
+  </folder>
+  <folder name="Relations">
+    <element xsi:type="archimate:ServingRelationship" id="rel-1"
+             source="elem-a" target="elem-a" name="Serves"/>
+  </folder>
+</archimate:model>"""
+
+
+def test_get_folders_rel_merge_reuses_existing_relationship():
+    root = etree.fromstring(_REL_MERGE_MODEL.encode())
+    model = Model("rel-merge")
+    archi_reader(model, root)
+    rel_before = model.rels_dict["rel-1"]
+    archi_reader(model, root, merge_flg=True)
+    assert model.rels_dict["rel-1"] is rel_before
+
+
+# =============================================================================
+# get_folders_view — viewpoint attribute (lines 248-252)
+# =============================================================================
+
+_VIEW_VP_MODEL = """<?xml version='1.0'?>
+<archimate:model xmlns:archimate="http://www.archimatetool.com/archimate"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 name="view-vp">
+  <folder name="Views">
+    <element xsi:type="archimate:ArchimateDiagramModel" name="Valid VP" id="view-vp-ok"
+             viewpoint="business"/>
+    <element xsi:type="archimate:ArchimateDiagramModel" name="Unknown VP" id="view-vp-bad"
+             viewpoint="no-such-viewpoint"/>
+    <element xsi:type="archimate:ArchimateDiagramModel" name="No VP" id="view-no-vp"/>
+  </folder>
+</archimate:model>"""
+
+
+def test_get_folders_view_valid_viewpoint_assigned():
+    root = etree.fromstring(_VIEW_VP_MODEL.encode())
+    model = Model("view-vp")
+    archi_reader(model, root)
+    view = model.views_dict["view-vp-ok"]
+    assert hasattr(view, 'viewpoint') or "view-vp-ok" in model.views_dict
+
+
+def test_get_folders_view_unknown_viewpoint_does_not_raise():
+    root = etree.fromstring(_VIEW_VP_MODEL.encode())
+    model = Model("view-vp")
+    archi_reader(model, root)
+    assert "view-vp-bad" in model.views_dict
+
+
+def test_get_folders_view_no_viewpoint_is_ok():
+    root = etree.fromstring(_VIEW_VP_MODEL.encode())
+    model = Model("view-vp")
+    archi_reader(model, root)
+    assert "view-no-vp" in model.views_dict

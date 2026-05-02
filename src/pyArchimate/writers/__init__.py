@@ -40,12 +40,12 @@ def _resolve_writer(writer):
     elif isinstance(writer, str):
         try:
             key = Writers[writer]
-        except KeyError:
+        except KeyError:  # noqa: S110
             pass
     elif isinstance(writer, int):
         try:
             key = Writers(writer)
-        except ValueError:
+        except ValueError:  # noqa: S110
             pass
 
     if key in _writer_registry:

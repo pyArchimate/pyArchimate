@@ -5,6 +5,7 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 run_quiet() {
+    echo "."
     local label="$1"; shift
     local output
     output=$("$@" 2>&1) || {

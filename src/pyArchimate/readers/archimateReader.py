@@ -1,17 +1,100 @@
 import os
 import sys
+from typing import Any, Optional
 
 try:
-    from ..constants import RGBA
+    from ..constants import NAMED_COLORS, RGBA
     from ..enums import ArchiType
     from ..helpers.logging import log
     from ..view import Point
 except ImportError:
     sys.path.insert(0, "..")
-    from pyArchimate import RGBA, ArchiType, Point, log  # type: ignore[no-redef,attr-defined]
+    from constants import NAMED_COLORS  # type: ignore[import-not-found,no-redef]
+
+    from pyArchimate import RGBA, ArchiType, Point, log  # type: ignore[attr-defined,no-redef]
 
 __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+
+def _normalize_color_on_import(color_str: Optional[str]) -> Optional[str]:
+    """
+    Normalize color from import to hex format.
+    Accepts hex (#RRGGBB) or named colors.
+    Returns lowercase hex or None on error.
+    """
+    if not color_str or not isinstance(color_str, str):
+        return None
+    color_str = color_str.strip().lower()
+    if not color_str:
+        return None
+    if color_str.startswith('#'):
+        import re
+        if re.match(r'^#[0-9a-f]{6}$', color_str):
+            return color_str
+        log.warning(f"Invalid hex color format on import: {color_str}")
+        return None
+    if color_str in NAMED_COLORS:
+        return NAMED_COLORS[color_str].lower()
+    log.warning(f"Unknown color on import: {color_str}")
+    return None
+
+
+def _extract_visual_style_properties(elem_xml: Any, ns: str) -> dict[str, Any]:
+    """Extract visual style properties (fillColor, lineColor, lineWidth, transparency) from element."""
+    style: dict[str, Any] = {}
+    props_xml = elem_xml.find(ns + 'properties')
+    if props_xml is None:
+        return style
+    for p in props_xml.findall(ns + 'property'):
+        key = p.get('key')
+        val_elem = p.find(ns + 'value')
+        if val_elem is None:
+            continue
+        val = (val_elem.text or '').strip()
+        if not val:
+            continue
+        try:
+            if key == 'fillColor' or key == 'lineColor':
+                normalized = _normalize_color_on_import(val)
+                if normalized:
+                    style[key] = normalized
+            elif key == 'lineWidth':
+                width_val = float(val)
+                if width_val >= 0:
+                    style[key] = width_val
+                else:
+                    log.warning(f"Invalid lineWidth on import (negative): {val}")
+            elif key == 'transparency':
+                alpha_val = float(val)
+                if 0.0 <= alpha_val <= 1.0:
+                    style[key] = alpha_val
+                else:
+                    log.warning(f"Invalid transparency on import (out of range): {val}")
+        except (ValueError, TypeError) as e:
+            log.warning(f"Failed to parse visual style property {key}={val}: {e}")
+    return style
+
+
+def _build_hierarchy_from_parents(model: Any, parent_map: dict[str, Optional[str]]) -> None:
+    """
+    Build parent-child hierarchy after all elements are loaded.
+    parent_map: dict of {child_uuid: parent_uuid}
+    Validates hierarchy with cycle detection and depth limits.
+    On error: Log warning, skip relationship, continue (lenient).
+    """
+    if not parent_map:
+        return
+    for child_uuid, parent_uuid in parent_map.items():
+        if parent_uuid is None or child_uuid not in model.elems_dict:
+            continue
+        if parent_uuid not in model.elems_dict:
+            log.warning(f"Parent element {parent_uuid} not found during import, skipping hierarchy")
+            continue
+        try:
+            model.add_child(parent_uuid, child_uuid)
+        except (KeyError, ValueError) as e:
+            log.warning(f"Failed to add hierarchy during import: {e}, skipping relationship")
 
 
 def _read_pdefs(model, root, ns, merge_flg):
@@ -30,19 +113,67 @@ def _read_pdefs(model, root, ns, merge_flg):
     return pdef_merge_map
 
 
-def _read_props(obj, xml_elem, ns, pdef_merge_map, model):
+def _read_props(obj: Any, xml_elem: Any, ns: str, pdef_merge_map: dict[str, str], model: Any) -> None:
     props = xml_elem.find(ns + 'properties')
     if props is None:
         return
     for p in props.findall(ns + 'property'):
+        # Skip visual style properties (fillColor, lineColor, lineWidth, transparency)
+        # which have 'key' but not 'propertyDefinitionRef'
+        if p.get('propertyDefinitionRef') is None:
+            if p.get('key') in ('fillColor', 'lineColor', 'lineWidth', 'transparency'):
+                continue
+            # Unknown property format, skip it
+            continue
         _id = pdef_merge_map[p.get('propertyDefinitionRef')]
         obj.prop(model.pdefs[_id], p.find(ns + 'value').text)
+
+
+def _assign_viewpoint(obj: Any, slug: str, method: str = 'assign_viewpoint') -> None:
+    from ..viewpoint_registry import get_viewpoint
+    if not slug:
+        return
+    if get_viewpoint(slug) is not None:
+        getattr(obj, method)(slug)
+    else:
+        log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
+
+
+def _apply_viewpoint_props(elem: Any, props_xml: Any, ns: str, pdef_merge_map: dict[str, str], model: Any) -> None:
+    if props_xml is None:
+        return
+    for p in props_xml.findall(ns + 'property'):
+        prop_id = p.get('propertyDefinitionRef')
+        if prop_id not in pdef_merge_map:
+            continue
+        if model.pdefs.get(pdef_merge_map[prop_id]) != 'viewpoint':
+            continue
+        val_xml = p.find(ns + 'value')
+        slug = (val_xml.text or '').strip().lower() if val_xml is not None else ''
+        _assign_viewpoint(elem, slug)
+
+
+def _apply_junction_type_props(elem: Any, props_xml: Any, ns: str) -> None:
+    if props_xml is None:
+        return
+    for p in props_xml.findall(ns + 'property'):
+        if p.get('key') == 'junctionType':
+            val_elem = p.find(ns + 'value')
+            if val_elem is not None:
+                junction_type = (val_elem.text or '').strip().lower()
+                if junction_type:
+                    try:
+                        elem.set_junction_type(junction_type)
+                    except ValueError as e:
+                        log.warning(f"Invalid junctionType on import: {e}")
 
 
 def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
     elements_xml = root.find(ns + 'elements')
     if elements_xml is None:
-        return
+        return {}, {}
+    parent_map = {}
+    visual_style_map = {}
     for e in elements_xml.findall(ns + 'element'):
         _uuid = e.get('identifier')
         name = None if e.find(ns + 'name') is None else e.find(ns + 'name').text
@@ -59,20 +190,18 @@ def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
                 desc=desc,
             )
         _read_props(elem, e, ns, pdef_merge_map, model)
-        # Read element-level viewpoint associations stored as properties
+        parent_id = e.get('parentId')
+        if parent_id:
+            parent_map[_uuid] = parent_id
+        visual_style = _extract_visual_style_properties(e, ns)
+        if visual_style:
+            visual_style_map[_uuid] = visual_style
+
         props_xml = e.find(ns + 'properties')
-        if props_xml is not None:
-            for p in props_xml.findall(ns + 'property'):
-                prop_id = p.get('propertyDefinitionRef')
-                if prop_id in pdef_merge_map and model.pdefs.get(pdef_merge_map[prop_id]) == 'viewpoint':
-                    val_xml = p.find(ns + 'value')
-                    slug = (val_xml.text or '').strip().lower() if val_xml is not None else ''
-                    if slug:
-                        from ..viewpoint_registry import get_viewpoint
-                        if get_viewpoint(slug) is not None:
-                            elem.assign_viewpoint(slug)
-                        else:
-                            log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
+        _apply_viewpoint_props(elem, props_xml, ns, pdef_merge_map, model)
+        _apply_junction_type_props(elem, props_xml, ns)
+
+    return parent_map, visual_style_map
 
 
 def _read_relationships(model, root, ns, xsi, pdef_merge_map, merge_flg):
@@ -209,14 +338,7 @@ def _read_views(model, root, ns, xsi, pdef_merge_map, merge_flg):
             desc=_get_xml_text(v, 'documentation', ns),
         )
         _read_props(_v, v, ns, pdef_merge_map, model)
-        # Read view-level primary viewpoint from 'viewpoint' XML attribute
-        vp_attr = (v.get('viewpoint') or '').strip().lower()
-        if vp_attr:
-            from ..viewpoint_registry import get_viewpoint
-            if get_viewpoint(vp_attr) is not None:
-                _v.set_primary_viewpoint(vp_attr)
-            else:
-                log.warning(f"Unknown viewpoint slug '{vp_attr}' on view ignored")
+        _assign_viewpoint(_v, (v.get('viewpoint') or '').strip().lower(), 'set_primary_viewpoint')
         for n in v.findall(ns + 'node'):
             _add_node(_v, n, ns, xsi, model, merge_flg)
         for c in v.findall(ns + 'connection'):
@@ -282,7 +404,31 @@ def archimate_reader(model, root, merge_flg=False):
 
     pdef_merge_map = _read_pdefs(model, root, ns, merge_flg)
     _read_props(model, root, ns, pdef_merge_map, model)
-    _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg)
+    parent_map, visual_style_map = _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg)
     _read_relationships(model, root, ns, xsi, pdef_merge_map, merge_flg)
     _read_views(model, root, ns, xsi, pdef_merge_map, merge_flg)
     _read_organizations(model, root, ns)
+    _build_hierarchy_from_parents(model, parent_map)
+    for elem_uuid, style in visual_style_map.items():
+        if elem_uuid in model.elems_dict:
+            elem = model.elems_dict[elem_uuid]
+            if 'fillColor' in style:
+                try:
+                    elem.set_fill_color(style['fillColor'])
+                except (ValueError, TypeError) as e:
+                    log.warning(f"Failed to apply fillColor to {elem_uuid}: {e}")
+            if 'lineColor' in style:
+                try:
+                    elem.set_line_color(style['lineColor'])
+                except (ValueError, TypeError) as e:
+                    log.warning(f"Failed to apply lineColor to {elem_uuid}: {e}")
+            if 'lineWidth' in style:
+                try:
+                    elem.set_line_width(style['lineWidth'])
+                except (ValueError, TypeError) as e:
+                    log.warning(f"Failed to apply lineWidth to {elem_uuid}: {e}")
+            if 'transparency' in style:
+                try:
+                    elem.set_transparency(style['transparency'])
+                except (ValueError, TypeError) as e:
+                    log.warning(f"Failed to apply transparency to {elem_uuid}: {e}")

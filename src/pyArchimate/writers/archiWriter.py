@@ -63,7 +63,7 @@ def _resolve_folder_path(obj_folder: str | None, cat: str) -> str:
     return '/' + cat + obj_folder
 
 
-def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName) -> None:
+def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName, model: object = None) -> None:
     elem_type = getattr(elem, 'type', '')
     cat = archi_category[elem_type].split('-')[0]
     if cat == "Junction":
@@ -76,10 +76,15 @@ def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName) ->
         junction_type = getattr(elem, 'junction_type', 'and')
         setattr(elem, 'type', junction_type.capitalize() + elem_type)  # noqa: B010
         elem_type = getattr(elem, 'type', '')
-    e = et.SubElement(folder, 'element', {
+    elem_uuid = getattr(elem, 'uuid', '')
+    attrs = {
         str(xsi): 'archimate:' + elem_type,
-        'id': getattr(elem, 'uuid', '')
-    })
+        'id': elem_uuid
+    }
+    e = et.SubElement(folder, 'element', attrs)
+    parent_uuid = getattr(elem, '_parent_uuid', None)
+    if parent_uuid:
+        e.set('parentId', parent_uuid)
     name = getattr(elem, 'name', None)
     if name is not None:
         e.set('name', name)
@@ -89,7 +94,10 @@ def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName) ->
         doc.text = desc
     for k, v in getattr(elem, 'props', {}).items():
         et.SubElement(e, 'property', key=k, value=str(v))
-    # Write element-level viewpoint associations as properties
+    visual_style = getattr(elem, '_visual_style', {})
+    for key in ['fillColor', 'lineColor', 'lineWidth', 'transparency']:
+        if key in visual_style:
+            et.SubElement(e, 'property', key=key, value=str(visual_style[key]))
     for slug in getattr(elem, 'viewpoints', []):
         et.SubElement(e, 'property', key='viewpoint', value=slug)
     profile_id = getattr(elem, 'profile_id', None)
@@ -203,7 +211,7 @@ def _set_node_features(child: _Element, node: object) -> None:
     label_expression = getattr(node, 'label_expression', None)
     if label_expression is not None:
         et.SubElement(child, 'feature', name='labelExpression', value=label_expression)
-    icon_color = getattr(node, 'iconColor', None)
+    icon_color = getattr(node, 'icon_color', None)
     if icon_color is not None:
         et.SubElement(child, 'feature', name='iconColor', value=icon_color)
     gradient = getattr(node, 'gradient', None)
@@ -318,7 +326,7 @@ def archi_writer(model: Model, file_path: str) -> str:
     folders = _create_folders(root)
 
     for elem in model.elements:
-        _write_element(folders, elem, xsi)
+        _write_element(folders, elem, xsi, model)
     for rel in model.relationships:
         _write_relationship(folders, rel, xsi)
     for view in model.views:
