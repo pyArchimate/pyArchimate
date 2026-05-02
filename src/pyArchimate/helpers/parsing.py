@@ -44,7 +44,8 @@ def extract_images_from_archimate(element) -> list[str]:
     Extract base64-encoded image data from Archi XML element.
 
     Searches for image elements (graphics, diagram elements with embedded images)
-    and extracts their base64-encoded data.
+    and extracts their base64-encoded data. Looks in multiple locations where
+    Archi stores image data (properties with keys 'image', 'image-data', etc).
 
     Args:
         element: lxml Element from parsed Archi XML
@@ -53,16 +54,24 @@ def extract_images_from_archimate(element) -> list[str]:
         List of base64 strings in extraction order. Empty list if no images found.
     """
     images = []
-    # Search for elements with image data (typically stored as base64 in attributes or text)
+    seen = set()  # Track extracted data to avoid duplicates
+
+    # Search for elements with image data in image elements
     for img_elem in element.findall(".//image"):
         data = img_elem.get("data")
-        if data:
+        if data and data not in seen:
             images.append(data)
-    # Also check for embedded image data in properties
-    for prop_elem in element.findall(".//property[@key='image']"):
-        data = prop_elem.get("value")
-        if data:
-            images.append(data)
+            seen.add(data)
+
+    # Check for embedded image data in properties (various key names)
+    image_property_keys = ['image', 'image-data', 'image_data']
+    for key in image_property_keys:
+        for prop_elem in element.findall(f".//property[@key='{key}']"):
+            data = prop_elem.get("value")
+            if data and data not in seen:
+                images.append(data)
+                seen.add(data)
+
     return images
 
 
