@@ -1,9 +1,22 @@
 ## v1.4.2 (2026-05-02)
 
+### Feat
+
+- **feature-007**: Implement smart file format selection based on file extension (.archimate for Archi native, .xml for OpenGroup Exchange)
+- **feature-007**: Add comprehensive integration tests for format selection and round-trip fidelity
+
 ### Fix
 
 - **ci**: guard publish job to only run on tag pushes
 - **ci**: apply same Poetry/encoding fixes to release workflow
+- **feature-007**: Fix OpenGroup Exchange XML schema location (archimate3.xsd at 3.0 namespace)
+
+### Deprecated
+
+- **ARIS AML format**: ARIS format support (arisAMLreader) is deprecated and will be removed in v1.5.0
+  - Legacy tests moved to test_legacy_* files
+  - Use archimateReader (OpenGroup format, .xml) or archiReader (Archi native, .archimate) instead
+  - ARIS_type_map removed from public API
 
 ## v1.4.1 (2026-05-02)
 

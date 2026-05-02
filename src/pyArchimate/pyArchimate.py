@@ -4,7 +4,6 @@ import math  # noqa: F401 - re-exported for legacy callers that do `from pyArchi
 
 # All imports below are intentional re-exports — this file is a public API shim.
 from .constants import ARCHI_CATEGORY as archi_category  # noqa: F401
-from .constants import ARIS_TYPE_MAP as ARIS_type_map  # noqa: F401
 from .constants import DEFAULT_THEME as default_theme  # noqa: F401
 from .constants import RGBA as RGBA  # noqa: F401
 from .element import Element as Element  # noqa: F401

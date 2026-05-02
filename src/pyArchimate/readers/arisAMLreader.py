@@ -1,10 +1,18 @@
 """
-*   Conversion program from ARIS AML xml file to Archimate Open Exchange File format
-*   Author: X. Mayeur
-*   Date: October 2022
-*   Version 0.9
-*
-*
+DEPRECATED: ARIS AML format reader.
+
+This module is deprecated and will be removed in a future version.
+The ARIS format is no longer actively maintained or supported.
+
+For working with ArchiMate models, use:
+- archimateReader: For OpenGroup Exchange format (.xml files)
+- archiReader: For Archi native format (.archimate files)
+
+Original function:
+Conversion program from ARIS AML xml file to Archimate Open Exchange File format
+Author: X. Mayeur
+Date: October 2022
+Version 0.9
 """
 import sys
 from typing import Any
