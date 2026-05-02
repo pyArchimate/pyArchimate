@@ -1,7 +1,8 @@
-"""Helper modules for diagram, property, and logging utilities."""
+"""Helper modules for diagram, property, logging, and parsing utilities."""
 
 from .diagram import get_or_create_connection, get_or_create_node
 from .logging import log, log_set_level, log_to_file, log_to_stderr
+from .parsing import compare_image_data, extract_images_from_archimate, parse_bool
 from .properties import check_invalid_conn, check_invalid_nodes, embed_props, expand_props
 
 __all__ = [
@@ -15,4 +16,7 @@ __all__ = [
     "log_set_level",
     "log_to_file",
     "log_to_stderr",
+    "parse_bool",
+    "extract_images_from_archimate",
+    "compare_image_data",
 ]
