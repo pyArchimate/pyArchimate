@@ -385,7 +385,7 @@ def step_adding_should_fail(context, child_name, parent_name):
     child = context.elements[child_name]
     try:
         context.model.add_child(parent.uuid, child.uuid)
-        AssertionError("Expected add_child to raise ValueError")
+        raise AssertionError("Expected add_child to raise ValueError")
     except ValueError as e:
         context.cycle_error = str(e)
 
