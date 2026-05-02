@@ -252,7 +252,6 @@ class TestRoundTripFidelity:
             children2_uuids = {c.uuid for c in children2}
             expected_colors = {colors[i % len(colors)] for i in range(10)}
             expected_widths = {float((i % 3) + 1) for i in range(10)}
-            expected_trans = {0.7, 0.9}
 
             actual_colors = {m2.elems_dict[uuid].get_fill_color() for uuid in children2_uuids}
             actual_widths = {m2.elems_dict[uuid].get_line_width() for uuid in children2_uuids}

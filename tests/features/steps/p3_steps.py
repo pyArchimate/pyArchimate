@@ -72,7 +72,8 @@ def step_add_multiple_children(context, element_type, parent_name):
     # Find all elements of this type (recently added)
     for name, elem in context.elements.items():
         if name != parent_name.strip("'\"") and hasattr(elem, 'type'):
-            try:
+            parent_uuid = context.model.get_parent(elem.uuid)
+            if parent_uuid is None:
                 context.model.add_child(parent.uuid, elem.uuid)
             except ValueError:  # noqa: S110
                 pass  # Already has parent
