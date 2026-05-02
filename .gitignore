@@ -25,3 +25,4 @@ Thumbs.db
 .specify/init-options.json
 .specify/integration.json
 .env
+.temp/
