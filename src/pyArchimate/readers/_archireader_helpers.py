@@ -4,11 +4,20 @@ from typing import Any
 try:
     from ..enums import AccessType, ArchiType
     from ..helpers.logging import log
+    from ..helpers.parsing import parse_bool
     from ..view import Node, Point, View
 except ImportError:
     import sys
     sys.path.insert(0, "..")
-    from pyArchimate import AccessType, ArchiType, Node, Point, View, log  # type: ignore[no-redef,attr-defined]
+    from pyArchimate import (  # type: ignore[no-redef,attr-defined]
+        AccessType,
+        ArchiType,
+        Node,
+        Point,
+        View,
+        log,
+        parse_bool,
+    )
 
 
 def _parse_node_type(parent: Any, child: Any, xsi: str) -> Any:
@@ -113,7 +122,7 @@ def _parse_connection(sc: Any, parent: View) -> None:
                    else parent.model.conns_dict[sc.get('target')])
     ft = sc.find('feature')
     if ft is not None and ft.get('name') == 'nameVisible':
-        conn.show_label = bool(ft.get('value'))
+        conn.show_label = parse_bool(ft.get('value'))
     for bp in sc.findall('bendpoint'):
         _x, _y = _resolve_bp_coords(bp, source_node, target_node)
         conn.add_bendpoint(Point(_x, _y))
@@ -236,7 +245,7 @@ def get_folders_view(tag: Any, model: Any, xsi: str, folder_path: str = '') -> N
         elem.folder = folder
         doc = e.find('documentation')
         if doc is not None:
-            elem.desc = e.text
+            elem.desc = doc.text
         for p in e.findall('property'):
             elem.prop(p.get('key'), p.get('value'))
         # Read view-level primary viewpoint from 'viewpoint' XML attribute

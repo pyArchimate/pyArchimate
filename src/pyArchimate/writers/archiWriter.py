@@ -157,9 +157,9 @@ def _write_connection(child: _Element, conn: object, xsi: et.QName) -> None:
         'target': conn_target.uuid,
         'archimateRelationship': getattr(conn, 'ref', '')
     })
-    if not getattr(conn, 'show_label', True):
-        et.SubElement(c, 'feature', name='nameVisible',
-                      value=str(getattr(conn, 'show_label', True)).lower())
+    show_label = getattr(conn, 'show_label', True)
+    et.SubElement(c, 'feature', name='nameVisible',
+                  value='true' if show_label else 'false')
     line_width = getattr(conn, 'line_width', None)
     if line_width is not None:
         c.set('lineWidth', str(line_width))
