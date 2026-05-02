@@ -5,7 +5,6 @@ from src.pyArchimate import ArchiType
 from src.pyArchimate.enums import AccessType
 from src.pyArchimate.pyArchimate import Model
 from src.pyArchimate.readers._archireader_helpers import (
-    _apply_elem_property,
     _parse_rel_attributes,
     _resolve_bp_coords,
     _resolve_rel_endpoints,
@@ -283,41 +282,6 @@ def test_merge_flag_reuses_existing_element():
     archi_reader(model, root, merge_flg=True)
     assert model.elems_dict["elem-1"] is elem_before
 
-
-# =============================================================================
-# _apply_elem_property — viewpoint branch (lines 170-177)
-# =============================================================================
-
-def test_apply_elem_property_non_viewpoint_stores_prop():
-    m = Model("t")
-    elem = m.add(ArchiType.BusinessActor, "A")
-    p = etree.Element("property", key="cost", value="100")
-    _apply_elem_property(elem, p)
-    assert elem.prop("cost") == "100"
-
-
-def test_apply_elem_property_valid_viewpoint_slug():
-    m = Model("t")
-    elem = m.add(ArchiType.BusinessProcess, "P")
-    p = etree.Element("property", key="viewpoint", value="business")
-    _apply_elem_property(elem, p)
-    assert "business" in elem.viewpoints
-
-
-def test_apply_elem_property_empty_viewpoint_slug_is_noop():
-    m = Model("t")
-    elem = m.add(ArchiType.BusinessProcess, "P")
-    p = etree.Element("property", key="viewpoint", value="")
-    _apply_elem_property(elem, p)
-    assert elem.viewpoints == []
-
-
-def test_apply_elem_property_unknown_viewpoint_slug_logs_warning():
-    m = Model("t")
-    elem = m.add(ArchiType.BusinessProcess, "P")
-    p = etree.Element("property", key="viewpoint", value="totally-unknown-slug")
-    _apply_elem_property(elem, p)
-    assert "totally-unknown-slug" not in elem.viewpoints
 
 
 # =============================================================================

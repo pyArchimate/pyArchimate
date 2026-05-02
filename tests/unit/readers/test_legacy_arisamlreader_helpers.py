@@ -1,4 +1,11 @@
-"""Unit tests for _arisamlreader_helpers to ensure ≥80% coverage (T023)."""
+"""DEPRECATED: Legacy ARIS AML format reader helper tests.
+
+Unit tests for _arisamlreader_helpers. The ARIS format is no longer
+actively maintained or supported and will be removed in a future version.
+
+These tests are kept for backward compatibility but are not executed
+by default. Use tests for archimateReader or archiReader instead.
+"""
 import pytest
 from lxml import etree
 

@@ -63,6 +63,12 @@ def _parse_node_attributes(node: Any, child: Any, parent: Any) -> None:
         node.fill_color = child.get('fillColor')
     if child.get('alpha') is not None:
         node.opacity = 100 * int(child.get('alpha')) / 255
+    if child.get('imagePath') is not None:
+        node.image_path = child.get('imagePath')
+    if child.get('imagePosition') is not None:
+        node.image_position = int(child.get('imagePosition'))
+    if child.get('type') is not None:
+        node.image_type = int(child.get('type'))
     for ft in child.findall('feature'):
         ft_name = ft.get('name')
         if ft_name == 'lineAlpha':
@@ -73,6 +79,8 @@ def _parse_node_attributes(node: Any, child: Any, parent: Any) -> None:
             node.icon_color = ft.get('value')
         elif ft_name == 'gradient':
             node.gradient = ft.get('value')
+        elif ft_name == 'imageSource':
+            node.image_source = parse_bool(ft.get('value'))
     node.text_alignment = child.get('textAlignment')
     node.text_position = child.get('textPosition')
 
@@ -172,13 +180,8 @@ def _parse_rel_attributes(elem: Any, e: Any) -> None:
         elem.prop(p.get('key'), p.get('value'))
 
 
-def _apply_elem_property(elem: Any, p: Any) -> None:
-    if p.get('key') != 'viewpoint':
-        elem.prop(p.get('key'), p.get('value'))
-        return
-    slug = (p.get('value') or '').strip().lower()
-    if not slug:
-        return
+def _process_viewpoint_property(elem: Any, slug: str) -> None:
+    """Assign viewpoint to element if it exists in registry, log warning if not found."""
     from ..viewpoint_registry import get_viewpoint
     if get_viewpoint(slug) is not None:
         elem.assign_viewpoint(slug)
@@ -186,23 +189,78 @@ def _apply_elem_property(elem: Any, p: Any) -> None:
         log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
 
 
+def _process_property(elem: Any, prop: Any) -> None:
+    """Process element property, handling viewpoint assignment or visual style restoration."""
+    key = prop.get('key')
+    if key == 'viewpoint':
+        slug = (prop.get('value') or '').strip().lower()
+        if slug:
+            _process_viewpoint_property(elem, slug)
+    elif key == 'junctionType':
+        # Restore junction type from property (overrides any type extracted from xsi:type)
+        value = prop.get('value')
+        if value in ('and', 'or', 'xor'):
+            elem.junction_type = value
+    elif key in ('fillColor', 'lineColor', 'lineWidth', 'transparency'):
+        # Restore visual style properties to the element's _visual_style dict
+        value = prop.get('value')
+        # Convert to appropriate type
+        if key in ('lineWidth', 'transparency'):
+            value = float(value)
+        elem._visual_style[key] = value
+    else:
+        elem.prop(key, prop.get('value'))
+
+
+def _get_or_create_element(e: Any, model: Any, merge_flg: bool, type_e: str) -> Any:
+    """Get existing element if merge flag is set and element exists, otherwise create new element."""
+    elem_id = e.get('id')
+    if merge_flg and elem_id in model.elems_dict:
+        return model.elems_dict[elem_id]
+    return model.add(concept_type=type_e, name=e.get('name'), uuid=elem_id,
+                     profile=e.get('profiles'))
+
+
+def _set_documentation(elem: Any, e: Any) -> None:
+    """Extract documentation text from XML element and assign to element description."""
+    doc = e.find('documentation')
+    if doc is not None:
+        elem.desc = doc.text
+
+
+def _set_junction_type(elem: Any, xsi_type: str) -> None:
+    """Set junction type from xsi:type attribute for backward compatibility.
+
+    Handles old format: xsi:type like 'AndJunction' -> 'and', 'OrJunction' -> 'or'
+    For new format, the junctionType property will override this.
+    Only sets junction type if xsi:type is not just 'Junction' (which means it was not set).
+    """
+    if xsi_type != 'Junction' and xsi_type.endswith('Junction'):
+        junction_name = xsi_type[:-len('Junction')].lower()
+        if junction_name in ('and', 'or', 'xor'):
+            elem.junction_type = junction_name
+
+
 def _process_folder_element(e: Any, model: Any, xsi: str, merge_flg: bool, folder: str) -> None:
     type_e = e.get(xsi + 'type').split(':')[1]
     if 'Relationship' in type_e or 'ArchimateDiagramModel' in type_e:
         return
-    if merge_flg and e.get('id') in model.elems_dict:
-        elem = model.elems_dict[e.get('id')]
-    else:
-        elem = model.add(concept_type=type_e, name=e.get('name'), uuid=e.get('id'),
-                         profile=e.get('profiles'))
+    elem = _get_or_create_element(e, model, merge_flg, type_e)
     elem.folder = folder
-    doc = e.find('documentation')
-    if doc is not None:
-        elem.desc = doc.text
+    # Restore parent-child hierarchy from parentId attribute
+    parent_id = e.get('parentId')
+    if parent_id:
+        elem._parent_uuid = parent_id
+    # For backward compatibility: set default junction type from xsi:type or type attribute
+    if 'Junction' in type_e:
+        _set_junction_type(elem, type_e)
+        # Also check for legacy type attribute (e.g., type="or")
+        legacy_type = e.get('type')
+        if legacy_type and legacy_type in ('and', 'or', 'xor'):
+            elem.junction_type = legacy_type
+    _set_documentation(elem, e)
     for p in e.findall('property'):
-        _apply_elem_property(elem, p)
-    if type_e == 'Junction':
-        elem.junction_type = e.get('type') if e.get('type') is not None else 'and'
+        _process_property(elem, p)
 
 
 def get_folders_elem(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path: str = '') -> None:

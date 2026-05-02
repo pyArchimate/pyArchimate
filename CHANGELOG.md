@@ -1,9 +1,31 @@
 ## v1.4.2 (2026-05-02)
 
+### Feat
+
+- **feature-007**: Implement smart file format selection based on file extension (.archimate for Archi native, .xml for OpenGroup Exchange)
+- **feature-007**: Add comprehensive integration tests for format selection and round-trip fidelity
+
 ### Fix
 
+- **feature-008**: Fix .archimate format reading by detecting and extracting XML from ZIP archives
+- **feature-008**: Add _detect_zip_file() and _extract_xml_from_zip() methods for ZIP archive handling
+- **feature-008**: Improve error messages for corrupted archives and missing model.xml entries
+- **feature-008**: Preserve image associations in DiagramObject round-trip (imagePath, imagePosition, type, imageSource)
+- **feature-008**: Add image properties to Node class for complete image metadata preservation
+- **feature-008**: Fix visual style property preservation (fillColor, lineColor, lineWidth, transparency)
+- **feature-008**: Fix junction type preservation for and/or/xor types with new junctionType property
+- **feature-008**: Add backward compatibility for old xsi:type formats (AndJunction/OrJunction)
+- **test**: Update BDD acceptance tests to handle .archimate ZIP archives in test parsing
 - **ci**: guard publish job to only run on tag pushes
 - **ci**: apply same Poetry/encoding fixes to release workflow
+- **feature-007**: Fix OpenGroup Exchange XML schema location (archimate3.xsd at 3.0 namespace)
+
+### Deprecated
+
+- **ARIS AML format**: ARIS format support (arisAMLreader) is deprecated and will be removed in v1.5.0
+  - Legacy tests moved to test_legacy_* files
+  - Use archimateReader (OpenGroup format, .xml) or archiReader (Archi native, .archimate) instead
+  - ARIS_type_map removed from public API
 
 ## v1.4.1 (2026-05-02)
 
