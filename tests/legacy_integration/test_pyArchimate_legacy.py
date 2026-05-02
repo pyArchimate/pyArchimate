@@ -121,7 +121,7 @@ class MyTestCase(unittest.TestCase):
     def test_orgs(self):
         log.name = "test_orgs"
         m = Model('test')
-        _v = m.add(ArchiType.View, 'X')
+        m.add(ArchiType.View, 'X')
         e = m.add(ArchiType.ApplicationComponent, 'Bus App')
         e.folder = '/Application/level1/level2'
         e2 = m.add(ArchiType.ApplicationComponent, "Bus App 2")
@@ -207,7 +207,7 @@ class MyTestCase(unittest.TestCase):
         log.name = "test_merge_elem"
         m = Model('test merge elem')
         v1 = m.add(ArchiType.View, 'View 1')
-        _v2 = m.add(ArchiType.View, 'View 2')
+        m.add(ArchiType.View, 'View 2')
         n1 = v1.get_or_create_node(elem="App A", elem_type=ArchiType.ApplicationCollaboration,
                                    x=20, y=20, create_node=True, create_elem=True)
         n2 = v1.get_or_create_node(elem="App B", elem_type=ArchiType.ApplicationCollaboration,
@@ -216,9 +216,9 @@ class MyTestCase(unittest.TestCase):
                                    x=400, y=100, create_node=True, create_elem=True)
         n4 = v1.get_or_create_node(elem="App B.2", elem_type=ArchiType.ApplicationComponent,
                                    x=400, y=200, create_node=True, create_elem=True)
-        _r23 = v1.get_or_create_connection(rel=None, name="r23", source=n3, target=n2,
+        v1.get_or_create_connection(rel=None, name="r23", source=n3, target=n2,
                                           rel_type=ArchiType.Flow, create_conn=True)
-        _r24 = v1.get_or_create_connection(rel=None, name="r24", source=n4, target=n2,
+        v1.get_or_create_connection(rel=None, name="r24", source=n4, target=n2,
                                           rel_type=ArchiType.Flow, create_conn=True)
 
         e1 = n1.concept

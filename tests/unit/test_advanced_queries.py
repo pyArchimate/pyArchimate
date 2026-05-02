@@ -78,7 +78,7 @@ class TestAdvancedQueries:
         """Test finding element at root level by name."""
         m = Model('test-model')
         root = m.add(ArchiType.BusinessProcess, 'Root')
-        _other = m.add(ArchiType.BusinessProcess, 'Other')
+        m.add(ArchiType.BusinessProcess, 'Other')
 
         results = m.find_by_hierarchy_path('/Root')
         assert len(results) == 1
@@ -131,8 +131,8 @@ class TestAdvancedQueries:
     def test_find_by_hierarchy_path_wildcard_all_at_level(self):
         """Test wildcard to match all elements at a given level."""
         m = Model('test-model')
-        _root1 = m.add(ArchiType.BusinessProcess, 'Root')
-        _root2 = m.add(ArchiType.BusinessProcess, 'Root')
+        m.add(ArchiType.BusinessProcess, 'Root')
+        m.add(ArchiType.BusinessProcess, 'Root')
 
         results = m.find_by_hierarchy_path('/Root')
         assert len(results) == 2
@@ -140,7 +140,7 @@ class TestAdvancedQueries:
     def test_find_by_hierarchy_path_nonexistent_returns_empty(self):
         """Test that nonexistent path returns empty list."""
         m = Model('test-model')
-        _parent = m.add(ArchiType.BusinessProcess, 'Parent')
+        m.add(ArchiType.BusinessProcess, 'Parent')
 
         results = m.find_by_hierarchy_path('/Parent/Nonexistent')
         assert results == []
@@ -148,7 +148,7 @@ class TestAdvancedQueries:
     def test_find_by_hierarchy_path_empty_path_returns_empty(self):
         """Test that empty path returns empty list."""
         m = Model('test-model')
-        _elem = m.add(ArchiType.BusinessProcess, 'Element')
+        m.add(ArchiType.BusinessProcess, 'Element')
 
         results = m.find_by_hierarchy_path('')
         assert results == []
@@ -156,7 +156,7 @@ class TestAdvancedQueries:
     def test_find_by_hierarchy_path_root_slash_only(self):
         """Test path with only root separator."""
         m = Model('test-model')
-        _elem = m.add(ArchiType.BusinessProcess, 'Element')
+        m.add(ArchiType.BusinessProcess, 'Element')
 
         results = m.find_by_hierarchy_path('/')
         assert results == []

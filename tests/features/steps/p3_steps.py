@@ -590,7 +590,6 @@ def step_create_junctions_model(context):
         context.elements = {}
 
     for row in context.table:
-        _elem_type = row['Type']
         _name = row['Name']
         junction_type = row.get('Junction Type')
 
