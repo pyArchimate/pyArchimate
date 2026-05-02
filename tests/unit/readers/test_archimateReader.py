@@ -288,6 +288,30 @@ def test_apply_viewpoint_props_skips_unknown_prop_def_ref():
     assert elem.viewpoints == []
 
 
+def test_apply_viewpoint_props_missing_value_element_is_noop():
+    """Property matched as viewpoint but has no <value> child yields empty slug → no viewpoint assigned (line 152)."""
+    ns = '{http://www.opengroup.org/xsd/archimate/3.0/}'
+    props_xml = etree.fromstring(
+        b"<properties xmlns='http://www.opengroup.org/xsd/archimate/3.0/'>"
+        b"  <property propertyDefinitionRef='pd-vp'/>"
+        b"</properties>"
+    )
+    model = Model("t")
+    model.pdefs['pd-vp'] = 'viewpoint'
+    elem = model.add(ArchiType.ApplicationComponent, "App")
+    _apply_viewpoint_props(elem, props_xml, ns, {'pd-vp': 'pd-vp'}, model)
+    assert elem.viewpoints == []
+
+
+def test_assign_viewpoint_empty_slug_is_noop():
+    """_assign_viewpoint with an empty slug returns immediately without touching obj (line 136)."""
+    model = Model("t")
+    elem = model.add(ArchiType.ApplicationComponent, "App")
+    from src.pyArchimate.readers.archimateReader import _assign_viewpoint
+    _assign_viewpoint(elem, '')
+    assert elem.viewpoints == []
+
+
 LINE_COLOR_ALPHA_MODEL = """<?xml version='1.0'?>
 <model xmlns='http://www.opengroup.org/xsd/archimate/3.0/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
   <name>lca</name>
