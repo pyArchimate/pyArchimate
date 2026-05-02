@@ -7,6 +7,9 @@
 
 ### Fix
 
+- **feature-008**: Fix .archimate format reading by detecting and extracting XML from ZIP archives
+- **feature-008**: Add _detect_zip_file() and _extract_xml_from_zip() methods for ZIP archive handling
+- **feature-008**: Improve error messages for corrupted archives and missing model.xml entries
 - **ci**: guard publish job to only run on tag pushes
 - **ci**: apply same Poetry/encoding fixes to release workflow
 - **feature-007**: Fix OpenGroup Exchange XML schema location (archimate3.xsd at 3.0 namespace)

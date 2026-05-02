@@ -6,6 +6,7 @@ Round-trip tests ensure data preservation across format boundaries.
 """
 
 import tempfile
+import zipfile
 from pathlib import Path
 
 from src.pyArchimate import ArchiType
@@ -28,9 +29,12 @@ class TestArchimateFormatSelection:
             # Write with .archimate extension (should auto-select archi writer)
             m.write(temp_path)
 
-            # Verify file was created and contains Archi format markers
-            with open(temp_path, 'r') as f:
-                content = f.read()
+            # Verify file was created as ZIP archive and contains Archi format markers
+            assert zipfile.is_zipfile(temp_path), "File should be a ZIP archive"
+            with zipfile.ZipFile(temp_path, 'r') as zf:
+                # Extract model.xml and check for Archi format markers
+                xml_data = zf.read('model.xml')
+                content = xml_data.decode('utf-8')
                 # Archi format uses archimate: namespace (not OpenGroup)
                 assert 'archimate:' in content or 'xmlns:archimate' in content or '<archimatemodel' in content.lower()
         finally:

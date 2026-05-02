@@ -21,6 +21,44 @@ __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
+def _rebuild_hierarchy_from_parentId(model, root):
+    """Rebuild parent-child hierarchy from parentId attributes in XML.
+
+    This is called after all elements have been loaded to establish
+    the hierarchy relationships based on parentId attributes.
+
+    :param model: pyArchimate Model object
+    :param root: XML root element
+    """
+    xsi = '{http://www.w3.org/2001/XMLSchema-instance}'
+
+    def _process_hierarchy(folder_elem):
+        """Recursively process folders to find elements with parentId."""
+        for elem in folder_elem.findall('element'):
+            elem_id = elem.get('id')
+            parent_id = elem.get('parentId')
+
+            # Only process non-relationship, non-view elements
+            type_attr = elem.get(xsi + 'type', '')
+            if 'Relationship' in type_attr or 'ArchimateDiagramModel' in type_attr:
+                continue
+
+            # If element has parentId and both parent and child exist, establish relationship
+            if parent_id and elem_id in model.elems_dict and parent_id in model.elems_dict:
+                try:
+                    model.add_child(parent_id, elem_id)
+                except (ValueError, KeyError) as e:
+                    # Element might already have parent or relationship might be invalid
+                    # This is acceptable during merge operations
+                    log.debug(f"Failed to establish parent-child relationship: {e}")
+
+        for folder in folder_elem.findall('folder'):
+            _process_hierarchy(folder)
+
+    for folder in root.findall('folder'):
+        _process_hierarchy(folder)
+
+
 def archi_reader(model, root, merge_flg=False):
     """
     Merge / initialize the model from XML Archimate OEF data
@@ -60,3 +98,6 @@ def archi_reader(model, root, merge_flg=False):
         get_folders_rel(f, model, xsi, merge_flg)
     for f in root.findall('folder'):
         get_folders_view(f, model, xsi)
+
+    # Rebuild hierarchy from parentId attributes after all elements are loaded
+    _rebuild_hierarchy_from_parentId(model, root)

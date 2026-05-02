@@ -63,6 +63,12 @@ def _parse_node_attributes(node: Any, child: Any, parent: Any) -> None:
         node.fill_color = child.get('fillColor')
     if child.get('alpha') is not None:
         node.opacity = 100 * int(child.get('alpha')) / 255
+    if child.get('imagePath') is not None:
+        node.image_path = child.get('imagePath')
+    if child.get('imagePosition') is not None:
+        node.image_position = int(child.get('imagePosition'))
+    if child.get('type') is not None:
+        node.image_type = int(child.get('type'))
     for ft in child.findall('feature'):
         ft_name = ft.get('name')
         if ft_name == 'lineAlpha':
@@ -73,6 +79,8 @@ def _parse_node_attributes(node: Any, child: Any, parent: Any) -> None:
             node.icon_color = ft.get('value')
         elif ft_name == 'gradient':
             node.gradient = ft.get('value')
+        elif ft_name == 'imageSource':
+            node.image_source = parse_bool(ft.get('value'))
     node.text_alignment = child.get('textAlignment')
     node.text_position = child.get('textPosition')
 
@@ -192,6 +200,17 @@ def _process_folder_element(e: Any, model: Any, xsi: str, merge_flg: bool, folde
         return
     elem = _get_or_create_element(e, model, merge_flg, type_e)
     elem.folder = folder
+    # Restore parent-child hierarchy from parentId attribute
+    parent_id = e.get('parentId')
+    if parent_id:
+        elem._parent_uuid = parent_id
+    # For backward compatibility: set default junction type from xsi:type or type attribute
+    if 'Junction' in type_e:
+        _set_junction_type(elem, type_e)
+        # Also check for legacy type attribute (e.g., type="or")
+        legacy_type = e.get('type')
+        if legacy_type and legacy_type in ('and', 'or', 'xor'):
+            elem.junction_type = legacy_type
     _set_documentation(elem, e)
     for p in e.findall('property'):
         _apply_elem_property(elem, p)

@@ -247,6 +247,10 @@ class Node:
         self.border_type: Optional[str] = None
         self.icon_color = None
         self.gradient = None
+        self.image_path: Optional[str] = None
+        self.image_position: Optional[int] = None
+        self.image_type: Optional[int] = None
+        self.image_source: bool = False
 
     # --- lifecycle ---
 

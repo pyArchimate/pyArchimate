@@ -1,3 +1,4 @@
+import zipfile
 from typing import cast
 
 from lxml import etree
@@ -14,7 +15,10 @@ def test_archi_writer_produces_archimate_document(tmp_path):
     target = tmp_path / 'archi_output.archimate'
     archi_writer(model, str(target))
     assert target.exists()
-    root = etree.parse(str(target)).getroot()
+    # Extract model.xml from .archimate ZIP archive
+    with zipfile.ZipFile(str(target), 'r') as zf:
+        xml_data = zf.read('model.xml')
+    root = etree.fromstring(xml_data)
     assert root.find('folder') is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
     assert root.findall('.//element')
 
@@ -24,7 +28,10 @@ def test_archi_writer_with_views(tmp_path):
     target = tmp_path / 'archi_views.archimate'
     archi_writer(model, str(target))
     assert target.exists()
-    root = etree.parse(str(target)).getroot()
+    # Extract model.xml from .archimate ZIP archive
+    with zipfile.ZipFile(str(target), 'r') as zf:
+        xml_data = zf.read('model.xml')
+    root = etree.fromstring(xml_data)
     # should have a Views folder with a diagram element
     all_elements = root.findall('.//element')
     types = [e.get('{http://www.w3.org/2001/XMLSchema-instance}type') for e in all_elements]
@@ -39,7 +46,10 @@ def test_archi_writer_exports_business_interaction(tmp_path):
     target = tmp_path / 'archi_bi_export.archimate'
     archi_writer(model, str(target))
     assert target.exists()
-    root = etree.parse(str(target)).getroot()
+    # Extract model.xml from .archimate ZIP archive
+    with zipfile.ZipFile(str(target), 'r') as zf:
+        xml_data = zf.read('model.xml')
+    root = etree.fromstring(xml_data)
     # Find BusinessInteraction element
     bi_elements = root.findall(".//element[@xsi:type='archimate:BusinessInteraction']",
                                namespaces={'xsi': 'http://www.w3.org/2001/XMLSchema-instance'})  # NOSONAR — XML namespace URI, not a network request
