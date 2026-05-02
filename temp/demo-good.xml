@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd" identifier="id-d078ebc854b04a4d9f826913e90353e6">
+  <name xml:lang="en">e-commerce platform</name>
+  <elements>
+    <element identifier="id-43183ee71513413eae40491308ed4254" xsi:type="BusinessActor">
+      <name xml:lang="en">Customer</name>
+    </element>
+    <element identifier="id-f9d30d743dc44698ad75c3cd08c75bf2" xsi:type="ApplicationComponent">
+      <name xml:lang="en">Order</name>
+    </element>
+    <element identifier="id-56111985ac5b494081fcc610056dcf5d" xsi:type="ApplicationService">
+      <name xml:lang="en">Place Order</name>
+    </element>
+  </elements>
+  <relationships>
+    <relationship identifier="id-ea666399566d4986bc25c2d8355b4a9f" source="id-f9d30d743dc44698ad75c3cd08c75bf2" target="id-56111985ac5b494081fcc610056dcf5d" xsi:type="Serving" />
+  </relationships>
+  <organizations>
+    <item>
+      <label xml:lang="en">Business</label>
+      <item identifierRef="id-43183ee71513413eae40491308ed4254" />
+    </item>
+    <item>
+      <label xml:lang="en">Application</label>
+      <item identifierRef="id-f9d30d743dc44698ad75c3cd08c75bf2" />
+      <item identifierRef="id-56111985ac5b494081fcc610056dcf5d" />
+    </item>
+    <item>
+      <label xml:lang="en">Relations</label>
+      <item identifierRef="id-ea666399566d4986bc25c2d8355b4a9f" />
+    </item>
+    <item>
+      <label xml:lang="en">Views</label>
+      <item identifierRef="id-d7dbb9c458744d0ebf43d7687343d277" />
+    </item>
+  </organizations>
+  <views>
+    <diagrams>
+      <view identifier="id-d7dbb9c458744d0ebf43d7687343d277" xsi:type="Diagram">
+        <name xml:lang="en">Default View</name>
+        <node identifier="id-2ffe6b9295e549129c641b7769bc905e" elementRef="id-f9d30d743dc44698ad75c3cd08c75bf2" xsi:type="Element" x="0" y="0" w="120" h="55">
+          <style>
+            <fillColor r="181" g="255" b="255" a="100" />
+            <lineColor r="92" g="92" b="92" a="100" />
+            <font name="Lucida Grande" size="12">
+              <color r="0" g="0" b="0" />
+            </font>
+          </style>
+        </node>
+        <node identifier="id-a27d1557f42441219a19c2348affaf45" elementRef="id-56111985ac5b494081fcc610056dcf5d" xsi:type="Element" x="200" y="0" w="120" h="55">
+          <style>
+            <fillColor r="181" g="255" b="255" a="100" />
+            <lineColor r="92" g="92" b="92" a="100" />
+            <font name="Lucida Grande" size="12">
+              <color r="0" g="0" b="0" />
+            </font>
+          </style>
+        </node>
+        <connection identifier="id-60095a7b7336452394067b4c63ec00b3" relationshipRef="id-ea666399566d4986bc25c2d8355b4a9f" xsi:type="Relationship" source="id-2ffe6b9295e549129c641b7769bc905e" target="id-a27d1557f42441219a19c2348affaf45">
+          <style>
+            <lineColor r="0" g="0" b="0" />
+            <font name="Lucida Grande" size="12">
+              <color r="0" g="0" b="0" />
+            </font>
+          </style>
+        </connection>
+      </view>
+    </diagrams>
+  </views>
+</model>

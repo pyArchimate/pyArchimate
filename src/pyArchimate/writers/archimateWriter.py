@@ -342,17 +342,18 @@ def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
 
     """
     xml = b"""<?xml version="1.0" encoding="UTF-8"?>
-    <archimate:ArchimateModel xmlns:archimate="http://www.opengroup.org/xsd/archimate/3.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="id-a84d2455d48c44a2847b3407e270599f">
-    </archimate:ArchimateModel>
+    <model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.0/archimate3.xsd" identifier="id-a84d2455d48c44a2847b3407e270599f">
+    </model>
     """
 
     root = et.fromstring(xml)
-    nsp_url = 'http://www.opengroup.org/xsd/archimate/3.1/' # NOSONAR
+    nsp_url = 'http://www.opengroup.org/xsd/archimate/3.0/' # NOSONAR
     xsi_url = 'http://www.w3.org/2001/XMLSchema-instance' # NOSONAR
     xsi = et.QName(xsi_url, 'type')
     ns_find: dict[str, str] = {'ns': nsp_url}
 
-    root.set('name', model.name if model.name is not None else 'Archimate Model')
+    name = et.SubElement(root, 'name')
+    name.text = model.name if model.name is not None else 'Archimate Model'
 
     if model.desc is not None:
         doc = et.SubElement(root, 'documentation')

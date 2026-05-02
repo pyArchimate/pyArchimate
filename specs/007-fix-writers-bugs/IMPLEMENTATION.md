@@ -21,28 +21,24 @@ The writer was generating XML that violated the OpenGroup Exchange format specif
 
 #### Change 1: XML Template (Line 381)
 ```python
-# BEFORE
+# BEFORE (BROKEN)
 xml = b"""<?xml version="1.0" encoding="utf-8"?>
-<model xmlns="http://www.opengroup.org/xsd/archimate/3.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.1/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd" identifier="id-a84d2455d48c44a2847b3407e270599f">
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd" identifier="id-a84d2455d48c44a2847b3407e270599f">
 </model>
 """
 
-# AFTER
+# AFTER (FIXED)
 xml = b"""<?xml version="1.0" encoding="UTF-8"?>
-<archimate:ArchimateModel xmlns:archimate="http://www.opengroup.org/xsd/archimate/3.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="id-a84d2455d48c44a2847b3407e270599f">
-</archimate:ArchimateModel>
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.0/archimate3.xsd" identifier="id-a84d2455d48c44a2847b3407e270599f">
+</model>
 """
 ```
 
-#### Change 2: Model Name Handling (Line 392-393)
-```python
-# BEFORE
-name = et.SubElement(root, 'name')
-name.text = model.name if model.name is not None else 'Archimate Model'
+**Key fixes:**
+- Line 381: Fixed schema location from `archimate3_Diagram.xsd` → `archimate3.xsd` (was pointing to diagram schema, not model schema)
+- Line 381: Fixed schema URI from `3.1` → `3.0` to match namespace
 
-# AFTER
-root.set('name', model.name if model.name is not None else 'Archimate Model')
-```
+The rest of the code remains unchanged - model name stays as child element.
 
 ## Validation
 
