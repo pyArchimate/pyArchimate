@@ -10,6 +10,12 @@
 - **feature-008**: Fix .archimate format reading by detecting and extracting XML from ZIP archives
 - **feature-008**: Add _detect_zip_file() and _extract_xml_from_zip() methods for ZIP archive handling
 - **feature-008**: Improve error messages for corrupted archives and missing model.xml entries
+- **feature-008**: Preserve image associations in DiagramObject round-trip (imagePath, imagePosition, type, imageSource)
+- **feature-008**: Add image properties to Node class for complete image metadata preservation
+- **feature-008**: Fix visual style property preservation (fillColor, lineColor, lineWidth, transparency)
+- **feature-008**: Fix junction type preservation for and/or/xor types with new junctionType property
+- **feature-008**: Add backward compatibility for old xsi:type formats (AndJunction/OrJunction)
+- **test**: Update BDD acceptance tests to handle .archimate ZIP archives in test parsing
 - **ci**: guard publish job to only run on tag pushes
 - **ci**: apply same Poetry/encoding fixes to release workflow
 - **feature-007**: Fix OpenGroup Exchange XML schema location (archimate3.xsd at 3.0 namespace)
