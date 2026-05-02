@@ -2,8 +2,6 @@
 import sys
 from pathlib import Path
 
-import pytest
-
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from pyArchimate.helpers.parsing import compare_image_data, extract_images_from_archimate, parse_bool
 

@@ -56,7 +56,7 @@ class TestSingleImageRoundTrip:
             # This is actually a 1x1 PNG, verify minimal PNG structure
             assert decoded[:8] == b'\x89PNG\r\n\x1a\n'  # PNG magic number
         except Exception as e:
-            raise AssertionError(f"Invalid base64 image data: {e}")
+            raise AssertionError(f"Invalid base64 image data: {e}") from e
 
     def test_view_documentation_with_image(self):
         """Test that view documentation is preserved alongside image."""
@@ -137,7 +137,7 @@ class TestMultipleImagesRoundTrip:
                 # Both are PNG files
                 assert decoded[:8] == b'\x89PNG\r\n\x1a\n', f"Image {i} is not a valid PNG"
             except Exception as e:
-                raise AssertionError(f"Image {i} has invalid base64 data: {e}")
+                raise AssertionError(f"Image {i} has invalid base64 data: {e}") from e
 
     def test_view_documentation_with_multiple_images(self):
         """Test that view documentation is preserved with multiple images."""

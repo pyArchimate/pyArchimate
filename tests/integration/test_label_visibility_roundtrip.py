@@ -1,7 +1,6 @@
 """Integration tests for label visibility round-trip fidelity."""
 import sys
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
