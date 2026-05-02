@@ -15,7 +15,7 @@ The nameVisible flag is read incorrectly. `bool("false")` is still True, so hidd
 
     ◦ src/pyArchimate/readers/_archireader_helpers.py:115-116
     ◦ Writer side is at src/pyArchimate/writers/archiWriter.py:149-151
-    
+  
 **Fix needed**: Parse string "false"/"true" to Python bool before assignment.
 
 ## View Documentation
@@ -26,7 +26,7 @@ View-level documentation is parsed incorrectly. The code finds `<documentation>`
 ## Other Gaps (Lower Priority — Not in Feature 004)
 
 - **Version Preservation**: The writer hard-codes the Archi model version to 4.9.0, so it does not preserve the source document version.
-    
+  
     ◦ src/pyArchimate/writers/archiWriter.py:303-305
 
 - **Folder Taxonomy**: The Archi writer normalizes folder taxonomy rather than preserving it exactly. Physical concepts are pushed into Technology, junctions into Other, and the writer always rebuilds the canonical top-level folders.
