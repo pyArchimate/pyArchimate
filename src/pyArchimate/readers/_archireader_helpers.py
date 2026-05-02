@@ -9,7 +9,15 @@ try:
 except ImportError:
     import sys
     sys.path.insert(0, "..")
-    from pyArchimate import AccessType, ArchiType, Node, Point, View, log, parse_bool  # type: ignore[no-redef,attr-defined]
+    from pyArchimate import (  # type: ignore[no-redef,attr-defined]
+        AccessType,
+        ArchiType,
+        Node,
+        Point,
+        View,
+        log,
+        parse_bool,
+    )
 
 
 def _parse_node_type(parent: Any, child: Any, xsi: str) -> Any:
@@ -164,32 +172,53 @@ def _parse_rel_attributes(elem: Any, e: Any) -> None:
         elem.prop(p.get('key'), p.get('value'))
 
 
+def _process_viewpoint_property(elem: Any, slug: str) -> None:
+    from ..viewpoint_registry import get_viewpoint
+    if get_viewpoint(slug) is not None:
+        elem.assign_viewpoint(slug)
+    else:
+        log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
+
+
+def _process_property(elem: Any, prop: Any) -> None:
+    key = prop.get('key')
+    if key == 'viewpoint':
+        slug = (prop.get('value') or '').strip().lower()
+        if slug:
+            _process_viewpoint_property(elem, slug)
+    else:
+        elem.prop(key, prop.get('value'))
+
+
+def _get_or_create_element(e: Any, model: Any, merge_flg: bool, type_e: str) -> Any:
+    elem_id = e.get('id')
+    if merge_flg and elem_id in model.elems_dict:
+        return model.elems_dict[elem_id]
+    return model.add(concept_type=type_e, name=e.get('name'), uuid=elem_id,
+                     profile=e.get('profiles'))
+
+
+def _set_documentation(elem: Any, e: Any) -> None:
+    doc = e.find('documentation')
+    if doc is not None:
+        elem.desc = doc.text
+
+
+def _set_junction_type(elem: Any, e: Any) -> None:
+    elem.junction_type = e.get('type') or 'and'
+
+
 def _process_folder_element(e: Any, model: Any, xsi: str, merge_flg: bool, folder: str) -> None:
     type_e = e.get(xsi + 'type').split(':')[1]
     if 'Relationship' in type_e or 'ArchimateDiagramModel' in type_e:
         return
-    if merge_flg and e.get('id') in model.elems_dict:
-        elem = model.elems_dict[e.get('id')]
-    else:
-        elem = model.add(concept_type=type_e, name=e.get('name'), uuid=e.get('id'),
-                         profile=e.get('profiles'))
+    elem = _get_or_create_element(e, model, merge_flg, type_e)
     elem.folder = folder
-    doc = e.find('documentation')
-    if doc is not None:
-        elem.desc = doc.text
+    _set_documentation(elem, e)
     for p in e.findall('property'):
-        if p.get('key') == 'viewpoint':
-            slug = (p.get('value') or '').strip().lower()
-            if slug:
-                from ..viewpoint_registry import get_viewpoint
-                if get_viewpoint(slug) is not None:
-                    elem.assign_viewpoint(slug)
-                else:
-                    log.warning(f"Unknown viewpoint slug '{slug}' ignored during import")
-        else:
-            elem.prop(p.get('key'), p.get('value'))
+        _process_property(elem, p)
     if type_e == 'Junction':
-        elem.junction_type = e.get('type') if e.get('type') is not None else 'and'
+        _set_junction_type(elem, e)
 
 
 def get_folders_elem(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path: str = '') -> None:
