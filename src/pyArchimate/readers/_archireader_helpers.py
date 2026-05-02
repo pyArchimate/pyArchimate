@@ -190,19 +190,13 @@ def _process_folder_element(e: Any, model: Any, xsi: str, merge_flg: bool, folde
     type_e = e.get(xsi + 'type').split(':')[1]
     if 'Relationship' in type_e or 'ArchimateDiagramModel' in type_e:
         return
-    if merge_flg and e.get('id') in model.elems_dict:
-        elem = model.elems_dict[e.get('id')]
-    else:
-        elem = model.add(concept_type=type_e, name=e.get('name'), uuid=e.get('id'),
-                         profile=e.get('profiles'))
+    elem = _get_or_create_element(e, model, merge_flg, type_e)
     elem.folder = folder
-    doc = e.find('documentation')
-    if doc is not None:
-        elem.desc = doc.text
+    _set_documentation(elem, e)
     for p in e.findall('property'):
         _apply_elem_property(elem, p)
     if type_e == 'Junction':
-        elem.junction_type = e.get('type') if e.get('type') is not None else 'and'
+        _set_junction_type(elem, e)
 
 
 def get_folders_elem(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path: str = '') -> None:
