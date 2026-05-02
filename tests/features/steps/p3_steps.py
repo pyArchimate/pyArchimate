@@ -75,8 +75,6 @@ def step_add_multiple_children(context, element_type, parent_name):
             parent_uuid = context.model.get_parent(elem.uuid)
             if parent_uuid is None:
                 context.model.add_child(parent.uuid, elem.uuid)
-            except ValueError:  # noqa: S110
-                pass  # Already has parent
 
 
 @when("I set the fill color of {element_name} to {color}")
@@ -592,11 +590,11 @@ def step_create_junctions_model(context):
         context.elements = {}
 
     for row in context.table:
-        _name = row['Name']
+        name = row['Name']
         junction_type = row.get('Junction Type')
 
-        elem = context.model.add(ArchiType.Junction, _name)
-        context.elements[_name] = elem
+        elem = context.model.add(ArchiType.Junction, name)
+        context.elements[name] = elem
 
         if junction_type:
             elem.set_junction_type(junction_type)
@@ -713,7 +711,7 @@ def step_check_relationships(context, count):
 @then('all visual styling should match original colors')
 def step_check_styling_preserved(context):
     """Verify visual styling is preserved."""
-    for _, original in context.elements.items():
+    for _name, original in context.elements.items():
         imported = context.imported_model.elems_dict.get(original.uuid)
         if imported:
             assert original.get_fill_color() == imported.get_fill_color()
