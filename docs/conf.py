@@ -9,8 +9,8 @@
 project = 'pyArchimate'
 copyright = '2026 - Xavier Mayeur / Stephan Borg'
 author = 'Xavier Mayeur'
-version = "1"
-release = '1.0.1'
+version = "1.4"
+release = '1.4.2'
 
 import os  # noqa: E402
 import sys  # noqa: E402
