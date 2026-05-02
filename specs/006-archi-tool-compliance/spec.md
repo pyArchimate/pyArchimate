@@ -87,3 +87,12 @@ These bugs affect the integrity of round-trip workflows and prevent the adapter 
 - Fidelity Score: All critical metadata (labels, documentation) preserved in round-trip
 - Test Coverage: ≥ 90% of affected code paths
 - Performance: No new O(n) operations introduced
+
+## Clarifications
+
+### Session 2026-05-02
+
+- Q: How should empty documentation (`<documentation></documentation>`) be handled? → A: `elem.desc = None` (safe default, matches Feature 004 pattern for elements/relationships)
+- Q: What about whitespace-only documentation text? → A: Preserve as-is (lxml .text extracts literal content; strip only if explicitly needed in future)
+- Q: Should `parse_bool()` handle whitespace in string values (e.g., " true ")? → A: Yes, normalize with `.lower().strip()` for robustness
+- Q: Are there any other boolean fields besides `nameVisible` in diagram objects? → A: Deferred to implementation phase (scan during T2-T3); current focus on `nameVisible` only
