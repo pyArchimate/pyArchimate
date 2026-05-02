@@ -1,0 +1,218 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Changelog &mdash; pyArchimate 1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a0fc712e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=292eb321"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pyArchimate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Architecture:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="diagrams.html">Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">P3 Features (v1.3.0):</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="p3-quick-reference.html">P3 Quick Reference - Element Hierarchy &amp; Styling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/element-hierarchy.html">Element Hierarchy &amp; Grouping Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/visual-styling.html">Visual Styling Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/junction-types.html">Junction Types Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/hierarchy_examples.html">Hierarchy Code Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/styling_examples.html">Visual Styling Code Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/element.html">Element Class - P3 API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/model.html">Model Class - P3 Hierarchy &amp; Query API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">pyArchimate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package details:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="src.html">pyArchimate Package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyArchimate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Changelog</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/changelog.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading"></a></h1>
+<section id="v1-3-0-2026-05-01">
+<h2>v1.3.0 (2026-05-01)<a class="headerlink" href="#v1-3-0-2026-05-01" title="Link to this heading"></a></h2>
+<p><strong>Major Release: Complete ArchiMate Notation Support (P3)</strong></p>
+<p>This release adds comprehensive support for element hierarchy, visual styling, and junction type semantics with full round-trip XML preservation.</p>
+<section id="element-hierarchy-grouping">
+<h3>Element Hierarchy &amp; Grouping<a class="headerlink" href="#element-hierarchy-grouping" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Parent-child relationships</strong>: Organize elements into logical hierarchies with <code class="docutils literal notranslate"><span class="pre">Model.add_child()</span></code></p></li>
+<li><p><strong>Hierarchy queries</strong>: Get parent, children, ancestors, descendants</p></li>
+<li><p><strong>Sibling queries</strong>: Find elements with same parent via <code class="docutils literal notranslate"><span class="pre">Model.get_siblings()</span></code></p></li>
+<li><p><strong>Path-based queries</strong>: Find elements by hierarchy path with wildcards <code class="docutils literal notranslate"><span class="pre">Model.find_by_hierarchy_path()</span></code></p></li>
+<li><p><strong>Automatic cycle detection</strong>: Prevents invalid circular relationships</p></li>
+<li><p><strong>Maximum depth limit</strong>: Prevents pathological nesting (default 5 levels)</p></li>
+<li><p><strong>Orphaning on deletion</strong>: Children remain when parent is deleted</p></li>
+</ul>
+</section>
+<section id="visual-styling">
+<h3>Visual Styling<a class="headerlink" href="#visual-styling" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Color customization</strong>: Set fill color and line color (hex or named colors)</p></li>
+<li><p><strong>Named color support</strong>: Automatic conversion of ‘red’, ‘blue’, etc. to hex</p></li>
+<li><p><strong>Line width property</strong>: Customize border width (pixels)</p></li>
+<li><p><strong>Transparency property</strong>: Set opacity from 0.0 (transparent) to 1.0 (opaque)</p></li>
+<li><p><strong>Bulk styling</strong>: Set multiple properties at once with <code class="docutils literal notranslate"><span class="pre">Element.set_visual_style()</span></code></p></li>
+<li><p><strong>Round-trip preservation</strong>: All visual properties preserved in XML export/import</p></li>
+</ul>
+</section>
+<section id="junction-type-semantics">
+<h3>Junction Type Semantics<a class="headerlink" href="#junction-type-semantics" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Junction validation</strong>: AND, OR, XOR junction types for decision points</p></li>
+<li><p><strong>Type validation</strong>: <code class="docutils literal notranslate"><span class="pre">Element.set_junction_type()</span></code> with validation</p></li>
+<li><p><strong>Semantic preservation</strong>: Junction types preserved in round-trip export/import</p></li>
+</ul>
+</section>
+<section id="performance-quality">
+<h3>Performance &amp; Quality<a class="headerlink" href="#performance-quality" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>677+ unit tests</strong>: Comprehensive test coverage for all features</p></li>
+<li><p><strong>94% code coverage</strong>: High coverage of new P3 code paths</p></li>
+<li><p><strong>&lt;10ms query performance</strong>: All queries &lt;10ms even on 1000+ element models</p></li>
+<li><p><strong>Type safe</strong>: Full mypy/pyright compliance</p></li>
+<li><p><strong>Zero breaking changes</strong>: Fully backward compatible with v1.2.0</p></li>
+</ul>
+</section>
+<section id="api-reference">
+<h3>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="p3-quick-reference.html"><span class="doc">P3 Quick Reference - Element Hierarchy &amp; Styling</span></a> - Quick lookup for all P3 methods</p></li>
+<li><p><a class="reference internal" href="api/element.html"><span class="doc">Element Class - P3 API Reference</span></a> - Element class P3 API reference</p></li>
+<li><p><a class="reference internal" href="api/model.html"><span class="doc">Model Class - P3 Hierarchy &amp; Query API Reference</span></a> - Model class P3 API reference</p></li>
+<li><p><a class="reference internal" href="guides/element-hierarchy.html"><span class="doc">Element Hierarchy &amp; Grouping Guide</span></a> - Hierarchy usage guide</p></li>
+<li><p><a class="reference internal" href="guides/visual-styling.html"><span class="doc">Visual Styling Guide</span></a> - Visual styling guide</p></li>
+<li><p><a class="reference internal" href="guides/junction-types.html"><span class="doc">Junction Types Guide</span></a> - Junction type semantics</p></li>
+</ul>
+</section>
+<section id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Comprehensive API documentation for all P3 methods</p></li>
+<li><p>User guides for hierarchy, styling, and junction types</p></li>
+<li><p>Working code examples for all features</p></li>
+<li><p>Quick reference card for fast lookup</p></li>
+</ul>
+</section>
+</section>
+<section id="v1-2-0-2026-05-01">
+<h2>v1.2.0 (2026-05-01)<a class="headerlink" href="#v1-2-0-2026-05-01" title="Link to this heading"></a></h2>
+<p><strong>ArchiMate v3.x Specification Compliance (P1+P2)</strong></p>
+<ul class="simple">
+<li><p>Complete ArchiMate v3.x specification compliance</p></li>
+<li><p>BusinessInteraction element support</p></li>
+<li><p>Influence strength round-trip preservation</p></li>
+<li><p>Relationship documentation preservation</p></li>
+</ul>
+</section>
+<section id="v1-1-0-2026-04-15">
+<h2>v1.1.0 (2026-04-15)<a class="headerlink" href="#v1-1-0-2026-04-15" title="Link to this heading"></a></h2>
+<p><strong>SonarCloud Remediation</strong></p>
+<ul class="simple">
+<li><p>Resolved 18 open SonarCloud issues</p></li>
+<li><p>Code quality improvements</p></li>
+<li><p>Enhanced test coverage</p></li>
+</ul>
+</section>
+<section id="v1-0-0-2026-04-01">
+<h2>v1.0.0 (2026-04-01)<a class="headerlink" href="#v1-0-0-2026-04-01" title="Link to this heading"></a></h2>
+<p><strong>Initial Release</strong></p>
+<ul class="simple">
+<li><p>Core ArchiMate model support</p></li>
+<li><p>XML import/export</p></li>
+<li><p>Basic element and relationship management</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 - Xavier Mayeur / Stephan Borg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

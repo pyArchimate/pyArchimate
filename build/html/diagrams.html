@@ -1,0 +1,201 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture &mdash; pyArchimate 1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a0fc712e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=292eb321"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="P3 Quick Reference - Element Hierarchy &amp; Styling" href="p3-quick-reference.html" />
+    <link rel="prev" title="pyArchimate" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pyArchimate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Architecture:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#rendering">Rendering</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">P3 Features (v1.3.0):</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="p3-quick-reference.html">P3 Quick Reference - Element Hierarchy &amp; Styling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/element-hierarchy.html">Element Hierarchy &amp; Grouping Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/visual-styling.html">Visual Styling Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/junction-types.html">Junction Types Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/hierarchy_examples.html">Hierarchy Code Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/styling_examples.html">Visual Styling Code Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/element.html">Element Class - P3 API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/model.html">Model Class - P3 Hierarchy &amp; Query API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">pyArchimate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package details:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="src.html">pyArchimate Package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyArchimate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Architecture</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/diagrams.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="architecture">
+<h1>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h1>
+<p>The files in <code class="docutils literal notranslate"><span class="pre">docs/diagrams</span></code> are PlantUML sources that document the architecture of
+pyArchimate. They include both classic UML views (class, component, object, deployment, etc.)
+and derived C4-style diagrams that illustrate how the project is composed.</p>
+<p>Available diagrams:</p>
+<p>The rendered PNG artifacts live next to the PlantUML sources (<code class="docutils literal notranslate"><span class="pre">docs/diagrams/*.png</span></code>) and are overwritten each time you run <code class="docutils literal notranslate"><span class="pre">scripts/render_diagrams.sh</span></code>. Including them in the docs allows the website to display the diagrams without requiring a PlantUML renderer on the client side.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">context.puml</span></code> / <code class="docutils literal notranslate"><span class="pre">c4_context.puml</span></code></dt><dd><p>Context diagram showing how pyArchimate integrates with external tooling, developers, and
+the ArchiMate standard.</p>
+</dd>
+</dl>
+<img alt="Context diagram showing the integration points with external tooling, developers, and the ArchiMate standard." class="align-center" src="_images/c4_context.png" />
+<img alt="Context diagram showing the integration points with external tooling, developers, and the ArchiMate standard." class="align-center" src="_images/context.png" />
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">package.puml</span></code> / <code class="docutils literal notranslate"><span class="pre">c4_container.puml</span></code></dt><dd><p>Container diagram showing how pyArchimate integrates with external tooling, developers, and
+the ArchiMate standard.</p>
+</dd>
+</dl>
+<img alt="Container diagram showing the deployment structure of pyArchimate." class="align-center" src="_images/c4_container.png" />
+<img alt="Package diagram showing the modular structure of the pyArchimate project." class="align-center" src="_images/package.png" />
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">component.puml</span></code> / <code class="docutils literal notranslate"><span class="pre">c4_component.puml</span></code></dt><dd><p>Component diagrams that highlight the major modules such as the model core, readers, and writers.</p>
+</dd>
+</dl>
+<img alt="Component diagram showing the major modules of pyArchimate." class="align-center" src="_images/c4_component.png" />
+<img alt="Component diagram showing the major modules of pyArchimate." class="align-center" src="_images/component.png" />
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">deployment.puml</span></code> / <code class="docutils literal notranslate"><span class="pre">c4_deployment.puml</span></code></dt><dd><p>Deployment diagrams describing the runtime environment, processing steps, and how the PlantUML
+renderer/slim server might be hosted.</p>
+</dd>
+</dl>
+<img alt="Deployment diagram showing the runtime environment and processing steps." class="align-center" src="_images/c4_deployment.png" />
+<img alt="Deployment diagram showing the runtime environment and processing steps." class="align-center" src="_images/deployment.png" />
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">class.puml</span></code> / <code class="docutils literal notranslate"><span class="pre">object.puml</span></code> / <code class="docutils literal notranslate"><span class="pre">composite.puml</span></code></dt><dd><p>UML views that sketch the static structure of <cite>Model</cite>, <cite>Element</cite>, <cite>Relationship</cite>, and the associated
+helper utilities.</p>
+</dd>
+</dl>
+<img alt="Class diagram showing Model, Element, Relationship, View, Node, and Connection relationships." class="align-center" src="_images/class.png" />
+<img alt="Object diagram showing the dynamic interactions between instances of the classes." class="align-center" src="_images/object.png" />
+<img alt="Composite structure diagram showing the internal structure of complex elements." class="align-center" src="_images/composite.png" />
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">state.puml</span></code></dt><dd><p>State diagram illustrating the <cite>Model</cite> lifecycle as it moves from empty through populated, view ready, serialized, and invalid states when validations fail.</p>
+</dd>
+</dl>
+<img alt="State diagram for Model lifecycle transitions." class="align-center" src="_images/state.png" />
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">sequence.puml</span></code></dt><dd><p>Sequence diagram depicting how the CLI/script invokes <cite>Model.read</cite>, how readers populate <cite>Elements</cite>/<cite>Relationships</cite>, and how writers serialize the resulting model.</p>
+</dd>
+</dl>
+<img alt="Sequence diagram showing the reader/writer interactions during a Model read/write cycle." class="align-center" src="_images/sequence.png" />
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">activity.puml</span></code></dt><dd><p>Activity diagram of view construction: creating models, adding elements/relationships, building views, and writing outputs.</p>
+</dd>
+</dl>
+<img alt="Activity diagram describing the view construction workflow." class="align-center" src="_images/activity.png" />
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">communication.puml</span></code></dt><dd><p>Communication diagram showing runtime message paths between <cite>Model</cite>, <cite>Element</cite>, <cite>Relationship</cite>, <cite>View</cite>, <cite>Node</cite>, and <cite>Connection</cite> during CRUD operations.</p>
+</dd>
+</dl>
+<img alt="Communication diagram showing the collaboration of Model, View, Node, and Connection." class="align-center" src="_images/communication.png" />
+<section id="rendering">
+<h2>Rendering<a class="headerlink" href="#rendering" title="Link to this heading"></a></h2>
+<p>To regenerate the PNG artifacts locate the PlantUML renderer and run the helper script:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">./scripts/render_diagrams.sh</span>
+<span class="pre">`</span></code></p>
+<p>The script encodes every PlantUML source, hits <cite>${PLANTUML_SERVER:-https://www.plantuml.com/plantuml}</cite>, follows redirects, and retries slow transfers so the loop can finish. Set <cite>PLANTUML_SERVER</cite> if you want to target a different host (for example <cite>export PLANTUML_SERVER=http://host.containers.internal:8080</cite>), otherwise it defaults to the public PlantUML service.</p>
+<p>If you add or refactor diagrams, update this document with a short explanation of the new view and add the source file to the script so it continues to be rendered automatically.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="pyArchimate" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="p3-quick-reference.html" class="btn btn-neutral float-right" title="P3 Quick Reference - Element Hierarchy &amp; Styling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 - Xavier Mayeur / Stephan Borg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

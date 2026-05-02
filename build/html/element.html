@@ -1,0 +1,677 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Element &mdash; pyArchimate 1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a0fc712e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=292eb321"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Relationship" href="relationship.html" />
+    <link rel="prev" title="Model" href="model.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pyArchimate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Architecture:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="diagrams.html">Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">P3 Features (v1.3.0):</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="p3-quick-reference.html">P3 Quick Reference - Element Hierarchy &amp; Styling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/element-hierarchy.html">Element Hierarchy &amp; Grouping Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/visual-styling.html">Visual Styling Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/junction-types.html">Junction Types Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/hierarchy_examples.html">Hierarchy Code Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/styling_examples.html">Visual Styling Code Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api/element.html">Element Class - P3 API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/model.html">Model Class - P3 Hierarchy &amp; Query API Reference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">pyArchimate</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html#core">Core</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="pyArchimate.html">pyArchimate – Public API shim</a></li>
+<li class="toctree-l3"><a class="reference internal" href="model.html">Model</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Element</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-pyArchimate.element">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="relationship.html">Relationship</a></li>
+<li class="toctree-l3"><a class="reference internal" href="view.html">View, Node &amp; Connection</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#readers">Readers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#writers">Writers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#support">Support</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package details:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="src.html">pyArchimate Package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyArchimate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">pyArchimate</a></li>
+      <li class="breadcrumb-item active">Element</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/element.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="element">
+<h1>Element<a class="headerlink" href="#element" title="Link to this heading"></a></h1>
+<p>An <code class="docutils literal notranslate"><span class="pre">Element</span></code> represents an Archimate concept (business actor, application
+component, technology node, etc.).  Every element belongs to exactly one
+<a class="reference internal" href="model.html"><span class="doc">Model</span></a>.</p>
+<section id="module-pyArchimate.element">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyArchimate.element" title="Link to this heading"></a></h2>
+<p>Element module - extracted from the legacy monolith.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyArchimate.element.Element">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pyArchimate.element.</span></span><span class="sig-name descname"><span class="pre">Element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elem_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uuid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyArchimate/element.html#Element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to manage Element artifacts with visual styling and hierarchy support.</p>
+<p>Supports ArchiMate v3.x elements with optional parent-child relationships,
+custom visual styles (colors, transparency), and junction type semantics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the element</p></li>
+<li><p><strong>elem_type</strong> (<em>str</em>) – Archimate concept type of element</p></li>
+<li><p><strong>uuid</strong> (<em>str</em>) – element identifier</p></li>
+<li><p><strong>desc</strong> (<em>str</em>) – description of the element</p></li>
+<li><p><strong>folder</strong> (<em>str</em>) – folder path in which element should be referred to (e.g. /Application/BE)</p></li>
+<li><p><strong>parent</strong> (<a class="reference internal" href="model.html#pyArchimate.model.Model" title="pyArchimate.model.Model"><em>Model</em></a>) – reference to the parent Model object</p></li>
+<li><p><strong>profile</strong> (<em>str</em>) – element profile identifier</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Visual Styling (P3)</strong>:
+- Use set_fill_color(color), set_line_color(color) to customize appearance
+- Supports hex colors (#RRGGBB) and named colors (e.g., ‘red’, ‘blue’)
+- Use set_line_width(width) and set_transparency(alpha) for additional styling
+- All visual properties are preserved during XML export/import round-trips</p>
+<p><strong>Hierarchy (P3)</strong>:
+- Elements can be organized into parent-child relationships via Model.add_child()
+- Use get_parent() to retrieve parent, get_siblings() for neighbors
+- Junction elements (AND/OR/XOR) use set_junction_type() for semantics</p>
+<p><strong>Junction Types (P3)</strong>:
+- Junction elements support type validation: ‘and’, ‘or’, ‘xor’
+- Use set_junction_type(type_str) to set junction semantics
+- Junction types are validated on set and preserved in round-trip exports</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="exceptions.html#pyArchimate.exceptions.ArchimateConceptTypeError" title="pyArchimate.exceptions.ArchimateConceptTypeError"><strong>ArchimateConceptTypeError</strong></a> – Exception raised on elem_type or parent type error</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Element object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pyArchimate.element.Element" title="pyArchimate.element.Element">Element</a></p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyArchimate</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArchiType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyArchimate.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">&#39;example&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create elements</span>
+<span class="n">process</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessProcess</span><span class="p">,</span> <span class="s1">&#39;Order Processing&#39;</span><span class="p">)</span>
+<span class="n">func</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Order Fulfillment&#39;</span><span class="p">)</span>
+<span class="n">junction</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">Junction</span><span class="p">,</span> <span class="s1">&#39;Decision Point&#39;</span><span class="p">)</span>
+
+<span class="c1"># Build hierarchy</span>
+<span class="n">m</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># Style elements</span>
+<span class="n">process</span><span class="o">.</span><span class="n">set_fill_color</span><span class="p">(</span><span class="s1">&#39;#ffeb3b&#39;</span><span class="p">)</span>
+<span class="n">process</span><span class="o">.</span><span class="n">set_transparency</span><span class="p">(</span><span class="mf">0.9</span><span class="p">)</span>
+
+<span class="c1"># Set junction semantics</span>
+<span class="n">junction</span><span class="o">.</span><span class="n">set_junction_type</span><span class="p">(</span><span class="s1">&#39;and&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.assign_viewpoint">
+<span class="sig-name descname"><span class="pre">assign_viewpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewpoint_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.assign_viewpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.assign_viewpoint" title="Link to this definition"></a></dt>
+<dd><p>Assign a standard ArchiMate 3.x viewpoint slug to this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>viewpoint_id</strong> (<em>str</em>) – canonical viewpoint slug (e.g. ‘stakeholder’)</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – if viewpoint_id is not a recognised slug</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.delete">
+<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.delete" title="Link to this definition"></a></dt>
+<dd><p>Delete the current element from the parent model
+Note: it does not delete the instance itself but it remove the data from the model</p>
+<p>It also deletes all relationships that have this element as source or target and
+it deletes all visual nodes referring to this element (and conns) from views</p>
+<p>Children are orphaned rather than cascaded (Phase 2 behavior).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.get_fill_color">
+<span class="sig-name descname"><span class="pre">get_fill_color</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.get_fill_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.get_fill_color" title="Link to this definition"></a></dt>
+<dd><p>Get the fill color of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Hex color (#rrggbb) or None if not set (use default)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.get_junction_type">
+<span class="sig-name descname"><span class="pre">get_junction_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.get_junction_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.get_junction_type" title="Link to this definition"></a></dt>
+<dd><p>Get the junction type for a Junction element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Junction type (‘and’, ‘or’, ‘xor’) or None if not set</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.get_line_color">
+<span class="sig-name descname"><span class="pre">get_line_color</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.get_line_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.get_line_color" title="Link to this definition"></a></dt>
+<dd><p>Get the line/border color of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Hex color (#rrggbb) or None if not set (use default)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.get_line_width">
+<span class="sig-name descname"><span class="pre">get_line_width</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.get_line_width"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.get_line_width" title="Link to this definition"></a></dt>
+<dd><p>Get the line/border width of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Width in pixels or None if not set (use default)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.get_transparency">
+<span class="sig-name descname"><span class="pre">get_transparency</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.get_transparency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.get_transparency" title="Link to this definition"></a></dt>
+<dd><p>Get the transparency/opacity of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Opacity 0.0-1.0 or None if not set (use default)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.get_visual_style">
+<span class="sig-name descname"><span class="pre">get_visual_style</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.get_visual_style"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.get_visual_style" title="Link to this definition"></a></dt>
+<dd><p>Get all visual style properties as a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with fillColor, lineColor, lineWidth, transparency (only set values)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.in_rels">
+<span class="sig-name descname"><span class="pre">in_rels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rel_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.in_rels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.in_rels" title="Link to this definition"></a></dt>
+<dd><p>Method to get a list of the inbound relationships</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rel_type</strong> (<em>str</em>) – relationship type to filter</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>[Relationship]</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.merge">
+<span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elem</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pyArchimate.element.Element" title="pyArchimate.element.Element"><span class="pre">Element</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_props</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.merge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.merge" title="Link to this definition"></a></dt>
+<dd><p>Method to merge another element of the same type with this element</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elem</strong> (<a class="reference internal" href="#pyArchimate.element.Element" title="pyArchimate.element.Element"><em>Element</em></a>) – the element to merge</p></li>
+<li><p><strong>merge_props</strong> (<em>bool</em>) – flag to merge or not the properties</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.out_rels">
+<span class="sig-name descname"><span class="pre">out_rels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rel_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.out_rels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.out_rels" title="Link to this definition"></a></dt>
+<dd><p>Method to get a list of the outbound relationships</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rel_type</strong> (<em>str</em>) – relationship type to filter</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>[Relationship]</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.parent_uuid">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">parent_uuid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#pyArchimate.element.Element.parent_uuid" title="Link to this definition"></a></dt>
+<dd><p>Get the parent element UUID (for hierarchical grouping).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Parent element UUID or None if this is a root element</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.profile_id">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">profile_id</span></span><a class="headerlink" href="#pyArchimate.element.Element.profile_id" title="Link to this definition"></a></dt>
+<dd><p>Gets the profile ID if the current profile is valid and exists in the associated
+model’s profiles. Returns None if either there is no current profile or it does
+not exist in the model’s profiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ID of the current profile if it exists, otherwise None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.profile_name">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">profile_name</span></span><a class="headerlink" href="#pyArchimate.element.Element.profile_name" title="Link to this definition"></a></dt>
+<dd><p>Retrieve the name of the profile associated with the current object. This is done
+by checking if the profile attribute exists and matches a profile in the model’s
+profiles. If no matching profile is found or the profile attribute is None, the
+method returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name of the associated profile if it exists, otherwise None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.prop">
+<span class="sig-name descname"><span class="pre">prop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.prop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.prop" title="Link to this definition"></a></dt>
+<dd><p>Method to get or set an element’s property</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – Property key</p></li>
+<li><p><strong>value</strong> (<em>str</em>) – Property value</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an existing element property value str if ‘value’ argument is None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.props">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">props</span></span><a class="headerlink" href="#pyArchimate.element.Element.props" title="Link to this definition"></a></dt>
+<dd><p>Get all element properties as a  dictionary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>properties</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.rels">
+<span class="sig-name descname"><span class="pre">rels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rel_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.rels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.rels" title="Link to this definition"></a></dt>
+<dd><p>Method to get a list of the inbound and outbound relationships</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rel_type</strong> (<em>str</em>) – relationship type to filter</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>[Relationship]</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.remove_folder">
+<span class="sig-name descname"><span class="pre">remove_folder</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.remove_folder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.remove_folder" title="Link to this definition"></a></dt>
+<dd><p>Method to remove this element from the given folder path</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.remove_prop">
+<span class="sig-name descname"><span class="pre">remove_prop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.remove_prop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.remove_prop" title="Link to this definition"></a></dt>
+<dd><p>Method to remove an element property</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.remove_viewpoint">
+<span class="sig-name descname"><span class="pre">remove_viewpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewpoint_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.remove_viewpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.remove_viewpoint" title="Link to this definition"></a></dt>
+<dd><p>Remove a viewpoint slug assignment; silently ignores unknown slugs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>viewpoint_id</strong> (<em>str</em>) – canonical viewpoint slug to remove</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.reset_profile">
+<span class="sig-name descname"><span class="pre">reset_profile</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.reset_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.reset_profile" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.reset_visual_style">
+<span class="sig-name descname"><span class="pre">reset_visual_style</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.reset_visual_style"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.reset_visual_style" title="Link to this definition"></a></dt>
+<dd><p>Reset all custom visual styles to defaults.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.set_fill_color">
+<span class="sig-name descname"><span class="pre">set_fill_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.set_fill_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.set_fill_color" title="Link to this definition"></a></dt>
+<dd><p>Set the fill color of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>color</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Hex color (#RRGGBB), named color, or None to use default</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If color format is invalid</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.set_junction_type">
+<span class="sig-name descname"><span class="pre">set_junction_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">junction_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.set_junction_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.set_junction_type" title="Link to this definition"></a></dt>
+<dd><p>Set the junction type for a Junction element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>junction_type</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Junction type (‘and’, ‘or’, ‘xor’) or None</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If junction_type is not valid</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.set_line_color">
+<span class="sig-name descname"><span class="pre">set_line_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.set_line_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.set_line_color" title="Link to this definition"></a></dt>
+<dd><p>Set the line/border color of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>color</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Hex color (#RRGGBB), named color, or None to use default</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If color format is invalid</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.set_line_width">
+<span class="sig-name descname"><span class="pre">set_line_width</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.set_line_width"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.set_line_width" title="Link to this definition"></a></dt>
+<dd><p>Set the line/border width of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>width</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em>) – Width in pixels (≥ 0), or None to use default</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If width is negative</p></li>
+<li><p><strong>TypeError</strong> – If width is not numeric</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.set_profile">
+<span class="sig-name descname"><span class="pre">set_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profile_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.set_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.set_profile" title="Link to this definition"></a></dt>
+<dd><p>Sets the current profile for an instance. If the specified profile name already
+exists in the model, it sets the profile to the matching profile. Otherwise,
+a new profile is created, added to the model, and set as the current profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>profile_name</strong> (<em>str</em>) – The name of the profile to set. If it exists in the</p></li>
+<li><p><strong>model</strong></p></li>
+<li><p><strong>not</strong> (<em>it will be used directly. If</em>)</p></li>
+<li><p><strong>name</strong> (<em>a new profile with this</em>)</p></li>
+<li><p><strong>used.</strong> (<em>will be created and</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>No exceptions are explicitly raised in this method.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.set_transparency">
+<span class="sig-name descname"><span class="pre">set_transparency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.set_transparency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.set_transparency" title="Link to this definition"></a></dt>
+<dd><p>Set the transparency/opacity of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>alpha</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em>) – Opacity 0.0 (transparent) to 1.0 (opaque), or None to use default</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If alpha is out of range</p></li>
+<li><p><strong>TypeError</strong> – If alpha is not numeric</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.set_visual_style">
+<span class="sig-name descname"><span class="pre">set_visual_style</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fill_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transparency</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pyArchimate/element.html#Element.set_visual_style"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyArchimate.element.Element.set_visual_style" title="Link to this definition"></a></dt>
+<dd><p>Set multiple visual style properties at once.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fill_color</strong> – Fill color (hex or named)</p></li>
+<li><p><strong>line_color</strong> – Line color (hex or named)</p></li>
+<li><p><strong>line_width</strong> – Line width in pixels (≥ 0)</p></li>
+<li><p><strong>transparency</strong> – Opacity 0.0-1.0</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If any property is invalid</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.type">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#pyArchimate.element.Element.type" title="Link to this definition"></a></dt>
+<dd><p>Get the Archimate concept type of this element</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>type str</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.uuid">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">uuid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#pyArchimate.element.Element.uuid" title="Link to this definition"></a></dt>
+<dd><p>Get the identifier of this element</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Identifier str</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyArchimate.element.Element.viewpoints">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">viewpoints</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#pyArchimate.element.Element.viewpoints" title="Link to this definition"></a></dt>
+<dd><p>Return the list of assigned viewpoint slugs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of canonical viewpoint slug strings</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="model.html" class="btn btn-neutral float-left" title="Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="relationship.html" class="btn btn-neutral float-right" title="Relationship" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 - Xavier Mayeur / Stephan Borg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

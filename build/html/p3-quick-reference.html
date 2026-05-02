@@ -1,0 +1,266 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>P3 Quick Reference - Element Hierarchy &amp; Styling &mdash; pyArchimate 1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a0fc712e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=292eb321"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Element Hierarchy &amp; Grouping Guide" href="guides/element-hierarchy.html" />
+    <link rel="prev" title="Architecture" href="diagrams.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pyArchimate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Architecture:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="diagrams.html">Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">P3 Features (v1.3.0):</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">P3 Quick Reference - Element Hierarchy &amp; Styling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#hierarchy-methods">Hierarchy Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visual-styling-methods">Visual Styling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#junction-type-methods">Junction Type Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-patterns">Common Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#color-names">Color Names</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#constraints">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#full-documentation">Full Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guides/element-hierarchy.html">Element Hierarchy &amp; Grouping Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/visual-styling.html">Visual Styling Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/junction-types.html">Junction Types Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/hierarchy_examples.html">Hierarchy Code Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/styling_examples.html">Visual Styling Code Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/element.html">Element Class - P3 API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/model.html">Model Class - P3 Hierarchy &amp; Query API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">pyArchimate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package details:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="src.html">pyArchimate Package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyArchimate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">P3 Quick Reference - Element Hierarchy &amp; Styling</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/p3-quick-reference.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="p3-quick-reference-element-hierarchy-styling">
+<h1>P3 Quick Reference - Element Hierarchy &amp; Styling<a class="headerlink" href="#p3-quick-reference-element-hierarchy-styling" title="Link to this heading"></a></h1>
+<p>Quick lookup for P3 features: element grouping, visual styling, and junction types.</p>
+<section id="hierarchy-methods">
+<h2>Hierarchy Methods<a class="headerlink" href="#hierarchy-methods" title="Link to this heading"></a></h2>
+<p><strong>Creating Relationships:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">model.add_child(parent_uuid,</span> <span class="pre">child_uuid)</span></code> - Create parent-child relationship</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model.remove_child(parent_uuid,</span> <span class="pre">child_uuid)</span></code> - Remove relationship</p></li>
+</ul>
+<p><strong>Basic Queries:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">model.get_parent(elem_uuid)</span></code> → parent Element or None</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model.get_children(elem_uuid)</span></code> → list[Element]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model.get_ancestors(elem_uuid)</span></code> → list[Element] (elem to root)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model.get_descendants(elem_uuid)</span></code> → list[Element] (all under elem)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model.get_depth(elem_uuid)</span></code> → int</p></li>
+</ul>
+<p><strong>Root &amp; Leaf:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">model.get_root_elements()</span></code> → list[Element]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model.get_leaf_elements()</span></code> → list[Element]</p></li>
+</ul>
+<p><strong>Advanced Queries:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">model.get_siblings(elem_uuid)</span></code> → list[Element]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model.find_by_hierarchy_path(path)</span></code> → list[Element]</p></li>
+</ul>
+</section>
+<section id="visual-styling-methods">
+<h2>Visual Styling Methods<a class="headerlink" href="#visual-styling-methods" title="Link to this heading"></a></h2>
+<p><strong>Fill &amp; Line Colors:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.set_fill_color(color)</span></code> - Set background color (hex or named)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.get_fill_color()</span></code> → hex color or None</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.set_line_color(color)</span></code> - Set border color</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.get_line_color()</span></code> → hex color or None</p></li>
+</ul>
+<p><strong>Line Width &amp; Transparency:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.set_line_width(pixels)</span></code> - Set border width (≥0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.get_line_width()</span></code> → float or None</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.set_transparency(alpha)</span></code> - Set opacity (0.0-1.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.get_transparency()</span></code> → float or None</p></li>
+</ul>
+<p><strong>Bulk Operations:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.set_visual_style(fill_color,</span> <span class="pre">line_color,</span> <span class="pre">line_width,</span> <span class="pre">transparency)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.get_visual_style()</span></code> → dict[str, Any]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.reset_visual_style()</span></code> - Reset to defaults</p></li>
+</ul>
+</section>
+<section id="junction-type-methods">
+<h2>Junction Type Methods<a class="headerlink" href="#junction-type-methods" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.set_junction_type(type)</span></code> - Set to ‘and’, ‘or’, ‘xor’, or None</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elem.get_junction_type()</span></code> → ‘and’|’or’|’xor’<a href="#id1"><span class="problematic" id="id2">|</span></a>None</p></li>
+</ul>
+</section>
+<section id="common-patterns">
+<h2>Common Patterns<a class="headerlink" href="#common-patterns" title="Link to this heading"></a></h2>
+<p><strong>Create Hierarchy:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">parent</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessProcess</span><span class="p">,</span> <span class="s1">&#39;Parent&#39;</span><span class="p">)</span>
+<span class="n">child</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessProcess</span><span class="p">,</span> <span class="s1">&#39;Child&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">parent</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">child</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Style Element:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">elem</span><span class="o">.</span><span class="n">set_fill_color</span><span class="p">(</span><span class="s1">&#39;#ff0000&#39;</span><span class="p">)</span>      <span class="c1"># Red fill</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_line_color</span><span class="p">(</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>         <span class="c1"># Blue border</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_transparency</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span>          <span class="c1"># 80% opaque</span>
+</pre></div>
+</div>
+<p><strong>Query Hierarchy:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">siblings</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_siblings</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">find_by_hierarchy_path</span><span class="p">(</span><span class="s1">&#39;/Parent/Child/*&#39;</span><span class="p">)</span>
+<span class="n">depth</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Set Junction:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">junction</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">Junction</span><span class="p">,</span> <span class="s1">&#39;Decision&#39;</span><span class="p">)</span>
+<span class="n">junction</span><span class="o">.</span><span class="n">set_junction_type</span><span class="p">(</span><span class="s1">&#39;xor&#39;</span><span class="p">)</span>   <span class="c1"># Exclusive choice</span>
+</pre></div>
+</div>
+</section>
+<section id="color-names">
+<h2>Color Names<a class="headerlink" href="#color-names" title="Link to this heading"></a></h2>
+<p>Supported: red, green, blue, yellow, orange, purple, pink, brown, gray, white, black</p>
+<p>All converted to hex (#RRGGBB) internally.</p>
+</section>
+<section id="constraints">
+<h2>Constraints<a class="headerlink" href="#constraints" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Max depth</strong>: 5 levels</p></li>
+<li><p><strong>Single parent</strong>: Each element has ≤1 parent</p></li>
+<li><p><strong>Cycles prevented</strong>: Auto-validation prevents circular relationships</p></li>
+<li><p><strong>Transparency range</strong>: 0.0 (transparent) to 1.0 (opaque)</p></li>
+<li><p><strong>Line width</strong>: Must be ≥ 0.0 pixels</p></li>
+</ul>
+</section>
+<section id="performance">
+<h2>Performance<a class="headerlink" href="#performance" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">add_child()</span></code>: O(depth)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_parent()</span></code>: O(1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_children()</span></code>: O(n) where n = # children</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_siblings()</span></code>: O(n) where n = # siblings</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">find_by_hierarchy_path()</span></code>: O(m) where m = matching elements</p></li>
+</ul>
+<p>All operations &lt;10ms on 1000+ element models.</p>
+</section>
+<section id="full-documentation">
+<h2>Full Documentation<a class="headerlink" href="#full-documentation" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="guides/element-hierarchy.html"><span class="doc">Element Hierarchy &amp; Grouping Guide</span></a> - Complete hierarchy guide</p></li>
+<li><p><a class="reference internal" href="guides/visual-styling.html"><span class="doc">Visual Styling Guide</span></a> - Styling guide</p></li>
+<li><p><a class="reference internal" href="guides/junction-types.html"><span class="doc">Junction Types Guide</span></a> - Junction semantics</p></li>
+<li><p><a class="reference internal" href="api/model.html"><span class="doc">Model Class - P3 Hierarchy &amp; Query API Reference</span></a> - Full Model API</p></li>
+<li><p><a class="reference internal" href="api/element.html"><span class="doc">Element Class - P3 API Reference</span></a> - Full Element API</p></li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="examples/hierarchy_examples.html"><span class="doc">Hierarchy Code Examples</span></a> - Working hierarchy code</p></li>
+<li><p><a class="reference internal" href="examples/styling_examples.html"><span class="doc">Visual Styling Code Examples</span></a> - Working styling code</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="diagrams.html" class="btn btn-neutral float-left" title="Architecture" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="guides/element-hierarchy.html" class="btn btn-neutral float-right" title="Element Hierarchy &amp; Grouping Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 - Xavier Mayeur / Stephan Borg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

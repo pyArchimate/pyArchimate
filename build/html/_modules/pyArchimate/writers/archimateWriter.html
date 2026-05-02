@@ -1,0 +1,515 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyArchimate.writers.archimateWriter &mdash; pyArchimate 1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a0fc712e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=292eb321"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            pyArchimate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Architecture:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../diagrams.html">Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">P3 Features (v1.3.0):</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../p3-quick-reference.html">P3 Quick Reference - Element Hierarchy &amp; Styling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guides/element-hierarchy.html">Element Hierarchy &amp; Grouping Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guides/visual-styling.html">Visual Styling Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guides/junction-types.html">Junction Types Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/hierarchy_examples.html">Hierarchy Code Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/styling_examples.html">Visual Styling Code Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/element.html">Element Class - P3 API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/model.html">Model Class - P3 Hierarchy &amp; Query API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">pyArchimate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package details:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../src.html">pyArchimate Package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pyArchimate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../writers.html">pyArchimate.writers</a></li>
+      <li class="breadcrumb-item active">pyArchimate.writers.archimateWriter</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pyArchimate.writers.archimateWriter</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">cast</span> <span class="k">as</span> <span class="n">_cast</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">lxml</span><span class="w"> </span><span class="kn">import</span> <span class="n">etree</span> <span class="k">as</span> <span class="n">et</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lxml.etree</span><span class="w"> </span><span class="kn">import</span> <span class="n">_Element</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">ARCHI_CATEGORY</span> <span class="k">as</span> <span class="n">archi_category</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_THEME</span> <span class="k">as</span> <span class="n">default_theme</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">RGBA</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArchiType</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..helpers.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">log</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">default_color</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..view</span><span class="w"> </span><span class="kn">import</span> <span class="n">Node</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyArchimate</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>  <span class="c1"># type: ignore[no-redef,attr-defined]  # noqa: E401</span>
+        <span class="n">RGBA</span><span class="p">,</span>
+        <span class="n">ArchiType</span><span class="p">,</span>
+        <span class="n">Model</span><span class="p">,</span>
+        <span class="n">Node</span><span class="p">,</span>
+        <span class="n">archi_category</span><span class="p">,</span>
+        <span class="n">default_color</span><span class="p">,</span>
+        <span class="n">default_theme</span><span class="p">,</span>
+        <span class="n">log</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="fm">__mod__</span> <span class="o">=</span> <span class="vm">__name__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="nb">len</span><span class="p">(</span><span class="vm">__name__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">__location__</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))</span>
+
+<span class="n">_NS_ITEM</span> <span class="o">=</span> <span class="s1">&#39;ns:item&#39;</span>
+
+<span class="n">_GetPropId</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_prop_def_id</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">id_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">pdefs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">y</span> <span class="o">==</span> <span class="n">k</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">prop_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;propid-&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pdefs</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">pdefs</span><span class="p">[</span><span class="n">prop_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">return</span> <span class="n">prop_id</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">id_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_properties</span><span class="p">(</span><span class="n">parent</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">props</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">pp</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="s1">&#39;properties&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">props</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">prop_id</span> <span class="o">=</span> <span class="n">_get_prop_def_id</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">pp</span><span class="p">,</span> <span class="s1">&#39;property&#39;</span><span class="p">,</span> <span class="n">propertyDefinitionRef</span><span class="o">=</span><span class="n">prop_id</span><span class="p">)</span>
+        <span class="n">pv</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+        <span class="n">pv</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_elem_name_doc</span><span class="p">(</span><span class="n">elem</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">type</span>
+    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">e_name</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span>
+        <span class="n">e_name</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">desc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">desc</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">e_desc</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="s1">&#39;documentation&#39;</span><span class="p">)</span>
+        <span class="n">e_desc</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">desc</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_elem_viewpoints</span><span class="p">(</span><span class="n">elem</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">slug</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s1">&#39;viewpoints&#39;</span><span class="p">,</span> <span class="p">[]):</span>
+        <span class="n">vp_prop_id</span> <span class="o">=</span> <span class="n">_get_prop_def_id</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">&#39;viewpoint&#39;</span><span class="p">)</span>
+        <span class="n">pp</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;properties&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pp</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="s1">&#39;properties&#39;</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">pp</span><span class="p">,</span> <span class="s1">&#39;property&#39;</span><span class="p">,</span> <span class="n">propertyDefinitionRef</span><span class="o">=</span><span class="n">vp_prop_id</span><span class="p">)</span>
+        <span class="n">pv</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+        <span class="n">pv</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">slug</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_elem_visual_style</span><span class="p">(</span><span class="n">elem</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">visual_style</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s1">&#39;_visual_style&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">visual_style</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">pp</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;properties&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pp</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="s1">&#39;properties&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;fillColor&#39;</span><span class="p">,</span> <span class="s1">&#39;lineColor&#39;</span><span class="p">,</span> <span class="s1">&#39;lineWidth&#39;</span><span class="p">,</span> <span class="s1">&#39;transparency&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">visual_style</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">pp</span><span class="p">,</span> <span class="s1">&#39;property&#39;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">pv</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+            <span class="n">pv</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">visual_style</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_elem_junction_type</span><span class="p">(</span><span class="n">elem</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">junction_type</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s1">&#39;junction_type&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">junction_type</span><span class="p">:</span>
+        <span class="n">pp</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;properties&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pp</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="s1">&#39;properties&#39;</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">pp</span><span class="p">,</span> <span class="s1">&#39;property&#39;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;junctionType&#39;</span><span class="p">)</span>
+        <span class="n">pv</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+        <span class="n">pv</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">junction_type</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_elements</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">xsi</span><span class="p">:</span> <span class="n">et</span><span class="o">.</span><span class="n">QName</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">elems</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;elements&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+        <span class="n">cat</span> <span class="o">=</span> <span class="n">archi_category</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">type</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">cat</span> <span class="o">==</span> <span class="s2">&quot;Junction&quot;</span><span class="p">:</span>
+            <span class="n">cat</span> <span class="o">=</span> <span class="s2">&quot;Other&quot;</span>
+        <span class="k">elif</span> <span class="n">cat</span> <span class="o">==</span> <span class="s2">&quot;Physical&quot;</span><span class="p">:</span>
+            <span class="n">cat</span> <span class="o">=</span> <span class="s1">&#39;Technology&#39;</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">folder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">cat</span>
+
+        <span class="n">elem_attrs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;identifier&#39;</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">xsi</span><span class="p">):</span> <span class="n">e</span><span class="o">.</span><span class="n">type</span><span class="p">}</span>
+        <span class="c1"># Add parentId if element has a parent</span>
+        <span class="n">parent_uuid</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s1">&#39;_parent_uuid&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parent_uuid</span><span class="p">:</span>
+            <span class="n">elem_attrs</span><span class="p">[</span><span class="s1">&#39;parentId&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parent_uuid</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">elems</span><span class="p">,</span> <span class="s1">&#39;element&#39;</span><span class="p">,</span> <span class="n">elem_attrs</span><span class="p">)</span>
+        <span class="n">_write_elem_name_doc</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+            <span class="n">_write_properties</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">props</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+        <span class="n">_write_elem_visual_style</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+        <span class="n">_write_elem_junction_type</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+        <span class="n">_write_elem_viewpoints</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_rel_attrs</span><span class="p">(</span><span class="n">elem</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">access_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">ArchiType</span><span class="o">.</span><span class="n">Access</span><span class="p">:</span>
+        <span class="n">elem</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;accessType&#39;</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">access_type</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">is_directed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">ArchiType</span><span class="o">.</span><span class="n">Association</span><span class="p">:</span>
+        <span class="n">elem</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;isDirected&#39;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">influence_strength</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">ArchiType</span><span class="o">.</span><span class="n">Influence</span><span class="p">:</span>
+        <span class="n">elem</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;influenceStrength&#39;</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">influence_strength</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">e_name</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span>
+        <span class="n">e_name</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">desc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">e_desc</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="s1">&#39;documentation&#39;</span><span class="p">)</span>
+        <span class="n">e_desc</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">desc</span>
+    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+        <span class="n">_write_properties</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">props</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_relationships</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">xsi</span><span class="p">:</span> <span class="n">et</span><span class="o">.</span><span class="n">QName</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">rels</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;relationships&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">relationships</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">e</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">rels</span><span class="p">,</span> <span class="s1">&#39;relationship&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;identifier&#39;</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span>
+            <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span>
+            <span class="s1">&#39;target&#39;</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">xsi</span><span class="p">):</span> <span class="n">e</span><span class="o">.</span><span class="n">type</span>
+        <span class="p">})</span>
+        <span class="n">_write_rel_attrs</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_collect_orgs_dict</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="n">orgs_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">folder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">orgs_dict</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">folder</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">relationships</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">folder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">orgs_dict</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">folder</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">views</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">folder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">orgs_dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">folder</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">orgs_dict</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_org_path</span><span class="p">(</span><span class="n">orgs</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">orgs_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
+                    <span class="n">ns_find</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">orgs</span>
+    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">_NS_ITEM</span><span class="p">,</span> <span class="n">ns_find</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s1">&#39;item&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">_cast</span><span class="p">(</span><span class="n">_Element</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">_NS_ITEM</span><span class="p">,</span> <span class="n">ns_find</span><span class="p">))</span>
+        <span class="n">lbl</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">)</span>
+        <span class="n">lbl</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">label</span>
+    <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">_NS_ITEM</span><span class="p">,</span> <span class="n">ns_find</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s1">&#39;item&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">_cast</span><span class="p">(</span><span class="n">_Element</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">_NS_ITEM</span><span class="p">,</span> <span class="n">ns_find</span><span class="p">))</span>
+    <span class="n">lbl</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">)</span>
+    <span class="n">lbl</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">orgs_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+        <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s1">&#39;item&#39;</span><span class="p">,</span> <span class="n">identifierRef</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_organizations</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">ns_find</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">orgs_dict</span> <span class="o">=</span> <span class="n">_collect_orgs_dict</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">orgs</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;organizations&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">orgs_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">_write_org_path</span><span class="p">(</span><span class="n">orgs</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">orgs_dict</span><span class="p">,</span> <span class="n">ns_find</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_node_style</span><span class="p">(</span><span class="n">n_elem</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="n">Node</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">style</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">n_elem</span><span class="p">,</span> <span class="s1">&#39;style&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">line_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lc</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="s1">&#39;lineColor&#39;</span><span class="p">)</span>
+        <span class="n">rgb</span> <span class="o">=</span> <span class="n">RGBA</span><span class="p">()</span>
+        <span class="n">rgb</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">line_color</span>
+        <span class="n">lc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">lc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">lc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">b</span><span class="p">))</span>
+        <span class="n">lc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;100&#39;</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">opacity</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">lc_opacity</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">fill_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">fill_color</span> <span class="o">!=</span> <span class="n">default_color</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">type</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">default_theme</span><span class="p">):</span>
+            <span class="n">fc</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="s1">&#39;fillColor&#39;</span><span class="p">)</span>
+            <span class="n">rgb</span> <span class="o">=</span> <span class="n">RGBA</span><span class="p">()</span>
+            <span class="n">rgb</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">fill_color</span>
+            <span class="n">fc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">r</span><span class="p">))</span>
+            <span class="n">fc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">g</span><span class="p">))</span>
+            <span class="n">fc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">b</span><span class="p">))</span>
+            <span class="n">fc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;100&#39;</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">opacity</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">opacity</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">font_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ft</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">n</span><span class="o">.</span><span class="n">font_name</span><span class="p">,</span>
+            <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">font_size</span><span class="p">)</span>
+        <span class="p">})</span>
+        <span class="n">rgb</span> <span class="o">=</span> <span class="n">RGBA</span><span class="p">()</span>
+        <span class="n">ftc</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">ft</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">)</span>
+        <span class="n">rgb</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">font_color</span>
+        <span class="n">ftc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">ftc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">g</span><span class="p">))</span>
+        <span class="n">ftc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">b</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_node</span><span class="p">(</span><span class="n">parent</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">xsi</span><span class="p">:</span> <span class="n">et</span><span class="o">.</span><span class="n">QName</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">cat</span> <span class="o">==</span> <span class="s1">&#39;Element&#39;</span><span class="p">:</span>
+        <span class="n">n_elem</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;identifier&#39;</span><span class="p">:</span> <span class="n">n</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span>
+            <span class="s1">&#39;elementRef&#39;</span><span class="p">:</span> <span class="n">n</span><span class="o">.</span><span class="n">ref</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">xsi</span><span class="p">):</span> <span class="n">n</span><span class="o">.</span><span class="n">cat</span><span class="p">,</span>
+            <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">x</span><span class="p">),</span>
+            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">y</span><span class="p">),</span>
+            <span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">w</span><span class="p">),</span>
+            <span class="s1">&#39;h&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">h</span><span class="p">)</span>
+        <span class="p">})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n_elem</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;identifier&#39;</span><span class="p">:</span> <span class="n">n</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">xsi</span><span class="p">):</span> <span class="n">n</span><span class="o">.</span><span class="n">cat</span><span class="p">,</span>
+            <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">x</span><span class="p">),</span>
+            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">y</span><span class="p">),</span>
+            <span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">w</span><span class="p">),</span>
+            <span class="s1">&#39;h&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">h</span><span class="p">)</span>
+        <span class="p">})</span>
+        <span class="n">lbl</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">n_elem</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">)</span>
+        <span class="n">lbl</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">label</span>
+    <span class="n">_write_node_style</span><span class="p">(</span><span class="n">n_elem</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">cat</span> <span class="o">==</span> <span class="s1">&#39;Model&#39;</span><span class="p">:</span>
+        <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">n_elem</span><span class="p">,</span> <span class="s1">&#39;viewRef&#39;</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">ref</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">n_elem</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">xsi</span><span class="p">),</span> <span class="s1">&#39;Label&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">sub_n</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+        <span class="n">_add_node</span><span class="p">(</span><span class="n">n_elem</span><span class="p">,</span> <span class="n">sub_n</span><span class="p">,</span> <span class="n">xsi</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_node_embedded</span><span class="p">(</span><span class="n">n1</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">n2</span><span class="p">:</span> <span class="n">Node</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">((</span><span class="n">n1</span><span class="o">.</span><span class="n">x</span> <span class="o">&lt;</span> <span class="n">n2</span><span class="o">.</span><span class="n">x</span> <span class="o">&lt;</span> <span class="n">n1</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">n1</span><span class="o">.</span><span class="n">w</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">n1</span><span class="o">.</span><span class="n">y</span> <span class="o">&lt;</span> <span class="n">n2</span><span class="o">.</span><span class="n">y</span> <span class="o">&lt;</span> <span class="n">n1</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">n1</span><span class="o">.</span><span class="n">h</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_conn_style</span><span class="p">(</span><span class="n">c_elem</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">style</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">c_elem</span><span class="p">,</span> <span class="s1">&#39;style&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">line_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">style</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;lineWidth&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">line_width</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">line_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">line_color</span> <span class="o">!=</span> <span class="n">default_color</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">default_theme</span><span class="p">):</span>
+            <span class="n">lc</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="s1">&#39;lineColor&#39;</span><span class="p">)</span>
+            <span class="n">rgb</span> <span class="o">=</span> <span class="n">RGBA</span><span class="p">()</span>
+            <span class="n">rgb</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">line_color</span>
+            <span class="n">lc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">r</span><span class="p">))</span>
+            <span class="n">lc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">g</span><span class="p">))</span>
+            <span class="n">lc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">b</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">font_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ft</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">font_name</span><span class="p">,</span>
+            <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">font_size</span><span class="p">)</span>
+        <span class="p">})</span>
+        <span class="n">rgb</span> <span class="o">=</span> <span class="n">RGBA</span><span class="p">()</span>
+        <span class="n">ftc</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">ft</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">)</span>
+        <span class="n">rgb</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">font_color</span>
+        <span class="n">ftc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">ftc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">g</span><span class="p">))</span>
+        <span class="n">ftc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">b</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_connections</span><span class="p">(</span><span class="n">view_elem</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">_v</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">xsi</span><span class="p">:</span> <span class="n">et</span><span class="o">.</span><span class="n">QName</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">_v</span><span class="o">.</span><span class="n">conns</span><span class="p">:</span>  <span class="c1"># type: ignore[attr-defined]</span>
+        <span class="k">assert</span> <span class="n">c</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">c</span><span class="o">.</span><span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">_is_node_embedded</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">target</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_is_node_embedded</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">source</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">c_elem</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">view_elem</span><span class="p">,</span> <span class="s1">&#39;connection&#39;</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;identifier&#39;</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span>
+            <span class="s1">&#39;relationshipRef&#39;</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">ref</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">xsi</span><span class="p">):</span> <span class="s1">&#39;Relationship&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span>
+            <span class="s1">&#39;target&#39;</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">uuid</span>
+        <span class="p">})</span>
+        <span class="n">_write_conn_style</span><span class="p">(</span><span class="n">c_elem</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">bp</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">get_all_bendpoints</span><span class="p">():</span>
+            <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">c_elem</span><span class="p">,</span> <span class="s1">&#39;bendpoint&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="n">y</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">y</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_views</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">_Element</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">xsi</span><span class="p">:</span> <span class="n">et</span><span class="o">.</span><span class="n">QName</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">views</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">views</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;views&#39;</span><span class="p">)</span>
+    <span class="n">diag</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">views</span><span class="p">,</span> <span class="s1">&#39;diagrams&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_v</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">views</span><span class="p">:</span>
+        <span class="n">view_attrib</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;identifier&#39;</span><span class="p">:</span> <span class="n">_v</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">xsi</span><span class="p">):</span> <span class="s1">&#39;Diagram&#39;</span>
+        <span class="p">}</span>
+        <span class="c1"># Write primary viewpoint as XML attribute on the view element</span>
+        <span class="n">primary_vp</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">_v</span><span class="p">,</span> <span class="s1">&#39;primary_viewpoint&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">primary_vp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">view_attrib</span><span class="p">[</span><span class="s1">&#39;viewpoint&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">primary_vp</span>
+        <span class="n">view_elem</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">diag</span><span class="p">,</span> <span class="s1">&#39;view&#39;</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="n">view_attrib</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_v</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">v_name</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">view_elem</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span>
+            <span class="n">v_name</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">_v</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="n">_v</span><span class="o">.</span><span class="n">desc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">doc</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">view_elem</span><span class="p">,</span> <span class="s1">&#39;documentation&#39;</span><span class="p">)</span>
+            <span class="n">doc</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">_v</span><span class="o">.</span><span class="n">desc</span>
+        <span class="k">if</span> <span class="n">_v</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+            <span class="n">_write_properties</span><span class="p">(</span><span class="n">view_elem</span><span class="p">,</span> <span class="n">_v</span><span class="o">.</span><span class="n">props</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_n</span> <span class="ow">in</span> <span class="n">_v</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">_add_node</span><span class="p">(</span><span class="n">view_elem</span><span class="p">,</span> <span class="n">_n</span><span class="p">,</span> <span class="n">xsi</span><span class="p">)</span>
+        <span class="n">_write_connections</span><span class="p">(</span><span class="n">view_elem</span><span class="p">,</span> <span class="n">_v</span><span class="p">,</span> <span class="n">xsi</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="archimate_writer">
+<a class="viewcode-back" href="../../../archimateWriter.html#pyArchimate.writers.archimateWriter.archimate_writer">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">archimate_writer</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Method to generate an Archimate XML Open Exchange File format structure as a string object</span>
+
+<span class="sd">    Used by Model.write(filepath) method</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">xml</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;&quot;&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span>
+<span class="s2">    &lt;model xmlns=&quot;http://www.opengroup.org/xsd/archimate/3.0/&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xsi:schemaLocation=&quot;http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd&quot; identifier=&quot;id-a84d2455d48c44a2847b3407e270599f&quot;&gt;</span>
+<span class="s2">    &lt;/model&gt;</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+
+    <span class="n">root</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+    <span class="n">nsp_url</span> <span class="o">=</span> <span class="s1">&#39;http://www.opengroup.org/xsd/archimate/3.0/&#39;</span> <span class="c1"># NOSONAR</span>
+    <span class="n">xsi_url</span> <span class="o">=</span> <span class="s1">&#39;http://www.w3.org/2001/XMLSchema-instance&#39;</span> <span class="c1"># NOSONAR</span>
+    <span class="n">xsi</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">QName</span><span class="p">(</span><span class="n">xsi_url</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">)</span>
+    <span class="n">ns_find</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ns&#39;</span><span class="p">:</span> <span class="n">nsp_url</span><span class="p">}</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span>
+    <span class="n">name</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;Archimate Model&#39;</span>
+
+    <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">desc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;documentation&#39;</span><span class="p">)</span>
+        <span class="n">doc</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">desc</span>
+
+    <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+        <span class="n">_write_properties</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">props</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+
+    <span class="n">_write_elements</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">xsi</span><span class="p">)</span>
+    <span class="n">_write_relationships</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">xsi</span><span class="p">)</span>
+    <span class="n">_write_organizations</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">ns_find</span><span class="p">)</span>
+
+    <span class="n">pd</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;propertyDefinitions&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">pdefs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">pd</span><span class="p">,</span> <span class="s1">&#39;propertyDefinition&#39;</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;string&#39;</span><span class="p">)</span>
+        <span class="n">p_name</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span>
+        <span class="n">p_name</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+    <span class="n">_write_views</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">xsi</span><span class="p">)</span>
+
+    <span class="n">pd_check</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;propertyDefinitions&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pd_check</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pd_check</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;propertyDefinition&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">root</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">pd_check</span><span class="p">)</span>
+
+    <span class="n">xml_str</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="n">pretty_print</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">file_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+                <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">xml_str</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="fm">__mod__</span><span class="si">}</span><span class="s1">.write: Cannot write to file &quot;</span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">xml_str</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 - Xavier Mayeur / Stephan Borg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,476 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Element Class - P3 API Reference &mdash; pyArchimate 1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=a0fc712e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=292eb321"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Model Class - P3 Hierarchy &amp; Query API Reference" href="model.html" />
+    <link rel="prev" title="Visual Styling Code Examples" href="../examples/styling_examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            pyArchimate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Architecture:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../diagrams.html">Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">P3 Features (v1.3.0):</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../p3-quick-reference.html">P3 Quick Reference - Element Hierarchy &amp; Styling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/element-hierarchy.html">Element Hierarchy &amp; Grouping Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/visual-styling.html">Visual Styling Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/junction-types.html">Junction Types Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/hierarchy_examples.html">Hierarchy Code Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/styling_examples.html">Visual Styling Code Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Element Class - P3 API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#visual-styling-methods">Visual Styling Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#color-properties">Color Properties</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#set_fill_color"><code class="docutils literal notranslate"><span class="pre">set_fill_color()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#get_fill_color"><code class="docutils literal notranslate"><span class="pre">get_fill_color()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#set_line_color"><code class="docutils literal notranslate"><span class="pre">set_line_color()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#get_line_color"><code class="docutils literal notranslate"><span class="pre">get_line_color()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#line-width-property">Line Width Property</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#set_line_width"><code class="docutils literal notranslate"><span class="pre">set_line_width()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#get_line_width"><code class="docutils literal notranslate"><span class="pre">get_line_width()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#transparency-property">Transparency Property</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#set_transparency"><code class="docutils literal notranslate"><span class="pre">set_transparency()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#get_transparency"><code class="docutils literal notranslate"><span class="pre">get_transparency()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#bulk-style-operations">Bulk Style Operations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#set_visual_style"><code class="docutils literal notranslate"><span class="pre">set_visual_style()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#get_visual_style"><code class="docutils literal notranslate"><span class="pre">get_visual_style()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reset_visual_style"><code class="docutils literal notranslate"><span class="pre">reset_visual_style()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#junction-type-methods">Junction Type Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#set_junction_type"><code class="docutils literal notranslate"><span class="pre">set_junction_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get_junction_type"><code class="docutils literal notranslate"><span class="pre">get_junction_type()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#hierarchy-methods">Hierarchy Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parent-child-relationships">Parent-Child Relationships</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#round-trip-preservation">Round-Trip Preservation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="model.html">Model Class - P3 Hierarchy &amp; Query API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">pyArchimate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package details:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../src.html">pyArchimate Package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyArchimate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Element Class - P3 API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/element.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="element-class-p3-api-reference">
+<h1>Element Class - P3 API Reference<a class="headerlink" href="#element-class-p3-api-reference" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">Element</span></code> class represents ArchiMate elements with support for element hierarchy (parent-child relationships), visual styling, and junction type semantics (P3 features).</p>
+<section id="visual-styling-methods">
+<h2>Visual Styling Methods<a class="headerlink" href="#visual-styling-methods" title="Link to this heading"></a></h2>
+<section id="color-properties">
+<h3>Color Properties<a class="headerlink" href="#color-properties" title="Link to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="set_fill_color">
+<span class="sig-name descname"><span class="pre">set_fill_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#set_fill_color" title="Link to this definition"></a></dt>
+<dd><p>Set the fill/background color of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>color</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Hex color (#RRGGBB), named color (e.g., ‘red’, ‘blue’), or None to use default</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If color format is invalid</p>
+</dd>
+</dl>
+<p><strong>Supported Named Colors:</strong>
+red, green, blue, yellow, orange, purple, pink, brown, gray, white, black</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">elem</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessProcess</span><span class="p">,</span> <span class="s1">&#39;Process&#39;</span><span class="p">)</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_fill_color</span><span class="p">(</span><span class="s1">&#39;#ff0000&#39;</span><span class="p">)</span>  <span class="c1"># Hex color</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_fill_color</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>      <span class="c1"># Named color</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_fill_color</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>       <span class="c1"># Reset to default</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="get_fill_color">
+<span class="sig-name descname"><span class="pre">get_fill_color</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#get_fill_color" title="Link to this definition"></a></dt>
+<dd><p>Get the fill color of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Hex color (#rrggbb) or None if not set</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="set_line_color">
+<span class="sig-name descname"><span class="pre">set_line_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#set_line_color" title="Link to this definition"></a></dt>
+<dd><p>Set the border/line color of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>color</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Hex color (#RRGGBB), named color, or None to use default</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If color format is invalid</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">elem</span><span class="o">.</span><span class="n">set_line_color</span><span class="p">(</span><span class="s1">&#39;#0066cc&#39;</span><span class="p">)</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_line_color</span><span class="p">(</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="get_line_color">
+<span class="sig-name descname"><span class="pre">get_line_color</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#get_line_color" title="Link to this definition"></a></dt>
+<dd><p>Get the line color of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Hex color (#rrggbb) or None if not set</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="line-width-property">
+<h3>Line Width Property<a class="headerlink" href="#line-width-property" title="Link to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="set_line_width">
+<span class="sig-name descname"><span class="pre">set_line_width</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#set_line_width" title="Link to this definition"></a></dt>
+<dd><p>Set the border/line width of this element in pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>width</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em>) – Width in pixels (≥ 0), or None to use default</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If width is negative</p></li>
+<li><p><strong>TypeError</strong> – If width is not numeric</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">elem</span><span class="o">.</span><span class="n">set_line_width</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>  <span class="c1"># 2 pixel border</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_line_width</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># 0.5 pixel border</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_line_width</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="c1"># Reset to default</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="get_line_width">
+<span class="sig-name descname"><span class="pre">get_line_width</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#get_line_width" title="Link to this definition"></a></dt>
+<dd><p>Get the line width of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Width in pixels or None if not set</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="transparency-property">
+<h3>Transparency Property<a class="headerlink" href="#transparency-property" title="Link to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="set_transparency">
+<span class="sig-name descname"><span class="pre">set_transparency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#set_transparency" title="Link to this definition"></a></dt>
+<dd><p>Set the opacity/transparency of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>alpha</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em>) – Opacity 0.0 (fully transparent) to 1.0 (fully opaque), or None to use default</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If alpha is out of range</p></li>
+<li><p><strong>TypeError</strong> – If alpha is not numeric</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">elem</span><span class="o">.</span><span class="n">set_transparency</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>   <span class="c1"># Fully opaque</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_transparency</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>   <span class="c1"># 50% transparent</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_transparency</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>   <span class="c1"># Fully transparent</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_transparency</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># Reset to default</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="get_transparency">
+<span class="sig-name descname"><span class="pre">get_transparency</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#get_transparency" title="Link to this definition"></a></dt>
+<dd><p>Get the transparency/opacity of this element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Opacity 0.0-1.0 or None if not set</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="bulk-style-operations">
+<h3>Bulk Style Operations<a class="headerlink" href="#bulk-style-operations" title="Link to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="set_visual_style">
+<span class="sig-name descname"><span class="pre">set_visual_style</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fill_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transparency</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#set_visual_style" title="Link to this definition"></a></dt>
+<dd><p>Set multiple visual style properties at once.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fill_color</strong> – Fill color (hex or named)</p></li>
+<li><p><strong>line_color</strong> – Line color (hex or named)</p></li>
+<li><p><strong>line_width</strong> – Line width in pixels (≥ 0)</p></li>
+<li><p><strong>transparency</strong> – Opacity 0.0-1.0</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If any property is invalid</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">elem</span><span class="o">.</span><span class="n">set_visual_style</span><span class="p">(</span>
+    <span class="n">fill_color</span><span class="o">=</span><span class="s1">&#39;#ffeb3b&#39;</span><span class="p">,</span>
+    <span class="n">line_color</span><span class="o">=</span><span class="s1">&#39;#ff6f00&#39;</span><span class="p">,</span>
+    <span class="n">line_width</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">transparency</span><span class="o">=</span><span class="mf">0.9</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="get_visual_style">
+<span class="sig-name descname"><span class="pre">get_visual_style</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#get_visual_style" title="Link to this definition"></a></dt>
+<dd><p>Get all visual style properties as a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with fillColor, lineColor, lineWidth, transparency (only set values)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict[str, Any]</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">style</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">get_visual_style</span><span class="p">()</span>
+<span class="c1"># Returns: {&#39;fillColor&#39;: &#39;#ffeb3b&#39;, &#39;lineColor&#39;: &#39;#ff6f00&#39;, &#39;lineWidth&#39;: 2.0, &#39;transparency&#39;: 0.9}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reset_visual_style">
+<span class="sig-name descname"><span class="pre">reset_visual_style</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reset_visual_style" title="Link to this definition"></a></dt>
+<dd><p>Reset all custom visual styles to defaults.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">elem</span><span class="o">.</span><span class="n">reset_visual_style</span><span class="p">()</span>  <span class="c1"># Clear all custom styles</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="junction-type-methods">
+<h2>Junction Type Methods<a class="headerlink" href="#junction-type-methods" title="Link to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="set_junction_type">
+<span class="sig-name descname"><span class="pre">set_junction_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">junction_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#set_junction_type" title="Link to this definition"></a></dt>
+<dd><p>Set the junction type for a Junction element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>junction_type</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Junction type (‘and’, ‘or’, ‘xor’) or None</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If junction_type is not valid</p>
+</dd>
+</dl>
+<p><strong>Valid Junction Types:</strong>
+- ‘and’: All inputs must be satisfied
+- ‘or’: At least one input must be satisfied
+- ‘xor’: Exactly one input must be satisfied</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">junction</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">Junction</span><span class="p">,</span> <span class="s1">&#39;Decision Point&#39;</span><span class="p">)</span>
+<span class="n">junction</span><span class="o">.</span><span class="n">set_junction_type</span><span class="p">(</span><span class="s1">&#39;and&#39;</span><span class="p">)</span>
+<span class="n">junction</span><span class="o">.</span><span class="n">set_junction_type</span><span class="p">(</span><span class="s1">&#39;xor&#39;</span><span class="p">)</span>
+<span class="n">junction</span><span class="o">.</span><span class="n">set_junction_type</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># Clear junction type</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="get_junction_type">
+<span class="sig-name descname"><span class="pre">get_junction_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#get_junction_type" title="Link to this definition"></a></dt>
+<dd><p>Get the junction type for a Junction element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Junction type (‘and’, ‘or’, ‘xor’) or None if not set</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[str]</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">jtype</span> <span class="o">=</span> <span class="n">junction</span><span class="o">.</span><span class="n">get_junction_type</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">jtype</span> <span class="o">==</span> <span class="s1">&#39;and&#39;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;AND junction - all inputs required&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="hierarchy-methods">
+<h2>Hierarchy Methods<a class="headerlink" href="#hierarchy-methods" title="Link to this heading"></a></h2>
+<section id="parent-child-relationships">
+<h3>Parent-Child Relationships<a class="headerlink" href="#parent-child-relationships" title="Link to this heading"></a></h3>
+<p>The Element class stores its parent UUID reference. Use Model methods for full hierarchy management:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">element._parent_uuid</span></code>: Internal reference to parent element UUID (read-only)</p></li>
+</ul>
+<p>Use <code class="docutils literal notranslate"><span class="pre">Model.add_child()</span></code> to create relationships and <code class="docutils literal notranslate"><span class="pre">Model.get_parent()</span></code> to query.</p>
+<p>See <a class="reference internal" href="../guides/element-hierarchy.html"><span class="doc">Element Hierarchy &amp; Grouping Guide</span></a> for hierarchy usage guide.</p>
+</section>
+</section>
+<section id="round-trip-preservation">
+<h2>Round-Trip Preservation<a class="headerlink" href="#round-trip-preservation" title="Link to this heading"></a></h2>
+<p>All visual properties and junction types are automatically preserved during XML export/import cycles:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create and style element</span>
+<span class="n">elem</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessProcess</span><span class="p">,</span> <span class="s1">&#39;Process&#39;</span><span class="p">)</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_fill_color</span><span class="p">(</span><span class="s1">&#39;#ff0000&#39;</span><span class="p">)</span>
+<span class="n">elem</span><span class="o">.</span><span class="n">set_transparency</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span>
+
+<span class="c1"># Export to XML</span>
+<span class="n">model</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;model.archimate&#39;</span><span class="p">)</span>
+
+<span class="c1"># Import from XML</span>
+<span class="n">m2</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">&#39;reloaded&#39;</span><span class="p">)</span>
+<span class="n">m2</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;model.archimate&#39;</span><span class="p">)</span>
+
+<span class="c1"># Properties are preserved exactly</span>
+<span class="n">elem2</span> <span class="o">=</span> <span class="n">m2</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">elem</span><span class="o">.</span><span class="n">uuid</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">elem2</span><span class="o">.</span><span class="n">get_fill_color</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;#ff0000&#39;</span>
+<span class="k">assert</span> <span class="n">elem2</span><span class="o">.</span><span class="n">get_transparency</span><span class="p">()</span> <span class="o">==</span> <span class="mf">0.8</span>
+</pre></div>
+</div>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../guides/visual-styling.html"><span class="doc">Visual Styling Guide</span></a>: Complete guide for visual customization</p></li>
+<li><p><a class="reference internal" href="../guides/junction-types.html"><span class="doc">Junction Types Guide</span></a>: Junction type semantics and usage</p></li>
+<li><p><a class="reference internal" href="../examples/styling_examples.html"><span class="doc">Visual Styling Code Examples</span></a>: Code examples for visual styling</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../examples/styling_examples.html" class="btn btn-neutral float-left" title="Visual Styling Code Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="model.html" class="btn btn-neutral float-right" title="Model Class - P3 Hierarchy &amp; Query API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 - Xavier Mayeur / Stephan Borg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

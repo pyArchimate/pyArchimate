@@ -1,0 +1,491 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Element Hierarchy &amp; Grouping Guide &mdash; pyArchimate 1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=a0fc712e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=292eb321"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Visual Styling Guide" href="visual-styling.html" />
+    <link rel="prev" title="P3 Quick Reference - Element Hierarchy &amp; Styling" href="../p3-quick-reference.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            pyArchimate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Architecture:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../diagrams.html">Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">P3 Features (v1.3.0):</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../p3-quick-reference.html">P3 Quick Reference - Element Hierarchy &amp; Styling</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Element Hierarchy &amp; Grouping Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#core-concepts">Core Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-hierarchies">Creating Hierarchies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-parent-child-relationship">Basic Parent-Child Relationship</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multi-level-hierarchies">Multi-Level Hierarchies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#maximum-nesting-depth">Maximum Nesting Depth</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#querying-hierarchies">Querying Hierarchies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get-parent">Get Parent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-children">Get Children</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-all-ancestors">Get All Ancestors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-all-descendants">Get All Descendants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-siblings">Get Siblings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hierarchy-path-queries">Hierarchy Path Queries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#root-and-leaf-elements">Root and Leaf Elements</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#modifying-hierarchies">Modifying Hierarchies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#removing-relationships">Removing Relationships</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moving-elements">Moving Elements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#deleting-elements">Deleting Elements</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cycle-detection">Cycle Detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#depth-calculation">Depth Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#real-world-example">Real-World Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#round-trip-preservation">Round-Trip Preservation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-considerations">Performance Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visual-styling.html">Visual Styling Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="junction-types.html">Junction Types Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/hierarchy_examples.html">Hierarchy Code Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/styling_examples.html">Visual Styling Code Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/element.html">Element Class - P3 API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/model.html">Model Class - P3 Hierarchy &amp; Query API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">pyArchimate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package details:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../src.html">pyArchimate Package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyArchimate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Element Hierarchy &amp; Grouping Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/guides/element-hierarchy.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="element-hierarchy-grouping-guide">
+<h1>Element Hierarchy &amp; Grouping Guide<a class="headerlink" href="#element-hierarchy-grouping-guide" title="Link to this heading"></a></h1>
+<p>This guide explains how to organize ArchiMate elements into parent-child hierarchies for modeling complex enterprise architectures with logical grouping.</p>
+<section id="core-concepts">
+<h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading"></a></h2>
+<p><strong>Hierarchy</strong>: A tree structure where elements can have a single parent and multiple children.</p>
+<p><strong>Parent-Child Relationship</strong>: A containment relationship where a parent element groups one or more child elements.</p>
+<p><strong>Root Elements</strong>: Elements with no parent (top level of hierarchy).</p>
+<p><strong>Leaf Elements</strong>: Elements with no children (bottom level).</p>
+<p><strong>Depth</strong>: Number of levels from root (root = depth 0).</p>
+<p><strong>Siblings</strong>: Elements that share the same parent.</p>
+</section>
+<section id="creating-hierarchies">
+<h2>Creating Hierarchies<a class="headerlink" href="#creating-hierarchies" title="Link to this heading"></a></h2>
+<section id="basic-parent-child-relationship">
+<h3>Basic Parent-Child Relationship<a class="headerlink" href="#basic-parent-child-relationship" title="Link to this heading"></a></h3>
+<p>To organize elements into a hierarchy, use <code class="docutils literal notranslate"><span class="pre">Model.add_child()</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyArchimate</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArchiType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyArchimate.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
+
+<span class="c1"># Create elements</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">&#39;Enterprise Architecture&#39;</span><span class="p">)</span>
+
+<span class="n">process</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessProcess</span><span class="p">,</span> <span class="s1">&#39;Order Management&#39;</span><span class="p">)</span>
+<span class="n">func</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Order Entry&#39;</span><span class="p">)</span>
+<span class="n">service</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessService</span><span class="p">,</span> <span class="s1">&#39;Form Service&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create relationships</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">service</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># Result:</span>
+<span class="c1"># Order Management (root)</span>
+<span class="c1">#   └─ Order Entry</span>
+<span class="c1">#      └─ Form Service</span>
+</pre></div>
+</div>
+</section>
+<section id="multi-level-hierarchies">
+<h3>Multi-Level Hierarchies<a class="headerlink" href="#multi-level-hierarchies" title="Link to this heading"></a></h3>
+<p>Create deeper hierarchies by nesting multiple levels:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3-level hierarchy</span>
+<span class="n">enterprise</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Enterprise&#39;</span><span class="p">)</span>
+<span class="n">division</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Sales Division&#39;</span><span class="p">)</span>
+<span class="n">department</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Sales Team&#39;</span><span class="p">)</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">enterprise</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">division</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">division</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">department</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># Verify depth</span>
+<span class="n">depth</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">department</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">depth</span> <span class="o">==</span> <span class="mi">2</span>  <span class="c1"># Root is depth 0, so this is level 2</span>
+</pre></div>
+</div>
+</section>
+<section id="maximum-nesting-depth">
+<h3>Maximum Nesting Depth<a class="headerlink" href="#maximum-nesting-depth" title="Link to this heading"></a></h3>
+<p>The default maximum nesting depth is 5 levels. If you try to create a deeper hierarchy, an error occurs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This will raise ValueError if depth &gt; 5</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">deep_parent</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">another_child</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max depth exceeded: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="querying-hierarchies">
+<h2>Querying Hierarchies<a class="headerlink" href="#querying-hierarchies" title="Link to this heading"></a></h2>
+<section id="get-parent">
+<h3>Get Parent<a class="headerlink" href="#get-parent" title="Link to this heading"></a></h3>
+<p>Find the parent of an element:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">parent</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_parent</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">parent</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parent: </span><span class="si">{</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Element is at root level&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="get-children">
+<h3>Get Children<a class="headerlink" href="#get-children" title="Link to this heading"></a></h3>
+<p>Find all direct children of an element:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">children</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_children</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Child: </span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="get-all-ancestors">
+<h3>Get All Ancestors<a class="headerlink" href="#get-all-ancestors" title="Link to this heading"></a></h3>
+<p>Get complete chain from element to root:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ancestors</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_ancestors</span><span class="p">(</span><span class="n">service</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="c1"># Returns: [service, func, process] (from leaf to root)</span>
+
+<span class="k">for</span> <span class="n">ancestor</span> <span class="ow">in</span> <span class="n">ancestors</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ancestor</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="get-all-descendants">
+<h3>Get All Descendants<a class="headerlink" href="#get-all-descendants" title="Link to this heading"></a></h3>
+<p>Get all elements under an element at any depth:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">descendants</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_descendants</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="c1"># Returns all elements under process (breadth-first order)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">descendants</span><span class="p">)</span><span class="si">}</span><span class="s2"> descendants&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="get-siblings">
+<h3>Get Siblings<a class="headerlink" href="#get-siblings" title="Link to this heading"></a></h3>
+<p>Find all elements with the same parent:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create multiple children</span>
+<span class="n">func1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Order Entry&#39;</span><span class="p">)</span>
+<span class="n">func2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Order Review&#39;</span><span class="p">)</span>
+<span class="n">func3</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Order Fulfillment&#39;</span><span class="p">)</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func1</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func2</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func3</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># Get siblings of func1</span>
+<span class="n">siblings</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_siblings</span><span class="p">(</span><span class="n">func1</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="c1"># Returns: [func2, func3] (excludes func1 itself)</span>
+
+<span class="k">for</span> <span class="n">sibling</span> <span class="ow">in</span> <span class="n">siblings</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sibling: </span><span class="si">{</span><span class="n">sibling</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="hierarchy-path-queries">
+<h3>Hierarchy Path Queries<a class="headerlink" href="#hierarchy-path-queries" title="Link to this heading"></a></h3>
+<p>Query elements by their path in the hierarchy:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Exact path (single level)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">find_by_hierarchy_path</span><span class="p">(</span><span class="s1">&#39;/Order Management&#39;</span><span class="p">)</span>
+
+<span class="c1"># Multi-level path</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">find_by_hierarchy_path</span><span class="p">(</span><span class="s1">&#39;/Order Management/Order Entry&#39;</span><span class="p">)</span>
+
+<span class="c1"># Get all children (wildcard)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">find_by_hierarchy_path</span><span class="p">(</span><span class="s1">&#39;/Order Management/*&#39;</span><span class="p">)</span>
+<span class="c1"># Returns: [Order Entry, Order Review, Order Fulfillment]</span>
+
+<span class="c1"># Get all descendants at specific depth</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">find_by_hierarchy_path</span><span class="p">(</span><span class="s1">&#39;/Order Management/Order Entry/*&#39;</span><span class="p">)</span>
+<span class="c1"># Returns all services under Order Entry</span>
+</pre></div>
+</div>
+</section>
+<section id="root-and-leaf-elements">
+<h3>Root and Leaf Elements<a class="headerlink" href="#root-and-leaf-elements" title="Link to this heading"></a></h3>
+<p>Find top-level and bottom-level elements:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get all root elements (no parent)</span>
+<span class="n">roots</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_root_elements</span><span class="p">()</span>
+
+<span class="c1"># Get all leaf elements (no children)</span>
+<span class="n">leaves</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_leaf_elements</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="modifying-hierarchies">
+<h2>Modifying Hierarchies<a class="headerlink" href="#modifying-hierarchies" title="Link to this heading"></a></h2>
+<section id="removing-relationships">
+<h3>Removing Relationships<a class="headerlink" href="#removing-relationships" title="Link to this heading"></a></h3>
+<p>Orphan a child by removing its parent relationship:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Remove func from process</span>
+<span class="n">model</span><span class="o">.</span><span class="n">remove_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># func is now orphaned (no parent)</span>
+<span class="k">assert</span> <span class="n">model</span><span class="o">.</span><span class="n">get_parent</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+
+<span class="c1"># func still exists in model but is no longer grouped</span>
+</pre></div>
+</div>
+</section>
+<section id="moving-elements">
+<h3>Moving Elements<a class="headerlink" href="#moving-elements" title="Link to this heading"></a></h3>
+<p>To “move” an element in hierarchy, remove it from old parent and add to new parent:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Move func from process1 to process2</span>
+<span class="n">model</span><span class="o">.</span><span class="n">remove_child</span><span class="p">(</span><span class="n">process1</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">process2</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># func is now under process2 instead of process1</span>
+</pre></div>
+</div>
+</section>
+<section id="deleting-elements">
+<h3>Deleting Elements<a class="headerlink" href="#deleting-elements" title="Link to this heading"></a></h3>
+<p>When an element is deleted, its children are orphaned (not deleted):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Delete process</span>
+<span class="n">process</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+
+<span class="c1"># func still exists but has no parent</span>
+<span class="k">assert</span> <span class="n">model</span><span class="o">.</span><span class="n">get_parent</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="k">assert</span> <span class="n">func</span><span class="o">.</span><span class="n">uuid</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">elems_dict</span>  <span class="c1"># Still in model</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="cycle-detection">
+<h2>Cycle Detection<a class="headerlink" href="#cycle-detection" title="Link to this heading"></a></h2>
+<p>The hierarchy system automatically prevents cycles:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a relationship</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">parent</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">child</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># Try to create cycle (child as parent of original parent)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">parent</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cycle prevented: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This ensures the hierarchy always forms a valid tree structure.</p>
+</section>
+<section id="depth-calculation">
+<h2>Depth Calculation<a class="headerlink" href="#depth-calculation" title="Link to this heading"></a></h2>
+<p>Get the nesting depth of any element:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Root element</span>
+<span class="n">process</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessProcess</span><span class="p">,</span> <span class="s1">&#39;Process&#39;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">model</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+<span class="c1"># First level child</span>
+<span class="n">func</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Function&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">model</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+
+<span class="c1"># Second level child</span>
+<span class="n">service</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessService</span><span class="p">,</span> <span class="s1">&#39;Service&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">service</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">model</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">service</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+</pre></div>
+</div>
+</section>
+<section id="real-world-example">
+<h2>Real-World Example<a class="headerlink" href="#real-world-example" title="Link to this heading"></a></h2>
+<p>Complete example showing typical enterprise architecture hierarchy:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyArchimate</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArchiType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyArchimate.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
+
+<span class="c1"># Create model</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">&#39;Enterprise Architecture&#39;</span><span class="p">)</span>
+
+<span class="c1"># L0: Enterprise organization</span>
+<span class="n">enterprise</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Enterprise&#39;</span><span class="p">)</span>
+
+<span class="c1"># L1: Business units</span>
+<span class="n">sales</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Sales Division&#39;</span><span class="p">)</span>
+<span class="n">ops</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Operations Division&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">enterprise</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">sales</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">enterprise</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">ops</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># L2: Departments</span>
+<span class="n">sales_team</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Sales Team&#39;</span><span class="p">)</span>
+<span class="n">customer_svc</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Customer Service&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">sales</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">sales_team</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">sales</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">customer_svc</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># L3: Teams and processes</span>
+<span class="n">order_entry</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessProcess</span><span class="p">,</span> <span class="s1">&#39;Order Entry&#39;</span><span class="p">)</span>
+<span class="n">order_mgmt</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessProcess</span><span class="p">,</span> <span class="s1">&#39;Order Management&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">sales_team</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">order_entry</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">sales_team</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">order_mgmt</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># Query the hierarchy</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total elements: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Root elements: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_root_elements</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Leaf elements: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_leaf_elements</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Find specific paths</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">find_by_hierarchy_path</span><span class="p">(</span><span class="s1">&#39;/Enterprise/Sales Division/*&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sales Division has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2"> direct children&quot;</span><span class="p">)</span>
+
+<span class="c1"># Explore descendants</span>
+<span class="n">descendants</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_descendants</span><span class="p">(</span><span class="n">sales</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sales Division has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">descendants</span><span class="p">)</span><span class="si">}</span><span class="s2"> descendants total&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="round-trip-preservation">
+<h2>Round-Trip Preservation<a class="headerlink" href="#round-trip-preservation" title="Link to this heading"></a></h2>
+<p>All hierarchy relationships are preserved when exporting and importing:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create and organize model</span>
+<span class="n">process</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessProcess</span><span class="p">,</span> <span class="s1">&#39;Process&#39;</span><span class="p">)</span>
+<span class="n">func</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Function&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># Export to XML</span>
+<span class="n">model</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;model.archimate&#39;</span><span class="p">)</span>
+
+<span class="c1"># Import in new session</span>
+<span class="n">m2</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">&#39;reloaded&#39;</span><span class="p">)</span>
+<span class="n">m2</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;model.archimate&#39;</span><span class="p">)</span>
+
+<span class="c1"># Verify hierarchy is preserved</span>
+<span class="n">process2</span> <span class="o">=</span> <span class="n">m2</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">]</span>
+<span class="n">func2</span> <span class="o">=</span> <span class="n">m2</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">m2</span><span class="o">.</span><span class="n">get_parent</span><span class="p">(</span><span class="n">func2</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span> <span class="o">==</span> <span class="n">process2</span>
+</pre></div>
+</div>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Start with clear organization</strong>: Define your hierarchy based on actual enterprise structure</p></li>
+<li><p><strong>Use meaningful names</strong>: Names should reflect the organization level and purpose</p></li>
+<li><p><strong>Respect depth limits</strong>: Keep hierarchies ≤5 levels for clarity and performance</p></li>
+<li><p><strong>Avoid wide-shallow trees</strong>: Prefer deeper, narrower hierarchies for better navigation</p></li>
+<li><p><strong>Use types consistently</strong>: Keep elements of same type at same hierarchy level</p></li>
+<li><p><strong>Document structure</strong>: Add descriptions to explain hierarchy rationale</p></li>
+</ol>
+</section>
+<section id="performance-considerations">
+<h2>Performance Considerations<a class="headerlink" href="#performance-considerations" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>add_child()</strong>: O(depth) - performs cycle detection</p></li>
+<li><p><strong>get_parent()</strong>: O(1) - instant lookup</p></li>
+<li><p><strong>get_children()</strong>: O(n) - linear in number of children</p></li>
+<li><p><strong>get_ancestors()</strong>: O(depth) - limited to max depth 5</p></li>
+<li><p><strong>get_descendants()</strong>: O(m) - linear in number of descendants</p></li>
+<li><p><strong>get_siblings()</strong>: O(n) - linear in number of siblings</p></li>
+</ul>
+<p>All operations are optimized and perform well even on large models (1000+ elements).</p>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../api/model.html"><span class="doc">Model Class - P3 Hierarchy &amp; Query API Reference</span></a>: Complete Model API reference</p></li>
+<li><p><a class="reference internal" href="../examples/hierarchy_examples.html"><span class="doc">Hierarchy Code Examples</span></a>: Code examples for hierarchies</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../p3-quick-reference.html" class="btn btn-neutral float-left" title="P3 Quick Reference - Element Hierarchy &amp; Styling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="visual-styling.html" class="btn btn-neutral float-right" title="Visual Styling Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 - Xavier Mayeur / Stephan Borg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

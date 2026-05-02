@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyArchimate.constants &mdash; pyArchimate 1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a0fc712e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=292eb321"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            pyArchimate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Architecture:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../diagrams.html">Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">P3 Features (v1.3.0):</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../p3-quick-reference.html">P3 Quick Reference - Element Hierarchy &amp; Styling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guides/element-hierarchy.html">Element Hierarchy &amp; Grouping Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guides/visual-styling.html">Visual Styling Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guides/junction-types.html">Junction Types Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/hierarchy_examples.html">Hierarchy Code Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/styling_examples.html">Visual Styling Code Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/element.html">Element Class - P3 API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/model.html">Model Class - P3 Hierarchy &amp; Query API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">pyArchimate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package details:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../src.html">pyArchimate Package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pyArchimate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pyArchimate.constants</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pyArchimate.constants</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Constants and configuration values for the Archimate library.</span>
+
+<span class="sd">This module contains module-level constants, magic numbers, configuration values,</span>
+<span class="sd">and registry structures used throughout pyArchimate.</span>
+
+<span class="sd">No external pyArchimate imports - this is a Layer 1 base module.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">oyaml</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">yaml</span>  <span class="c1"># type: ignore[import-untyped]</span>
+
+<span class="c1"># ===== Configuration Constants =====</span>
+
+<span class="c1"># Default theme for diagram rendering</span>
+<span class="n">DEFAULT_THEME</span> <span class="o">=</span> <span class="s1">&#39;archi&#39;</span>
+
+<span class="c1"># ===== Message Constants =====</span>
+
+<span class="n">OPERATION_ERROR_MESSAGES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;read&#39;</span><span class="p">:</span> <span class="s1">&#39;Unsupported input format&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;merge&#39;</span><span class="p">:</span> <span class="s1">&#39;Unsupported input format for merge operation&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># ===== Registry Dictionaries (initialized at module load) =====</span>
+
+<span class="c1"># Dictionary of valid Archimate relationships</span>
+<span class="c1"># This is populated dynamically by loading checker_rules.yml</span>
+<span class="n">ALLOWED_RELATIONSHIPS</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c1"># Mapping of ARIS types to Archimate types</span>
+<span class="n">ARIS_TYPE_MAP</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c1"># Mapping of relationship keys</span>
+<span class="n">RELATIONSHIP_KEYS</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c1"># Mapping of Archimate element categories</span>
+<span class="n">ARCHI_CATEGORY</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c1"># Influence strength values</span>
+<span class="n">INFLUENCE_STRENGTH</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;+&#39;</span><span class="p">:</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;++&#39;</span><span class="p">:</span> <span class="s1">&#39;++&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;-&#39;</span><span class="p">:</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;--&#39;</span><span class="p">:</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;0&#39;</span><span class="p">:</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;1&#39;</span><span class="p">:</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;2&#39;</span><span class="p">:</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;3&#39;</span><span class="p">:</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;4&#39;</span><span class="p">:</span> <span class="s1">&#39;4&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;5&#39;</span><span class="p">:</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;6&#39;</span><span class="p">:</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;7&#39;</span><span class="p">:</span> <span class="s1">&#39;7&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;8&#39;</span><span class="p">:</span> <span class="s1">&#39;8&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;9&#39;</span><span class="p">:</span> <span class="s1">&#39;9&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;10&#39;</span><span class="p">:</span> <span class="s1">&#39;10&#39;</span>
+<span class="p">}</span>
+
+<span class="c1"># Junction types (for Junction elements)</span>
+<span class="n">JUNCTION_TYPES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="s1">&#39;or&#39;</span><span class="p">,</span> <span class="s1">&#39;xor&#39;</span><span class="p">}</span>
+
+<span class="c1"># ===== Reader/Writer Configuration =====</span>
+
+
+<div class="viewcode-block" id="ReaderEntry">
+<a class="viewcode-back" href="../../constants.html#pyArchimate.constants.ReaderEntry">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReaderEntry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Registry entry describing how to select and call a reader based on the root tag.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tag_key</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">loader</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+    <span class="n">supports_merge</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">forward_read_args</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_archimate_reader</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load the Archimate XML reader dynamically.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.readers.archimateReader</span><span class="w"> </span><span class="kn">import</span> <span class="n">archimate_reader</span>
+    <span class="k">return</span> <span class="n">archimate_reader</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_archi_reader</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load the Archi project reader dynamically.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.readers.archiReader</span><span class="w"> </span><span class="kn">import</span> <span class="n">archi_reader</span>
+    <span class="k">return</span> <span class="n">archi_reader</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_aris_reader</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load the ARIS AML reader dynamically.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.readers.arisAMLreader</span><span class="w"> </span><span class="kn">import</span> <span class="n">aris_reader</span>
+    <span class="k">return</span> <span class="n">aris_reader</span>
+
+
+<span class="c1"># Model reader registry - defines available readers and their loaders</span>
+<span class="n">MODEL_READER_REGISTRY</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">ReaderEntry</span><span class="p">(</span>
+        <span class="n">tag_key</span><span class="o">=</span><span class="s1">&#39;opengroup&#39;</span><span class="p">,</span>
+        <span class="n">loader</span><span class="o">=</span><span class="n">_load_archimate_reader</span><span class="p">,</span>
+        <span class="n">supports_merge</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">),</span>
+    <span class="n">ReaderEntry</span><span class="p">(</span>
+        <span class="n">tag_key</span><span class="o">=</span><span class="s1">&#39;archimate&#39;</span><span class="p">,</span>
+        <span class="n">loader</span><span class="o">=</span><span class="n">_load_archi_reader</span><span class="p">,</span>
+        <span class="n">supports_merge</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">),</span>
+    <span class="n">ReaderEntry</span><span class="p">(</span>
+        <span class="n">tag_key</span><span class="o">=</span><span class="s1">&#39;aml&#39;</span><span class="p">,</span>
+        <span class="n">loader</span><span class="o">=</span><span class="n">_load_aris_reader</span><span class="p">,</span>
+        <span class="n">forward_read_args</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">),</span>
+<span class="p">]</span>
+
+<span class="c1"># Writer registry (populated at runtime by _ensure_default_writers)</span>
+<span class="n">WRITER_REGISTRY</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">DEFAULT_WRITERS_INITIALIZED</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="c1"># ===== Module Initialization =====</span>
+<span class="c1"># Load checker_rules.yml to populate the metadata dictionaries</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_initialize_archimate_metadata</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load Archimate metadata from checker_rules.yml.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">__location__</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))</span>
+        <span class="n">checker_rules_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__location__</span><span class="p">,</span> <span class="s2">&quot;checker_rules.yml&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">checker_rules_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">Loader</span><span class="p">)</span>
+
+        <span class="c1"># Populate the global dictionaries</span>
+        <span class="k">if</span> <span class="s1">&#39;archimate_rels&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">ALLOWED_RELATIONSHIPS</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;archimate_rels&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s1">&#39;ARIS_type_map&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">ARIS_TYPE_MAP</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;ARIS_type_map&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s1">&#39;relationship_keys&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">RELATIONSHIP_KEYS</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;relationship_keys&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s1">&#39;archi_category&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">ARCHI_CATEGORY</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;archi_category&#39;</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># Log but don&#39;t fail - this allows the module to load even if checker_rules.yml is missing</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Could not load Archimate metadata from checker_rules.yml: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># Initialize on module load</span>
+<span class="n">_initialize_archimate_metadata</span><span class="p">()</span>
+
+
+<span class="c1"># ===== Color Utilities =====</span>
+
+<div class="viewcode-block" id="RGBA">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.constants.RGBA">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RGBA</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manage RGB/hex color and alpha (opacity) channels.</span>
+
+<span class="sd">    :param r: red channel 0-255</span>
+<span class="sd">    :param g: green channel 0-255</span>
+<span class="sd">    :param b: blue channel 0-255</span>
+<span class="sd">    :param a: alpha channel 0-100</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">g</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">g</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">g</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="p">)))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">color</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return #RRGGBB hex string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;#</span><span class="si">{0:02x}{1:02x}{2:02x}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+    <span class="nd">@color</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">color_string</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set RGB from a #RRGGBB hex string.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">color_string</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">color_string</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">g</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">color_string</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">color_string</span><span class="p">[</span><span class="mi">5</span><span class="p">:],</span> <span class="mi">16</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ===== P3 Element Grouping &amp; Visual Style Constants =====</span>
+
+<span class="c1"># Maximum nesting depth for element hierarchies</span>
+<span class="n">MAX_DEPTH</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="c1"># CSS/X11 named colors (140+)</span>
+<span class="n">NAMED_COLORS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;aliceblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#f0f8ff&#39;</span><span class="p">,</span> <span class="s1">&#39;antiquewhite&#39;</span><span class="p">:</span> <span class="s1">&#39;#faebd7&#39;</span><span class="p">,</span> <span class="s1">&#39;aqua&#39;</span><span class="p">:</span> <span class="s1">&#39;#00ffff&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;aquamarine&#39;</span><span class="p">:</span> <span class="s1">&#39;#7fffd4&#39;</span><span class="p">,</span> <span class="s1">&#39;azure&#39;</span><span class="p">:</span> <span class="s1">&#39;#f0ffff&#39;</span><span class="p">,</span> <span class="s1">&#39;beige&#39;</span><span class="p">:</span> <span class="s1">&#39;#f5f5dc&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bisque&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffe4c4&#39;</span><span class="p">,</span> <span class="s1">&#39;black&#39;</span><span class="p">:</span> <span class="s1">&#39;#000000&#39;</span><span class="p">,</span> <span class="s1">&#39;blanchedalmond&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffebcd&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;blue&#39;</span><span class="p">:</span> <span class="s1">&#39;#0000ff&#39;</span><span class="p">,</span> <span class="s1">&#39;blueviolet&#39;</span><span class="p">:</span> <span class="s1">&#39;#8a2be2&#39;</span><span class="p">,</span> <span class="s1">&#39;brown&#39;</span><span class="p">:</span> <span class="s1">&#39;#a52a2a&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;burlywood&#39;</span><span class="p">:</span> <span class="s1">&#39;#deb887&#39;</span><span class="p">,</span> <span class="s1">&#39;cadetblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#5f9ea0&#39;</span><span class="p">,</span> <span class="s1">&#39;chartreuse&#39;</span><span class="p">:</span> <span class="s1">&#39;#7fff00&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;chocolate&#39;</span><span class="p">:</span> <span class="s1">&#39;#d2691e&#39;</span><span class="p">,</span> <span class="s1">&#39;coral&#39;</span><span class="p">:</span> <span class="s1">&#39;#ff7f50&#39;</span><span class="p">,</span> <span class="s1">&#39;cornflowerblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#6495ed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;cornsilk&#39;</span><span class="p">:</span> <span class="s1">&#39;#fff8dc&#39;</span><span class="p">,</span> <span class="s1">&#39;crimson&#39;</span><span class="p">:</span> <span class="s1">&#39;#dc143c&#39;</span><span class="p">,</span> <span class="s1">&#39;cyan&#39;</span><span class="p">:</span> <span class="s1">&#39;#00ffff&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;darkblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#00008b&#39;</span><span class="p">,</span> <span class="s1">&#39;darkcyan&#39;</span><span class="p">:</span> <span class="s1">&#39;#008b8b&#39;</span><span class="p">,</span> <span class="s1">&#39;darkgoldenrod&#39;</span><span class="p">:</span> <span class="s1">&#39;#b8860b&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;darkgray&#39;</span><span class="p">:</span> <span class="s1">&#39;#a9a9a9&#39;</span><span class="p">,</span> <span class="s1">&#39;darkgrey&#39;</span><span class="p">:</span> <span class="s1">&#39;#a9a9a9&#39;</span><span class="p">,</span> <span class="s1">&#39;darkgreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#006400&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;darkkhaki&#39;</span><span class="p">:</span> <span class="s1">&#39;#bdb76b&#39;</span><span class="p">,</span> <span class="s1">&#39;darkmagenta&#39;</span><span class="p">:</span> <span class="s1">&#39;#8b008b&#39;</span><span class="p">,</span> <span class="s1">&#39;darkolivegreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#556b2f&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;darkorange&#39;</span><span class="p">:</span> <span class="s1">&#39;#ff8c00&#39;</span><span class="p">,</span> <span class="s1">&#39;darkorchid&#39;</span><span class="p">:</span> <span class="s1">&#39;#9932cc&#39;</span><span class="p">,</span> <span class="s1">&#39;darkred&#39;</span><span class="p">:</span> <span class="s1">&#39;#8b0000&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;darksalmon&#39;</span><span class="p">:</span> <span class="s1">&#39;#e9967a&#39;</span><span class="p">,</span> <span class="s1">&#39;darkseagreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#8fbc8f&#39;</span><span class="p">,</span> <span class="s1">&#39;darkslateblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#483d8b&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;darkslategray&#39;</span><span class="p">:</span> <span class="s1">&#39;#2f4f4f&#39;</span><span class="p">,</span> <span class="s1">&#39;darkslategrey&#39;</span><span class="p">:</span> <span class="s1">&#39;#2f4f4f&#39;</span><span class="p">,</span> <span class="s1">&#39;darkturquoise&#39;</span><span class="p">:</span> <span class="s1">&#39;#00ced1&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;darkviolet&#39;</span><span class="p">:</span> <span class="s1">&#39;#9400d3&#39;</span><span class="p">,</span> <span class="s1">&#39;deeppink&#39;</span><span class="p">:</span> <span class="s1">&#39;#ff1493&#39;</span><span class="p">,</span> <span class="s1">&#39;deepskyblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#00bfff&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;dimgray&#39;</span><span class="p">:</span> <span class="s1">&#39;#696969&#39;</span><span class="p">,</span> <span class="s1">&#39;dimgrey&#39;</span><span class="p">:</span> <span class="s1">&#39;#696969&#39;</span><span class="p">,</span> <span class="s1">&#39;dodgerblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#1e90ff&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;firebrick&#39;</span><span class="p">:</span> <span class="s1">&#39;#b22222&#39;</span><span class="p">,</span> <span class="s1">&#39;floralwhite&#39;</span><span class="p">:</span> <span class="s1">&#39;#fffaf0&#39;</span><span class="p">,</span> <span class="s1">&#39;forestgreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#228b22&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;fuchsia&#39;</span><span class="p">:</span> <span class="s1">&#39;#ff00ff&#39;</span><span class="p">,</span> <span class="s1">&#39;gainsboro&#39;</span><span class="p">:</span> <span class="s1">&#39;#dcdcdc&#39;</span><span class="p">,</span> <span class="s1">&#39;ghostwhite&#39;</span><span class="p">:</span> <span class="s1">&#39;#f8f8ff&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;gold&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffd700&#39;</span><span class="p">,</span> <span class="s1">&#39;goldenrod&#39;</span><span class="p">:</span> <span class="s1">&#39;#daa520&#39;</span><span class="p">,</span> <span class="s1">&#39;gray&#39;</span><span class="p">:</span> <span class="s1">&#39;#808080&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;grey&#39;</span><span class="p">:</span> <span class="s1">&#39;#808080&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">:</span> <span class="s1">&#39;#008000&#39;</span><span class="p">,</span> <span class="s1">&#39;greenyellow&#39;</span><span class="p">:</span> <span class="s1">&#39;#adff2f&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;honeydew&#39;</span><span class="p">:</span> <span class="s1">&#39;#f0fff0&#39;</span><span class="p">,</span> <span class="s1">&#39;hotpink&#39;</span><span class="p">:</span> <span class="s1">&#39;#ff69b4&#39;</span><span class="p">,</span> <span class="s1">&#39;indianred&#39;</span><span class="p">:</span> <span class="s1">&#39;#cd5c5c&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;indigo&#39;</span><span class="p">:</span> <span class="s1">&#39;#4b0082&#39;</span><span class="p">,</span> <span class="s1">&#39;ivory&#39;</span><span class="p">:</span> <span class="s1">&#39;#fffff0&#39;</span><span class="p">,</span> <span class="s1">&#39;khaki&#39;</span><span class="p">:</span> <span class="s1">&#39;#f0e68c&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lavender&#39;</span><span class="p">:</span> <span class="s1">&#39;#e6e6fa&#39;</span><span class="p">,</span> <span class="s1">&#39;lavenderblush&#39;</span><span class="p">:</span> <span class="s1">&#39;#fff0f5&#39;</span><span class="p">,</span> <span class="s1">&#39;lawngreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#7cfc00&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lemonchiffon&#39;</span><span class="p">:</span> <span class="s1">&#39;#fffacd&#39;</span><span class="p">,</span> <span class="s1">&#39;lightblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#add8e6&#39;</span><span class="p">,</span> <span class="s1">&#39;lightcoral&#39;</span><span class="p">:</span> <span class="s1">&#39;#f08080&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lightcyan&#39;</span><span class="p">:</span> <span class="s1">&#39;#e0ffff&#39;</span><span class="p">,</span> <span class="s1">&#39;lightgoldenrodyellow&#39;</span><span class="p">:</span> <span class="s1">&#39;#fafad2&#39;</span><span class="p">,</span> <span class="s1">&#39;lightgray&#39;</span><span class="p">:</span> <span class="s1">&#39;#d3d3d3&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lightgrey&#39;</span><span class="p">:</span> <span class="s1">&#39;#d3d3d3&#39;</span><span class="p">,</span> <span class="s1">&#39;lightgreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#90ee90&#39;</span><span class="p">,</span> <span class="s1">&#39;lightpink&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffb6c1&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lightsalmon&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffa07a&#39;</span><span class="p">,</span> <span class="s1">&#39;lightseagreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#20b2aa&#39;</span><span class="p">,</span> <span class="s1">&#39;lightskyblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#87cefa&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lightslategray&#39;</span><span class="p">:</span> <span class="s1">&#39;#778899&#39;</span><span class="p">,</span> <span class="s1">&#39;lightslategrey&#39;</span><span class="p">:</span> <span class="s1">&#39;#778899&#39;</span><span class="p">,</span> <span class="s1">&#39;lightsteelblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#b0c4de&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lightyellow&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffffe0&#39;</span><span class="p">,</span> <span class="s1">&#39;lime&#39;</span><span class="p">:</span> <span class="s1">&#39;#00ff00&#39;</span><span class="p">,</span> <span class="s1">&#39;limegreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#32cd32&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;linen&#39;</span><span class="p">:</span> <span class="s1">&#39;#faf0e6&#39;</span><span class="p">,</span> <span class="s1">&#39;magenta&#39;</span><span class="p">:</span> <span class="s1">&#39;#ff00ff&#39;</span><span class="p">,</span> <span class="s1">&#39;maroon&#39;</span><span class="p">:</span> <span class="s1">&#39;#800000&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mediumaquamarine&#39;</span><span class="p">:</span> <span class="s1">&#39;#66cdaa&#39;</span><span class="p">,</span> <span class="s1">&#39;mediumblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#0000cd&#39;</span><span class="p">,</span> <span class="s1">&#39;mediumorchid&#39;</span><span class="p">:</span> <span class="s1">&#39;#ba55d3&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mediumpurple&#39;</span><span class="p">:</span> <span class="s1">&#39;#9370db&#39;</span><span class="p">,</span> <span class="s1">&#39;mediumseagreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#3cb371&#39;</span><span class="p">,</span> <span class="s1">&#39;mediumslateblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#7b68ee&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mediumspringgreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#00fa9a&#39;</span><span class="p">,</span> <span class="s1">&#39;mediumturquoise&#39;</span><span class="p">:</span> <span class="s1">&#39;#48d1cc&#39;</span><span class="p">,</span> <span class="s1">&#39;mediumvioletred&#39;</span><span class="p">:</span> <span class="s1">&#39;#c71585&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;midnightblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#191970&#39;</span><span class="p">,</span> <span class="s1">&#39;mintcream&#39;</span><span class="p">:</span> <span class="s1">&#39;#f5fffa&#39;</span><span class="p">,</span> <span class="s1">&#39;mistyrose&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffe4e1&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;moccasin&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffe4b5&#39;</span><span class="p">,</span> <span class="s1">&#39;navajowhite&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffdead&#39;</span><span class="p">,</span> <span class="s1">&#39;navy&#39;</span><span class="p">:</span> <span class="s1">&#39;#000080&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;oldlace&#39;</span><span class="p">:</span> <span class="s1">&#39;#fdf5e6&#39;</span><span class="p">,</span> <span class="s1">&#39;olive&#39;</span><span class="p">:</span> <span class="s1">&#39;#808000&#39;</span><span class="p">,</span> <span class="s1">&#39;olivedrab&#39;</span><span class="p">:</span> <span class="s1">&#39;#6b8e23&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;orange&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffa500&#39;</span><span class="p">,</span> <span class="s1">&#39;orangered&#39;</span><span class="p">:</span> <span class="s1">&#39;#ff4500&#39;</span><span class="p">,</span> <span class="s1">&#39;orchid&#39;</span><span class="p">:</span> <span class="s1">&#39;#da70d6&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;palegoldenrod&#39;</span><span class="p">:</span> <span class="s1">&#39;#eee8aa&#39;</span><span class="p">,</span> <span class="s1">&#39;palegreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#98fb98&#39;</span><span class="p">,</span> <span class="s1">&#39;paleturquoise&#39;</span><span class="p">:</span> <span class="s1">&#39;#afeeee&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;palevioletred&#39;</span><span class="p">:</span> <span class="s1">&#39;#db7093&#39;</span><span class="p">,</span> <span class="s1">&#39;papayawhip&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffefd5&#39;</span><span class="p">,</span> <span class="s1">&#39;peachpuff&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffdab9&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;peru&#39;</span><span class="p">:</span> <span class="s1">&#39;#cd853f&#39;</span><span class="p">,</span> <span class="s1">&#39;pink&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffc0cb&#39;</span><span class="p">,</span> <span class="s1">&#39;plum&#39;</span><span class="p">:</span> <span class="s1">&#39;#dda0dd&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;powderblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#b0e0e6&#39;</span><span class="p">,</span> <span class="s1">&#39;purple&#39;</span><span class="p">:</span> <span class="s1">&#39;#800080&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">:</span> <span class="s1">&#39;#ff0000&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;rosybrown&#39;</span><span class="p">:</span> <span class="s1">&#39;#bc8f8f&#39;</span><span class="p">,</span> <span class="s1">&#39;royalblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#4169e1&#39;</span><span class="p">,</span> <span class="s1">&#39;saddlebrown&#39;</span><span class="p">:</span> <span class="s1">&#39;#8b4513&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;salmon&#39;</span><span class="p">:</span> <span class="s1">&#39;#fa8072&#39;</span><span class="p">,</span> <span class="s1">&#39;sandybrown&#39;</span><span class="p">:</span> <span class="s1">&#39;#f4a460&#39;</span><span class="p">,</span> <span class="s1">&#39;seagreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#2e8b57&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;seashell&#39;</span><span class="p">:</span> <span class="s1">&#39;#fff5ee&#39;</span><span class="p">,</span> <span class="s1">&#39;sienna&#39;</span><span class="p">:</span> <span class="s1">&#39;#a0522d&#39;</span><span class="p">,</span> <span class="s1">&#39;silver&#39;</span><span class="p">:</span> <span class="s1">&#39;#c0c0c0&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;skyblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#87ceeb&#39;</span><span class="p">,</span> <span class="s1">&#39;slateblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#6a5acd&#39;</span><span class="p">,</span> <span class="s1">&#39;slategray&#39;</span><span class="p">:</span> <span class="s1">&#39;#708090&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;slategrey&#39;</span><span class="p">:</span> <span class="s1">&#39;#708090&#39;</span><span class="p">,</span> <span class="s1">&#39;snow&#39;</span><span class="p">:</span> <span class="s1">&#39;#fffafa&#39;</span><span class="p">,</span> <span class="s1">&#39;springgreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#00ff7f&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;steelblue&#39;</span><span class="p">:</span> <span class="s1">&#39;#4682b4&#39;</span><span class="p">,</span> <span class="s1">&#39;tan&#39;</span><span class="p">:</span> <span class="s1">&#39;#d2b48c&#39;</span><span class="p">,</span> <span class="s1">&#39;teal&#39;</span><span class="p">:</span> <span class="s1">&#39;#008080&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;thistle&#39;</span><span class="p">:</span> <span class="s1">&#39;#d8bfd8&#39;</span><span class="p">,</span> <span class="s1">&#39;tomato&#39;</span><span class="p">:</span> <span class="s1">&#39;#ff6347&#39;</span><span class="p">,</span> <span class="s1">&#39;turquoise&#39;</span><span class="p">:</span> <span class="s1">&#39;#40e0d0&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;violet&#39;</span><span class="p">:</span> <span class="s1">&#39;#ee82ee&#39;</span><span class="p">,</span> <span class="s1">&#39;wheat&#39;</span><span class="p">:</span> <span class="s1">&#39;#f5deb3&#39;</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffffff&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whitesmoke&#39;</span><span class="p">:</span> <span class="s1">&#39;#f5f5f5&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffff00&#39;</span><span class="p">,</span> <span class="s1">&#39;yellowgreen&#39;</span><span class="p">:</span> <span class="s1">&#39;#9acd32&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Standard palette for element categories</span>
+<span class="n">STANDARD_PALETTE</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;strategy&#39;</span><span class="p">:</span> <span class="s1">&#39;#f5deaa&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;business&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffffb5&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;application&#39;</span><span class="p">:</span> <span class="s1">&#39;#b5ffff&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;technology&#39;</span><span class="p">:</span> <span class="s1">&#39;#c9e7b7&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;physical&#39;</span><span class="p">:</span> <span class="s1">&#39;#c9e7b7&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;migration&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffe0e0&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;motivation&#39;</span><span class="p">:</span> <span class="s1">&#39;#ccccff&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;implementation&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffe0e0&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;relationship&#39;</span><span class="p">:</span> <span class="s1">&#39;#dddddd&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;junction&#39;</span><span class="p">:</span> <span class="s1">&#39;#000000&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;other&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffffff&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 - Xavier Mayeur / Stephan Borg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

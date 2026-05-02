@@ -42,6 +42,7 @@ package "pyArchimate" {
     class "diagram.py" as DiagramHelper
     class "properties.py" as PropertiesHelper
     class "logging.py" as LoggingHelper
+    class "parsing.py" as ParsingHelper
   }
 
   package "readers" {
@@ -65,6 +66,8 @@ Facade --> ElementMod : exports
 Facade --> RelationshipMod : exports
 Facade --> Enums : exports
 Facade --> Exceptions : exports
+Facade --> Constants : exports
+Facade --> helpers : exports
 
 ModelMod ..> ViewMod : references
 ViewMod ..> ModelMod : references

@@ -1,0 +1,1353 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyArchimate.model &mdash; pyArchimate 1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a0fc712e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=292eb321"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            pyArchimate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Architecture:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../diagrams.html">Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">P3 Features (v1.3.0):</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../p3-quick-reference.html">P3 Quick Reference - Element Hierarchy &amp; Styling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guides/element-hierarchy.html">Element Hierarchy &amp; Grouping Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guides/visual-styling.html">Visual Styling Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guides/junction-types.html">Junction Types Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/hierarchy_examples.html">Hierarchy Code Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/styling_examples.html">Visual Styling Code Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/element.html">Element Class - P3 API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/model.html">Model Class - P3 Hierarchy &amp; Query API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">pyArchimate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package details:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../src.html">pyArchimate Package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pyArchimate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pyArchimate.model</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pyArchimate.model</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Model module - extracted from the legacy monolith.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">lxml.etree</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">et</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.constants</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ARCHI_CATEGORY</span><span class="p">,</span>
+    <span class="n">DEFAULT_THEME</span><span class="p">,</span>
+    <span class="n">MAX_DEPTH</span><span class="p">,</span>
+    <span class="n">MODEL_READER_REGISTRY</span><span class="p">,</span>
+    <span class="n">OPERATION_ERROR_MESSAGES</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.element</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">set_id</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArchiType</span><span class="p">,</span> <span class="n">Writers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArchimateConceptTypeError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">log</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.view</span><span class="w"> </span><span class="kn">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Profile</span><span class="p">,</span> <span class="n">View</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.relationship</span><span class="w"> </span><span class="kn">import</span> <span class="n">Relationship</span>
+
+<span class="n">__location__</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))</span>
+<span class="fm">__mod__</span> <span class="o">=</span> <span class="vm">__name__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="n">ARCHIMATE_EXCEPTION_GROUP</span> <span class="o">=</span> <span class="p">(</span><span class="n">ArchimateConceptTypeError</span><span class="p">,)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_matches_rel</span><span class="p">(</span><span class="n">r</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">rel_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">elem_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">wants_in</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">wants_out</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">wants_in</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">uuid</span> <span class="o">==</span> <span class="n">elem_uuid</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rel_type</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">r</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">rel_type</span>
+    <span class="k">if</span> <span class="n">wants_out</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">uuid</span> <span class="o">==</span> <span class="n">elem_uuid</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rel_type</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">r</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">rel_type</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_find_props_block</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Locate the first embedded &#39;properties = {...}&#39; block.</span>
+
+<span class="sd">    Uses json.JSONDecoder.raw_decode instead of a backtracking regex (S5852).</span>
+<span class="sd">    Returns (block_start, block_end, parsed_dict) or None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;#&#39;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">sep</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39; = &#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">):</span>
+            <span class="n">marker</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s1">&#39;properties&#39;</span> <span class="o">+</span> <span class="n">sep</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">marker</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">brace</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">,</span> <span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">marker</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">brace</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">parsed</span><span class="p">,</span> <span class="n">length</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="p">()</span><span class="o">.</span><span class="n">raw_decode</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">brace</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">idx</span><span class="p">,</span> <span class="n">brace</span> <span class="o">+</span> <span class="n">length</span><span class="p">,</span> <span class="n">parsed</span>
+            <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>  <span class="c1"># noqa: S110</span>
+                <span class="k">pass</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_strip_props_block</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove an embedded properties block from text.&quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">_find_props_block</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">text</span>
+    <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">result</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">text</span><span class="p">[:</span><span class="n">start</span><span class="p">]</span> <span class="o">+</span> <span class="n">text</span><span class="p">[</span><span class="n">end</span><span class="p">:]</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_embed_object</span><span class="p">(</span><span class="n">o</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">remove_props</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.relationship</span><span class="w"> </span><span class="kn">import</span> <span class="n">Relationship</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">Relationship</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">o</span><span class="o">.</span><span class="n">prop</span><span class="p">(</span><span class="s1">&#39;Identifier&#39;</span><span class="p">,</span> <span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">o</span><span class="o">.</span><span class="n">props</span> <span class="o">!=</span> <span class="p">{}:</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">desc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_strip_props_block</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">desc</span><span class="p">)</span>
+        <span class="n">desc</span> <span class="o">+=</span> <span class="n">desc</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39; </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">properties = &#39;</span> <span class="o">+</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">props</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">o</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">desc</span>
+        <span class="k">if</span> <span class="n">remove_props</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">o</span><span class="o">.</span><span class="n">props</span><span class="o">.</span><span class="n">copy</span><span class="p">():</span>
+                <span class="n">o</span><span class="o">.</span><span class="n">remove_prop</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_apply_rel_identity_props</span><span class="p">(</span><span class="n">o</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">o</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+    <span class="n">o</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;documentation&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;isDirected&#39;</span> <span class="ow">in</span> <span class="n">p</span> <span class="ow">and</span> <span class="n">o</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">ArchiType</span><span class="o">.</span><span class="n">Association</span><span class="p">:</span>
+        <span class="n">o</span><span class="o">.</span><span class="n">is_directed</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;isDirected&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span>
+    <span class="k">if</span> <span class="s1">&#39;access&#39;</span> <span class="ow">in</span> <span class="n">p</span> <span class="ow">and</span> <span class="n">o</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">ArchiType</span><span class="o">.</span><span class="n">Access</span><span class="p">:</span>
+        <span class="n">o</span><span class="o">.</span><span class="n">access_type</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s1">&#39;access&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;influence_strength&#39;</span> <span class="ow">in</span> <span class="n">p</span> <span class="ow">and</span> <span class="n">o</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">ArchiType</span><span class="o">.</span><span class="n">Influence</span><span class="p">:</span>
+        <span class="n">o</span><span class="o">.</span><span class="n">influence_strength</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s1">&#39;influence_strength&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">o</span><span class="o">.</span><span class="n">prop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_expand_relationship</span><span class="p">(</span><span class="n">o</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">clean_doc</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">prop</span><span class="p">(</span><span class="s1">&#39;Identifier&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">_find_props_block</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">prop</span><span class="p">(</span><span class="s1">&#39;Identifier&#39;</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="n">o</span><span class="o">.</span><span class="n">remove_prop</span><span class="p">(</span><span class="s1">&#39;Identifier&#39;</span><span class="p">)</span>
+            <span class="n">_apply_rel_identity_props</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">clean_doc</span><span class="p">:</span>
+        <span class="n">o</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">desc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_strip_props_block</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">desc</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_expand_element</span><span class="p">(</span><span class="n">o</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">clean_doc</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">desc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">_find_props_block</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">desc</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">props</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="n">o</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">_strip_props_block</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">desc</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">props</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">o</span><span class="o">.</span><span class="n">prop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">clean_doc</span><span class="p">:</span>
+        <span class="n">o</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">desc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_strip_props_block</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">desc</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_expand_object</span><span class="p">(</span><span class="n">o</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">clean_doc</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.relationship</span><span class="w"> </span><span class="kn">import</span> <span class="n">Relationship</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">Relationship</span><span class="p">):</span>
+        <span class="n">_expand_relationship</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">clean_doc</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_expand_element</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">clean_doc</span><span class="p">)</span>
+
+
+
+<div class="viewcode-block" id="default_color">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.default_color">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">default_color</span><span class="p">(</span><span class="n">elem_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">theme</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">DEFAULT_THEME</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the default color of a Node, according to its type</span>
+
+<span class="sd">    :param elem_type:       archimate element type</span>
+<span class="sd">    :type elem_type: str</span>
+<span class="sd">    :param theme:  &#39;archi&#39; or &#39;aris&#39; color theme - default = &#39;archi&#39;</span>
+<span class="sd">    :type theme: str</span>
+<span class="sd">    :return: #Hex color str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">default_colors</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;strategy&#39;</span><span class="p">:</span> <span class="s1">&#39;#F5DEAA&#39;</span><span class="p">,</span> <span class="s1">&#39;business&#39;</span><span class="p">:</span> <span class="s2">&quot;#FFFFB5&quot;</span><span class="p">,</span> <span class="s1">&#39;application&#39;</span><span class="p">:</span> <span class="s2">&quot;#B5FFFF&quot;</span><span class="p">,</span> <span class="s1">&#39;technology&#39;</span><span class="p">:</span> <span class="s2">&quot;#C9E7B7&quot;</span><span class="p">,</span>
+                      <span class="s1">&#39;physical&#39;</span><span class="p">:</span> <span class="s2">&quot;#C9E7B7&quot;</span><span class="p">,</span> <span class="s1">&#39;migration&#39;</span><span class="p">:</span> <span class="s2">&quot;#FFE0E0&quot;</span><span class="p">,</span> <span class="s1">&#39;motivation&#39;</span><span class="p">:</span> <span class="s2">&quot;#CCCCFF&quot;</span><span class="p">,</span>
+                      <span class="s1">&#39;relationship&#39;</span><span class="p">:</span> <span class="s2">&quot;#DDDDDD&quot;</span><span class="p">,</span> <span class="s1">&#39;other&#39;</span><span class="p">:</span> <span class="s1">&#39;#FFFFFF&#39;</span><span class="p">,</span> <span class="s1">&#39;junction&#39;</span><span class="p">:</span> <span class="s1">&#39;#000000&#39;</span><span class="p">}</span>
+    <span class="n">aris_colors</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;strategy&#39;</span><span class="p">:</span> <span class="s1">&#39;#D38300&#39;</span><span class="p">,</span> <span class="s1">&#39;business&#39;</span><span class="p">:</span> <span class="s2">&quot;#F5C800&quot;</span><span class="p">,</span> <span class="s1">&#39;application&#39;</span><span class="p">:</span> <span class="s2">&quot;#00A0FF&quot;</span><span class="p">,</span> <span class="s1">&#39;technology&#39;</span><span class="p">:</span> <span class="s2">&quot;#6BA50E&quot;</span><span class="p">,</span>
+                   <span class="s1">&#39;physical&#39;</span><span class="p">:</span> <span class="s2">&quot;#6BA50E&quot;</span><span class="p">,</span> <span class="s1">&#39;migration&#39;</span><span class="p">:</span> <span class="s2">&quot;#FFE0E0&quot;</span><span class="p">,</span> <span class="s1">&#39;motivation&#39;</span><span class="p">:</span> <span class="s2">&quot;#F099FF&quot;</span><span class="p">,</span>
+                   <span class="s1">&#39;relationship&#39;</span><span class="p">:</span> <span class="s2">&quot;#DDDDDD&quot;</span><span class="p">,</span> <span class="s1">&#39;other&#39;</span><span class="p">:</span> <span class="s1">&#39;#FFFFFF&#39;</span><span class="p">,</span> <span class="s1">&#39;junction&#39;</span><span class="p">:</span> <span class="s1">&#39;#000000&#39;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">elem_type</span> <span class="ow">in</span> <span class="n">ARCHI_CATEGORY</span><span class="p">:</span>
+        <span class="n">cat</span> <span class="o">=</span> <span class="n">ARCHI_CATEGORY</span><span class="p">[</span><span class="n">elem_type</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">theme</span> <span class="o">==</span> <span class="s1">&#39;archi&#39;</span> <span class="ow">or</span> <span class="n">theme</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">default_colors</span><span class="p">[</span><span class="n">cat</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">theme</span> <span class="o">==</span> <span class="s1">&#39;aris&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">aris_colors</span><span class="p">[</span><span class="n">cat</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">theme</span><span class="p">[</span><span class="n">cat</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">default_colors</span><span class="p">[</span><span class="n">cat</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">default_colors</span><span class="p">[</span><span class="s1">&#39;other&#39;</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to create ArchiMate v3.x compliant models with full hierarchy and styling support.</span>
+
+<span class="sd">    Supports element grouping (parent-child relationships), visual styling (colors, transparency),</span>
+<span class="sd">    junction types (AND/OR/XOR), and advanced hierarchy queries with round-trip fidelity.</span>
+
+<span class="sd">    **Element Hierarchy (P3)**:</span>
+<span class="sd">    - Use add_child(parent_uuid, child_uuid) to create parent-child relationships</span>
+<span class="sd">    - Supports unlimited nesting (default max depth 5, configurable)</span>
+<span class="sd">    - Automatic cycle detection prevents invalid hierarchies</span>
+<span class="sd">    - When parent is deleted, children are orphaned (not deleted)</span>
+<span class="sd">    - Query methods: get_parent(), get_children(), get_ancestors(), get_descendants()</span>
+
+<span class="sd">    **Visual Styling (P3)**:</span>
+<span class="sd">    - Elements support custom fill colors, line colors, line width, and transparency</span>
+<span class="sd">    - Colors can be hex (#RRGGBB) or named colors; all normalized to hex for export</span>
+<span class="sd">    - All visual properties preserved during XML round-trip export/import cycles</span>
+<span class="sd">    - Use element.set_fill_color(), set_line_color(), etc. for styling</span>
+
+<span class="sd">    **Advanced Queries (P3)**:</span>
+<span class="sd">    - get_siblings(elem_uuid): Find all elements with same parent</span>
+<span class="sd">    - find_by_hierarchy_path(path): Query by path like &#39;/Parent/Child&#39; with wildcard support</span>
+<span class="sd">    - Path examples: &#39;/Root&#39;, &#39;/Parent/Child/*&#39;, &#39;/A/*/B/Leaf&#39;</span>
+<span class="sd">    - Performance: cycle detection &lt;1ms, queries &lt;10ms on 1000+ element models</span>
+
+<span class="sd">    **Junction Semantics (P3)**:</span>
+<span class="sd">    - Junction elements support type semantics: &#39;and&#39;, &#39;or&#39;, &#39;xor&#39;</span>
+<span class="sd">    - Types are validated and preserved across XML export/import cycles</span>
+<span class="sd">    - Use element.set_junction_type(type_str) to set semantics</span>
+
+<span class="sd">    Note: Perspectives are not handled in the current version of this library</span>
+
+<span class="sd">    This class defines methods and properties to create Elements, Relationships, Diagrams (Views) with Nodes and</span>
+<span class="sd">    Connections with visual layout.</span>
+
+<span class="sd">    It also reads, writes or merges XML files using the ArchiMate Open Exchange File format.</span>
+
+<span class="sd">    :param name:    Model name</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param uuid:    Model Identifier</span>
+<span class="sd">    :type uuid: str</span>
+<span class="sd">    :param desc:    Model documentation</span>
+<span class="sd">    :type desc: str</span>
+
+<span class="sd">    :returns: Model object</span>
+<span class="sd">    :rtype: Model</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        from pyArchimate import ArchiType</span>
+<span class="sd">        from pyArchimate.model import Model</span>
+
+<span class="sd">        m = Model(&#39;Enterprise Architecture&#39;)</span>
+
+<span class="sd">        # Create elements</span>
+<span class="sd">        process = m.add(ArchiType.BusinessProcess, &#39;Order Management&#39;)</span>
+<span class="sd">        func1 = m.add(ArchiType.BusinessFunction, &#39;Order Entry&#39;)</span>
+<span class="sd">        func2 = m.add(ArchiType.BusinessFunction, &#39;Order Fulfillment&#39;)</span>
+
+<span class="sd">        # Build hierarchy</span>
+<span class="sd">        m.add_child(process.uuid, func1.uuid)</span>
+<span class="sd">        m.add_child(process.uuid, func2.uuid)</span>
+
+<span class="sd">        # Apply visual styling</span>
+<span class="sd">        process.set_fill_color(&#39;#e8f4f8&#39;)</span>
+<span class="sd">        func1.set_fill_color(&#39;#b3e5fc&#39;)</span>
+
+<span class="sd">        # Query hierarchy</span>
+<span class="sd">        children = m.get_children(process.uuid)</span>
+<span class="sd">        siblings = m.get_siblings(func1.uuid)</span>
+<span class="sd">        ancestors = m.get_ancestors(func1.uuid)</span>
+
+<span class="sd">        # Find by path</span>
+<span class="sd">        results = m.find_by_hierarchy_path(&#39;/Order Management/Order Entry&#39;)</span>
+
+<span class="sd">        # Export (preserves all hierarchy and visual properties)</span>
+<span class="sd">        m.write(&#39;model.archimate&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_uuid</span> <span class="o">=</span> <span class="n">set_id</span><span class="p">(</span><span class="n">uuid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">desc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pdefs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_profiles_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rels_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conns_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">views_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orgs</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theme</span> <span class="o">=</span> <span class="s1">&#39;archi&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_viewpoint_elements</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># slug → set of element UUIDs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_viewpoint_views</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>          <span class="c1"># view UUID → primary viewpoint slug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># child_uuid → parent_uuid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_element_children</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>        <span class="c1"># parent_uuid → child_uuids</span>
+
+<div class="viewcode-block" id="Model.add">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.add">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">concept_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to add a new Element in this model</span>
+
+<span class="sd">        :param concept_type:    Archimate Element type</span>
+<span class="sd">        :type concept_type: str</span>
+<span class="sd">        :param name:            Element&#39;s name</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param uuid:            Element&#39;s Identifier</span>
+<span class="sd">        :type uuid: str</span>
+<span class="sd">        :param desc:            Element&#39;s documentation</span>
+<span class="sd">        :type desc: str</span>
+<span class="sd">        :param folder:          Element&#39;s organization path</span>
+<span class="sd">        :param profile: str     Archimate Element profile name</span>
+<span class="sd">        :type folder: str</span>
+<span class="sd">        :return:                Element or View class object</span>
+<span class="sd">        :rtype: Element|View</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">concept_type</span> <span class="o">==</span> <span class="n">ArchiType</span><span class="o">.</span><span class="n">View</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">View</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">uuid</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">views_dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">uuid</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+            <span class="k">return</span> <span class="n">v</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_e</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">concept_type</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">uuid</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">_e</span><span class="o">.</span><span class="n">uuid</span><span class="p">]</span> <span class="o">=</span> <span class="n">_e</span>
+            <span class="k">return</span> <span class="n">_e</span></div>
+
+
+<div class="viewcode-block" id="Model.add_relationship">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.add_relationship">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_relationship</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rel_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">uuid</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">access_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># noqa: E501</span>
+                         <span class="n">influence_strength</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">desc</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_directed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">profile</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Relationship&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to add a new Relationship between two Element objects</span>
+
+<span class="sd">        :param rel_type:                Archimate relationship type</span>
+<span class="sd">        :type rel_type: str</span>
+<span class="sd">        :param source:                  Source Element by Identifier or by object</span>
+<span class="sd">        :type source: [str|Element]</span>
+<span class="sd">        :param target:                  Target Element by Identifier or by object</span>
+<span class="sd">        :type target: [str|Element]</span>
+<span class="sd">        :param uuid:                    Relationship Identifier</span>
+<span class="sd">        :type uuid: str</span>
+<span class="sd">        :param name:                    Relationship name</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param access_type:             if type is Access, type of Access (Read, Write...)</span>
+<span class="sd">        :type access_type: str</span>
+<span class="sd">        :param influence_strength:      if type is Influence, strength of the influence (1, 10, +,++...)</span>
+<span class="sd">        :type influence_strength: str</span>
+<span class="sd">        :param desc:                    Relationship documentation</span>
+<span class="sd">        :type desc: str</span>
+<span class="sd">        :param is_directed:             if type is Association, flag to indicated if the relationhsip is directed</span>
+<span class="sd">        :type is_directed: bool</span>
+<span class="sd">        :return:                        Relationship class object</span>
+<span class="sd">        :rtype: Relationship</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.relationship</span><span class="w"> </span><span class="kn">import</span> <span class="n">Relationship</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">Relationship</span><span class="p">(</span><span class="n">rel_type</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">uuid</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">access_type</span><span class="p">,</span> <span class="n">influence_strength</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span>
+                         <span class="n">is_directed</span><span class="p">,</span> <span class="n">profile</span><span class="p">,</span>
+                         <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rels_dict</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">uuid</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span>
+        <span class="k">return</span> <span class="n">r</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uuid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the Model Identifier</span>
+
+<span class="sd">        :return: Identifer</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uuid</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the type of Model</span>
+<span class="sd">        :return: type</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;Model&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">profiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Property to access the profiles.</span>
+
+<span class="sd">        This property provides access to the `_profiles` attribute of the class</span>
+<span class="sd">        instance. It allows getting the internal profiles data which is encapsulated</span>
+<span class="sd">        within the class.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The value of the `_profiles` attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_profiles_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+<div class="viewcode-block" id="Model.add_profile">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.add_profile">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">concept</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a new profile to the profiles dictionary and associates it with this model.</span>
+
+<span class="sd">        This method creates an instance of the Profile class using the provided arguments</span>
+<span class="sd">        and stores it in the internal dictionary, keyed by its unique identifier (UUID).</span>
+<span class="sd">        If no UUID or name is provided, the default values will be used. This method also</span>
+<span class="sd">        returns the newly created Profile instance.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str, optional): The name of the profile being added.</span>
+<span class="sd">            uuid (str, optional): The unique identifier for the profile.</span>
+<span class="sd">            concept (Any, optional): A concept object associated with the profile.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Profile: The newly created Profile object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Profile</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">uuid</span><span class="o">=</span><span class="n">uuid</span><span class="p">,</span> <span class="n">concept</span><span class="o">=</span><span class="n">concept</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_profiles_dict</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">uuid</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="k">return</span> <span class="n">p</span></div>
+
+
+<div class="viewcode-block" id="Model.get_profile">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_profile">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">profiles</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">p</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">props</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dictionary of model properties (read only)</span>
+
+<span class="sd">        :return: properties dictionary</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span>
+
+<div class="viewcode-block" id="Model.prop">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.prop">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to get or set an element&#39;s property</span>
+
+<span class="sd">        :param key:     Property key</span>
+<span class="sd">        :type key: str</span>
+<span class="sd">        :param value:   Property value</span>
+<span class="sd">        :type value: str</span>
+<span class="sd">        :return: an existing element property value if &#39;value&#39; argument is None</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="Model.remove_prop">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.remove_prop">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_prop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to remove an element property</span>
+
+<span class="sd">        :param key:</span>
+<span class="sd">        :type key: str</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">views</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the list of views in this model</span>
+
+<span class="sd">        :return: [View]</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">views_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the list of Elements in this model</span>
+
+<span class="sd">        :return: [Element]</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">relationships</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the list of Relationships in this Model</span>
+
+<span class="sd">        :return: [Relationship]</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">         &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rels_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the list of all nodes from the model</span>
+<span class="sd">        :return: Nodes</span>
+<span class="sd">        :rtype: list(Node)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">conns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the list of all connections from the model</span>
+<span class="sd">        :return: Connections</span>
+<span class="sd">        :rtype: list(Connection)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conns_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+<div class="viewcode-block" id="Model.write">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.write">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">writer</span><span class="o">=</span><span class="n">Writers</span><span class="o">.</span><span class="n">archimate</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to write the file_path to an Archimate file</span>
+
+<span class="sd">        :param file_path:</span>
+<span class="sd">        :type file_path: str</span>
+<span class="sd">        :param writer: writer selection (enum value, registry key, or callable) used to format the output.</span>
+<span class="sd">        :type writer: Writers|str|callable</span>
+<span class="sd">        :return:  data structure</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.writers</span><span class="w"> </span><span class="kn">import</span> <span class="n">_resolve_writer</span>
+        <span class="n">writer_callable</span> <span class="o">=</span> <span class="n">_resolve_writer</span><span class="p">(</span><span class="n">writer</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">writer_callable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_file_contents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">operation</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="fm">__mod__</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">operation</span><span class="si">}</span><span class="s2">: Cannot open or read file &#39;</span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_match_reader_entry</span><span class="p">(</span><span class="n">root_tag</span><span class="p">):</span>
+        <span class="n">lower_tag</span> <span class="o">=</span> <span class="n">root_tag</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">MODEL_READER_REGISTRY</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">tag_key</span> <span class="ow">in</span> <span class="n">lower_tag</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">entry</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_reader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">operation</span><span class="p">):</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_file_contents</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">operation</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">data</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">parser</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">XMLParser</span><span class="p">(</span><span class="n">recover</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="n">parser</span><span class="o">=</span><span class="n">parser</span><span class="p">)</span>
+            <span class="n">entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_match_reader_entry</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">OPERATION_ERROR_MESSAGES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">OPERATION_ERROR_MESSAGES</span><span class="p">[</span><span class="s1">&#39;read&#39;</span><span class="p">]))</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">loader</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">reader</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">entry</span>
+
+<div class="viewcode-block" id="Model.read">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.read">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to read an Archimate file</span>
+<span class="sd">        The method detects automagically and read the following formats:</span>
+<span class="sd">        - ARIS AML</span>
+<span class="sd">        - Open Group Open Exchange File</span>
+<span class="sd">        - Archi Tool</span>
+
+<span class="sd">        :param file_path:</span>
+<span class="sd">        :type file_path: str</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">reader</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_reader</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">reader</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">call_args</span> <span class="o">=</span> <span class="n">args</span> <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">forward_read_args</span> <span class="k">else</span> <span class="p">()</span>
+        <span class="n">call_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span> <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">forward_read_args</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="n">reader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="o">*</span><span class="n">call_args</span><span class="p">,</span> <span class="o">**</span><span class="n">call_kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Model.merge">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.merge">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to merge an Archimate file into this model</span>
+
+<span class="sd">        :param file_path:</span>
+<span class="sd">        :type file_path: str</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">reader</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_reader</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;merge&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">reader</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">entry</span><span class="o">.</span><span class="n">supports_merge</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">OPERATION_ERROR_MESSAGES</span><span class="p">[</span><span class="s1">&#39;merge&#39;</span><span class="p">])</span>
+            <span class="k">return</span>
+        <span class="n">reader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">merge_flg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Model.filter_elements">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.filter_elements">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">filter_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fct</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to filter Elements</span>
+
+<span class="sd">        :param fct: callback (lambda) function with filtering criteria</span>
+<span class="sd">        :type fct: function</span>
+<span class="sd">        :return: list of Elements</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">fct</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="Model.find_elements">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.find_elements">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">elem_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to find elements by name or type or both</span>
+
+<span class="sd">        :param name:        name criteria</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param elem_type:   elem_type criteria</span>
+<span class="sd">        :type elem_type: str</span>
+<span class="sd">        :return: list(Element)</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">elem_type</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">elem_type</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">elem_type</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">elem_type</span> <span class="ow">and</span> <span class="n">name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">elem_type</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="Model.find_relationships">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.find_relationships">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_relationships</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rel_type</span><span class="p">,</span> <span class="n">elem</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find all relationships of a list of elements</span>
+
+<span class="sd">        :param rel_type: type of relationship tp search for</span>
+<span class="sd">        :type rel_type: str</span>
+<span class="sd">        :param elem: an element with relationships</span>
+<span class="sd">        :type elem: Element</span>
+<span class="sd">        :param direction: data direction [&#39;in_rels&#39;, &#39;out_rels&#39;, &#39;both&#39; | None]</span>
+<span class="sd">        :type direction: str</span>
+<span class="sd">        :return: [Relationship]</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">elem</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">wants_in</span> <span class="o">=</span> <span class="s1">&#39;in&#39;</span> <span class="ow">in</span> <span class="n">direction</span> <span class="ow">or</span> <span class="s1">&#39;both&#39;</span> <span class="ow">in</span> <span class="n">direction</span>
+        <span class="n">wants_out</span> <span class="o">=</span> <span class="s1">&#39;out&#39;</span> <span class="ow">in</span> <span class="n">direction</span> <span class="ow">or</span> <span class="s1">&#39;both&#39;</span> <span class="ow">in</span> <span class="n">direction</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rels_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">_matches_rel</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">rel_type</span><span class="p">,</span> <span class="n">elem</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">wants_in</span><span class="p">,</span> <span class="n">wants_out</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="Model.filter_relationships">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.filter_relationships">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">filter_relationships</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fct</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to find relationhips by providing a callback function with criteria</span>
+
+<span class="sd">        :param fct: callback function</span>
+<span class="sd">        :type fct: function</span>
+<span class="sd">        :return: list(Relationships)</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rels_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">fct</span><span class="p">(</span><span class="n">r</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="Model.filter_views">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.filter_views">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">filter_views</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fct</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to find views by providing a callback function with criteria</span>
+
+<span class="sd">        :param fct: callback function</span>
+<span class="sd">        :type fct: function</span>
+<span class="sd">        :return: list(Views)</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">views_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">fct</span><span class="p">(</span><span class="n">v</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="Model.find_views">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.find_views">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_views</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to find views by name</span>
+
+<span class="sd">        :param name:</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :return: list(View)</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">views_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Model.get_or_create_element">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_or_create_element">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_or_create_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">elem</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">create_elem</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to get an Element by name or create one if not existing</span>
+
+<span class="sd">        :param elem_type:   Archimate type of the element</span>
+<span class="sd">        :type elem_type: str</span>
+<span class="sd">        :param elem:        name of the Element</span>
+<span class="sd">        :type elem: str</span>
+<span class="sd">        :param create_elem: if True,  create a new Element if not found</span>
+<span class="sd">        :type create_elem: bool</span>
+<span class="sd">        :return: Element object</span>
+<span class="sd">        :rtype: Element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">elem</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">elem</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_elements</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">elem_type</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">create_elem</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">elem</span><span class="p">,</span> <span class="n">concept_type</span><span class="o">=</span><span class="n">elem_type</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Model.get_or_create_relationship">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_or_create_relationship">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_or_create_relationship</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rel_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">source</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">create_rel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># noqa: E501</span>
+                                   <span class="n">access_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                   <span class="n">influence_strength</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">desc</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_directed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to get a Relationship by source/target/type and/or by name or create one if not found</span>
+
+<span class="sd">        :param rel_type:                Archimate type of the relationship</span>
+<span class="sd">        :type rel_type: str</span>
+<span class="sd">        :param name:                    name of the relationships</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param source:                  Source Element or Identifier of the Element</span>
+<span class="sd">        :type source: [str|Element]</span>
+<span class="sd">        :param target:                  Target Element or Identifier of the Element</span>
+<span class="sd">        :type target: [str|Element]</span>
+<span class="sd">        :param create_rel:              if True, create a new relationship if not found</span>
+<span class="sd">        :type create_rel: bool</span>
+<span class="sd">        :param access_type:             if type is Access, and creat_rel is true, set the access type</span>
+<span class="sd">        :type access_type: str</span>
+<span class="sd">        :param influence_strength:      if type is Influence, and creat_rel is true, set the strenght</span>
+<span class="sd">        :type influence_strength: str</span>
+<span class="sd">        :param desc:                    relationship description</span>
+<span class="sd">        :type desc: str</span>
+<span class="sd">        :param is_directed:             if type is Association, and creat_rel is true, set the direction flag</span>
+<span class="sd">        :type is_directed: bool</span>
+<span class="sd">        :return:                        Relationship object</span>
+<span class="sd">        :rtype: Relationship</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Relations are created between Elements, not Nodes</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">Node</span><span class="p">):</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">concept</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">Node</span><span class="p">):</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">concept</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_relationships</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">rel_type</span>
+                                                     <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">uuid</span> <span class="o">==</span> <span class="n">source</span><span class="o">.</span><span class="n">uuid</span>
+                                                     <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">uuid</span> <span class="o">==</span> <span class="n">target</span><span class="o">.</span><span class="n">uuid</span>
+                                                     <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">access_type</span> <span class="o">==</span> <span class="n">access_type</span>
+                                                     <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">is_directed</span> <span class="o">==</span> <span class="n">is_directed</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_relationships</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">rel_type</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span>
+                                                     <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">uuid</span> <span class="o">==</span> <span class="n">source</span><span class="o">.</span><span class="n">uuid</span>
+                                                     <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">uuid</span> <span class="o">==</span> <span class="n">target</span><span class="o">.</span><span class="n">uuid</span>
+                                                     <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">access_type</span> <span class="o">==</span> <span class="n">access_type</span>
+                                                     <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">is_directed</span> <span class="o">==</span> <span class="n">is_directed</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">create_rel</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_relationship</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">rel_type</span><span class="o">=</span><span class="n">rel_type</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                                         <span class="n">access_type</span><span class="o">=</span><span class="n">access_type</span><span class="p">,</span> <span class="n">influence_strength</span><span class="o">=</span><span class="n">influence_strength</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span>
+                                         <span class="n">is_directed</span><span class="o">=</span><span class="n">is_directed</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Model.get_or_create_view">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_or_create_view">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_or_create_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">create_view</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to get or create a view by name</span>
+
+<span class="sd">        :param view:        View name</span>
+<span class="sd">        :type view: str</span>
+<span class="sd">        :param create_view: if True, create a view if not found</span>
+<span class="sd">        :type create_view: bool</span>
+<span class="sd">        :return:            View object</span>
+<span class="sd">        :rtype: View</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_views</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">create_view</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">View</span><span class="p">,</span> <span class="n">view</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">view</span>
+        <span class="k">return</span> <span class="n">v</span></div>
+
+
+<div class="viewcode-block" id="Model.embed_props">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.embed_props">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">embed_props</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove_props</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to embed properties of each view, element, relationship into their description attribute</span>
+<span class="sd">        as a stringified json tag</span>
+
+<span class="sd">        Some tools like Aris are not configured to managed concept&#39;s properties,</span>
+<span class="sd">        so we embed the properties before exporting the model there</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_embed_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove_props</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">views_dict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">_embed_object</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">remove_props</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">_embed_object</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">remove_props</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rels_dict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">_embed_object</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">remove_props</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Model.expand_props">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.expand_props">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expand_props</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clean_doc</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to expand model&#39;s concepts desc attribute properties tag into concept&#39;s properties</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_expand_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clean_doc</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">views_dict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">_expand_object</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">clean_doc</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">_expand_object</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">clean_doc</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rels_dict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">_expand_object</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">clean_doc</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Model.check_invalid_conn">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.check_invalid_conn">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_invalid_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to check the validity of a list of connections</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">invalids</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="nb">id</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conns_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_connection</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+                <span class="n">invalids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">invalids</span></div>
+
+
+<div class="viewcode-block" id="Model.check_connection">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.check_connection">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to check the validity of a single connection</span>
+
+<span class="sd">        :param c:   Connection object</span>
+<span class="sd">        :type c:    Connection</span>
+<span class="sd">        :return:    True if the connection is valid</span>
+<span class="sd">        :rtype:     boolean</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_ok</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># check connections with unknown references</span>
+        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">_ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rels_dict</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Orphan connection </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s1"> to unknown relationship </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">_ok</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># check existence of the source &amp; target nodes</span>
+        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">_source</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes_dict</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Connection </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s1"> has orphan source node </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">_source</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">_ok</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">concept</span><span class="o">.</span><span class="n">_source</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Connection </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s1"> has orphan source node concept </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">concept</span><span class="o">.</span><span class="n">_source</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">_ok</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">_target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes_dict</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Connection </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s1"> has orphan target node </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">_target</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">_ok</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">concept</span><span class="o">.</span><span class="n">_target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Connection </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s1"> has orphan target node concept </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">concept</span><span class="o">.</span><span class="n">_target</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">_ok</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># Check source / target are nodes, not views</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Connection </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s1"> has a view </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> as source node&#39;</span><span class="p">)</span>
+            <span class="n">_ok</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Connection </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s1"> has a view </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> as source node&#39;</span><span class="p">)</span>
+            <span class="n">_ok</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">_ref</span> <span class="o">!=</span> <span class="n">c</span><span class="o">.</span><span class="n">concept</span><span class="o">.</span><span class="n">_source</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Connection </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s1"> has a reference to its source Element which is not &#39;</span>
+                          <span class="s1">&#39;the reference of the relationship source Element&#39;</span><span class="p">)</span>
+            <span class="n">_ok</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">View</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">_ref</span> <span class="o">!=</span> <span class="n">c</span><span class="o">.</span><span class="n">concept</span><span class="o">.</span><span class="n">_target</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Connection </span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s1"> has a reference to its target Element which is not &#39;</span>
+                          <span class="s1">&#39;the reference of the relationship target Element&#39;</span><span class="p">)</span>
+            <span class="n">_ok</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="n">_ok</span></div>
+
+
+<div class="viewcode-block" id="Model.check_invalid_nodes">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.check_invalid_nodes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_invalid_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check and get the list of nodes that are orphans (without known related Element)</span>
+<span class="sd">        :return: list of orphan nodes</span>
+<span class="sd">        :rtype: list(Node)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">invalids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="nb">id</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">cat</span> <span class="o">==</span> <span class="s1">&#39;Element&#39;</span><span class="p">:</span>
+                <span class="n">invalids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Orphan node &quot;</span><span class="si">{</span><span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; with id </span><span class="si">{</span><span class="n">n</span><span class="o">.</span><span class="n">uuid</span><span class="si">}</span><span class="s1"> refers to unknown </span><span class="si">{</span><span class="n">n</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">ARCHIMATE_EXCEPTION_GROUP</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Orphan node with id </span><span class="si">{</span><span class="nb">id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">invalids</span></div>
+
+
+<div class="viewcode-block" id="Model.default_theme">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.default_theme">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">default_theme</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theme</span><span class="o">=</span><span class="n">DEFAULT_THEME</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the default color theme for the model</span>
+<span class="sd">        :param theme: default theme reference</span>
+<span class="sd">        :return: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">fill_color</span> <span class="o">=</span> <span class="n">default_color</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">theme</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conns</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">line_color</span> <span class="o">=</span> <span class="n">default_color</span><span class="p">(</span><span class="s1">&#39;Relationship&#39;</span><span class="p">,</span> <span class="n">theme</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theme</span> <span class="o">=</span> <span class="n">theme</span></div>
+
+
+<div class="viewcode-block" id="Model.get_viewpoints">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_viewpoints">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_viewpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return all 13 standard ArchiMate 3.x viewpoints.</span>
+
+<span class="sd">        :return: list of Viewpoint objects</span>
+<span class="sd">        :rtype: list[Viewpoint]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.viewpoint_registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">STANDARD_VIEWPOINTS</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">STANDARD_VIEWPOINTS</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Model.get_elements_by_viewpoint">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_elements_by_viewpoint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_elements_by_viewpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewpoint_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return elements assigned to the given viewpoint slug.</span>
+
+<span class="sd">        :param viewpoint_id: canonical viewpoint slug</span>
+<span class="sd">        :type viewpoint_id: str</span>
+<span class="sd">        :return: list of Element objects</span>
+<span class="sd">        :rtype: list[Element]</span>
+<span class="sd">        :raises ValueError: if viewpoint_id is not a recognised slug</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.viewpoint_registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_viewpoint_slug</span>
+        <span class="n">validate_viewpoint_slug</span><span class="p">(</span><span class="n">viewpoint_id</span><span class="p">)</span>
+        <span class="n">uuids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewpoint_elements</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">viewpoint_id</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">uid</span><span class="p">]</span> <span class="k">for</span> <span class="n">uid</span> <span class="ow">in</span> <span class="n">uuids</span> <span class="k">if</span> <span class="n">uid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Model.get_views_by_viewpoint">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_views_by_viewpoint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_views_by_viewpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viewpoint_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return views whose primary viewpoint matches the given slug.</span>
+
+<span class="sd">        :param viewpoint_id: canonical viewpoint slug</span>
+<span class="sd">        :type viewpoint_id: str</span>
+<span class="sd">        :return: list of View objects</span>
+<span class="sd">        :rtype: list[View]</span>
+<span class="sd">        :raises ValueError: if viewpoint_id is not a recognised slug</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.viewpoint_registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_viewpoint_slug</span>
+        <span class="n">validate_viewpoint_slug</span><span class="p">(</span><span class="n">viewpoint_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">uid</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">views_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewpoint_views</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uid</span><span class="p">)</span> <span class="o">==</span> <span class="n">viewpoint_id</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_would_create_cycle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">child_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if adding child_uuid as a child of parent_uuid would create a cycle.</span>
+
+<span class="sd">        :param parent_uuid: UUID of potential parent</span>
+<span class="sd">        :param child_uuid: UUID of potential child</span>
+<span class="sd">        :return: True if cycle would be created, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">visited</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">current</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">parent_uuid</span>
+        <span class="k">while</span> <span class="n">current</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">current</span> <span class="o">==</span> <span class="n">child_uuid</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">current</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="n">visited</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">visited</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MAX_DEPTH</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the nesting depth of an element (0 = root).</span>
+
+<span class="sd">        :param elem_uuid: Element UUID</span>
+<span class="sd">        :return: Depth level</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">elem_uuid</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">current</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">depth</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">depth</span>
+
+<div class="viewcode-block" id="Model.add_child">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.add_child">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_child</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">child_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a parent-child relationship between two elements.</span>
+
+<span class="sd">        :param parent_uuid: UUID of parent element</span>
+<span class="sd">        :param child_uuid: UUID of child element</span>
+<span class="sd">        :raises KeyError: If parent or child UUID not in model</span>
+<span class="sd">        :raises ValueError: If child already has parent, cycle would be created, or max depth exceeded</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">parent_uuid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parent element </span><span class="si">{</span><span class="n">parent_uuid</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">child_uuid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Child element </span><span class="si">{</span><span class="n">child_uuid</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">child_uuid</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Element </span><span class="si">{</span><span class="n">child_uuid</span><span class="si">}</span><span class="s2"> already has parent </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">child_uuid</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_would_create_cycle</span><span class="p">(</span><span class="n">parent_uuid</span><span class="p">,</span> <span class="n">child_uuid</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cycle detected: cannot add </span><span class="si">{</span><span class="n">child_uuid</span><span class="si">}</span><span class="s2"> as child of </span><span class="si">{</span><span class="n">parent_uuid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_depth</span><span class="p">(</span><span class="n">parent_uuid</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;=</span> <span class="n">MAX_DEPTH</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max nesting depth </span><span class="si">{</span><span class="n">MAX_DEPTH</span><span class="si">}</span><span class="s2"> exceeded&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="p">[</span><span class="n">child_uuid</span><span class="p">]</span> <span class="o">=</span> <span class="n">parent_uuid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_element_children</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">parent_uuid</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">child_uuid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">child_uuid</span><span class="p">]</span><span class="o">.</span><span class="n">_parent_uuid</span> <span class="o">=</span> <span class="n">parent_uuid</span></div>
+
+
+<div class="viewcode-block" id="Model.remove_child">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.remove_child">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_child</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">child_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove a parent-child relationship (orphan the child).</span>
+
+<span class="sd">        :param parent_uuid: UUID of parent element</span>
+<span class="sd">        :param child_uuid: UUID of child element</span>
+<span class="sd">        :raises KeyError: If parent or child UUID not in model</span>
+<span class="sd">        :raises ValueError: If child is not actually a child of parent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">parent_uuid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span> <span class="ow">or</span> <span class="n">child_uuid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Parent or child element not found&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">child_uuid</span><span class="p">)</span> <span class="o">!=</span> <span class="n">parent_uuid</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">child_uuid</span><span class="si">}</span><span class="s2"> is not a child of </span><span class="si">{</span><span class="n">parent_uuid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="p">[</span><span class="n">child_uuid</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_element_children</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent_uuid</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">child_uuid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_children</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent_uuid</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_element_children</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">parent_uuid</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">child_uuid</span><span class="p">]</span><span class="o">.</span><span class="n">_parent_uuid</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Model.get_parent">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_parent">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Element</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the parent element of a given element.</span>
+
+<span class="sd">        :param elem_uuid: Element UUID</span>
+<span class="sd">        :return: Parent Element or None if root</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parent_uuid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">elem_uuid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent_uuid</span><span class="p">)</span> <span class="k">if</span> <span class="n">parent_uuid</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Model.get_children">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_children">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_children</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Element</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all direct children of a given element.</span>
+
+<span class="sd">        :param elem_uuid: Element UUID</span>
+<span class="sd">        :return: List of child Elements (empty if no children)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">uid</span><span class="p">]</span> <span class="k">for</span> <span class="n">uid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_children</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">elem_uuid</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span>
+                <span class="k">if</span> <span class="n">uid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Model.get_ancestors">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_ancestors">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ancestors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Element</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all ancestors of an element (parent, grandparent, ..., root).</span>
+
+<span class="sd">        :param elem_uuid: Element UUID</span>
+<span class="sd">        :return: List of ancestor Elements [parent, grandparent, ..., root] (excludes the element itself)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Element</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">visited</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">current</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">elem_uuid</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">current</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">current</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">visited</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">current</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">current</span><span class="p">])</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="Model.get_descendants">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_descendants">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_descendants</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Element</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all descendants of an element in breadth-first order.</span>
+
+<span class="sd">        :param elem_uuid: Element UUID</span>
+<span class="sd">        :return: List of descendant Elements (excludes the element itself)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
+        <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Element</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">visited</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">queue</span><span class="p">:</span> <span class="n">deque</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">deque</span><span class="p">([</span><span class="n">elem_uuid</span><span class="p">])</span>
+        <span class="k">while</span> <span class="n">queue</span><span class="p">:</span>
+            <span class="n">uid</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">uid</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">visited</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">uid</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">uid</span> <span class="o">!=</span> <span class="n">elem_uuid</span> <span class="ow">and</span> <span class="n">uid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">uid</span><span class="p">])</span>
+            <span class="n">queue</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_element_children</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span> <span class="nb">set</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="Model.get_depth">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_depth">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the nesting depth of an element (0 = root).</span>
+
+<span class="sd">        :param elem_uuid: Element UUID</span>
+<span class="sd">        :return: Depth level</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_depth</span><span class="p">(</span><span class="n">elem_uuid</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Model.get_root_elements">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_root_elements">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_root_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Element</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all root elements (elements with no parent).</span>
+
+<span class="sd">        :return: List of root Elements</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Model.get_leaf_elements">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_leaf_elements">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_leaf_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Element</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all leaf elements (elements with no children).</span>
+
+<span class="sd">        :return: List of leaf Elements</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_children</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">uuid</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="Model.get_siblings">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.get_siblings">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_siblings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Element</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all sibling elements (elements with same parent).</span>
+
+<span class="sd">        :param elem_uuid: UUID of element to find siblings for</span>
+<span class="sd">        :return: List of sibling Elements (excludes elem_uuid itself)</span>
+<span class="sd">        :raises KeyError: If element UUID not in model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">elem_uuid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Element </span><span class="si">{</span><span class="n">elem_uuid</span><span class="si">}</span><span class="s2"> not found in model&quot;</span><span class="p">)</span>
+        <span class="n">parent_uuid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_hierarchy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">elem_uuid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parent_uuid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">siblings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element_children</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent_uuid</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">uuid</span><span class="p">]</span> <span class="k">for</span> <span class="n">uuid</span> <span class="ow">in</span> <span class="n">siblings</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">uuid</span> <span class="o">!=</span> <span class="n">elem_uuid</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Model.find_by_hierarchy_path">
+<a class="viewcode-back" href="../../pyArchimate.html#pyArchimate.model.Model.find_by_hierarchy_path">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_by_hierarchy_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Element</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Find elements by hierarchy path (e.g., &#39;/parent/child/element&#39;).</span>
+
+<span class="sd">        Supports wildcard matching at end: &#39;/parent/child/*&#39; matches all children of child.</span>
+
+<span class="sd">        :param path: Hierarchy path string starting with &#39;/&#39;, levels separated by &#39;/&#39;</span>
+<span class="sd">        :return: List of matching Elements</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">p</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">parts</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Element</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">wildcard</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span>
+        <span class="k">if</span> <span class="n">wildcard</span><span class="p">:</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_traverse_by_path</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_root_elements</span><span class="p">(),</span> <span class="n">results</span><span class="p">,</span> <span class="n">wildcard</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_traverse_by_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">current_elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Element</span><span class="p">],</span>
+                         <span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Element</span><span class="p">],</span> <span class="n">wildcard</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Traverse hierarchy to find elements matching path.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path_parts</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">wildcard</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">current_elements</span><span class="p">:</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_children</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">uuid</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">current_elements</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">target_name</span> <span class="o">=</span> <span class="n">path_parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">remaining_parts</span> <span class="o">=</span> <span class="n">path_parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">current_elements</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">target_name</span> <span class="ow">or</span> <span class="n">target_name</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">remaining_parts</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_traverse_by_path</span><span class="p">(</span><span class="n">remaining_parts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_children</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">uuid</span><span class="p">),</span>
+                                         <span class="n">results</span><span class="p">,</span> <span class="n">wildcard</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">wildcard</span><span class="p">:</span>
+                        <span class="n">results</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_children</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">uuid</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span></div>
+
+
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Model&quot;</span><span class="p">]</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 - Xavier Mayeur / Stephan Borg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

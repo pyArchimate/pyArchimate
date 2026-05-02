@@ -158,10 +158,54 @@ Visual representation of a relationship between nodes.
 
 - `model.merge(file_path)` — combine a second model file into this one; deduplicates by UUID
 
+### Element Visual Styling
+
+- `element.set_fill_color(color)` / `element.get_fill_color()` — hex (`#RRGGBB`) or named color, or `None` for default
+- `element.set_line_color(color)` / `element.get_line_color()` — border colour
+- `element.set_line_width(width)` / `element.get_line_width()` — border width in pixels (≥ 0)
+- `element.set_transparency(alpha)` / `element.get_transparency()` — opacity `0.0` (transparent) to `1.0` (opaque)
+- `element.set_visual_style(fill_color, line_color, line_width, transparency)` — set all style properties at once
+- `element.reset_visual_style()` — revert all visual overrides to defaults
+- All visual properties are preserved during XML export/import round-trips
+
 ### Node Styling
 
 - `node.fill_color` / `node.line_color` — hex colour strings (`#RRGGBB`)
 - `model.default_theme(theme)` — apply built-in ArchiMate or ARIS colour palette to all nodes
+
+### Element Hierarchy
+
+- `model.add_child(parent_uuid, child_uuid)` — create parent-child relationship between two elements
+- `model.remove_child(parent_uuid, child_uuid)` — orphan a child element (leaves it in the model)
+- `model.get_parent(elem_uuid)` — return parent Element or `None` if root
+- `model.get_children(elem_uuid)` — list of direct child Elements
+- `model.get_ancestors(elem_uuid)` — list of ancestors `[parent, grandparent, ..., root]`
+- `model.get_descendants(elem_uuid)` — breadth-first list of all descendants
+- `model.get_siblings(elem_uuid)` — elements sharing the same parent
+- `model.get_root_elements()` — elements with no parent
+- `model.get_leaf_elements()` — elements with no children
+- `model.get_depth(elem_uuid)` — nesting depth (0 = root)
+- `model.find_by_hierarchy_path(path)` — path query e.g. `'/Parent/Child'`; supports wildcard `'*'` at any level
+- Cycle detection prevents invalid hierarchies; max depth configurable via `MAX_DEPTH`
+- Hierarchy is preserved across XML export/import round-trips
+
+### Junction Type Semantics
+
+- `element.set_junction_type(type_str)` — set junction semantics: `'and'`, `'or'`, or `'xor'`
+- `element.get_junction_type()` — return current junction type or `None`
+- Types are validated on set and preserved in round-trip exports
+
+### Viewpoint Support
+
+- `element.assign_viewpoint(viewpoint_id)` — assign a canonical ArchiMate 3.x viewpoint slug to an element
+- `element.remove_viewpoint(viewpoint_id)` — remove a viewpoint assignment
+- `element.viewpoints` — list of assigned viewpoint slugs
+- `view.set_primary_viewpoint(viewpoint_id)` — set the primary viewpoint for a view
+- `view.primary_viewpoint` — read the primary viewpoint slug
+- `model.get_viewpoints()` — return all 13 standard ArchiMate 3.x `Viewpoint` objects
+- `model.get_elements_by_viewpoint(viewpoint_id)` — elements assigned to a viewpoint
+- `model.get_views_by_viewpoint(viewpoint_id)` — views whose primary viewpoint matches
+- All viewpoint slugs are validated against the standard registry
 
 ### Nested Nodes & Layout
 
@@ -213,10 +257,10 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 ## Limitations (Important Context)
 
 - No built-in graphical editor (code-first only)
-- Limited layout/styling capabilities compared to GUI tools
+- Layout automation is limited (auto-resize and connection routing helpers exist; no constraint-based layout engine)
 - Requires understanding of ArchiMate concepts
 - Visualization typically handled by external tools (e.g., Archi)
-- Not fully conformant to the complete ArchiMate 3.x specification (see Non-Conformances below)
+- Not fully conformant to the complete ArchiMate 3.x specification (see Non-Conformances below; major gaps closed in v1.3.0)
 
 ---
 
@@ -247,7 +291,22 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `filter_views(predicate)` | Filter views with a lambda predicate |
 | `get_or_create_element(elem_type, name, create_elem)` | Idempotent element lookup or creation |
 | `get_or_create_relationship(rel_type, name, src, tgt, create_rel)` | Idempotent relationship lookup or creation |
+| `add_child(parent_uuid, child_uuid)` | Create parent-child relationship between two elements |
+| `remove_child(parent_uuid, child_uuid)` | Orphan a child (keeps it in the model) |
+| `get_parent(elem_uuid)` | Parent element or `None` if root |
+| `get_children(elem_uuid)` | Direct child elements |
+| `get_ancestors(elem_uuid)` | All ancestors from parent to root |
+| `get_descendants(elem_uuid)` | All descendants in breadth-first order |
+| `get_siblings(elem_uuid)` | Elements sharing the same parent |
+| `get_root_elements()` | Elements with no parent |
+| `get_leaf_elements()` | Elements with no children |
+| `get_depth(elem_uuid)` | Nesting depth (0 = root) |
+| `find_by_hierarchy_path(path)` | Path query e.g. `'/A/B'`; supports `'*'` wildcard |
+| `get_viewpoints()` | All 13 standard ArchiMate 3.x Viewpoint objects |
+| `get_elements_by_viewpoint(viewpoint_id)` | Elements assigned to a viewpoint slug |
+| `get_views_by_viewpoint(viewpoint_id)` | Views whose primary viewpoint matches slug |
 | `check_invalid_conn()` | Return list of connection IDs with broken references |
+| `check_invalid_nodes()` | Return list of node IDs referencing unknown elements |
 | `embed_props(remove_props)` | Serialise all properties into `desc` fields as JSON |
 | `expand_props(clean_doc)` | Restore properties from embedded JSON in `desc` fields |
 | `default_theme(theme)` | Apply colour theme (`"archi"` or `"aris"`) to all nodes |
@@ -263,9 +322,27 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `type` | ArchiMate type string (read/write) |
 | `desc` | Free-text documentation string |
 | `uuid` | Unique identifier |
+| `parent_uuid` | Parent element UUID or `None` if root |
+| `viewpoints` | List of assigned canonical viewpoint slugs |
 | `prop(key, value)` | Get (`value=None`) or set a metadata property |
 | `props` | All properties as a `dict` |
 | `remove_prop(key)` | Delete a property by key |
+| `remove_folder()` | Remove this element's folder assignment |
+| `assign_viewpoint(viewpoint_id)` | Assign a canonical ArchiMate 3.x viewpoint slug |
+| `remove_viewpoint(viewpoint_id)` | Remove a viewpoint assignment |
+| `set_fill_color(color)` | Fill colour: hex `#RRGGBB`, named color, or `None` |
+| `get_fill_color()` | Current fill colour or `None` |
+| `set_line_color(color)` | Border colour: hex `#RRGGBB`, named color, or `None` |
+| `get_line_color()` | Current border colour or `None` |
+| `set_line_width(width)` | Border width in pixels (≥ 0) or `None` for default |
+| `get_line_width()` | Current border width or `None` |
+| `set_transparency(alpha)` | Opacity `0.0`–`1.0` or `None` for default |
+| `get_transparency()` | Current opacity or `None` |
+| `set_visual_style(...)` | Set fill_color, line_color, line_width, transparency at once |
+| `get_visual_style()` | Dict of all set visual style properties |
+| `reset_visual_style()` | Revert all visual overrides to defaults |
+| `set_junction_type(type_str)` | Junction semantics: `'and'`, `'or'`, `'xor'`, or `None` |
+| `get_junction_type()` | Current junction type or `None` |
 
 ### Relationship (API)
 
@@ -289,6 +366,13 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 |---|---|
 | `add(elem, x, y, w, h)` | Add a node for an element at given coordinates |
 | `add_connection(rel, source, target)` | Add a connection for a relationship between nodes |
+| `get_or_create_node(elem, elem_type, ...)` | Return existing node or create one if requested |
+| `get_or_create_connection(rel, source, target, ...)` | Return existing connection or create one if requested |
+| `set_primary_viewpoint(viewpoint_id)` | Set canonical ArchiMate 3.x viewpoint slug for this view |
+| `primary_viewpoint` | Current primary viewpoint slug or `None` |
+| `prop(key, value)` | Get or set a view-level property |
+| `remove_prop(key)` | Delete a property by key |
+| `remove_folder()` | Remove this view's folder assignment |
 | `nodes` | All nodes in the view |
 | `conns` | All connections in the view |
 | `name` | View name |
@@ -328,6 +412,9 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 |---|---|
 | `check_valid_relationship(rel_type, src_type, tgt_type, raise_flg)` | Validate rel type against ArchiMate rules |
 | `get_default_rel_type(source_type, target_type)` | Return preferred valid relationship type |
+| `parse_bool(value)` | Parse XML boolean string per W3C xsd:boolean (`"true"`, `"1"` → `True`; everything else → `False`) |
+| `extract_images_from_archimate(element)` | Extract base64-encoded image data from an Archi XML element |
+| `compare_image_data(data1, data2)` | Byte-for-byte comparison of two base64 image data strings |
 | `log_set_level(level)` | Set logging verbosity (standard `logging` levels) |
 | `log_to_file(path)` | Redirect log output to a file |
 | `log_to_stderr()` | Redirect log output to stderr |
@@ -337,23 +424,26 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 ## Non-Conformances
 
 Known deviations from the ArchiMate 3.x standard and Archi tool compatibility gaps.
-Sourced from `ArchiToolGap.md` and `Archimategap.md`. Flagged for resolution in future releases.
 
 ### ArchiMate 3.x Conformance Gaps
 
-| Gap | Impact |
-|-----|--------|
-| `BusinessInteraction` not in `checker_rules.yml` | Creating/importing `BusinessInteraction` may fail |
-| Viewpoints not first-class; stored as generic `View` | Viewpoint-aware models not fully supported |
-| Reader reads `modifier`; writer emits `influenceStrength` | Strength lost on Open Group format round trips |
+| Gap | Status | Impact |
+|-----|--------|--------|
+| Viewpoints not first-class; stored as generic `View` | Partially resolved (v1.3.0) — canonical viewpoint slugs supported via `set_primary_viewpoint` and `assign_viewpoint`; full viewpoint content rule enforcement not yet implemented | Viewpoint-constrained element validation not enforced |
 
 ### Archi Import/Export Compatibility Gaps
 
-| Gap | Impact |
-|-----|--------|
-| Docs parsed with `e.text` instead of `doc.text` | Relationship docs lost in Archi round trips |
-| `bool("false")` always `True` for `nameVisible` | Hidden labels reappear after Archi import |
-| Influence strength not symmetric in Archi adapter | Strength differs from expected behaviour |
-| Model version hard-coded to `4.9.0` on export | Source document version not preserved |
-| Folder taxonomy rebuilt on export | Exact folder structure not round-tripped |
-| Only four node kinds recognised; unknown kinds dropped | Non-standard nodes silently lost on import |
+| Gap | Status | Impact |
+|-----|--------|--------|
+| Model version hard-coded to `4.9.0` on export | Open | Source document version not preserved |
+| Folder taxonomy rebuilt on export | Open | Exact folder structure not round-tripped |
+| Only four node kinds recognised; unknown kinds dropped | Open | Non-standard nodes silently lost on import |
+
+### Resolved (since v1.2.1)
+
+| Gap | Fixed in | Details |
+|-----|----------|---------|
+| `BusinessInteraction` not in `checker_rules.yml` | v1.3.0 | Now enabled; `BusinessInteraction` elements can be created and imported |
+| Reader reads `modifier`; writer emits `influenceStrength` | v1.3.0 | Reader normalises both field names; round-trip fidelity restored |
+| Relationship docs parsed with `e.text` instead of `doc.text` | v1.3.0 | `_archireader_helpers.py` now extracts documentation correctly |
+| `bool("false")` always `True` for `nameVisible` | v1.3.1 | Replaced with `parse_bool()` (W3C xsd:boolean semantics) |

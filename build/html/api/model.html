@@ -1,0 +1,546 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Model Class - P3 Hierarchy &amp; Query API Reference &mdash; pyArchimate 1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=a0fc712e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=292eb321"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pyArchimate" href="../modules.html" />
+    <link rel="prev" title="Element Class - P3 API Reference" href="element.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            pyArchimate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Architecture:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../diagrams.html">Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">P3 Features (v1.3.0):</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../p3-quick-reference.html">P3 Quick Reference - Element Hierarchy &amp; Styling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/element-hierarchy.html">Element Hierarchy &amp; Grouping Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/visual-styling.html">Visual Styling Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/junction-types.html">Junction Types Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/hierarchy_examples.html">Hierarchy Code Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/styling_examples.html">Visual Styling Code Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="element.html">Element Class - P3 API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Model Class - P3 Hierarchy &amp; Query API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#hierarchy-management-methods">Hierarchy Management Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#creating-relationships">Creating Relationships</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#add_child"><code class="docutils literal notranslate"><span class="pre">add_child()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#remove_child"><code class="docutils literal notranslate"><span class="pre">remove_child()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-hierarchy-queries">Basic Hierarchy Queries</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get_parent"><code class="docutils literal notranslate"><span class="pre">get_parent()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get_children"><code class="docutils literal notranslate"><span class="pre">get_children()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#root-and-leaf-queries">Root and Leaf Queries</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#get_root_elements"><code class="docutils literal notranslate"><span class="pre">get_root_elements()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#get_leaf_elements"><code class="docutils literal notranslate"><span class="pre">get_leaf_elements()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#ancestry-and-depth-methods">Ancestry and Depth Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get_ancestors"><code class="docutils literal notranslate"><span class="pre">get_ancestors()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get_descendants"><code class="docutils literal notranslate"><span class="pre">get_descendants()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get_depth"><code class="docutils literal notranslate"><span class="pre">get_depth()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-query-methods">Advanced Query Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sibling-queries">Sibling Queries</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#get_siblings"><code class="docutils literal notranslate"><span class="pre">get_siblings()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#path-based-hierarchy-queries">Path-Based Hierarchy Queries</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#find_by_hierarchy_path"><code class="docutils literal notranslate"><span class="pre">find_by_hierarchy_path()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-characteristics">Performance Characteristics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#round-trip-preservation">Round-Trip Preservation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#constraints-and-limits">Constraints and Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">pyArchimate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package details:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../src.html">pyArchimate Package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyArchimate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Model Class - P3 Hierarchy &amp; Query API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/model.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="model-class-p3-hierarchy-query-api-reference">
+<h1>Model Class - P3 Hierarchy &amp; Query API Reference<a class="headerlink" href="#model-class-p3-hierarchy-query-api-reference" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">Model</span></code> class provides comprehensive methods for managing element hierarchies, querying relationships, and organizing elements into parent-child structures with full round-trip XML preservation.</p>
+<section id="hierarchy-management-methods">
+<h2>Hierarchy Management Methods<a class="headerlink" href="#hierarchy-management-methods" title="Link to this heading"></a></h2>
+<section id="creating-relationships">
+<h3>Creating Relationships<a class="headerlink" href="#creating-relationships" title="Link to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="add_child">
+<span class="sig-name descname"><span class="pre">add_child</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">child_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#add_child" title="Link to this definition"></a></dt>
+<dd><p>Add a parent-child relationship between two elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent_uuid</strong> – UUID of parent element</p></li>
+<li><p><strong>child_uuid</strong> – UUID of child element</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> – If parent or child UUID not in model</p></li>
+<li><p><strong>ValueError</strong> – If child already has parent, cycle would be created, or max depth exceeded</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Features:</strong>
+- Automatic cycle detection prevents invalid hierarchies
+- Max depth limit (default 5 levels) prevents pathological nesting
+- Synchronizes bidirectional maps (parent→children and child→parent)</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">process</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessProcess</span><span class="p">,</span> <span class="s1">&#39;Order Management&#39;</span><span class="p">)</span>
+<span class="n">func</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Order Entry&#39;</span><span class="p">)</span>
+<span class="n">service</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessService</span><span class="p">,</span> <span class="s1">&#39;Form Service&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create hierarchy</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">service</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="remove_child">
+<span class="sig-name descname"><span class="pre">remove_child</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">child_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#remove_child" title="Link to this definition"></a></dt>
+<dd><p>Remove a parent-child relationship (orphan the child).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent_uuid</strong> – UUID of parent element</p></li>
+<li><p><strong>child_uuid</strong> – UUID of child element</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> – If parent or child UUID not in model</p></li>
+<li><p><strong>ValueError</strong> – If child is not actually a child of parent</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">remove_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="c1"># func is now orphaned (no parent)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="basic-hierarchy-queries">
+<h2>Basic Hierarchy Queries<a class="headerlink" href="#basic-hierarchy-queries" title="Link to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="get_parent">
+<span class="sig-name descname"><span class="pre">get_parent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elem_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element"><span class="pre">Element</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#get_parent" title="Link to this definition"></a></dt>
+<dd><p>Get the parent element of a given element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>elem_uuid</strong> – Element UUID</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Parent Element or None if root</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[<a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element">Element</a>]</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">parent</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_parent</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">parent</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parent: </span><span class="si">{</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Element is at root level&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="get_children">
+<span class="sig-name descname"><span class="pre">get_children</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elem_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#get_children" title="Link to this definition"></a></dt>
+<dd><p>Get all direct children of a given element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>elem_uuid</strong> – Element UUID</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of child Elements (empty if no children)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element">Element</a>]</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">children</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_children</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Child: </span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<section id="root-and-leaf-queries">
+<h3>Root and Leaf Queries<a class="headerlink" href="#root-and-leaf-queries" title="Link to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="get_root_elements">
+<span class="sig-name descname"><span class="pre">get_root_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#get_root_elements" title="Link to this definition"></a></dt>
+<dd><p>Get all root elements (elements with no parent).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of root Elements</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[<a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element">Element</a>]</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">roots</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_root_elements</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">roots</span><span class="p">)</span><span class="si">}</span><span class="s2"> root elements&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="get_leaf_elements">
+<span class="sig-name descname"><span class="pre">get_leaf_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#get_leaf_elements" title="Link to this definition"></a></dt>
+<dd><p>Get all leaf elements (elements with no children).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of leaf Elements</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[<a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element">Element</a>]</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">leaves</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_leaf_elements</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="n">leaves</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Leaf: </span><span class="si">{</span><span class="n">leaf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="ancestry-and-depth-methods">
+<h2>Ancestry and Depth Methods<a class="headerlink" href="#ancestry-and-depth-methods" title="Link to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="get_ancestors">
+<span class="sig-name descname"><span class="pre">get_ancestors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elem_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#get_ancestors" title="Link to this definition"></a></dt>
+<dd><p>Get all ancestors of an element from the element itself to the root.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>elem_uuid</strong> – Element UUID</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of Elements [elem, parent, grandparent, …, root]</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element">Element</a>]</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ancestors</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_ancestors</span><span class="p">(</span><span class="n">service</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="c1"># Returns: [service, func, process]</span>
+<span class="k">for</span> <span class="n">ancestor</span> <span class="ow">in</span> <span class="n">ancestors</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ancestor: </span><span class="si">{</span><span class="n">ancestor</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="get_descendants">
+<span class="sig-name descname"><span class="pre">get_descendants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elem_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#get_descendants" title="Link to this definition"></a></dt>
+<dd><p>Get all descendants of an element in breadth-first order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>elem_uuid</strong> – Element UUID</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of descendant Elements (excludes the element itself)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element">Element</a>]</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">descendants</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_descendants</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="c1"># Returns all elements under process at any depth</span>
+<span class="k">for</span> <span class="n">desc</span> <span class="ow">in</span> <span class="n">descendants</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Descendant: </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="get_depth">
+<span class="sig-name descname"><span class="pre">get_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elem_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#get_depth" title="Link to this definition"></a></dt>
+<dd><p>Get the nesting depth of an element (0 = root).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>elem_uuid</strong> – Element UUID</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Depth level</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">depth</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">service</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">depth</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Root element&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Depth: </span><span class="si">{</span><span class="n">depth</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="advanced-query-methods">
+<h2>Advanced Query Methods<a class="headerlink" href="#advanced-query-methods" title="Link to this heading"></a></h2>
+<section id="sibling-queries">
+<h3>Sibling Queries<a class="headerlink" href="#sibling-queries" title="Link to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="get_siblings">
+<span class="sig-name descname"><span class="pre">get_siblings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elem_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#get_siblings" title="Link to this definition"></a></dt>
+<dd><p>Get all sibling elements (elements with same parent).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>elem_uuid</strong> – UUID of element to find siblings for</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of sibling Elements (excludes elem_uuid itself)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element">Element</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>KeyError</strong> – If element UUID not in model</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create multiple functions under process</span>
+<span class="n">func1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Order Entry&#39;</span><span class="p">)</span>
+<span class="n">func2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Order Review&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func1</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func2</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># Get siblings of func1</span>
+<span class="n">siblings</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_siblings</span><span class="p">(</span><span class="n">func1</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+<span class="c1"># Returns: [func2]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="path-based-hierarchy-queries">
+<h3>Path-Based Hierarchy Queries<a class="headerlink" href="#path-based-hierarchy-queries" title="Link to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="find_by_hierarchy_path">
+<span class="sig-name descname"><span class="pre">find_by_hierarchy_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element"><span class="pre">Element</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#find_by_hierarchy_path" title="Link to this definition"></a></dt>
+<dd><p>Find elements by hierarchy path with wildcard support.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Hierarchy path string starting with ‘/’, levels separated by ‘/’</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of matching Elements</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="../element.html#pyArchimate.element.Element" title="pyArchimate.element.Element">Element</a>]</p>
+</dd>
+</dl>
+<p><strong>Path Format:</strong>
+- Absolute paths: <code class="docutils literal notranslate"><span class="pre">/Root</span></code>, <code class="docutils literal notranslate"><span class="pre">/Parent/Child/Grandchild</span></code>
+- Wildcard suffix: <code class="docutils literal notranslate"><span class="pre">/Parent/Child/*</span></code> (matches all children of Child)
+- Wildcard in path: <code class="docutils literal notranslate"><span class="pre">/Parent/*/Grandchild</span></code> (matches any Child)</p>
+<p><strong>Examples:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get specific element by path</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">find_by_hierarchy_path</span><span class="p">(</span><span class="s1">&#39;/Order Management&#39;</span><span class="p">)</span>
+<span class="c1"># Returns: [order_management_elem]</span>
+
+<span class="c1"># Get all children at specific depth</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">find_by_hierarchy_path</span><span class="p">(</span><span class="s1">&#39;/Order Management/Order Entry&#39;</span><span class="p">)</span>
+<span class="c1"># Returns: [order_entry_elem]</span>
+
+<span class="c1"># Get all grandchildren (wildcard)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">find_by_hierarchy_path</span><span class="p">(</span><span class="s1">&#39;/Order Management/*&#39;</span><span class="p">)</span>
+<span class="c1"># Returns: [func1, func2, func3, ...]</span>
+
+<span class="c1"># Get deep descendants (wildcard in middle)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">find_by_hierarchy_path</span><span class="p">(</span><span class="s1">&#39;/Order Management/*/Services&#39;</span><span class="p">)</span>
+<span class="c1"># Returns all Services under any function in Order Management</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="performance-characteristics">
+<h2>Performance Characteristics<a class="headerlink" href="#performance-characteristics" title="Link to this heading"></a></h2>
+<p><strong>Time Complexity:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">add_child()</span></code>: O(depth) - performs cycle detection</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_parent()</span></code>: O(1) - direct map lookup</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_children()</span></code>: O(n) - where n = number of children</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_ancestors()</span></code>: O(depth) - walks parent chain</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_descendants()</span></code>: O(m) - where m = number of descendants (BFS)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_siblings()</span></code>: O(n) - where n = number of siblings</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">find_by_hierarchy_path()</span></code>: O(m) - where m = elements matching path</p></li>
+</ul>
+<p><strong>Performance on Large Models:</strong></p>
+<ul class="simple">
+<li><p>Cycle detection: &lt;1ms (max depth 5)</p></li>
+<li><p>All queries: &lt;10ms on 1000+ element models</p></li>
+<li><p>Memory: ~100 bytes per parent-child relationship</p></li>
+</ul>
+</section>
+<section id="round-trip-preservation">
+<h2>Round-Trip Preservation<a class="headerlink" href="#round-trip-preservation" title="Link to this heading"></a></h2>
+<p>All hierarchy relationships are automatically preserved during XML export/import:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create hierarchy</span>
+<span class="n">process</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessProcess</span><span class="p">,</span> <span class="s1">&#39;Process&#39;</span><span class="p">)</span>
+<span class="n">func</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ArchiType</span><span class="o">.</span><span class="n">BusinessFunction</span><span class="p">,</span> <span class="s1">&#39;Function&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
+
+<span class="c1"># Export to XML</span>
+<span class="n">model</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;model.archimate&#39;</span><span class="p">)</span>
+
+<span class="c1"># Import from XML</span>
+<span class="n">m2</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">&#39;reloaded&#39;</span><span class="p">)</span>
+<span class="n">m2</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;model.archimate&#39;</span><span class="p">)</span>
+
+<span class="c1"># Hierarchy is preserved exactly</span>
+<span class="n">process2</span> <span class="o">=</span> <span class="n">m2</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">process</span><span class="o">.</span><span class="n">uuid</span><span class="p">]</span>
+<span class="n">func2</span> <span class="o">=</span> <span class="n">m2</span><span class="o">.</span><span class="n">elems_dict</span><span class="p">[</span><span class="n">func</span><span class="o">.</span><span class="n">uuid</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">m2</span><span class="o">.</span><span class="n">get_parent</span><span class="p">(</span><span class="n">func2</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span> <span class="o">==</span> <span class="n">process2</span>
+</pre></div>
+</div>
+</section>
+<section id="constraints-and-limits">
+<h2>Constraints and Limits<a class="headerlink" href="#constraints-and-limits" title="Link to this heading"></a></h2>
+<p><strong>Depth Limit:</strong> Maximum nesting depth is 5 levels (configurable)
+- Prevents stack overflow on deep traversals
+- Suitable for most enterprise architectures</p>
+<p><strong>Single Parent:</strong> Each element can have at most one parent
+- Creates tree structures (not DAGs)
+- Simplifies hierarchy management and visualization</p>
+<p><strong>Cycle Prevention:</strong> Automatic validation prevents circular relationships
+- add_child() rejects any relationship that would create a cycle
+- Ensures hierarchy validity at all times</p>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../guides/element-hierarchy.html"><span class="doc">Element Hierarchy &amp; Grouping Guide</span></a>: Complete hierarchy usage guide</p></li>
+<li><p><a class="reference internal" href="../examples/hierarchy_examples.html"><span class="doc">Hierarchy Code Examples</span></a>: Working code examples</p></li>
+<li><p><a class="reference internal" href="element.html"><span class="doc">Element Class - P3 API Reference</span></a>: Element class API reference</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="element.html" class="btn btn-neutral float-left" title="Element Class - P3 API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../modules.html" class="btn btn-neutral float-right" title="pyArchimate" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 - Xavier Mayeur / Stephan Borg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

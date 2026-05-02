@@ -9,28 +9,40 @@ object Model {
   - conns_dict : dict[str, Connection] {registry}
   - labels_dict : dict[str, Node] {label registry}
   - _profiles_dict : dict[str, Profile]
+  - _viewpoint_elements : dict[str, set[str]] {viewpoint slug → element UUIDs}
+  - _viewpoint_views : dict[str, str] {view UUID → primary viewpoint slug}
+  - _element_hierarchy : dict[str, Optional[str]] {child UUID → parent UUID}
+  - _element_children : dict[str, set[str]] {parent UUID → child UUIDs}
 }
 
 object Element {
   - _uuid : str
   - name : str
-  - _elem_type : str
+  - _type : Optional[str]
   - desc : str
   - folder : str
   - parent: Model
-  - properties : dict[str, any]
-  - _visual_style : dict
+  - _properties : dict[str, object]
+  - _profile : Optional[str]
+  - junction_type : Optional[str]
+  - _viewpoints : list[str]
+  - _parent_uuid : Optional[str]
+  - _visual_style : dict[str, Any]
 }
 
 object Relationship {
   - _uuid : str
   - name : str
-  - _rel_type : str
-  - _source : Element|Relationship
-  - _target : Element|Relationship
+  - _type : str
+  - _source : str {Element/Relationship UUID}
+  - _target : str {Element/Relationship UUID}
   - desc : str
   - folder : str
-  - properties : dict[str, any]
+  - _properties : dict[str, object]
+  - _profile : Optional[str]
+  - _access_type : Optional[str]
+  - _influence_strength : Optional[str]
+  - _is_directed : Optional[bool]
 }
 
 object Profile {
@@ -46,23 +58,36 @@ object View {
   - folder : str
   - nodes_dict : dict[str, Node]
   - conns_dict : dict[str, Connection]
+  - _properties : dict[str, object]
+  - _primary_viewpoint : Optional[str]
+  - unions : list
   - model : Model
 }
 
 object Node {
   - _uuid : str
   - _ref : str {Element|View|Label id}
-  - name : str
-  - desc : str
-  - _type : str
-  - concept : Element
-  - x, y : int
-  - w, h : int
-  - rx, ry : int
-  - fill_color : str
-  - line_color : str
+  - cat : str {Element|Label|Container}
+  - label : Optional[str]
+  - flags : int
+  - _x, _y : int
+  - _w, _h : int
+  - _cx, _cy : float {center coords}
+  - _fill_color : Optional[str]
+  - line_color : Optional[str]
+  - opacity : int|float
+  - lc_opacity : int|float
+  - font_color : Optional[str]
+  - font_name : str
+  - font_size : int|float
+  - text_alignment : Optional[str]
+  - text_position : Optional[str]
+  - label_expression : Optional[str]
+  - border_type : Optional[str]
+  - icon_color : Optional[str]
+  - gradient : Optional[str]
   - nodes_dict : dict[str, Node] {nested children}
-  - view : View
+  - _view : View
   - parent : Node | View
 }
 
@@ -75,6 +100,13 @@ object Connection {
   - _source : str {Node id}
   - _target : str {Node id}
   - bendpoints : list[Point]
+  - line_color : Optional[str]
+  - font_color : Optional[str]
+  - font_name : str
+  - font_size : int|float
+  - line_width : float
+  - text_position : str
+  - show_label : bool
 }
 
 object Point {

@@ -47,9 +47,9 @@ poetry run scripts/create_documentation.sh
 # ---------------------------------------------------------------------------
 # Step 2: Regenerate AI.md
 # ---------------------------------------------------------------------------
-# echo ""
-# echo "🤖 Regenerating AI.md..."
-# poetry run python scripts/generate_ai_docs.py
+echo ""
+echo "🤖 Regenerating AI.md..."
+claude -p "Review @AI.md for accuracy since the last release tag version." --dangerously-skip-permissions
 
 # ---------------------------------------------------------------------------
 # Step 4: Commit any updated artefacts before bumping
@@ -57,7 +57,7 @@ poetry run scripts/create_documentation.sh
 if ! git diff --quiet; then
     echo ""
     echo "💾 Committing updated artefacts (diagrams, AI.md, docs)..."
-    git add docs/diagrams/ AI.md build/html
+    git add docs/diagrams/ AI.md build/html -f
     git commit -m "docs: regenerate diagrams, AI.md, and Sphinx docs pre-release"
 fi
 

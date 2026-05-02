@@ -14,6 +14,7 @@ class Model {
   --
   + add(concept_type, name, ...) : Element|View
   + add_child(parent_uuid, child_uuid)
+  + remove_child(parent_uuid, child_uuid)
   + add_relationship(rel_type, source, target, ...) : Relationship
   + add_profile(name, concept, ...) : Profile
   + read(file_path, *args, **kwargs)
@@ -22,10 +23,30 @@ class Model {
   + find_elements(name, type) : list[Element]
   + find_relationships(source, target, rel_type) : list[Relationship]
   + find_views(name) : list[View]
+  + filter_elements(fct) : list[Element]
+  + filter_relationships(fct) : list[Relationship]
+  + filter_views(fct) : list[View]
   + get_or_create_element(...) : Element
   + get_or_create_relationship(...) : Relationship
   + get_or_create_view(name) : View
   + get_profile(name) : Profile
+  + get_parent(elem_uuid) : Optional[Element]
+  + get_children(elem_uuid) : list[Element]
+  + get_ancestors(elem_uuid) : list[Element]
+  + get_descendants(elem_uuid) : list[Element]
+  + get_siblings(elem_uuid) : list[Element]
+  + get_root_elements() : list[Element]
+  + get_leaf_elements() : list[Element]
+  + get_depth(elem_uuid) : int
+  + find_by_hierarchy_path(path) : list[Element]
+  + get_viewpoints() : list[Viewpoint]
+  + get_elements_by_viewpoint(viewpoint_id) : list[Element]
+  + get_views_by_viewpoint(viewpoint_id) : list[View]
+  + embed_props(remove_props)
+  + expand_props(clean_doc)
+  + check_invalid_conn() : list
+  + check_invalid_nodes() : list
+  + default_theme(theme)
   + prop(key, value) : any
   + remove_prop(key)
 }
@@ -45,22 +66,26 @@ class Element {
   + rels(rel_type) : list[Relationship]
   + in_rels() : list[Relationship]
   + out_rels() : list[Relationship]
+  + assign_viewpoint(viewpoint_id)
+  + remove_viewpoint(viewpoint_id)
   + set_fill_color(color)
   + set_line_color(color)
   + set_line_width(width)
   + set_transparency(alpha)
   + set_junction_type(type_str)
   + set_profile(profile)
-  + get_fill_color() : str
-  + get_line_color() : str
-  + get_line_width() : int
-  + get_transparency() : float
-  + get_junction_type() : str
+  + set_visual_style(fill_color, line_color, line_width, transparency)
+  + get_fill_color() : Optional[str]
+  + get_line_color() : Optional[str]
+  + get_line_width() : Optional[float]
+  + get_transparency() : Optional[float]
+  + get_junction_type() : Optional[str]
   + get_visual_style() : dict
   + reset_profile()
   + reset_visual_style()
   + prop(key, value)
   + remove_prop(key)
+  + remove_folder()
   + merge(other_element)
   + delete()
 }
@@ -101,9 +126,10 @@ class View {
   name: str
   desc: str
   folder: str
+  primary_viewpoint: Optional[str]
   --
   {readonly} nodes: list[Node]
-  {readonly} connections: list[Connection]
+  {readonly} conns: list[Connection]
   --
   + add(ref, x, y, w, h, ...) : Node
   + add_connection(ref, source, target, ...) : Connection
@@ -125,10 +151,24 @@ class Node {
   concept: Element
   x, y: int
   w, h: int
-  rx, ry: int (rotation center)
+  rx, ry: int (relative to parent node)
   cx, cy: float (center coordinates)
-  fill_color: str
-  line_color: str
+  fill_color: Optional[str]
+  line_color: Optional[str]
+  opacity: int|float
+  lc_opacity: int|float
+  font_color: Optional[str]
+  font_name: str
+  font_size: int|float
+  text_alignment: Optional[str]
+  text_position: Optional[str]
+  label_expression: Optional[str]
+  border_type: Optional[str]
+  icon_color: Optional[str]
+  gradient: Optional[str]
+  flags: int
+  label: Optional[str]
+  cat: str
   --
   {readonly} nodes: list[Node]
   {readonly} view: View
@@ -156,11 +196,18 @@ class Connection {
   access_type: str
   influence_strength: str
   is_directed: bool
+  line_color: Optional[str]
+  font_color: Optional[str]
+  font_name: str
+  font_size: int|float
+  line_width: float
+  text_position: str
+  show_label: bool
   --
   {readonly} bendpoints: list[Point]
   --
-  + add_bendpoint(point, index)
-  + set_bendpoint(index, point)
+  + add_bendpoint(*bendpoints)
+  + set_bendpoint(bp, index)
   + del_bendpoint(index)
   + get_bendpoint(index) : Point
   + get_all_bendpoints() : list[Point]
