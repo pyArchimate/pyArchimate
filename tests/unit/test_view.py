@@ -105,7 +105,9 @@ def test_position_dist_computed():
     pos = Position()
     pos.dx = 3.0
     pos.dy = 4.0
-    assert abs(pos.dist - 5.0) < 1e-9
+    dist = pos.dist
+    assert dist is not None
+    assert abs(dist - 5.0) < 1e-9
 
 
 # ---------------------------------------------------------------------------
@@ -266,7 +268,7 @@ def test_view_get_or_create_connection_create(simple_view):
 
 
 def test_view_get_or_create_connection_no_rel_type_returns_none(simple_view):
-    _, v, _, _, rel, na, nb, _ = simple_view
+    _, v, _, _, _rel, na, nb, _ = simple_view
     result = v.get_or_create_connection(rel=None, source=na, target=nb, rel_type=None)
     assert result is None
 
@@ -1401,7 +1403,7 @@ def test_view_get_or_create_node_string_found():
 def test_view_get_or_create_node_string_create_node():
     """String elem found, no existing node, create_node=True → covers line 1003."""
     m = Model('gocn-str-create')
-    a = m.add(ArchiType.ApplicationComponent, 'CompB')
+    _a = m.add(ArchiType.ApplicationComponent, 'CompB')
     v = cast(View, m.add(ArchiType.View, 'V'))
     # No node added yet for CompB
     result = v.get_or_create_node(
@@ -1413,7 +1415,7 @@ def test_view_get_or_create_node_string_create_node():
 def test_view_get_or_create_node_no_node_no_create():
     """String elem found, no existing node, create_node=False → covers line 1004 (return None)."""
     m = Model('gocn-no-create-view')
-    a = m.add(ArchiType.ApplicationComponent, 'CompC')
+    _a = m.add(ArchiType.ApplicationComponent, 'CompC')
     v = cast(View, m.add(ArchiType.View, 'V'))
     # Element exists but no node in this view; create_node defaults to False
     result = v.get_or_create_node(elem='CompC', elem_type=ArchiType.ApplicationComponent)

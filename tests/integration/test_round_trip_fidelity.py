@@ -263,6 +263,7 @@ class TestRoundTripFidelity:
 
             assert actual_colors == expected_colors
             assert actual_widths == expected_widths
+            assert actual_trans == expected_trans
             # Check transparency with small tolerance
             for trans in actual_trans:
                 assert trans in {0.7, 0.9}

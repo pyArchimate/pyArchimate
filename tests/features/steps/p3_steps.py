@@ -590,12 +590,12 @@ def step_create_junctions_model(context):
         context.elements = {}
 
     for row in context.table:
-        elem_type = row['Type']
-        name = row['Name']
+        _elem_type = row['Type']
+        _name = row['Name']
         junction_type = row.get('Junction Type')
 
-        elem = context.model.add(ArchiType.Junction, name)
-        context.elements[name] = elem
+        elem = context.model.add(ArchiType.Junction, _name)
+        context.elements[_name] = elem
 
         if junction_type:
             elem.set_junction_type(junction_type)
@@ -712,7 +712,7 @@ def step_check_relationships(context, count):
 @then('all visual styling should match original colors')
 def step_check_styling_preserved(context):
     """Verify visual styling is preserved."""
-    for name, original in context.elements.items():
+    for _, original in context.elements.items():
         imported = context.imported_model.elems_dict.get(original.uuid)
         if imported:
             assert original.get_fill_color() == imported.get_fill_color()
