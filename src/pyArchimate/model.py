@@ -56,7 +56,7 @@ def _find_props_block(text: str) -> tuple[int, int, dict[str, Any]] | None:
             try:
                 parsed, length = json.JSONDecoder().raw_decode(text, brace)
                 return idx, brace + length, parsed
-            except json.JSONDecodeError:
+            except json.JSONDecodeError:  # noqa: S110
                 pass
     return None
 

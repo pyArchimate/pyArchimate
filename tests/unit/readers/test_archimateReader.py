@@ -689,29 +689,17 @@ def test_visual_style_except_blocks_do_not_raise():
     m = Model("vs-except")
     elem = m.add(ArchiType.ApplicationComponent, "E")
 
-    # set_fill_color with invalid color raises ValueError — this is what the except catches
-    try:
+    with pytest.raises(ValueError):
         elem.set_fill_color("#ZZZZZZ")
-    except ValueError:
-        pass  # expected — confirms the code path is real
 
-    # set_line_color with invalid color
-    try:
+    with pytest.raises(ValueError):
         elem.set_line_color("not-a-color")
-    except ValueError:
-        pass
 
-    # set_line_width with non-numeric
-    try:
+    with pytest.raises(TypeError):
         elem.set_line_width("wide")  # type: ignore[arg-type]
-    except TypeError:
-        pass
 
-    # set_transparency out of range
-    try:
+    with pytest.raises(ValueError):
         elem.set_transparency(2.0)
-    except ValueError:
-        pass
 
 def test_read_props_unknown_format_skips():
     """Line 127: Property with no propertyDefinitionRef and unknown key is skipped."""

@@ -74,7 +74,7 @@ def step_add_multiple_children(context, element_type, parent_name):
         if name != parent_name.strip("'\"") and hasattr(elem, 'type'):
             try:
                 context.model.add_child(parent.uuid, elem.uuid)
-            except ValueError:
+            except ValueError:  # noqa: S110
                 pass  # Already has parent
 
 

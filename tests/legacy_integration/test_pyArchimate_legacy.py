@@ -279,7 +279,7 @@ class MyTestCase(unittest.TestCase):
     def test_add_node(self):
         log.name = "test_add_node"
         m = create_model()
-        e, e2, _rel = add_some_elems(m)
+        e, e2, _ = add_some_elems(m)
         v = m.add(ArchiType.View, "New View using new method")
         n = v.add(e, 100, 150)
         self.assertEqual(n.x, 100)
@@ -355,7 +355,7 @@ class MyTestCase(unittest.TestCase):
     def test_add_conn(self):
         log.name = "test_add_conn"
         m: Model = create_model()
-        e, e2, _rel = add_some_elems(m)
+        e, e2, _ = add_some_elems(m)
         r = m.add_relationship(source=e, target=e2, rel_type="Flow", name="Flows to")
         v = m.add(ArchiType.View, "New View using new method")
         n = v.add(e, 100, 150)
@@ -452,28 +452,21 @@ class MyTestCase(unittest.TestCase):
         # Create.add_connections
         cx1y1 = v.add_connection(ref=rx1y1, source=nx1, target=ny1, uuid="id-867c07640ac749c9bb111804572fc828")
         cx1y1.add_bendpoint(Point(264, 336), Point(924, 336))
-        _cy1i1 = v.add_connection(ref=ry1i, source=ny1, target=ni1, uuid="id-751335cd0d57413b95d32d86b1f5b00d")
+        v.add_connection(ref=ry1i, source=ny1, target=ni1, uuid="id-751335cd0d57413b95d32d86b1f5b00d")
 
         # Export the model to a file
-        _xml = m.write("out.xml")
-        # print(_xml)
+        m.write("out.xml")
 
     def test_allowed_rel(self):
         log.name = "test_allowed_rel"
-        try:
+        with pytest.raises(ArchimateRelationshipError):
             check_valid_relationship(
                 ArchiType.Access, ArchiType.ApplicationCollaboration, ArchiType.ApplicationCollaboration, raise_flg=True
             )
-            self.fail("check_valid_relationship should have raised ArchimateRelationshipError")
-        except ArchimateRelationshipError:
-            pass
 
-        try:
-            check_valid_relationship(
-                ArchiType.Flow, ArchiType.ApplicationCollaboration, ArchiType.ApplicationCollaboration, raise_flg=True
-            )
-        except Exception:
-            self.fail("check_valid_relationship should not have raised an exception")
+        check_valid_relationship(
+            ArchiType.Flow, ArchiType.ApplicationCollaboration, ArchiType.ApplicationCollaboration, raise_flg=True
+        )
 
     def test_node_position(self):
         log.name = "test_node_position"
@@ -719,9 +712,7 @@ class MyTestCase(unittest.TestCase):
         e2 = v.get_or_create_node(
             elem="App2 ", elem_type=ArchiType.ApplicationComponent, create_node=True, create_elem=True
         )
-        _r = v.get_or_create_connection(
-            rel=None, rel_type=ArchiType.Flow, name=None, source=e1, target=e2, create_conn=True
-        )
+        v.get_or_create_connection(rel=None, rel_type=ArchiType.Flow, name=None, source=e1, target=e2, create_conn=True)
         e1.fill_color = "#FF0000"
         e2.fill_color = "#00FF00"
         m.write("out.xml")
@@ -740,7 +731,7 @@ class MyTestCase(unittest.TestCase):
             create_node=True,
             create_elem=True,
         )
-        _n11 = n1.get_or_create_node(
+        n1.get_or_create_node(
             elem="Elem1.1",
             elem_type=ArchiType.ApplicationComponent,
             x=120,
@@ -766,7 +757,7 @@ class MyTestCase(unittest.TestCase):
             create_node=True,
             create_elem=True,
         )
-        _n21 = n2.get_or_create_node(
+        n2.get_or_create_node(
             elem="Elem2.1", elem_type=ArchiType.ApplicationComponent, create_node=True, create_elem=True
         )
         n2.resize(keep_kids_size=False)
@@ -802,9 +793,9 @@ class MyTestCase(unittest.TestCase):
     def test_default_rel(self):
         log.name = "test_default_rel"
         m = Model("test")
-        _e1 = m.add(ArchiType.ApplicationCollaboration, "App")
-        _e2 = m.add(ArchiType.ApplicationFunction, "Comp")
-        _t = get_default_rel_type(ArchiType.ApplicationComponent, ArchiType.ApplicationComponent)
+        m.add(ArchiType.ApplicationCollaboration, "App")
+        m.add(ArchiType.ApplicationFunction, "Comp")
+        get_default_rel_type(ArchiType.ApplicationComponent, ArchiType.ApplicationComponent)
 
     def test_model_validation(self):
         log.name = "test_model_validation"
@@ -816,13 +807,13 @@ class MyTestCase(unittest.TestCase):
         n2 = v.get_or_create_node(
             elem="App2", elem_type=ArchiType.ApplicationCollaboration, create_node=True, create_elem=True
         )
-        _c = v.get_or_create_connection(rel_type=ArchiType.Flow, source=n1, target=n2)
+        v.get_or_create_connection(rel_type=ArchiType.Flow, source=n1, target=n2)
         m.check_invalid_nodes()
         m.check_invalid_conn()
         node_id = n1.uuid
-        _e1 = m.elems_dict.pop(n1.concept.uuid)
+        m.elems_dict.pop(n1.concept.uuid)
         inv_n = m.check_invalid_nodes()
-        _inv_c = m.check_invalid_conn()
+        m.check_invalid_conn()
         self.assertIn(node_id, inv_n)
         log.info(f" Orphan Node with ID {node_id} effectively detected")
 
@@ -843,7 +834,7 @@ class MyTestCase(unittest.TestCase):
         app2 = m.add(ArchiType.ApplicationComponent, "App2")
         bo = m.add(ArchiType.BusinessObject, "O")
         r = m.add_relationship(ArchiType.Flow, app1, app2, access_type="Read")
-        _rr = m.add_relationship(ArchiType.Association, bo, r)
+        m.add_relationship(ArchiType.Association, bo, r)
         m.write("out.xml")
 
     def test_conn_labels(self):
@@ -868,7 +859,6 @@ class MyTestCase(unittest.TestCase):
     def test_profile(self):
         m = Model("test")
         m.read(resource("profile.archimate"))  # model already include profiles
-        _x = m.elements[0].profile_name  # check the fist one
         m.write("out.archimate", writer=Writers.archi)  # write out
         m.read("out.archimate")  # and read back to ensure profiles are kept on elements
         for p in m.profiles:  # check
