@@ -1,183 +1,221 @@
-# Feature 007 Tasks: Fix Writer Bugs - OpenGroup Exchange Format
+# Feature 007 Tasks: Fix Writer Bugs - OpenGroup Exchange Format Compliance
 
-## Status Overview
-- **Total Tasks**: 5
-- **Completed**: 4 ✅
-- **In Progress**: 1 🔄
-- **Pending**: 0
-
-## Task Breakdown
-
-### ✅ COMPLETED: 007-T1 - Identify root cause of XML parsing errors
-**Description**: Analyze archimateWriter.py and compare output with valid OpenGroup Exchange fixtures to identify schema/structure mismatches.
-
-**Work Done**:
-- Compared generated file with demo-good.xml reference
-- Identified schema location mismatch: pointing to archimate3_Diagram.xsd (diagram schema) instead of archimate3.xsd (model schema)
-- Identified namespace version inconsistency: 3.0 namespace but 3.1 schema location
-- Root cause: XML validator couldn't find `<model>` element declaration in diagram schema
-
-**Root Cause Analysis**:
-- Line 381: Schema location pointed to wrong schema file (Diagram schema, not Model schema)
-- Schema URI mismatch: namespace says 3.0 but schema location referenced 3.1
-- This caused error: `cvc-elt.1.a: Declaration of element 'model' not found`
-
-**Status**: ✅ Complete
-**Date Completed**: 2026-05-02
-**Time Spent**: 45 min
+## Overview
+- **Feature**: Fix Writer Bugs - OpenGroup Exchange Format
+- **Total Tasks**: 14
+- **Phases**: 5 (Setup, Foundational, US1, US2, US3)
+- **MVP Scope**: US1 (already complete) ✅
 
 ---
 
-### ✅ COMPLETED: 007-T2 - Fix archimateWriter.py schema location
-**Description**: Correct the schema location reference to point to the correct model schema file with matching version.
+## Phase 1: Setup & Project Structure
 
-**Changes Made**:
-- Line 381: Schema location `archimate3_Diagram.xsd` → `archimate3.xsd`
-- Line 381: Schema URI `3.1` → `3.0` (match namespace version)
-- Rest of XML structure remains unchanged (model root element, identifier attribute, name as child element)
-
-**Verification**:
-```xml
-<!-- Before (BROKEN) -->
-<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" 
-       xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd"
-       identifier="id-...">
-  <name>e-commerce platform</name>
-  ...
-</model>
-
-<!-- After (FIXED) -->
-<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" 
-       xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.0/archimate3.xsd"
-       identifier="id-...">
-  <name>e-commerce platform</name>
-  ...
-</model>
-```
-
-**Status**: ✅ Complete
-**Date Completed**: 2026-05-02
-**Time Spent**: 15 min
-**Files Modified**: `src/pyArchimate/writers/archimateWriter.py` (1 line in template)
+- [ ] T001 Verify Feature 007 directory structure with plan.md, spec.md, and implementation docs
+- [ ] T002 Create .specify/feature.json context for Feature 007
+- [ ] T003 Configure git tracking for feature branch 007-fix-ouput-file-format-issues
 
 ---
 
-### ✅ COMPLETED: 007-T3 - Validate generated files parse correctly
-**Description**: Generate test files with fixed writer and validate they parse without schema errors.
+## Phase 2: Foundational Prerequisites
 
-**Validation Completed**:
-- ✅ Generated model with elements, relationships, views using fixed writer
-- ✅ Parsed with Python XML parser (xml.dom.minidom) - no errors
-- ✅ File structure matches demo-good.xml reference file
-- ✅ Namespace and schema location now consistent and valid
-
-**Test Output**:
-```
-File: temp/demo.xml
-Status: ✅ Parses without errors
-Schema: http://www.opengroup.org/xsd/archimate/3.0/archimate3.xsd
-Namespace: http://www.opengroup.org/xsd/archimate/3.0/
-Root Element: <model>
-```
-
-**Status**: ✅ Complete
-**Date Completed**: 2026-05-02
-**Time Spent**: 20 min
+- [ ] T004 Review archimateWriter.py and archimateReader.py architecture
+- [ ] T005 Identify all reader/writer implementations in src/pyArchimate/writers/ and src/pyArchimate/readers/
+- [ ] T006 [P] Document current file format detection logic (if any) in Model.read() and Model.write()
+- [ ] T007 [P] Extract file extension handling requirements from spec.md US2
 
 ---
 
-### ✅ COMPLETED: 007-T4 - Code quality and linting fixes
-**Description**: Ensure all code changes pass pre-commit checks (ruff, pyright, mypy, pytest).
+## Phase 3: User Story 1 - Fix OpenGroup Exchange Writer Schema Validation [P1]
 
-**Fixes Applied**:
-- Fixed 11 linting errors across test files
-- Removed unused variable assignments
-- Fixed bare except clauses and assert False statements
-- Removed imports and tests for non-existent functions
-- All ruff, pyright, mypy, and pytest checks now pass
+**Story Goal**: Generate valid OpenGroup Exchange format files that parse without schema errors  
+**Status**: ✅ COMPLETE
 
-**Pre-Commit Results**:
-```
-✅ poetry update/install
-✅ ruff linting (11 errors fixed)
-✅ pyright type checking
-✅ mypy type checking
-✅ pytest unit tests (696 tests passed)
-```
-
-**Files Modified**:
-- `tests/features/steps/p3_steps.py` - 3 fixes
-- `tests/unit/test_advanced_queries.py` - 6 variable removals
-- `tests/integration/test_round_trip_fidelity.py` - 1 variable removal
-- `tests/unit/readers/test_archireader_helpers.py` - import/test cleanup
-
-**Status**: ✅ Complete
-**Date Completed**: 2026-05-02
-**Time Spent**: 25 min
+- [ ] T008 [US1] [P] Verify schema location fix in archimateWriter.py line 381 (archimate3.xsd)
+- [ ] T009 [US1] [P] Confirm namespace URI matches schema version (3.0/3.0)
+- [ ] T010 [US1] Validate generated temp/demo.xml parses without cvc-elt.1.a errors
+- [ ] T011 [US1] Compare temp/demo.xml structure against specs/007-fix-writers-bugs/demo-good.xml reference
+- [ ] T012 [US1] Run pytest unit tests to ensure no regressions (696 tests pass)
+- [ ] T013 [US1] Verify ruff linting passes (11 linting fixes applied)
 
 ---
 
-### 🔄 IN PROGRESS: 007-T5 - Integration test: round-trip preservation
-**Description**: Test that data written and read back preserves all information (elements, relationships, views, styles).
+## Phase 4: User Story 2 - Implement Smart File Format Selection [P2]
 
-**Test Scenarios**:
-- [ ] Round-trip: write → read → verify elements match
-- [ ] Round-trip: preserve element properties and metadata
-- [ ] Round-trip: preserve relationship types and directions
-- [ ] Round-trip: preserve view layout (node positions, connections)
-- [ ] Test with all fixture files
-- [ ] Test with complex models (many elements, relationships)
+**Story Goal**: Auto-select appropriate reader/writer based on file extension
 
-**Notes**:
-- Unit tests pass (696 tests)
-- Pre-commit checks all pass
-- Ready for integration test writing
-- Can use existing fixture files for round-trip tests
+**Independent Test Criteria**:
+- Write model with `.archimate` → uses Archi native format
+- Write model with `.xml` → uses OpenGroup Exchange format
+- Read `.archimate` file → parses correctly
+- Read `.xml` file → parses correctly
+- Round-trip with both formats preserves data
 
-**Status**: 🔄 In progress - tests to be added
-**Estimated Time**: 45 min
+### Implementation Tasks
+
+- [ ] T014 [US2] [P] Create file extension detection utility in src/pyArchimate/writers/__init__.py
+- [ ] T015 [US2] [P] Create file extension detection utility in src/pyArchimate/readers/__init__.py
+- [ ] T016 [US2] Refactor Model.write() method to select writer based on extension (src/pyArchimate/model.py)
+- [ ] T017 [US2] Refactor Model.read() method to select reader based on extension (src/pyArchimate/model.py)
+- [ ] T018 [US2] Update Writers enum to include both archi and archimate formats (src/pyArchimate/enums.py)
+- [ ] T019 [US2] Add integration tests for `.archimate` write/read cycle (tests/integration/test_format_selection.py)
+- [ ] T020 [US2] Add integration tests for `.xml` write/read cycle (tests/integration/test_format_selection.py)
+- [ ] T021 [US2] Update documentation in Model class docstring with format selection examples (src/pyArchimate/model.py)
 
 ---
 
-## Integration with Feature 004
-Feature 007 is a **prerequisite fix** for Feature 004 (ArchiMate v3.x Specification Compliance):
-- ✅ Feature 007: Fixed writer to generate valid OpenGroup Exchange format files
-- ⏳ Feature 004: Will build on this foundation for broader compliance
+## Phase 5: User Story 3 - Remove ARIS Format Support [P3]
 
-## Success Criteria Met
-- [x] archimateWriter.py generates valid OpenGroup Exchange XML
-- [x] Schema location points to correct schema file (archimate3.xsd)
-- [x] Namespace and schema version are consistent (both 3.0)
-- [x] Generated files parse without schema validation errors
-- [x] File structure matches OpenGroup Exchange reference format
-- [x] All unit tests pass (696 tests)
-- [x] All linting checks pass (ruff, pyright, mypy)
-- [x] No regressions in existing tests
+**Story Goal**: Clean up deprecated ARIS format code
 
-## Outstanding Items
-- [ ] Round-trip integration tests (T5) - Write specific test cases
-- [ ] archi.app validation (already passes, visual QA if needed)
+**Independent Test Criteria**:
+- No ARIS imports in main API
+- All tests pass without ARIS dependencies
+- Code compiles and runs without ARIS references
 
-## Dependencies
-- ✅ Feature 004: ArchiMate v3.x Specification Compliance (waiting for this fix)
+### Implementation Tasks
 
-## Commits
-1. `fix(writers): correct schema location in archimateWriter OpenGroup Exchange format`
-   - One-line schema location fix in XML template
-   - Enables valid XML parsing
-   
-2. `fix: resolve pre-commit check failures (linting and imports)`
-   - 11 linting/code quality fixes
-   - All checks now passing
+- [ ] T022 [US3] [P] Identify all ARIS format references in codebase (grep -r "aris" src/)
+- [ ] T023 [US3] [P] Mark arisAMLreader.py as deprecated with migration notice (src/pyArchimate/readers/arisAMLreader.py)
+- [ ] T024 [US3] Remove ARIS format from Writers enum or mark as deprecated (src/pyArchimate/enums.py)
+- [ ] T025 [US3] Remove ARIS format imports from main package __init__.py (src/pyArchimate/__init__.py)
+- [ ] T026 [US3] Remove ARIS-related test files or mark as legacy (tests/unit/readers/test_arisAMLreader.py)
+- [ ] T027 [US3] Update API documentation to remove ARIS format mentions (docs/api.md or equivalent)
+- [ ] T028 [US3] Add deprecation notice to changelog for ARIS format removal (CHANGELOG.md)
 
-## Timeline
-- **Identified**: 2026-05-02 ~11:30
-- **Fixed**: 2026-05-02 ~12:00
-- **Validated**: 2026-05-02 ~12:15
-- **Pre-commit Passed**: 2026-05-02 ~12:45
-- **Total Time**: ~1.25 hours for analysis and fixes
+---
 
-## Next Steps
-1. Write round-trip integration tests (T5)
-2. Merge to develop branch
-3. Proceed with Feature 004 work
+## Phase 6: Polish & Cross-Cutting Concerns
+
+- [ ] T029 [P] Run full pre-commit checks (ruff, pyright, mypy, pytest)
+- [ ] T030 [P] Update specs/007-fix-writers-bugs/ documentation with final status
+- [ ] T031 Ensure Feature 004 integration compatibility (schema-compliant files)
+- [ ] T032 Document new file format selection behavior in README.md
+
+---
+
+## Implementation Strategy
+
+### MVP Scope (Minimum Viable Product)
+✅ **US1**: Fix OpenGroup Exchange Writer Schema Validation
+- One-line schema location fix
+- All validation complete
+- Ready for Feature 004
+
+### Phase 2 (Ready After US1)
+🔄 **US2**: Implement Smart File Format Selection
+- Refactor Model read/write methods
+- Adds `.archimate` / `.xml` auto-selection
+- Enables parallel work on US3
+
+### Phase 3 (Polish)
+⏳ **US3**: Remove ARIS Format Support
+- Code cleanup only
+- No impact on core functionality
+- Can run in parallel with US2
+
+---
+
+## Task Dependencies
+
+```
+T001-T003 (Setup)
+    ↓
+T004-T007 (Foundational)
+    ├── T008-T013 (US1) ✅ COMPLETE
+    ├── T014-T021 (US2) 🔄 Ready to start
+    └── T022-T028 (US3) ⏳ Ready to start (parallel with US2)
+        ↓
+T029-T032 (Polish)
+```
+
+---
+
+## Parallel Execution Examples
+
+### Scenario 1: Sequential (Recommended for this feature)
+1. Complete US1 ✅ (already done)
+2. Complete US2 (blocks US3 refactoring)
+3. Complete US3 while waiting for integration tests
+
+### Scenario 2: Parallel (After US1)
+- **Thread 1**: T014-T021 (US2 implementation)
+- **Thread 2**: T022-T028 (US3 cleanup) - can start after T005
+- Both threads converge at T029 (final checks)
+
+### Scenario 3: MVP Only (Current)
+- Deploy US1 ✅ with Feature 004
+- Schedule US2 and US3 for next sprint
+
+---
+
+## Testing Strategy
+
+### Unit Tests (Per US)
+- **US1**: Schema validation, file parsing (T012)
+- **US2**: Extension detection, format selection
+- **US3**: Import cleanup, no ARIS references
+
+### Integration Tests (Per US)
+- **US1**: Round-trip with OpenGroup format
+- **US2**: Round-trip with `.archimate` and `.xml` extensions
+- **US3**: Full test suite passes without ARIS
+
+### Pre-Commit Checks (All Phases)
+- ✅ ruff linting
+- ✅ pyright type checking
+- ✅ mypy type checking
+- ✅ pytest (696+ tests)
+
+---
+
+## Success Criteria
+
+### Phase 1 & 2: Setup & Foundation
+- [ ] Feature 007 structure established
+- [ ] Readers/writers inventory complete
+- [ ] Git workflow configured
+
+### US1: Schema Fix [P1]
+- [x] Schema location corrected (archimate3.xsd)
+- [x] Namespace/schema version consistent (3.0/3.0)
+- [x] Generated files parse without errors
+- [x] All tests pass (696 tests)
+- [x] Pre-commit checks pass
+
+### US2: Format Selection [P2]
+- [ ] File extension detection works
+- [ ] Model.read() auto-selects reader
+- [ ] Model.write() auto-selects writer
+- [ ] Round-trip tests pass for both formats
+- [ ] Backward compatibility maintained
+
+### US3: ARIS Removal [P3]
+- [ ] No ARIS imports in main API
+- [ ] All ARIS tests removed or marked legacy
+- [ ] Tests pass without ARIS dependencies
+- [ ] Documentation updated
+
+### Polish & Integration
+- [ ] All pre-commit checks pass
+- [ ] Feature 004 compatibility verified
+- [ ] Documentation complete
+
+---
+
+## Status Tracking
+
+| Story | Status | Start | Target | Owner |
+|-------|--------|-------|--------|-------|
+| US1 | ✅ Complete | 2026-05-02 | 2026-05-02 | Claude |
+| US2 | ⏳ Ready | - | 2026-05-03 | - |
+| US3 | ⏳ Ready | - | 2026-05-03 | - |
+| Polish | ⏳ Pending | - | 2026-05-04 | - |
+
+---
+
+## Notes
+
+- **US1 is production-ready**: Can merge to develop branch now
+- **US2 impacts API**: Requires code review for backward compatibility
+- **US3 is cleanup**: Low risk, can be done iteratively
+- **Feature 004 depends on US1**: Can proceed with this fix in place
