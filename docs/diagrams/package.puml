@@ -27,6 +27,12 @@ package "pyArchimate" {
     class Relationship
   }
 
+  class "viewpoint.py" as ViewpointMod {
+    class Viewpoint
+  }
+
+  class "viewpoint_registry.py" as ViewpointRegistry
+
   class "constants.py" as Constants
   class "enums.py" as Enums
   class "exceptions.py" as Exceptions
@@ -39,15 +45,17 @@ package "pyArchimate" {
   }
 
   package "readers" {
-    class archiReader
-    class archimateReader
-    class arisAMLreader
+    class "_archireader_helpers.py" as ArchiReaderHelpers
+    class "_arisamlreader_helpers.py" as ArisAMLHelpers
+    class "archiReader.py" as ArchiReader
+    class "archimateReader.py" as ArchimateReader
+    class "arisAMLreader.py" as ArisAMLReader
   }
 
   package "writers" {
-    class archimateWriter
-    class archiWriter
-    class csvWriter
+    class "archimateWriter.py" as ArchimateWriter
+    class "archiWriter.py" as ArchiWriter
+    class "csvWriter.py" as CsvWriter
   }
 }
 
@@ -62,13 +70,23 @@ ModelMod ..> ViewMod : references
 ViewMod ..> ModelMod : references
 ModelMod --> readers : uses
 ModelMod --> writers : uses
+ModelMod --> ViewpointRegistry : uses
 
 readers ..> ModelMod : populates
 writers ..> ModelMod : serializes
+
+ArchiReader --> ArchiReaderHelpers : uses
+ArchimateReader --> ArchiReaderHelpers : uses
+ArisAMLReader --> ArisAMLHelpers : uses
 
 ModelMod --> Constants : uses
 ViewMod --> Constants : uses
 ElementMod --> Constants : uses
 RelationshipMod --> Constants : uses
+ViewpointMod --> Constants : uses
+
+ElementMod --> Enums : uses
+RelationshipMod --> Enums : uses
+ViewMod --> Enums : uses
 
 @enduml

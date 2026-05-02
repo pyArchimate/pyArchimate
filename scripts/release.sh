@@ -22,26 +22,34 @@ fi
 
 echo "✅ On master with clean working tree."
 
+echo ""
+echo "📐 Checking layer boundaries..."
+poetry run scripts/check_layer_boundaries.py
+
+echo ""
+echo "📐 Regenerating diagrams..."
+claude -p "Review each of the diagrams in @docs/diagrams/*.puml, compare against @src/pyArchimate, and update as required." --dangerously-skip-permissions
+
 # ---------------------------------------------------------------------------
 # Step 1: Regenerate PlantUML diagrams
 # ---------------------------------------------------------------------------
 echo ""
-echo "📐 Regenerating diagrams..."
-bash scripts/render_diagrams.sh
-
-# ---------------------------------------------------------------------------
-# Step 2: Regenerate AI.md
-# ---------------------------------------------------------------------------
-echo ""
-echo "🤖 Regenerating AI.md..."
-poetry run python scripts/generate_ai_docs.py
+echo "📐 Rerendering diagrams..."
+poetry run scripts/render_diagrams.sh
 
 # ---------------------------------------------------------------------------
 # Step 3: Build Sphinx documentation
 # ---------------------------------------------------------------------------
 echo ""
 echo "📚 Building Sphinx documentation..."
-bash scripts/create_documentation.sh
+poetry run scripts/create_documentation.sh
+
+# ---------------------------------------------------------------------------
+# Step 2: Regenerate AI.md
+# ---------------------------------------------------------------------------
+# echo ""
+# echo "🤖 Regenerating AI.md..."
+# poetry run python scripts/generate_ai_docs.py
 
 # ---------------------------------------------------------------------------
 # Step 4: Commit any updated artefacts before bumping
@@ -58,7 +66,7 @@ fi
 # ---------------------------------------------------------------------------
 echo ""
 echo "🧪 Running test suite..."
-bash scripts/pre_push_checks.sh
+poetry run scripts/pre_push_checks.sh
 
 # ---------------------------------------------------------------------------
 # Step 6: Commitizen version bump (updates pyproject.toml + CHANGELOG + tag)

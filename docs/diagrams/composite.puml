@@ -1,63 +1,105 @@
 @startuml
-title pyArchimate Composite Diagram
+title pyArchimate Composite Diagram (Internal Structure)
 
 object Model {
-  - elems_dict : dict[id, Element]
-  - rels_dict : dict[id, Relationship]
-  - views_dict : dict[id, View]
-  - profiles_dict : dict[id, Profile]
-  - nodes_dict : dict[id, Node] {registry}
-  - conns_dict : dict[id, Connection] {registry}
+  - elems_dict : dict[str, Element]
+  - rels_dict : dict[str, Relationship]
+  - views_dict : dict[str, View]
+  - nodes_dict : dict[str, Node] {registry}
+  - conns_dict : dict[str, Connection] {registry}
+  - labels_dict : dict[str, Node] {label registry}
+  - _profiles_dict : dict[str, Profile]
 }
 
 object Element {
-  - properties : dict
+  - _uuid : str
+  - name : str
+  - _elem_type : str
+  - desc : str
+  - folder : str
+  - parent: Model
+  - properties : dict[str, any]
+  - _visual_style : dict
 }
 
 object Relationship {
-  - source : Element|Relationship
-  - target : Element|Relationship
+  - _uuid : str
+  - name : str
+  - _rel_type : str
+  - _source : Element|Relationship
+  - _target : Element|Relationship
+  - desc : str
+  - folder : str
+  - properties : dict[str, any]
 }
 
 object Profile {
+  - _uuid : str
+  - name : str
   - concept : str
 }
 
 object View {
-  - nodes_dict : dict[id, Node]
-  - conns_dict : dict[id, Connection]
+  - _uuid : str
+  - name : str
+  - desc : str
+  - folder : str
+  - nodes_dict : dict[str, Node]
+  - conns_dict : dict[str, Connection]
+  - model : Model
 }
 
 object Node {
-  - ref : id {Element|View}
-  - parent : View | Node
-  - nodes_dict : dict[id, Node] {children}
+  - _uuid : str
+  - _ref : str {Element|View|Label id}
+  - name : str
+  - desc : str
+  - _type : str
+  - concept : Element
+  - x, y : int
+  - w, h : int
+  - rx, ry : int
+  - fill_color : str
+  - line_color : str
+  - nodes_dict : dict[str, Node] {nested children}
+  - view : View
+  - parent : Node | View
 }
 
 object Connection {
-  - ref : id {Relationship}
-  - source : Node
-  - target : Node
+  - _uuid : str
+  - _ref : str {Relationship id}
+  - name : str
+  - _type : str
+  - concept : Relationship
+  - _source : str {Node id}
+  - _target : str {Node id}
   - bendpoints : list[Point]
 }
 
 object Point {
-  - x, y : int
+  - x : int
+  - y : int
+  - idx : int
 }
 
-Model *-- Element
-Model *-- Relationship
-Model *-- View
-Model *-- Profile
+Model *-- Element : contains
+Model *-- Relationship : manages
+Model *-- View : owns
+Model o-- Profile : catalogs
+Model o-- Node : registry (all nodes)
+Model o-- Connection : registry (all connections)
 
-View *-- Node
-View *-- Connection
+View *-- Node : hosts
+View *-- Connection : contains
 
 Node --> Element : visualizes
 Node *-- Node : nested children
+Node o-- "1" View : belongs to
+Node "0..*" -- "*" Connection : source/target
 
 Connection --> Relationship : visualizes
-Connection o-- Node : source / target
-Connection *-- Point : bendpoints
+Connection o-- "1" View : belongs to
+Connection "*" -- "1..*" Point : bendpoints
 
 @enduml
