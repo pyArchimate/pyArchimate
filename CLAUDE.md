@@ -1,6 +1,6 @@
 # pyArchimate Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-05-05
+Auto-generated from all feature plans. Last updated: 2026-05-03
 
 ## Active Technologies
 - Python 3.12 + Poetry, lxml, ruff, pyright, mypy, pytest, behave, pysonar (002-sonarqube-remediation)
@@ -9,8 +9,7 @@ Auto-generated from all feature plans. Last updated: 2026-05-05
 - File I/O only — no database. Outputs: `AI.md` (root), `docs/tutorial.md`, `scripts/README.md` (003-ai-documentation)
 - Python 3.10+ (per pyproject.toml) + `zipfile` (stdlib), `lxml` (existing), `pathlib` (stdlib) (007-fix-ouput-file-format-issues)
 - File I/O only (local filesystem) (007-fix-ouput-file-format-issues)
-- Python 3.10+ (per pyproject.toml `requires-python = ">=3.10,<4.0"`) + lxml (ArchiMate XML parsing), existing
-  pyArchimate view model, poetry (package manager) (011-view-auto-layout)
+- Python 3.10+ (per pyproject.toml `requires-python = ">=3.10,<4.0"`) + lxml (ArchiMate XML parsing), existing pyArchimate view model, poetry (package manager) (011-view-auto-layout)
 - File I/O only (views are persisted as XML files within .archimate archives) (011-view-auto-layout)
 
 - **Language & Package Manager**: Python 3.10+ with Poetry
@@ -50,11 +49,9 @@ specs/                   # Feature specifications
 ```
 
 ## Recent Changes
-
-- 011-view-auto-layout: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
-- 010-restructure-sphinx-docs: Added Python 3.10+ (pyproject.toml `requires-python = ">=3.10,<4.0"`) + Sphinx ≥9.1, sphinx-rtd-theme ≥3.1 (declared in pyproject.toml extras); `myst-parser` to be added
-- 011-view-auto-layout: Added Python 3.10+ (per pyproject.toml `requires-python = ">=3.10,<4.0"`) + lxml (ArchiMate XML
-  parsing), existing pyArchimate view model, poetry (package manager)
+- 011-view-auto-layout: Added Python 3.10+ (per pyproject.toml `requires-python = ">=3.10,<4.0"`) + lxml (ArchiMate XML parsing), existing pyArchimate view model, poetry (package manager)
+- 007-fix-ouput-file-format-issues: Added Python 3.10+ (per pyproject.toml) + `zipfile` (stdlib), `lxml` (existing), `pathlib` (stdlib)
+- 003-ai-documentation: Added Python 3.10+ (pyproject.toml `requires-python = ">=3.10,<4.0"`); ruff targets 3.12 + `subprocess` (stdlib) for `claude code` CLI invocation; `mistune` (Markdown AST parser) for structural validation; `lxml` (already in project); `pytest` for tutorial verification
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

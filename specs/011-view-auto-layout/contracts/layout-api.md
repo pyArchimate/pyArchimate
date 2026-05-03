@@ -4,8 +4,7 @@
 
 ## Overview
 
-This document specifies the public API contract for the auto-layout and auto-format feature. These APIs enable
-developers to programmatically apply layout and formatting to ArchiMate views.
+This document specifies the public API contract for the auto-layout and auto-format feature. These APIs enable developers to programmatically apply layout and formatting to ArchiMate views.
 
 ## Module: `pyArchimate.view.layout`
 
@@ -88,21 +87,17 @@ class LayoutResult:
 Apply auto-layout to a view.
 
 **Parameters**:
-
 - `view` (View): Target view to layout
 - `config` (LayoutConfig, optional): Layout configuration. If None, uses default LayoutConfig.
 
 **Returns**:
-
 - `LayoutResult`: Layout operation result containing modified view and metadata
 
 **Raises**:
-
 - `ValueError`: If view is invalid or config contains invalid parameters
 - `RuntimeError`: If layout fails to converge within iteration limits
 
 **Example**:
-
 ```python
 from pyArchimate.view import View
 from pyArchimate.view.layout import LayoutConfig, apply_layout
@@ -125,7 +120,6 @@ else:
 ```
 
 **Acceptance Criteria** (from spec):
-
 - SC-001: Layout completes in under 2 seconds for views with up to 300 elements
 - SC-002: 100% of elements visible and non-overlapping after layout
 - SC-008: 100% of layouts respect ArchiMate layer boundaries
@@ -137,19 +131,15 @@ else:
 Apply auto-format (element standardization) to a view without repositioning elements.
 
 **Parameters**:
-
 - `view` (View): Target view to format
 
 **Returns**:
-
 - `LayoutResult`: Format operation result containing modified view
 
 **Raises**:
-
 - `ValueError`: If view is invalid
 
 **Example**:
-
 ```python
 from pyArchimate.view import View
 from pyArchimate.view.layout import apply_format
@@ -160,7 +150,6 @@ save_view(result.view, "my_architecture_formatted.archimate")
 ```
 
 **Acceptance Criteria** (from spec):
-
 - SC-004: Auto-format reduces element size variance by 80%
 
 ---
@@ -170,19 +159,15 @@ save_view(result.view, "my_architecture_formatted.archimate")
 Revert a view to its state before the last layout operation.
 
 **Parameters**:
-
 - `view` (View): View to revert
 
 **Returns**:
-
 - `View`: View with layout reverted
 
 **Raises**:
-
 - `RuntimeError`: If no previous layout transaction exists
 
 **Example**:
-
 ```python
 from pyArchimate.view.layout import apply_layout, undo_layout
 
@@ -197,7 +182,6 @@ if result.layout_quality == "poor":
 ```
 
 **Acceptance Criteria** (from spec):
-
 - SC-006: Undo/rollback successfully restores view in 100% of test cases
 
 ---
@@ -226,10 +210,8 @@ if result.layout_quality == "poor":
 
 - **Orthogonal routing** (primary): All connections routed using 0°, ±90° angles
 - **45° fallback**: If orthogonal routing produces >10 crossings, ±45° angles are allowed as fallback (non-default)
-- **Label positioning**: Labels placed perpendicular to connection segments; collision-free positioning guaranteed if
-  possible
-- **Crossing minimization**: Barycentric method applied post-routing to reduce crossings by at least 60% vs. random
-  layout
+- **Label positioning**: Labels placed perpendicular to connection segments; collision-free positioning guaranteed if possible
+- **Crossing minimization**: Barycentric method applied post-routing to reduce crossings by at least 60% vs. random layout
 
 ### Element Formatting
 
@@ -271,8 +253,7 @@ if result.layout_quality == "poor":
 ## Backward Compatibility
 
 - **Version 1.0**: Initial release; no prior versions to maintain compatibility with
-- **Future versions**: Will maintain `apply_layout(view, config)` signature for backward compatibility; new parameters
-  will use defaults
+- **Future versions**: Will maintain `apply_layout(view, config)` signature for backward compatibility; new parameters will use defaults
 
 ---
 
@@ -281,34 +262,34 @@ if result.layout_quality == "poor":
 All public functions MUST pass these contract tests before release:
 
 1. **Functional Tests**:
-    - `test_apply_layout_default_config()`: Apply layout with default LayoutConfig
-    - `test_apply_layout_hierarchical()`: Apply layout with hierarchical algorithm
-    - `test_apply_layout_excluded_elements()`: Verify excluded elements retain position
-    - `test_apply_format()`: Verify element size standardization
-    - `test_undo_layout()`: Verify undo/rollback correctness
-    - `test_apply_layout_large_view()`: Verify performance on 500-element view
+   - `test_apply_layout_default_config()`: Apply layout with default LayoutConfig
+   - `test_apply_layout_hierarchical()`: Apply layout with hierarchical algorithm
+   - `test_apply_layout_excluded_elements()`: Verify excluded elements retain position
+   - `test_apply_format()`: Verify element size standardization
+   - `test_undo_layout()`: Verify undo/rollback correctness
+   - `test_apply_layout_large_view()`: Verify performance on 500-element view
 
 2. **Contract Tests**:
-    - `test_layout_result_contains_modified_view()`: LayoutResult.view must be modified
-    - `test_layout_result_respects_archimate_layers()`: SC-008: 100% layer boundary compliance
-    - `test_layout_preserves_element_properties()`: Element names, types, docs unchanged
-    - `test_layout_preserves_connections()`: All connections remain valid after layout
+   - `test_layout_result_contains_modified_view()`: LayoutResult.view must be modified
+   - `test_layout_result_respects_archimate_layers()`: SC-008: 100% layer boundary compliance
+   - `test_layout_preserves_element_properties()`: Element names, types, docs unchanged
+   - `test_layout_preserves_connections()`: All connections remain valid after layout
 
 3. **Error Tests**:
-    - `test_invalid_algorithm_raises()`: Invalid algorithm raises ValueError
-    - `test_invalid_view_raises()`: Corrupt view raises ValueError
-    - `test_undo_without_history_raises()`: Raises RuntimeError
+   - `test_invalid_algorithm_raises()`: Invalid algorithm raises ValueError
+   - `test_invalid_view_raises()`: Corrupt view raises ValueError
+   - `test_undo_without_history_raises()`: Raises RuntimeError
 
 ---
 
 ## Performance Guarantees
 
-| Metric                        | Target     | Acceptance          |
-|-------------------------------|------------|---------------------|
-| Layout time (300 elements)    | <2 seconds | SC-001              |
-| Layout time (500 elements)    | <5 seconds | Derived from SC-001 |
-| Element overlap               | 0%         | SC-002              |
-| Connection overlap            | 0%         | FR-007              |
-| Label overlap                 | 0%         | FR-007              |
-| Layer boundary compliance     | 100%       | SC-008              |
-| Crossing reduction vs. random | ≥60%       | SC-005              |
+| Metric | Target | Acceptance |
+|--------|--------|-----------|
+| Layout time (300 elements) | <2 seconds | SC-001 |
+| Layout time (500 elements) | <5 seconds | Derived from SC-001 |
+| Element overlap | 0% | SC-002 |
+| Connection overlap | 0% | FR-007 |
+| Label overlap | 0% | FR-007 |
+| Layer boundary compliance | 100% | SC-008 |
+| Crossing reduction vs. random | ≥60% | SC-005 |

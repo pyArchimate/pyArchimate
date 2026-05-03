@@ -32,8 +32,7 @@
 ## Notes
 
 - **Clarifications resolved**:
-    1. FR-006: Force-directed + hierarchical algorithms (Q1: D)
-    2. FR-008: Advanced configuration parameters including spacing, margin, alignment, element exclusion, algorithm
-       selection, node size constraints, connection routing (Q2: C)
+  1. FR-006: Force-directed + hierarchical algorithms (Q1: D)
+  2. FR-008: Advanced configuration parameters including spacing, margin, alignment, element exclusion, algorithm selection, node size constraints, connection routing (Q2: C)
 
 Specification is complete and ready for `/speckit.plan`.

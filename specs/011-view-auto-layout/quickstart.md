@@ -1,20 +1,15 @@
 # Quickstart: Auto-Layout and Auto-Format
 
-**Version**: 1.0 | **Date**: 2026-05-03  
-**⚠️ Status**: BETA — Features are stable but may evolve. Feedback welcome.
-
----
+**Version**: 1.0 | **Date**: 2026-05-03
 
 ## 5-Minute Overview
 
-The auto-layout feature automatically repositions elements in an ArchiMate view to improve readability and reduce manual
-positioning work. You can choose between two algorithms:
+The auto-layout feature automatically repositions elements in an ArchiMate view to improve readability and reduce manual positioning work. You can choose between two algorithms:
 
 - **Force-Directed** (default): General-purpose layout for mixed relationships
 - **Hierarchical**: Optimized for layered/organizational structures
 
-Both algorithms enforce ArchiMate's natural layering (Business above Application above Technology) and produce
-orthogonal connection routing with clean, collision-free labels.
+Both algorithms enforce ArchiMate's natural layering (Business above Application above Technology) and produce orthogonal connection routing with clean, collision-free labels.
 
 ## Basic Usage
 
@@ -41,7 +36,6 @@ if result.layout_quality in ["good", "acceptable"]:
 ```
 
 **Output**:
-
 ```
 Layout quality: good
 Layout time: 245.5ms
@@ -177,12 +171,10 @@ if result1.layout_quality == "poor":
 **Symptom**: Result shows `layout_quality="poor"` or many crossings
 
 **Causes**:
-
 - View is very dense (many elements/connections)
 - Conflicting constraints (e.g., tight spacing + many large elements)
 
 **Solutions**:
-
 ```python
 # Increase spacing
 config = LayoutConfig(spacing=100)
@@ -202,12 +194,10 @@ config = LayoutConfig(layer_priority=False)  # Allow crossing reduction to overr
 **Symptom**: `layout_time_ms` exceeds performance threshold
 
 **Causes**:
-
 - View has >500 elements
 - max_iterations is too high
 
 **Solutions**:
-
 ```python
 # Reduce iterations (may sacrifice quality)
 config = LayoutConfig(max_iterations=100, convergence_threshold=0.5)
@@ -224,12 +214,10 @@ config = LayoutConfig(algorithm="hierarchical")
 **Symptom**: SC-002 violation (elements overlapping)
 
 **Causes**:
-
 - Very large elements with tight spacing
 - Conflicting constraints
 
 **Solutions**:
-
 ```python
 # Increase spacing
 config = LayoutConfig(spacing=120)
@@ -246,12 +234,10 @@ config = LayoutConfig(algorithm="hierarchical")
 **Symptom**: SC-005 or label readability issues
 
 **Causes**:
-
 - Dense diagram with many long labels
 - Labels positioned by fallback strategy
 
 **Solutions**:
-
 ```python
 # Increase spacing to give labels more room
 config = LayoutConfig(spacing=80, margin=40)
@@ -317,167 +303,22 @@ config = LayoutConfig(spacing=50, margin=50, excluded_element_ids=view.all_eleme
 
 ## Performance Expectations
 
-| View Size        | Algorithm      | Expected Time |
-|------------------|----------------|---------------|
-| <50 elements     | force_directed | <100ms        |
-| 50-150 elements  | force_directed | 100-500ms     |
-| 150-300 elements | force_directed | 500ms-2s      |
-| 300-500 elements | force_directed | 2-5s          |
-| <50 elements     | hierarchical   | <50ms         |
-| 50-150 elements  | hierarchical   | 50-200ms      |
-| 150-300 elements | hierarchical   | 200-800ms     |
-| 300-500 elements | hierarchical   | 800ms-3s      |
+| View Size | Algorithm | Expected Time |
+|-----------|-----------|----------------|
+| <50 elements | force_directed | <100ms |
+| 50-150 elements | force_directed | 100-500ms |
+| 150-300 elements | force_directed | 500ms-2s |
+| 300-500 elements | force_directed | 2-5s |
+| <50 elements | hierarchical | <50ms |
+| 50-150 elements | hierarchical | 50-200ms |
+| 150-300 elements | hierarchical | 200-800ms |
+| 300-500 elements | hierarchical | 800ms-3s |
 
 *Times are approximate and depend on hardware and diagram complexity.*
 
-## Export Views as SVG Diagrams
-
-**User Story 5**: Export a laid-out (or any) view as a self-contained SVG image for inspection, sharing, or CI/CD workflows without requiring the Archi desktop tool.
-
-### Basic SVG Export
-
-```python
-from pyArchimate.view import load_view
-
-# Load a view
-view = load_view("architecture.archimate")
-
-# Export as SVG string
-svg_string = view.to_svg()
-print(svg_string)  # Valid SVG 1.1 XML
-
-# Export and write to file
-svg_string = view.to_svg(filepath="architecture.svg")
-# File written to disk
-```
-
-### SVG Output Features
-
-The exported SVG includes:
-- **White background rectangle** covering the entire canvas (0,0 to viewBox width/height)
-- **Element nodes** as white rectangles with black borders, positioned at exact x/y/w/h coordinates
-- **Element names** centered and word-wrapped inside rectangles
-- **Connections** as orthogonal polylines using stored bendpoints
-- **Arrowheads** (filled triangles) at connection target ends
-- **Connection labels** showing short relationship type names (e.g., "Serving", "Composition") on the longest segment
-
-### Example Workflow
-
-```python
-from pyArchimate.view import load_view, save_view
-from pyArchimate.view.layout import apply_layout
-
-# Load a messy diagram
-view = load_view("messy_architecture.archimate")
-
-# Apply auto-layout
-layout_result = apply_layout(view)
-
-if layout_result.layout_quality in ["good", "acceptable"]:
-    # Save the laid-out view
-    save_view(layout_result.view, "architecture_clean.archimate")
-    
-    # Export as SVG for CI/CD verification or sharing
-    svg_output = layout_result.view.to_svg(filepath="architecture_clean.svg")
-    print("SVG exported to architecture_clean.svg")
-```
-
-### Integration in CI/CD Pipelines
-
-```python
-#!/usr/bin/env python
-"""Automated diagram layout and SVG export for CI/CD."""
-
-from pathlib import Path
-from pyArchimate.view import load_view
-from pyArchimate.view.layout import apply_layout
-
-def export_all_views_as_svg(archimate_file: str, output_dir: str = "diagrams") -> None:
-    """Load all views from .archimate file, apply layout, export as SVG."""
-    
-    # Load model and iterate views
-    views = load_view(archimate_file)
-    output_path = Path(output_dir)
-    output_path.mkdir(exist_ok=True)
-    
-    for view in views:
-        # Apply layout
-        result = apply_layout(view)
-        
-        if result.layout_quality == "poor":
-            print(f"Warning: {view.name} layout quality is poor ({result.total_crossings} crossings)")
-        
-        # Export SVG
-        svg_file = output_path / f"{view.name}.svg"
-        result.view.to_svg(filepath=str(svg_file))
-        print(f"Exported: {svg_file}")
-
-if __name__ == "__main__":
-    export_all_views_as_svg("model.archimate", "diagrams")
-```
-
-### SVG Characteristics
-
-| Aspect | Details |
-|--------|---------|
-| **Format** | SVG 1.1 (valid XML) |
-| **Self-contained** | No external stylesheets or fonts required |
-| **Coordinates** | 1:1 pixel mapping; no transformation needed |
-| **ViewBox** | Dynamically calculated from element bounds + margin |
-| **Performance** | <200ms export time for views with up to 500 elements |
-| **Text** | Arial, sans-serif; word-wrapped to element width |
-| **Browser Support** | All modern browsers; renders correctly on Firefox, Chrome, Safari, Edge |
-
-### Visualization Without Archi
-
-Once exported as SVG, you can:
-- **View in browser**: Open SVG file in any web browser
-- **Edit in tools**: Import into Inkscape, Adobe Illustrator, or other SVG editors
-- **Embed in docs**: Include SVG in HTML, Markdown, or PDF documentation
-- **Version control**: Commit SVG to Git for change tracking
-- **Automate**: Process SVG with Python (xml.etree, lxml) for testing or verification
-
-### Example: Automated Diagram Validation
-
-```python
-from pathlib import Path
-import xml.etree.ElementTree as ET
-
-def validate_svg_export(svg_file: str) -> dict:
-    """Validate SVG export meets expected criteria."""
-    
-    tree = ET.parse(svg_file)
-    root = tree.getroot()
-    
-    # Define SVG namespace
-    ns = {'svg': 'http://www.w3.org/2000/svg'}
-    
-    # Count elements
-    rects = root.findall('.//svg:rect', ns)
-    polylines = root.findall('.//svg:polyline', ns)
-    texts = root.findall('.//svg:text', ns)
-    
-    # Check for white background
-    bg_rect = [r for r in rects if r.get('fill') == 'white' and r.get('x') == '0' and r.get('y') == '0']
-    
-    return {
-        'file': svg_file,
-        'element_nodes': len(rects) - len(bg_rect),  # Exclude background
-        'connections': len(polylines),
-        'labels': len(texts),
-        'has_background': len(bg_rect) > 0,
-        'valid': len(bg_rect) > 0,  # Must have white background
-    }
-
-# Usage
-result = validate_svg_export("architecture.svg")
-print(f"SVG validation: {result}")
-assert result['valid'], "SVG missing required white background"
-```
-
 ## API Reference
 
-For detailed API documentation, see [contracts/layout-api.md](contracts/layout-api.md) and [contracts/svg-export.md](contracts/svg-export.md).
+For detailed API documentation, see [contracts/layout-api.md](contracts/layout-api.md).
 
 ## Next Steps
 
@@ -488,5 +329,4 @@ For detailed API documentation, see [contracts/layout-api.md](contracts/layout-a
 
 ## Support
 
-For issues, questions, or feature requests, refer to the [specification](spec.md) or
-the [research document](research.md) for design details.
+For issues, questions, or feature requests, refer to the [specification](spec.md) or the [research document](research.md) for design details.

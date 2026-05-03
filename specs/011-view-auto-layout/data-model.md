@@ -4,76 +4,66 @@
 
 ## Overview
 
-This document defines the data entities involved in the auto-layout and auto-format feature. Most entities (View,
-Element, Connection) are existing pyArchimate model classes; new entities are introduced for layout configuration and
-results.
+This document defines the data entities involved in the auto-layout and auto-format feature. Most entities (View, Element, Connection) are existing pyArchimate model classes; new entities are introduced for layout configuration and results.
 
 ## Existing Entities (Unchanged)
 
 ### View
-
 **Location**: `src/pyArchimate/view/model.py`
 
 - **Purpose**: Container holding elements and connections; target of auto-layout operation
 - **Key Attributes**:
-    - `id`: Unique identifier
-    - `name`: View name
-    - `elements`: List[Element] — visual elements in the view
-    - `connections`: List[Connection] — visual connections between elements
-    - `metadata`: Dict — view-level metadata (zoom, pan offset, etc.)
+  - `id`: Unique identifier
+  - `name`: View name
+  - `elements`: List[Element] — visual elements in the view
+  - `connections`: List[Connection] — visual connections between elements
+  - `metadata`: Dict — view-level metadata (zoom, pan offset, etc.)
 
-**Lifecycle**: View is loaded from .archimate XML file, potentially modified by layout operation, and serialized back to
-XML.
+**Lifecycle**: View is loaded from .archimate XML file, potentially modified by layout operation, and serialized back to XML.
 
 ### Element
-
 **Location**: `src/pyArchimate/view/model.py`
 
 - **Purpose**: Individual ArchiMate element with position, size, and visual properties
 - **Key Attributes**:
-    - `id`: Unique identifier (link to model element)
-    - `position`: (x: float, y: float) — canvas position
-    - `size`: (width: float, height: float) — element dimensions
-    - `name`: String
-    - `type`: ArchiMate element type (e.g., "ApplicationComponent", "BusinessActor")
-    - `layer`: ArchiMate layer ("Business", "Application", "Technology", or compound)
-    - `properties`: Dict — user-set visual properties (color, font, line style, etc.)
-    - `documentation`: String — element documentation
+  - `id`: Unique identifier (link to model element)
+  - `position`: (x: float, y: float) — canvas position
+  - `size`: (width: float, height: float) — element dimensions
+  - `name`: String
+  - `type`: ArchiMate element type (e.g., "ApplicationComponent", "BusinessActor")
+  - `layer`: ArchiMate layer ("Business", "Application", "Technology", or compound)
+  - `properties`: Dict — user-set visual properties (color, font, line style, etc.)
+  - `documentation`: String — element documentation
 
 **Validation Rules**:
-
 - `position` must be finite (not NaN, not infinity)
 - `size` must be positive (width > 0, height > 0)
 - `layer` must be a valid ArchiMate layer (Business, Application/Element, Technology, or combination)
 
 **State Transitions**:
-
 - Created → Positioned → Formatted (during layout) → Persisted
 
 ### Connection
-
 **Location**: `src/pyArchimate/view/model.py`
 
 - **Purpose**: Visual representation of a relationship between elements
 - **Key Attributes**:
-    - `id`: Unique identifier
-    - `source_element_id`: ID of source element
-    - `target_element_id`: ID of target element
-    - `label`: String — connection label (e.g., "realizes", "accesses")
-    - `waypoints`: List[(x: float, y: float)] — polyline path for connection rendering
-    - `routing_style`: String — "orthogonal" (default) or "mixed" (allows 45°)
-    - `relationship_type`: String — ArchiMate relationship type
-    - `properties`: Dict — visual properties (color, line style, etc.)
+  - `id`: Unique identifier
+  - `source_element_id`: ID of source element
+  - `target_element_id`: ID of target element
+  - `label`: String — connection label (e.g., "realizes", "accesses")
+  - `waypoints`: List[(x: float, y: float)] — polyline path for connection rendering
+  - `routing_style`: String — "orthogonal" (default) or "mixed" (allows 45°)
+  - `relationship_type`: String — ArchiMate relationship type
+  - `properties`: Dict — visual properties (color, line style, etc.)
 
 **Validation Rules**:
-
 - `source_element_id` and `target_element_id` must reference existing elements
 - `waypoints` must form a valid polyline (no duplicate consecutive points)
 - `waypoints` must not pass through non-source/target elements (collision-free)
 - `label` text must not overlap with any connection lines or other labels
 
 **State Transitions**:
-
 - Created → Routed (during layout) → Labeled → Persisted
 
 ---
@@ -81,7 +71,6 @@ XML.
 ## New Entities (Introduced by This Feature)
 
 ### LayoutConfig
-
 **Location**: `src/pyArchimate/view/layout/core.py`
 
 Configuration object controlling auto-layout behavior.
@@ -117,7 +106,6 @@ class LayoutConfig:
 ```
 
 **Validation Rules**:
-
 - `spacing` > 0
 - `margin` >= 0
 - `algorithm` must be registered in layout registry
@@ -126,7 +114,6 @@ class LayoutConfig:
 - `grid_size` > 0 if `alignment="grid"`
 
 ### LayoutResult
-
 **Location**: `src/pyArchimate/view/layout/core.py`
 
 Result of a layout operation, containing the modified view and metadata.
@@ -153,13 +140,11 @@ class LayoutResult:
 ```
 
 **Validation Rules**:
-
 - All numeric metrics must be non-negative
 - `layout_quality` must be one of: "good", "acceptable", "poor"
 - `algorithm_used` must match `config.algorithm`
 
 ### LayerConstraint
-
 **Location**: `src/pyArchimate/view/layout/layer_constraints.py`
 
 Represents ArchiMate layer ordering constraints.
@@ -184,12 +169,10 @@ class LayerConstraint:
 ```
 
 **Validation Rules**:
-
 - Each element can belong to at most one primary layer
 - Layer ordering must be preserved: Business > Application > Technology
 
 ### RoutingResult
-
 **Location**: `src/pyArchimate/view/layout/routing/orthogonal.py`
 
 Result of connection routing operation.
@@ -207,13 +190,11 @@ class RoutingResult:
 ```
 
 **Validation Rules**:
-
 - `waypoints` must be a valid polyline (at least 2 points)
 - `crossing_count` >= 0
 - `routing_style_used` must match attempted routing method
 
 ### LabelPlacement
-
 **Location**: `src/pyArchimate/view/layout/routing/label_placement.py`
 
 Represents a positioned label with collision information.
@@ -232,44 +213,8 @@ class LabelPlacement:
 ```
 
 **Validation Rules**:
-
 - `bounds` must be non-negative width/height
 - `position` must be within reasonable canvas bounds
-
-### SpatialHashGrid (Performance Optimization)
-
-**Location**: `src/pyArchimate/view/layout/utils/geometry.py`
-
-Grid-based spatial index for O(1) neighbor lookups during force-directed layout (critical for achieving <2s target).
-
-```python
-class SpatialHashGrid:
-    """2D spatial hash for efficient repulsion force calculations."""
-    
-    cell_size: float = 150.0  # Grid cell size in pixels (tuned for ArchiMate elements)
-    grid: Dict[Tuple[int, int], Set[str]] = {}  # {cell_coords: set(node_ids)}
-    
-    def hash_position(x: float, y: float) -> Tuple[int, int]:
-        """Map (x, y) to grid cell coordinates. O(1)."""
-        
-    def add_node(node_id: str, x: float, y: float) -> None:
-        """Add node to grid at position. O(1)."""
-        
-    def get_neighbors(x: float, y: float, radius: int = 1) -> Set[str]:
-        """Get all nodes in 3x3 neighborhood (radius=1). O(1) average."""
-        
-    def clear() -> None:
-        """Reset grid for next iteration."""
-```
-
-**Purpose**: Replace O(n²) repulsion force calculation with O(n × c) where c ≈ 8-15 neighbors per cell. Expected result:
-8.5s → 1.2-1.8s for 300 nodes.
-
-**Validation Rules**:
-
-- `cell_size` must be > 0
-- `cell_size` typically 100-200px (tuned empirically)
-- All nodes must be hashed before neighbor queries
 
 ---
 
@@ -300,61 +245,6 @@ LabelPlacement
 
 ---
 
-### SymbolDefinition (SVG Export Enhancement)
-**Location**: `src/pyArchimate/view/layout/export/symbols/archimate_symbols.py`
-
-Defines the visual representation (SVG path) for each ArchiMate element type.
-
-```python
-class SymbolDefinition:
-    """SVG symbol definition for ArchiMate element type."""
-    element_type: str                       # "BusinessActor", "ApplicationComponent", etc.
-    svg_path: str                          # SVG path data (d attribute)
-    viewBox: str                           # "0 0 100 100"
-    bounding_box: Tuple[float, float, float, float]  # (x, y, width, height)
-    default_color: str                     # "#FFD700" (ArchiMate standard hex color)
-```
-
-**Key Attributes**:
-- `svg_path`: Scalable SVG path string (e.g., "M 50 10 Q 70 30...")
-- `viewBox`: Defines coordinate system for the path
-- `bounding_box`: Used for polyline clipping calculations (in SVG coordinates)
-- `default_color`: From ArchiMate 3.x specification palette
-
-**Coverage**: All 30+ ArchiMate element types across 7 layers (Business, Application, Technology, Motivation, Implementation, Other, Junction)
-
-**Lifecycle**: Symbols are immutable, pre-defined data; loaded once at SVG export time and referenced via SVG `<use>` elements.
-
----
-
-### ColorPalette (SVG Export Enhancement)
-**Location**: `src/pyArchimate/view/layout/export/symbols/color_palette.py`
-
-Maps ArchiMate element types to standard color codes.
-
-```python
-class ColorPalette:
-    """ArchiMate standard color palette."""
-    palette_name: str = "archimate_standard"     # Palette identifier
-    colors: Dict[str, str]                       # element_type → hex_color_code
-    
-    def get_color(self, element_type: str) -> str:
-        """Get standard color for element type."""
-        
-    def set_override(self, element_type: str, color: str) -> None:
-        """Set per-element color override."""
-```
-
-**Key Attributes**:
-- `colors`: Mapping of 30+ element types to HEX color codes (e.g., {"BusinessActor": "#FFD700"})
-- Supports dynamic overrides via per-element `fill_color` property
-
-**Source**: ArchiMate 3.x specification + Archi tool default theme
-
-**Validation**: Colors must have sufficient contrast (WCAG AA standard, luminance difference >4.5:1)
-
----
-
 ## Entity Lifecycle
 
 ### Layout Operation Workflow
@@ -372,29 +262,28 @@ class ColorPalette:
 
 - **Before layout**: All positions are user-set or default; may contain overlaps
 - **During layout**: Intermediate positions are calculated; transient overlaps allowed
-- **After layout**: All positions finalized; guaranteed no overlaps (except intentional grouping); all connections
-  routed; all labels positioned
+- **After layout**: All positions finalized; guaranteed no overlaps (except intentional grouping); all connections routed; all labels positioned
 - **After serialization**: View saved to .archimate XML; positions and routing preserved
 
 ---
 
 ## Validation Rules Summary
 
-| Entity          | Field           | Constraint                            |
-|-----------------|-----------------|---------------------------------------|
-| Element         | position        | Finite (x, y) values                  |
-| Element         | size            | width > 0, height > 0                 |
-| Element         | layer           | Valid ArchiMate layer                 |
-| Connection      | waypoints       | Valid polyline, collision-free        |
-| Connection      | label           | No overlap with connections or labels |
-| LayoutConfig    | spacing         | > 0                                   |
-| LayoutConfig    | algorithm       | Registered in layout_registry         |
-| LayoutResult    | total_crossings | >= 0                                  |
-| LayoutResult    | layout_time_ms  | >= 0                                  |
-| LayerConstraint | ordering        | "vertical" or "horizontal"            |
-| RoutingResult   | waypoints       | Valid polyline                        |
-| RoutingResult   | crossing_count  | >= 0                                  |
-| LabelPlacement  | bounds          | Non-negative dimensions               |
+| Entity | Field | Constraint |
+|--------|-------|-----------|
+| Element | position | Finite (x, y) values |
+| Element | size | width > 0, height > 0 |
+| Element | layer | Valid ArchiMate layer |
+| Connection | waypoints | Valid polyline, collision-free |
+| Connection | label | No overlap with connections or labels |
+| LayoutConfig | spacing | > 0 |
+| LayoutConfig | algorithm | Registered in layout_registry |
+| LayoutResult | total_crossings | >= 0 |
+| LayoutResult | layout_time_ms | >= 0 |
+| LayerConstraint | ordering | "vertical" or "horizontal" |
+| RoutingResult | waypoints | Valid polyline |
+| RoutingResult | crossing_count | >= 0 |
+| LabelPlacement | bounds | Non-negative dimensions |
 
 ---
 
