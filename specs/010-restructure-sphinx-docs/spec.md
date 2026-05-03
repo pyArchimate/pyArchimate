@@ -62,24 +62,28 @@ A developer or maintainer needs detailed API references, internal design decisio
 - Q: Navigation architecture for three skill tiers → A: Single merged documentation site with clearly labeled sections (Basic/Intermediate/Advanced) with visual dividers and sidebar navigation
 - Q: API documentation generation approach → A: Hybrid approach using Sphinx autodoc for auto-generated signatures from docstrings, with manual enhancement for examples and design rationale
 - Q: Accessibility standards → A: WCAG 2.1 Level AA compliance required
+- Q: Deep-link landing in Advanced API without context → A: Add contextual "New to this topic?" note at the top of each Advanced API page linking to the relevant Intermediate guide
+- Q: Code example validation mechanism → A: Sphinx doctest directives on Getting Started and round-trip examples only; remaining examples validated by review
+- Q: Visual separation of tiers (badges, boxes, color coding) → A: Sphinx admonition boxes (`.. note::`) with tier labels ("ℹ️ Basic", "🔧 Intermediate", "⚙️ Advanced") at section start
+- Q: Cross-tier linking strategy (Intermediate ↔ Advanced) → A: Asymmetric linking — Intermediate guides link to Advanced API in "See Also" at end; Advanced API links back to guides in "New to this topic?" at start
 
 ---
 
 ### Edge Cases
 
-- What happens when users search for a specific class or function and land in advanced API documentation without context?
+- What happens when users search for a specific class or function and land in advanced API documentation without context? → **Resolved**: Each Advanced API page includes a "New to this topic?" note linking to the relevant guide in the Intermediate tier.
 - How does the documentation handle deprecated features or legacy compatibility layers?
-- How are cross-references between basic and advanced sections organized to avoid circular navigation?
+- How are cross-references between basic and advanced sections organized to avoid circular navigation? → **Resolved**: Asymmetric linking — Intermediate guides link to Advanced in "See Also" (end); Advanced links back to guides in "New to this topic?" (start).
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: Documentation MUST be organized into three clearly distinct sections within a single Sphinx project: "Basic Usage", "Intermediate / Architecture", and "Advanced / API Reference", with visual dividers (badges, boxes, color coding) and sidebar navigation enabling readers to move between tiers without losing context
+- **FR-001**: Documentation MUST be organized into three clearly distinct sections within a single Sphinx project: "Basic Usage", "Intermediate / Architecture", and "Advanced / API Reference", with visual dividers (Sphinx admonition boxes with tier labels at section start: "ℹ️ Basic", "🔧 Intermediate", "⚙️ Advanced") and sidebar navigation enabling readers to move between tiers without losing context
 - **FR-002**: Documentation MUST provide a "Getting Started" section with a minimal working example that runs in under 2 minutes
 - **FR-003**: Documentation MUST include an "Architecture Overview" section that maps the actual package structure (readers, writers, model, validation, etc.) to their responsibilities
 - **FR-004**: Documentation MUST provide "Extending pyArchimate" guide with clear examples of adding custom elements, relationships, or writers
-- **FR-005**: Documentation MUST include complete API reference for all public modules and classes using a hybrid approach: auto-generated signatures from docstrings via Sphinx autodoc, enhanced with manually written usage examples, design rationale, and integration patterns
+- **FR-005**: Documentation MUST include complete API reference for all public modules and classes using a hybrid approach: auto-generated signatures from docstrings via Sphinx autodoc, enhanced with manually written usage examples, design rationale, and integration patterns; each Advanced API page MUST include a contextual "New to this topic?" note linking to the relevant Intermediate guide
 - **FR-006**: Documentation MUST explain core domain concepts (ArchiMate elements, relationships, metamodel) with clear definitions and visual aids where applicable
 - **FR-007**: Documentation MUST include a search or index that helps users locate both concepts and specific APIs
 - **FR-008**: Documentation MUST be organized by module/capability rather than by implementation file structure
@@ -100,7 +104,7 @@ A developer or maintainer needs detailed API references, internal design decisio
 - **SC-002**: Documentation structure visibly separates basic/intermediate/advanced content with clear navigation between levels
 - **SC-003**: Every public API (module, class, function) in the library has documented signature, parameters, return type, and at least one usage example
 - **SC-004**: Package structure documentation matches actual source directory layout and is understandable by a developer unfamiliar with the codebase
-- **SC-005**: All code examples in documentation are validated to run against the current release and reflect actual API behavior
+- **SC-005**: Code examples in Getting Started and round-trip sections are validated via Sphinx doctest; remaining examples are verified against the current release by review and reflect actual API behavior
 - **SC-006**: Search or table of contents allows users to locate documentation by concept (e.g., "How to add a custom element?") or by API name (e.g., "ModelWriter class")
 - **SC-007**: No broken internal links or references between documentation sections
 - **SC-008**: Documentation meets WCAG 2.1 Level AA accessibility compliance for keyboard navigation, color contrast, semantic HTML, and alternative text for images/diagrams

@@ -24,13 +24,19 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
-    'sphinx.ext.autosummary'
+    'sphinx.ext.autosummary',
+    'myst_parser'
 ]
 
 templates_path = ['_templates']
 exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
 
 root_doc = 'index'
+
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown'
+}
 
 # Suppress "more than one target found for cross-reference" warnings.
 # These arise because pyArchimate.pyArchimate re-exports every public symbol,

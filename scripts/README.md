@@ -54,8 +54,38 @@ Enforces the project's architectural layering rules (e.g., Layer 2 must not impo
 ### `render_diagrams.sh`
 Renders all `.puml` files in `docs/diagrams/` to `.png` using the PlantUML web service. Requires `curl`.
 
+### `build_docs.sh`
+Quick incremental build for development. Generates HTML documentation in `docs/build/html/`.
+
+**Usage:**
+```bash
+./scripts/build_docs.sh [--clean] [--open]
+```
+
+**Options:**
+- `--clean` — Remove old build and rebuild from scratch
+- `--open` — Open documentation in your default browser
+
+**When to use:** During documentation development for fast iteration.
+
+### `build_docs_release.sh`
+Full release build with validation. Performs a clean build and validates:
+- No broken cross-references
+- All documents included in toctree
+- No RST syntax errors
+- Proper HTML generation
+
+**Usage:**
+```bash
+./scripts/build_docs_release.sh [--deploy]
+```
+
+**When to use:** Before releasing or publishing documentation to ensure quality.
+
 ### `create_documentation.sh`
-Builds the project's Sphinx documentation into `build/html`.
+Legacy script. Builds the project's Sphinx documentation into `build/html`. 
+
+**Recommendation:** Use `build_docs.sh` or `build_docs_release.sh` instead for better features and validation.
 
 ### `generate_ai_docs.py`
 

@@ -1,372 +1,230 @@
-Element Hierarchy & Grouping Guide
-===================================
+Element Hierarchies
+===================
 
-This guide explains how to organize ArchiMate elements into parent-child hierarchies for modeling complex enterprise architectures with logical grouping.
+.. note::
 
-Core Concepts
--------------
+   🔧 **Intermediate / Architecture** — Learn how to organize elements into parent-child hierarchies and query relationships within them.
 
-**Hierarchy**: A tree structure where elements can have a single parent and multiple children.
+What Is a Hierarchy?
+~~~~~~~~~~~~~~~~~~~~
 
-**Parent-Child Relationship**: A containment relationship where a parent element groups one or more child elements.
+A **hierarchy** (or **composite structure**) is a parent-child relationship between elements of the same type. Hierarchies allow you to:
 
-**Root Elements**: Elements with no parent (top level of hierarchy).
+- Organize complex systems into sub-systems
+- Represent nested processes or services
+- Group related elements for readability
 
-**Leaf Elements**: Elements with no children (bottom level).
+For example, a business process can have sub-processes, which can have further sub-processes (up to a typical depth limit of 5 levels in ArchiMate).
 
-**Depth**: Number of levels from root (root = depth 0).
-
-**Siblings**: Elements that share the same parent.
+The relationship type for parent-child composition is ``RelationType.ComposedOf``.
 
 Creating Hierarchies
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
-Basic Parent-Child Relationship
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Adding a child element**
 
-To organize elements into a hierarchy, use ``Model.add_child()``:
-
-.. code-block:: python
-
-   from pyArchimate import ArchiType
-   from pyArchimate.model import Model
-
-   # Create elements
-   model = Model('Enterprise Architecture')
-
-   process = model.add(ArchiType.BusinessProcess, 'Order Management')
-   func = model.add(ArchiType.BusinessFunction, 'Order Entry')
-   service = model.add(ArchiType.BusinessService, 'Form Service')
-
-   # Create relationships
-   model.add_child(process.uuid, func.uuid)
-   model.add_child(func.uuid, service.uuid)
-
-   # Result:
-   # Order Management (root)
-   #   └─ Order Entry
-   #      └─ Form Service
-
-Multi-Level Hierarchies
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Create deeper hierarchies by nesting multiple levels:
+Use the ``add_child`` method on an element:
 
 .. code-block:: python
 
-   # 3-level hierarchy
-   enterprise = model.add(ArchiType.BusinessFunction, 'Enterprise')
-   division = model.add(ArchiType.BusinessFunction, 'Sales Division')
-   department = model.add(ArchiType.BusinessFunction, 'Sales Team')
+   from pyArchimate import Model, ArchiType, RelationType
 
-   model.add_child(enterprise.uuid, division.uuid)
-   model.add_child(division.uuid, department.uuid)
+   model = Model(name="Processes")
 
-   # Verify depth
-   depth = model.get_depth(department.uuid)
-   assert depth == 2  # Root is depth 0, so this is level 2
+   # Create a parent process
+   parent = model.add_element(
+       name="Order Management",
+       element_type=ArchiType.BusinessProcess
+   )
 
-Maximum Nesting Depth
-~~~~~~~~~~~~~~~~~~~~~
+   # Add a child process
+   child = model.add_element(
+       name="Receive Order",
+       element_type=ArchiType.BusinessProcess
+   )
 
-The default maximum nesting depth is 5 levels. If you try to create a deeper hierarchy, an error occurs:
+   # Create the parent-child relationship
+   model.add_child(parent=parent, child=child)
+
+**Maximum nesting depth**
+
+ArchiMate typically restricts hierarchy depth to 5 levels. When adding a child, check that the nesting depth doesn't exceed this limit:
 
 .. code-block:: python
 
-   # This will raise ValueError if depth > 5
-   try:
-       model.add_child(deep_parent.uuid, another_child.uuid)
-   except ValueError as e:
-       print(f"Max depth exceeded: {e}")
+   from pyArchimate import Model, ArchiType
+
+   model = Model(name="Nested Processes")
+   elements = []
+
+   # Create 5-level deep hierarchy
+   for i in range(5):
+       elem = model.add_element(
+           name=f"Level {i}",
+           element_type=ArchiType.BusinessProcess
+       )
+       elements.append(elem)
+       if i > 0:
+           model.add_child(parent=elements[i-1], child=elem)
+
+   # Attempting to add a 6th level child should be validated
+   level6 = model.add_element(
+       name="Level 6",
+       element_type=ArchiType.BusinessProcess
+   )
+   # Check depth before adding
+   if elements[-1].get_depth() < 5:
+       model.add_child(parent=elements[-1], child=level6)
 
 Querying Hierarchies
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
-Get Parent
-~~~~~~~~~~
+**Get parent**
 
-Find the parent of an element:
-
-.. code-block:: python
-
-   parent = model.get_parent(func.uuid)
-   if parent:
-       print(f"Parent: {parent.name}")
-   else:
-       print("Element is at root level")
-
-Get Children
-~~~~~~~~~~~~
-
-Find all direct children of an element:
+Retrieve the parent of an element:
 
 .. code-block:: python
 
-   children = model.get_children(process.uuid)
-   for child in children:
-       print(f"Child: {child.name}")
+   child_elem = model.get_element("child_id")
+   parent = child_elem.get_parent()
 
-Get All Ancestors
-~~~~~~~~~~~~~~~~~
+**Get children**
 
-Get complete chain from element to root:
+Retrieve direct children of an element:
 
 .. code-block:: python
 
-   ancestors = model.get_ancestors(service.uuid)
-   # Returns: [service, func, process] (from leaf to root)
+   parent_elem = model.get_element("parent_id")
+   children = parent_elem.get_children()
 
-   for ancestor in ancestors:
-       print(f"{ancestor.name}")
+**Get ancestors**
 
-Get All Descendants
-~~~~~~~~~~~~~~~~~~~
-
-Get all elements under an element at any depth:
+Retrieve all ancestors up the hierarchy:
 
 .. code-block:: python
 
-   descendants = model.get_descendants(process.uuid)
-   # Returns all elements under process (breadth-first order)
+   elem = model.get_element("some_id")
+   ancestors = elem.get_ancestors()  # [parent, grandparent, ...]
 
-   print(f"Found {len(descendants)} descendants")
+**Get descendants**
 
-Get Siblings
-~~~~~~~~~~~~
-
-Find all elements with the same parent:
+Retrieve all descendants down the hierarchy:
 
 .. code-block:: python
 
-   # Create multiple children
-   func1 = model.add(ArchiType.BusinessFunction, 'Order Entry')
-   func2 = model.add(ArchiType.BusinessFunction, 'Order Review')
-   func3 = model.add(ArchiType.BusinessFunction, 'Order Fulfillment')
+   elem = model.get_element("root_id")
+   descendants = elem.get_descendants()  # All children, grandchildren, etc.
 
-   model.add_child(process.uuid, func1.uuid)
-   model.add_child(process.uuid, func2.uuid)
-   model.add_child(process.uuid, func3.uuid)
+**Get depth**
 
-   # Get siblings of func1
-   siblings = model.get_siblings(func1.uuid)
-   # Returns: [func2, func3] (excludes func1 itself)
-
-   for sibling in siblings:
-       print(f"Sibling: {sibling.name}")
-
-Hierarchy Path Queries
-~~~~~~~~~~~~~~~~~~~~~~
-
-Query elements by their path in the hierarchy:
+Get the depth of an element in the hierarchy (root level = 0):
 
 .. code-block:: python
 
-   # Exact path (single level)
-   results = model.find_by_hierarchy_path('/Order Management')
+   elem = model.get_element("some_id")
+   depth = elem.get_depth()
 
-   # Multi-level path
-   results = model.find_by_hierarchy_path('/Order Management/Order Entry')
+**Find by hierarchy path**
 
-   # Get all children (wildcard)
-   results = model.find_by_hierarchy_path('/Order Management/*')
-   # Returns: [Order Entry, Order Review, Order Fulfillment]
-
-   # Get all descendants at specific depth
-   results = model.find_by_hierarchy_path('/Order Management/Order Entry/*')
-   # Returns all services under Order Entry
-
-Root and Leaf Elements
-~~~~~~~~~~~~~~~~~~~~~~
-
-Find top-level and bottom-level elements:
+Query elements using a path-like syntax with wildcards:
 
 .. code-block:: python
 
-   # Get all root elements (no parent)
-   roots = model.get_root_elements()
+   # Find all processes at depth 2
+   results = model.find_by_hierarchy_path("Level 0/Level 1/*")
 
-   # Get all leaf elements (no children)
-   leaves = model.get_leaf_elements()
+   # Find elements matching a pattern
+   results = model.find_by_hierarchy_path("*/Receive*")
 
-Modifying Hierarchies
----------------------
+Removing Hierarchies
+~~~~~~~~~~~~~~~~~~~~
 
-Removing Relationships
-~~~~~~~~~~~~~~~~~~~~~~
+**Remove a child**
 
-Orphan a child by removing its parent relationship:
-
-.. code-block:: python
-
-   # Remove func from process
-   model.remove_child(process.uuid, func.uuid)
-
-   # func is now orphaned (no parent)
-   assert model.get_parent(func.uuid) is None
-
-   # func still exists in model but is no longer grouped
-
-Moving Elements
-~~~~~~~~~~~~~~~
-
-To "move" an element in hierarchy, remove it from old parent and add to new parent:
+Remove a parent-child relationship:
 
 .. code-block:: python
 
-   # Move func from process1 to process2
-   model.remove_child(process1.uuid, func.uuid)
-   model.add_child(process2.uuid, func.uuid)
+   parent = model.get_element("parent_id")
+   child = model.get_element("child_id")
+   model.remove_child(parent=parent, child=child)
 
-   # func is now under process2 instead of process1
+**Orphaning behavior**
 
-Deleting Elements
-~~~~~~~~~~~~~~~~~
-
-When an element is deleted, its children are orphaned (not deleted):
+When you remove a parent-child relationship, the child element remains in the model but loses its parent (becomes an "orphan"):
 
 .. code-block:: python
 
-   # Delete process
-   process.delete()
-
-   # func still exists but has no parent
-   assert model.get_parent(func.uuid) is None
-   assert func.uuid in model.elems_dict  # Still in model
-
-Cycle Detection
----------------
-
-The hierarchy system automatically prevents cycles:
-
-.. code-block:: python
-
-   # Create a relationship
-   model.add_child(parent.uuid, child.uuid)
-
-   # Try to create cycle (child as parent of original parent)
-   try:
-       model.add_child(child.uuid, parent.uuid)
-   except ValueError as e:
-       print(f"Cycle prevented: {e}")
-
-This ensures the hierarchy always forms a valid tree structure.
-
-Depth Calculation
------------------
-
-Get the nesting depth of any element:
-
-.. code-block:: python
-
-   # Root element
-   process = model.add(ArchiType.BusinessProcess, 'Process')
-   assert model.get_depth(process.uuid) == 0
-
-   # First level child
-   func = model.add(ArchiType.BusinessFunction, 'Function')
-   model.add_child(process.uuid, func.uuid)
-   assert model.get_depth(func.uuid) == 1
-
-   # Second level child
-   service = model.add(ArchiType.BusinessService, 'Service')
-   model.add_child(func.uuid, service.uuid)
-   assert model.get_depth(service.uuid) == 2
-
-Real-World Example
-------------------
-
-Complete example showing typical enterprise architecture hierarchy:
-
-.. code-block:: python
-
-   from pyArchimate import ArchiType
-   from pyArchimate.model import Model
-
-   # Create model
-   model = Model('Enterprise Architecture')
-
-   # L0: Enterprise organization
-   enterprise = model.add(ArchiType.BusinessFunction, 'Enterprise')
-
-   # L1: Business units
-   sales = model.add(ArchiType.BusinessFunction, 'Sales Division')
-   ops = model.add(ArchiType.BusinessFunction, 'Operations Division')
-   model.add_child(enterprise.uuid, sales.uuid)
-   model.add_child(enterprise.uuid, ops.uuid)
-
-   # L2: Departments
-   sales_team = model.add(ArchiType.BusinessFunction, 'Sales Team')
-   customer_svc = model.add(ArchiType.BusinessFunction, 'Customer Service')
-   model.add_child(sales.uuid, sales_team.uuid)
-   model.add_child(sales.uuid, customer_svc.uuid)
-
-   # L3: Teams and processes
-   order_entry = model.add(ArchiType.BusinessProcess, 'Order Entry')
-   order_mgmt = model.add(ArchiType.BusinessProcess, 'Order Management')
-   model.add_child(sales_team.uuid, order_entry.uuid)
-   model.add_child(sales_team.uuid, order_mgmt.uuid)
-
-   # Query the hierarchy
-   print(f"Total elements: {len(model.elems_dict)}")
-   print(f"Root elements: {len(model.get_root_elements())}")
-   print(f"Leaf elements: {len(model.get_leaf_elements())}")
-
-   # Find specific paths
-   results = model.find_by_hierarchy_path('/Enterprise/Sales Division/*')
-   print(f"Sales Division has {len(results)} direct children")
-
-   # Explore descendants
-   descendants = model.get_descendants(sales.uuid)
-   print(f"Sales Division has {len(descendants)} descendants total")
+   model.remove_child(parent=parent, child=child)
+   assert child.get_parent() is None  # Child is now orphaned
+   assert child in model.elements  # But still exists in the model
 
 Round-Trip Preservation
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
-All hierarchy relationships are preserved when exporting and importing:
+When you read and write a model, hierarchies are preserved in all supported formats:
 
 .. code-block:: python
 
-   # Create and organize model
-   process = model.add(ArchiType.BusinessProcess, 'Process')
-   func = model.add(ArchiType.BusinessFunction, 'Function')
-   model.add_child(process.uuid, func.uuid)
+   # Read a model with hierarchies
+   model = Model.read("original.archimate")
 
-   # Export to XML
-   model.write('model.archimate')
+   # Modify the model
+   # ...
 
-   # Import in new session
-   m2 = Model('reloaded')
-   m2.read('model.archimate')
+   # Write back - hierarchies are preserved
+   model.write("modified.archimate")
 
-   # Verify hierarchy is preserved
-   process2 = m2.elems_dict[process.uuid]
-   func2 = m2.elems_dict[func.uuid]
-   assert m2.get_parent(func2.uuid) == process2
+The ``ComposedOf`` relationship type is preserved during round-trip, ensuring your hierarchy structure survives export and re-import cycles.
 
-Best Practices
---------------
+Practical Example: Decomposing a Service
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. **Start with clear organization**: Define your hierarchy based on actual enterprise structure
-2. **Use meaningful names**: Names should reflect the organization level and purpose
-3. **Respect depth limits**: Keep hierarchies ≤5 levels for clarity and performance
-4. **Avoid wide-shallow trees**: Prefer deeper, narrower hierarchies for better navigation
-5. **Use types consistently**: Keep elements of same type at same hierarchy level
-6. **Document structure**: Add descriptions to explain hierarchy rationale
+Here's a practical example of building a multi-level service decomposition:
 
-Performance Considerations
---------------------------
+.. code-block:: python
 
-- **add_child()**: O(depth) - performs cycle detection
-- **get_parent()**: O(1) - instant lookup
-- **get_children()**: O(n) - linear in number of children
-- **get_ancestors()**: O(depth) - limited to max depth 5
-- **get_descendants()**: O(m) - linear in number of descendants
-- **get_siblings()**: O(n) - linear in number of siblings
+   from pyArchimate import Model, ArchiType
 
-All operations are optimized and perform well even on large models (1000+ elements).
+   model = Model(name="Service Decomposition")
+
+   # Create the top-level service
+   payment_service = model.add_element(
+       name="Payment Service",
+       element_type=ArchiType.ApplicationService
+   )
+
+   # Add sub-services (level 2)
+   payment_processing = model.add_element(
+       name="Payment Processing",
+       element_type=ArchiType.ApplicationService
+   )
+   fraud_detection = model.add_element(
+       name="Fraud Detection",
+       element_type=ArchiType.ApplicationService
+   )
+
+   model.add_child(parent=payment_service, child=payment_processing)
+   model.add_child(parent=payment_service, child=fraud_detection)
+
+   # Add sub-sub-services (level 3)
+   card_auth = model.add_element(
+       name="Card Authorization",
+       element_type=ArchiType.ApplicationService
+   )
+   model.add_child(parent=payment_processing, child=card_auth)
+
+   # Query the hierarchy
+   print(f"Payment Service has {len(payment_service.get_children())} direct children")
+   print(f"Payment Service has {len(payment_service.get_descendants())} total descendants")
+
+   # Write to file (hierarchy preserved)
+   model.write("service_hierarchy.archimate")
 
 See Also
---------
+~~~~~~~~
 
-- :doc:`../api/model`: Complete Model API reference
-- :doc:`../examples/hierarchy_examples`: Code examples for hierarchies
+- :doc:`../concepts` — Introduction to elements and relationships
+- :doc:`../architecture` — How pyArchimate organizes packages
+- :doc:`../api/model` — Full Model and Element API reference
+- :doc:`../examples/hierarchy_examples` — Code examples

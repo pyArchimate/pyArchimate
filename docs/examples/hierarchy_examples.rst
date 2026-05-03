@@ -1,192 +1,232 @@
 Hierarchy Code Examples
 =======================
 
-Complete working examples for element grouping and hierarchy queries.
+.. note::
 
-Example 1: Simple Parent-Child
-------------------------------
+   🔧 **Intermediate / Architecture** — Practical code examples for working with element hierarchies.
 
-.. code-block:: python
+Example 1: Three-Level Process Hierarchy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   from pyArchimate import ArchiType
-   from pyArchimate.model import Model
-
-   model = Model('Simple Hierarchy')
-
-   # Create elements
-   process = model.add(ArchiType.BusinessProcess, 'Main Process')
-   function = model.add(ArchiType.BusinessFunction, 'Sub Function')
-
-   # Create relationship
-   model.add_child(process.uuid, function.uuid)
-
-   # Query
-   parent = model.get_parent(function.uuid)
-   assert parent == process
-
-Example 2: Multi-Level Hierarchy
---------------------------------
+Create a simple three-level hierarchy of business processes:
 
 .. code-block:: python
 
-   # Create 3-level hierarchy
-   enterprise = model.add(ArchiType.BusinessFunction, 'Enterprise')
-   division = model.add(ArchiType.BusinessFunction, 'Sales Division')
-   department = model.add(ArchiType.BusinessFunction, 'Sales Team')
+   from pyArchimate import Model, ArchiType
 
-   model.add_child(enterprise.uuid, division.uuid)
-   model.add_child(division.uuid, department.uuid)
+   model = Model(name="Order Processing Hierarchy")
 
-   # Query all ancestors
-   ancestors = model.get_ancestors(department.uuid)
-   # Result: [department, division, enterprise]
+   # Level 1: Top-level process
+   order_mgmt = model.add_element(
+       name="Order Management",
+       element_type=ArchiType.BusinessProcess
+   )
 
-   # Check depth
-   assert model.get_depth(department.uuid) == 2
+   # Level 2: Sub-processes
+   receive_order = model.add_element(
+       name="Receive Order",
+       element_type=ArchiType.BusinessProcess
+   )
+   validate_order = model.add_element(
+       name="Validate Order",
+       element_type=ArchiType.BusinessProcess
+   )
+   fulfill_order = model.add_element(
+       name="Fulfill Order",
+       element_type=ArchiType.BusinessProcess
+   )
 
-Example 3: Sibling Queries
----------------------------
+   # Create parent-child relationships (level 2)
+   model.add_child(parent=order_mgmt, child=receive_order)
+   model.add_child(parent=order_mgmt, child=validate_order)
+   model.add_child(parent=order_mgmt, child=fulfill_order)
 
-.. code-block:: python
+   # Level 3: Sub-sub-processes
+   check_payment = model.add_element(
+       name="Check Payment",
+       element_type=ArchiType.BusinessProcess
+   )
+   check_stock = model.add_element(
+       name="Check Stock",
+       element_type=ArchiType.BusinessProcess
+   )
 
-   # Create parent with multiple children
-   parent = model.add(ArchiType.BusinessFunction, 'Parent')
-   child1 = model.add(ArchiType.BusinessFunction, 'Child 1')
-   child2 = model.add(ArchiType.BusinessFunction, 'Child 2')
-   child3 = model.add(ArchiType.BusinessFunction, 'Child 3')
+   # Create parent-child relationships (level 3)
+   model.add_child(parent=validate_order, child=check_payment)
+   model.add_child(parent=validate_order, child=check_stock)
 
-   model.add_child(parent.uuid, child1.uuid)
-   model.add_child(parent.uuid, child2.uuid)
-   model.add_child(parent.uuid, child3.uuid)
+   # Verify structure
+   print(f"Order Management has {len(order_mgmt.get_children())} direct children")
+   print(f"Order Management has {len(order_mgmt.get_descendants())} total descendants")
+   print(f"Validate Order has depth {validate_order.get_depth()}")
 
-   # Get siblings
-   siblings = model.get_siblings(child1.uuid)
-   assert len(siblings) == 2
-   assert child2 in siblings and child3 in siblings
+   # Save the model
+   model.write("order_hierarchy.archimate")
 
-Example 4: Hierarchy Path Queries
----------------------------------
+Example 2: Path Wildcard Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: python
-
-   # Create hierarchy
-   enterprise = model.add(ArchiType.BusinessFunction, 'Enterprise')
-   sales = model.add(ArchiType.BusinessFunction, 'Sales')
-   ops = model.add(ArchiType.BusinessFunction, 'Operations')
-   sales_team = model.add(ArchiType.BusinessFunction, 'Sales Team')
-
-   model.add_child(enterprise.uuid, sales.uuid)
-   model.add_child(enterprise.uuid, ops.uuid)
-   model.add_child(sales.uuid, sales_team.uuid)
-
-   # Find by path
-   results = model.find_by_hierarchy_path('/Enterprise')
-   assert enterprise in results
-
-   # Find children (wildcard)
-   results = model.find_by_hierarchy_path('/Enterprise/*')
-   assert len(results) == 2  # sales and ops
-
-   # Find at specific depth
-   results = model.find_by_hierarchy_path('/Enterprise/Sales/*')
-   assert sales_team in results
-
-Example 5: Complex Business Architecture
-----------------------------------------
+Find elements using hierarchy path patterns with wildcards:
 
 .. code-block:: python
 
-   # Enterprise structure
-   enterprise = model.add(ArchiType.BusinessFunction, 'Corporation')
+   from pyArchimate import Model, ArchiType
 
-   # Business units
-   sales_div = model.add(ArchiType.BusinessFunction, 'Sales Division')
-   ops_div = model.add(ArchiType.BusinessFunction, 'Operations Division')
-   model.add_child(enterprise.uuid, sales_div.uuid)
-   model.add_child(enterprise.uuid, ops_div.uuid)
+   model = Model(name="Service Architecture")
 
-   # Sales organization
-   sales_team = model.add(ArchiType.BusinessFunction, 'Sales Team')
-   cust_svc = model.add(ArchiType.BusinessFunction, 'Customer Service')
-   model.add_child(sales_div.uuid, sales_team.uuid)
-   model.add_child(sales_div.uuid, cust_svc.uuid)
+   # Create a multi-level service hierarchy
+   payment_service = model.add_element(
+       name="Payment Service",
+       element_type=ArchiType.ApplicationService
+   )
 
-   # Sales processes
-   order_mgmt = model.add(ArchiType.BusinessProcess, 'Order Management')
-   order_entry = model.add(ArchiType.BusinessProcess, 'Order Entry')
-   model.add_child(sales_team.uuid, order_mgmt.uuid)
-   model.add_child(order_mgmt.uuid, order_entry.uuid)
+   payment_processing = model.add_element(
+       name="Payment Processing",
+       element_type=ArchiType.ApplicationService
+   )
+   fraud_check = model.add_element(
+       name="Fraud Check",
+       element_type=ArchiType.ApplicationService
+   )
 
-   # Queries
-   assert len(model.get_root_elements()) == 1  # enterprise
-   assert model.get_depth(order_entry.uuid) == 4
-   descendants = model.get_descendants(sales_div.uuid)
-   assert len(descendants) > 0
+   model.add_child(parent=payment_service, child=payment_processing)
+   model.add_child(parent=payment_service, child=fraud_check)
 
-Example 6: Modifying Hierarchies
---------------------------------
+   # Level 3
+   auth = model.add_element(
+       name="Authorization",
+       element_type=ArchiType.ApplicationService
+   )
+   capture = model.add_element(
+       name="Capture",
+       element_type=ArchiType.ApplicationService
+   )
 
-.. code-block:: python
+   model.add_child(parent=payment_processing, child=auth)
+   model.add_child(parent=payment_processing, child=capture)
 
-   # Create initial hierarchy
-   parent1 = model.add(ArchiType.BusinessProcess, 'Parent 1')
-   parent2 = model.add(ArchiType.BusinessProcess, 'Parent 2')
-   child = model.add(ArchiType.BusinessProcess, 'Child')
+   # Query examples
+   # Find all direct children of Payment Service
+   results = model.find_by_hierarchy_path("Payment Service/*")
+   print(f"Direct children: {[e.name for e in results]}")
 
-   model.add_child(parent1.uuid, child.uuid)
+   # Find all descendants matching a pattern
+   results = model.find_by_hierarchy_path("Payment Service/*/Auth*")
+   print(f"Authorization descendants: {[e.name for e in results]}")
 
-   # Move child to parent2
-   model.remove_child(parent1.uuid, child.uuid)
-   model.add_child(parent2.uuid, child.uuid)
+   # Find all at a specific depth
+   results = model.find_by_hierarchy_path("*/Processing/*")
+   print(f"Depth 2 descendants: {[e.name for e in results]}")
 
-   assert model.get_parent(child.uuid) == parent2
+Example 3: Walking a Subtree
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Example 7: Root and Leaf Elements
----------------------------------
-
-.. code-block:: python
-
-   # Create hierarchy
-   root = model.add(ArchiType.BusinessProcess, 'Root')
-   branch = model.add(ArchiType.BusinessProcess, 'Branch')
-   leaf = model.add(ArchiType.BusinessProcess, 'Leaf')
-
-   model.add_child(root.uuid, branch.uuid)
-   model.add_child(branch.uuid, leaf.uuid)
-
-   # Query roots
-   roots = model.get_root_elements()
-   assert root in roots
-
-   # Query leaves
-   leaves = model.get_leaf_elements()
-   assert leaf in leaves
-   assert root not in leaves  # root has children
-
-Example 8: Descendants Traversal
---------------------------------
+Recursively traverse a hierarchy to process all descendants:
 
 .. code-block:: python
 
-   # Create hierarchy
-   parent = model.add(ArchiType.BusinessFunction, 'Parent')
-   child1 = model.add(ArchiType.BusinessFunction, 'Child 1')
-   child2 = model.add(ArchiType.BusinessFunction, 'Child 2')
-   grandchild = model.add(ArchiType.BusinessFunction, 'Grandchild')
+   from pyArchimate import Model, ArchiType
 
-   model.add_child(parent.uuid, child1.uuid)
-   model.add_child(parent.uuid, child2.uuid)
-   model.add_child(child1.uuid, grandchild.uuid)
+   model = Model(name="Organization Structure")
 
-   # Get all descendants
-   descendants = model.get_descendants(parent.uuid)
-   assert len(descendants) == 3  # all children and grandchildren
+   # Create an organizational hierarchy
+   company = model.add_element(
+       name="Company",
+       element_type=ArchiType.BusinessActor
+   )
 
-   # Breadth-first order
-   assert descendants[0] in [child1, child2]  # L1 before L2
+   engineering = model.add_element(
+       name="Engineering",
+       element_type=ArchiType.BusinessActor
+   )
+   backend = model.add_element(
+       name="Backend Team",
+       element_type=ArchiType.BusinessActor
+   )
 
-See Also
---------
+   model.add_child(parent=company, child=engineering)
+   model.add_child(parent=engineering, child=backend)
 
-- :doc:`../guides/element-hierarchy`: Complete hierarchy guide
-- :doc:`../api/model`: Model API reference
+   def print_hierarchy(element, indent=0):
+       """Recursively print element hierarchy."""
+       print("  " * indent + f"- {element.name}")
+       for child in element.get_children():
+           print_hierarchy(child, indent + 1)
+
+   # Print the entire organizational hierarchy
+   print_hierarchy(company)
+
+   # Calculate total span of control
+   def count_all_descendants(element):
+       """Count all descendants including self."""
+       total = 1
+       for child in element.get_children():
+           total += count_all_descendants(child)
+       return total
+
+   span = count_all_descendants(company)
+   print(f"Total organizational units: {span}")
+
+Example 4: Detecting Cycles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Implement cycle detection to ensure hierarchies are acyclic (no circular references):
+
+.. code-block:: python
+
+   from pyArchimate import Model, ArchiType
+
+   model = Model(name="Acyclic Hierarchy Check")
+
+   # Create some elements
+   a = model.add_element(name="A", element_type=ArchiType.BusinessProcess)
+   b = model.add_element(name="B", element_type=ArchiType.BusinessProcess)
+   c = model.add_element(name="C", element_type=ArchiType.BusinessProcess)
+
+   # Create a valid hierarchy
+   model.add_child(parent=a, child=b)
+   model.add_child(parent=b, child=c)
+
+   def has_cycle(element, visited=None, rec_stack=None):
+       """Check if adding a relationship would create a cycle."""
+       if visited is None:
+           visited = set()
+       if rec_stack is None:
+           rec_stack = set()
+
+       visited.add(element.id)
+       rec_stack.add(element.id)
+
+       for child in element.get_children():
+           if child.id not in visited:
+               if has_cycle(child, visited, rec_stack):
+                   return True
+           elif child.id in rec_stack:
+               return True
+
+       rec_stack.remove(element.id)
+       return False
+
+   # Check for cycles
+   print(f"Hierarchy has cycle: {has_cycle(a)}")
+
+   # Try to detect if we could add a reverse relationship (which would create a cycle)
+   def can_add_relationship(parent, child):
+       """Check if adding parent->child relationship is safe."""
+       # Check if child is already an ancestor of parent
+       ancestors = parent.get_ancestors()
+       return child not in ancestors
+
+   print(f"Can add C->A? {can_add_relationship(c, a)}")  # False (would create cycle)
+   print(f"Can add C->B? {can_add_relationship(c, b)}")  # False (would create cycle)
+
+   # Add a safe new element
+   d = model.add_element(name="D", element_type=ArchiType.BusinessProcess)
+   print(f"Can add D as child of C? {can_add_relationship(d, c)}")  # True (safe)
+
+Related Documentation
+~~~~~~~~~~~~~~~~~~~~~
+
+- :doc:`../guides/element-hierarchy` — Guide to hierarchies
+- :doc:`../api/model` — Model and Element API
+- :doc:`../concepts` — Core concepts

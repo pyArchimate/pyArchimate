@@ -1,5 +1,9 @@
-Model Class - P3 Hierarchy & Query API Reference
-==================================================
+Model Class - Hierarchy & Query API Reference
+==============================================
+
+.. note::
+
+   ⚙️ **New to this topic?** Start with :doc:`../guides/element-hierarchy` to understand how hierarchies work before exploring the full API reference.
 
 The ``Model`` class provides comprehensive methods for managing element hierarchies, querying relationships, and organizing elements into parent-child structures with full round-trip XML preservation.
 
