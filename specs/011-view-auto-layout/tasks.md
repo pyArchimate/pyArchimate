@@ -6,7 +6,7 @@
 
 This document contains the detailed task breakdown for implementing the View Auto-Layout and Auto-Format feature. Tasks are organized by phase and user story, with clear dependencies and parallel execution opportunities.
 
-**Total Tasks**: 97 tasks across 7 phases  
+**Total Tasks**: 98 tasks across 7 phases  
 **Estimated Duration**: MVP (US1+US2+foundational) ~3-4 weeks; Full feature ~6-7 weeks  
 **Suggested MVP Scope**: Complete Phases 1-4 (Setup + Foundational + US1 + US2) + essential Phase 7 tasks
 
@@ -62,20 +62,20 @@ Establish project structure, create placeholder modules, and initialize testing 
 
 ---
 
-- [ ] T001 Create layout module directory structure per plan in `src/pyArchimate/view/layout/`
-- [ ] T002 [P] Create `src/pyArchimate/view/layout/__init__.py` with public API exports
-- [ ] T003 [P] Create `src/pyArchimate/view/layout/core.py` with LayoutConfig and LayoutResult classes
-- [ ] T004 [P] Create `src/pyArchimate/view/layout/algorithms/` subdirectory
-- [ ] T005 [P] Create `src/pyArchimate/view/layout/algorithms/__init__.py` with algorithm registry
-- [ ] T006 [P] Create `src/pyArchimate/view/layout/routing/` subdirectory
-- [ ] T007 [P] Create `src/pyArchimate/view/layout/format/` subdirectory
-- [ ] T008 [P] Create `src/pyArchimate/view/layout/utils/` subdirectory
-- [ ] T009 [P] Create `tests/unit/layout/` directory
-- [ ] T010 [P] Create `tests/integration/` directory for round-trip tests
-- [ ] T011 [P] Create `tests/features/layout/` directory for BDD scenarios
-- [ ] T012 Update `pyproject.toml` to add layout module dependencies and test configuration
-- [ ] T013 Verify pytest configuration discovers all layout test files correctly
-- [ ] T014 [P] Create initial GitHub Actions CI/CD workflow for layout tests (if using CI)
+- [x] T001 Create layout module directory structure per plan in `src/pyArchimate/view/layout/`
+- [x] T002 [P] Create `src/pyArchimate/view/layout/__init__.py` with public API exports
+- [x] T003 [P] Create `src/pyArchimate/view/layout/core.py` with LayoutConfig and LayoutResult classes
+- [x] T004 [P] Create `src/pyArchimate/view/layout/algorithms/` subdirectory
+- [x] T005 [P] Create `src/pyArchimate/view/layout/algorithms/__init__.py` with algorithm registry
+- [x] T006 [P] Create `src/pyArchimate/view/layout/routing/` subdirectory
+- [x] T007 [P] Create `src/pyArchimate/view/layout/format/` subdirectory
+- [x] T008 [P] Create `src/pyArchimate/view/layout/utils/` subdirectory
+- [x] T009 [P] Create `tests/unit/layout/` directory
+- [x] T010 [P] Create `tests/integration/` directory for round-trip tests
+- [x] T011 [P] Create `tests/features/layout/` directory for BDD scenarios
+- [x] T012 Update `pyproject.toml` to add layout module dependencies and test configuration
+- [x] T013 Verify pytest configuration discovers all layout test files correctly
+- [x] T014 [P] Create initial GitHub Actions CI/CD workflow for layout tests (if using CI)
 
 ---
 
@@ -97,19 +97,19 @@ Build shared layout core, geometry utilities, and foundational components requir
 
 ---
 
-- [ ] T015 Implement LayoutConfig data class in `src/pyArchimate/view/layout/core.py` with validation
-- [ ] T016 Implement LayoutResult data class in `src/pyArchimate/view/layout/core.py` with quality metrics
-- [ ] T017 Implement base LayoutAlgorithm abstract class in `src/pyArchimate/view/layout/core.py`
-- [ ] T018 [P] Implement geometry utilities in `src/pyArchimate/view/layout/utils/geometry.py` (Point, Rectangle, distance, intersection, etc.)
-- [ ] T019 [P] Implement graph utilities in `src/pyArchimate/view/layout/utils/graph.py` (connectivity analysis, crossing detection)
-- [ ] T020 [P] Implement ArchiMate layer constraints in `src/pyArchimate/view/layout/layer_constraints.py` (Layer enum, LayerConstraint class, validation)
-- [ ] T021 Implement apply_layout() public function in `src/pyArchimate/view/layout/__init__.py` with proper error handling
-- [ ] T022 [P] Implement apply_format() public function in `src/pyArchimate/view/layout/__init__.py` (delegates to FormatService)
-- [ ] T023 [P] Implement undo_layout() public function in `src/pyArchimate/view/layout/__init__.py` (uses pyArchimate transaction system)
-- [ ] T024 Create comprehensive unit tests in `tests/unit/layout/test_core.py` for LayoutConfig, LayoutResult validation
-- [ ] T025 [P] Create unit tests in `tests/unit/layout/test_geometry.py` for geometry utilities (distance, intersection, containment, etc.)
-- [ ] T026 [P] Create unit tests in `tests/unit/layout/test_layer_constraints.py` for layer constraint validation and enforcement
-- [ ] T027 Create integration test in `tests/integration/test_layout_api.py` for apply_layout(), apply_format(), undo_layout() with mock views
+- [x] T015 Implement LayoutConfig data class in `src/pyArchimate/view/layout/core.py` with validation
+- [x] T016 Implement LayoutResult data class in `src/pyArchimate/view/layout/core.py` with quality metrics
+- [x] T017 Implement base LayoutAlgorithm abstract class in `src/pyArchimate/view/layout/core.py`
+- [x] T018 [P] Implement geometry utilities in `src/pyArchimate/view/layout/utils/geometry.py` (Point, Rectangle, distance, intersection, etc.)
+- [x] T019 [P] Implement graph utilities in `src/pyArchimate/view/layout/utils/graph.py` (connectivity analysis, crossing detection)
+- [x] T020 [P] Implement ArchiMate layer constraints in `src/pyArchimate/view/layout/routing/layer_constraints.py` (Layer enum, LayerConstraint class, validation)
+- [x] T021 Implement apply_layout() public function in `src/pyArchimate/view/layout/__init__.py` with proper error handling
+- [x] T022 [P] Implement apply_format() public function in `src/pyArchimate/view/layout/__init__.py` (delegates to FormatService)
+- [x] T023 [P] Implement undo_layout() public function in `src/pyArchimate/view/layout/__init__.py` (uses pyArchimate transaction system)
+- [x] T024 Create comprehensive unit tests in `tests/unit/layout/test_core.py` for LayoutConfig, LayoutResult validation
+- [x] T025 [P] Create unit tests in `tests/unit/layout/test_geometry.py` for geometry utilities (distance, intersection, containment, etc.)
+- [x] T026 [P] Create unit tests in `tests/unit/layout/test_layer_constraints.py` for layer constraint validation and enforcement
+- [x] T027 Create integration test in `tests/integration/test_layout_api.py` for apply_layout(), apply_format(), undo_layout() with mock views
 
 ---
 
@@ -130,25 +130,25 @@ Developers can invoke auto-layout on a view with overlapping/scattered elements 
 
 ---
 
-- [ ] T028 [US1] Implement ForceDirectedLayout class skeleton in `src/pyArchimate/view/layout/algorithms/force_directed.py`
-- [ ] T029 [US1] [P] Implement Spring-Embedder physics simulation core in `src/pyArchimate/view/layout/algorithms/force_directed.py` (repulsion, attraction forces)
-- [ ] T030 [US1] [P] Implement node position update loop with convergence detection in `src/pyArchimate/view/layout/algorithms/force_directed.py`
-- [ ] T031 [US1] [P] Implement adaptive iteration limits based on element count in `src/pyArchimate/view/layout/algorithms/force_directed.py`
-- [ ] T032 [US1] Implement layer constraint enforcement in force-directed layout in `src/pyArchimate/view/layout/algorithms/force_directed.py` (vertical/horizontal forces per layer)
-- [ ] T033 [US1] Register force-directed algorithm in layout registry (`src/pyArchimate/view/layout/algorithms/__init__.py`)
-- [ ] T034 [US1] [P] Implement connection routing: orthogonal polyline generation in `src/pyArchimate/view/layout/routing/orthogonal.py`
-- [ ] T035 [US1] [P] Implement connection routing: crossing detection and counting in `src/pyArchimate/view/layout/routing/orthogonal.py`
-- [ ] T036 [US1] [P] Implement barycentric crossing reduction in `src/pyArchimate/view/layout/routing/orthogonal.py`
-- [ ] T037 [US1] Implement connection endpoint spreading in `src/pyArchimate/view/layout/routing/orthogonal.py` (equal distribution on node edges)
-- [ ] T038 [US1] [P] Implement basic label positioning in `src/pyArchimate/view/layout/routing/label_placement.py` (offset perpendicular to connection)
-- [ ] T039 [US1] [P] Implement label overlap detection in `src/pyArchimate/view/layout/routing/label_placement.py`
-- [ ] T040 [US1] [P] Implement collision avoidance for labels in `src/pyArchimate/view/layout/routing/label_placement.py` (repositioning/truncation)
-- [ ] T041 [US1] [P] Create unit tests in `tests/unit/layout/test_force_directed.py` (convergence, force calculations, iteration limits)
-- [ ] T042 [US1] [P] Create unit tests in `tests/unit/layout/test_orthogonal_routing.py` (polyline generation, crossing minimization, endpoint spreading)
-- [ ] T043 [US1] [P] Create unit tests in `tests/unit/layout/test_label_placement.py` (collision detection, repositioning, truncation)
-- [ ] T044 [US1] Create integration test in `tests/integration/test_layout_round_trip.py` for force-directed layout (load → layout → save → verify XML integrity)
-- [ ] T045 [US1] Create BDD scenario in `tests/features/layout/auto_layout.feature` for "Auto-Layout Messy Diagram" with Given/When/Then steps
-- [ ] T046 [US1] Implement BDD step definitions in `tests/features/layout/auto_layout_steps.py` to support BDD scenarios
+- [x] T028 [US1] Implement ForceDirectedLayout class skeleton in `src/pyArchimate/view/layout/algorithms/force_directed.py`
+- [x] T029 [US1] [P] Implement Spring-Embedder physics simulation core in `src/pyArchimate/view/layout/algorithms/force_directed.py` (repulsion, attraction forces)
+- [x] T030 [US1] [P] Implement node position update loop with convergence detection in `src/pyArchimate/view/layout/algorithms/force_directed.py`
+- [x] T031 [US1] [P] Implement adaptive iteration limits based on element count in `src/pyArchimate/view/layout/algorithms/force_directed.py`
+- [x] T032 [US1] Implement layer constraint enforcement in force-directed layout in `src/pyArchimate/view/layout/algorithms/force_directed.py` (vertical/horizontal forces per layer)
+- [x] T033 [US1] Register force-directed algorithm in layout registry (`src/pyArchimate/view/layout/algorithms/__init__.py`)
+- [x] T034 [US1] [P] Implement connection routing: orthogonal polyline generation in `src/pyArchimate/view/layout/routing/orthogonal.py`
+- [x] T035 [US1] [P] Implement connection routing: crossing detection and counting in `src/pyArchimate/view/layout/routing/orthogonal.py`
+- [x] T036 [US1] [P] Implement barycentric crossing reduction in `src/pyArchimate/view/layout/routing/orthogonal.py`
+- [x] T037 [US1] Implement connection endpoint spreading in `src/pyArchimate/view/layout/routing/orthogonal.py` (equal distribution on node edges)
+- [x] T038 [US1] [P] Implement basic label positioning in `src/pyArchimate/view/layout/routing/label_placement.py` (offset perpendicular to connection)
+- [x] T039 [US1] [P] Implement label overlap detection in `src/pyArchimate/view/layout/routing/label_placement.py`
+- [x] T040 [US1] [P] Implement collision avoidance for labels in `src/pyArchimate/view/layout/routing/label_placement.py` (repositioning/truncation)
+- [x] T041 [US1] [P] Create unit tests in `tests/unit/layout/test_force_directed.py` (convergence, force calculations, iteration limits)
+- [x] T042 [US1] [P] Create unit tests in `tests/unit/layout/test_orthogonal_routing.py` (polyline generation, crossing minimization, endpoint spreading)
+- [x] T043 [US1] [P] Create unit tests in `tests/unit/layout/test_label_placement.py` (collision detection, repositioning, truncation)
+- [x] T044 [US1] Create integration test in `tests/integration/test_layout_round_trip.py` for force-directed layout (load → layout → save → verify XML integrity)
+- [x] T045 [US1] Create BDD scenario in `tests/features/layout/auto_layout.feature` for "Auto-Layout Messy Diagram" with Given/When/Then steps
+- [x] T046 [US1] Implement BDD step definitions in `tests/features/layout/auto_layout_steps.py` to support BDD scenarios
 
 ---
 
@@ -169,15 +169,15 @@ Developers can invoke auto-format on a view and get standardized element sizes, 
 
 ---
 
-- [ ] T047 [US2] Implement FormatService class in `src/pyArchimate/view/layout/format/element_format.py`
-- [ ] T047 [US2] [P] Implement ArchiMate element type → standard size mapping in `src/pyArchimate/view/layout/format/element_format.py`
-- [ ] T048 [US2] [P] Implement element resizing logic in `src/pyArchimate/view/layout/format/element_format.py` (respect user overrides)
-- [ ] T049 [US2] [P] Implement font standardization per ArchiMate type in `src/pyArchimate/view/layout/format/element_format.py`
-- [ ] T050 [US2] [P] Implement grid-based alignment in `src/pyArchimate/view/layout/format/element_format.py` (snap to grid or free positioning)
-- [ ] T051 [US2] Create unit tests in `tests/unit/layout/test_format.py` (size calculation, font mapping, alignment logic)
-- [ ] T052 [US2] Create integration test in `tests/integration/test_layout_round_trip.py` for auto-format (verify size/font standardization persists after save/load)
-- [ ] T053 [US2] Create BDD scenario in `tests/features/layout/auto_format.feature` for "Format Elements and Connections"
-- [ ] T054 [US2] Implement BDD step definitions in `tests/features/layout/auto_format_steps.py`
+- [x] T047 [US2] Implement FormatService class in `src/pyArchimate/view/layout/format/element_format.py`
+- [x] T048 [US2] [P] Implement ArchiMate element type → standard size mapping in `src/pyArchimate/view/layout/format/element_format.py`
+- [x] T049 [US2] [P] Implement element resizing logic in `src/pyArchimate/view/layout/format/element_format.py` (respect user overrides)
+- [x] T050 [US2] [P] Implement font standardization per ArchiMate type in `src/pyArchimate/view/layout/format/element_format.py`
+- [x] T051 [US2] [P] Implement grid-based alignment in `src/pyArchimate/view/layout/format/element_format.py` (snap to grid or free positioning)
+- [x] T052 [US2] Create unit tests in `tests/unit/layout/test_format.py` (size calculation, font mapping, alignment logic)
+- [x] T053 [US2] Create integration test in `tests/integration/test_layout_round_trip.py` for auto-format (verify size/font standardization persists after save/load)
+- [x] T054 [US2] Create BDD scenario in `tests/features/layout/auto_format.feature` for "Format Elements and Connections"
+- [x] T055 [US2] Implement BDD step definitions in `tests/features/layout/auto_format_steps.py`
 
 ---
 
@@ -198,16 +198,16 @@ Developers can apply hierarchical layout to views with parent-child relationship
 
 ---
 
-- [ ] T055 [US3] Implement HierarchicalLayout class skeleton in `src/pyArchimate/view/layout/algorithms/hierarchical.py`
-- [ ] T056 [US3] [P] Implement Sugiyama layer assignment step respecting ArchiMate layers in `src/pyArchimate/view/layout/algorithms/hierarchical.py`
-- [ ] T057 [US3] [P] Implement Sugiyama crossing minimization step in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (barycentric ordering)
-- [ ] T058 [US3] [P] Implement Sugiyama position assignment step in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (node positioning in layers)
-- [ ] T059 [US3] Implement edge routing for hierarchical layout in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (orthogonal routing respecting layers)
-- [ ] T060 [US3] Register hierarchical algorithm in layout registry
-- [ ] T061 [US3] [P] Create unit tests in `tests/unit/layout/test_hierarchical.py` (layer assignment, crossing minimization, position calculation)
-- [ ] T062 [US3] Create integration test for hierarchical layout in `tests/integration/test_layout_round_trip.py`
-- [ ] T063 [US3] Create BDD scenario in `tests/features/layout/auto_layout.feature` for "Hierarchical Layout"
-- [ ] T064 [US3] Implement BDD step definitions for hierarchical scenario
+- [ ] T056 [US3] Implement HierarchicalLayout class skeleton in `src/pyArchimate/view/layout/algorithms/hierarchical.py`
+- [ ] T057 [US3] [P] Implement Sugiyama layer assignment step respecting ArchiMate layers in `src/pyArchimate/view/layout/algorithms/hierarchical.py`
+- [ ] T058 [US3] [P] Implement Sugiyama crossing minimization step in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (barycentric ordering)
+- [ ] T059 [US3] [P] Implement Sugiyama position assignment step in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (node positioning in layers)
+- [ ] T060 [US3] Implement edge routing for hierarchical layout in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (orthogonal routing respecting layers)
+- [ ] T061 [US3] Register hierarchical algorithm in layout registry
+- [ ] T062 [US3] [P] Create unit tests in `tests/unit/layout/test_hierarchical.py` (layer assignment, crossing minimization, position calculation)
+- [ ] T063 [US3] Create integration test for hierarchical layout in `tests/integration/test_layout_round_trip.py`
+- [ ] T064 [US3] Create BDD scenario in `tests/features/layout/auto_layout.feature` for "Hierarchical Layout"
+- [ ] T065 [US3] Implement BDD step definitions for hierarchical scenario
 
 ---
 
@@ -227,16 +227,16 @@ Developers can customize layout behavior via LayoutConfig (algorithm selection, 
 
 ---
 
-- [ ] T065 [US4] Implement advanced LayoutConfig options validation in `src/pyArchimate/view/layout/core.py` (all options from research.md)
-- [ ] T066 [US4] [P] Implement excluded_element_ids handling in apply_layout() logic
-- [ ] T067 [US4] [P] Implement spacing/margin parameter application in layout algorithms
-- [ ] T068 [US4] [P] Implement alignment (grid vs. free) parameter handling in format module
-- [ ] T069 [US4] [P] Implement routing_style parameter (orthogonal vs. mixed 45°) in routing module
-- [ ] T070 [US4] [P] Implement layer_priority parameter (layer constraints vs. crossing reduction tradeoff)
-- [ ] T071 [US4] Create unit tests in `tests/unit/layout/test_config.py` for all LayoutConfig combinations
-- [ ] T072 [US4] Create integration test for config parameters in `tests/integration/test_layout_round_trip.py`
-- [ ] T073 [US4] Create BDD scenario in `tests/features/layout/auto_layout.feature` for "Customize Layout Behavior"
-- [ ] T074 [US4] Implement BDD step definitions for customization scenario
+- [ ] T066 [US4] Implement advanced LayoutConfig options validation in `src/pyArchimate/view/layout/core.py` (all options from research.md)
+- [ ] T067 [US4] [P] Implement excluded_element_ids handling in apply_layout() logic
+- [ ] T068 [US4] [P] Implement spacing/margin parameter application in layout algorithms
+- [ ] T069 [US4] [P] Implement alignment (grid vs. free) parameter handling in format module
+- [ ] T070 [US4] [P] Implement routing_style parameter (orthogonal vs. mixed 45°) in routing module
+- [ ] T071 [US4] [P] Implement layer_priority parameter (layer constraints vs. crossing reduction tradeoff)
+- [ ] T072 [US4] Create unit tests in `tests/unit/layout/test_config.py` for all LayoutConfig combinations
+- [ ] T073 [US4] Create integration test for config parameters in `tests/integration/test_layout_round_trip.py`
+- [ ] T074 [US4] Create BDD scenario in `tests/features/layout/auto_layout.feature` for "Customize Layout Behavior"
+- [ ] T075 [US4] Implement BDD step definitions for customization scenario
 
 ---
 
@@ -253,29 +253,29 @@ Final testing, documentation, API hardening, performance optimization, and cross
 
 ---
 
-- [ ] T075 Implement edge case handling for single-element views in all layout algorithms
-- [ ] T076 [P] Implement edge case handling for views with no connections
-- [ ] T077 [P] Implement edge case handling for views with circular dependencies
-- [ ] T078 [P] Implement edge case handling for very large elements vs. small spacing
-- [ ] T079 [P] Implement edge case handling for locked/fixed elements (if applicable)
-- [ ] T080 Create comprehensive edge case tests in `tests/unit/layout/test_edge_cases.py`
-- [ ] T081 Create performance tests in `tests/integration/test_layout_performance.py` (verify <2s for 300 elements, <5s for 500 elements)
-- [ ] T082 [P] Performance profiling and optimization if necessary to meet targets
-- [ ] T083 Create final round-trip integration test covering all scenarios in `tests/integration/test_layout_round_trip.py`
-- [ ] T084 Run full test suite and ensure 100% pass rate (unit + integration + BDD)
-- [ ] T085 [P] Create auto-layout-specifications.md technical document per spec deliverable (`specs/011-view-auto-layout/auto-layout-specifications.md`)
-- [ ] T086 [P] Create user-facing documentation in project README (usage examples, algorithms overview)
-- [ ] T087 [P] Update API documentation (docstrings, type hints for all public functions)
-- [ ] T088 [P] Create architecture documentation explaining module structure and design decisions
-- [ ] T089 [P] Create Sphinx RST documentation for layout feature in `docs/source/features/layout.rst`
-- [ ] T090 [P] Update Sphinx index in `docs/source/index.rst` to include layout feature documentation
-- [ ] T091 [P] Update Sphinx API documentation in `docs/source/api/view.rst` with layout module reference
-- [ ] T092 [P] Build Sphinx documentation: `make clean && make html` in docs/ directory
-- [ ] T093 Verify Sphinx build succeeds without warnings/errors and HTML output is correct
-- [ ] T094 Verify code quality (ruff linting, mypy/pyright type checking, test coverage)
-- [ ] T095 [P] Ensure undo/rollback integration with existing pyArchimate transaction system works correctly
-- [ ] T096 [P] Final validation against constitution principles (code quality, testing, performance, etc.)
-- [ ] T097 Create quick reference guide (`LAYOUT_QUICKSTART.md` in root or docs/)
+- [ ] T076 Implement edge case handling for single-element views in all layout algorithms
+- [ ] T077 [P] Implement edge case handling for views with no connections
+- [ ] T078 [P] Implement edge case handling for views with circular dependencies
+- [ ] T079 [P] Implement edge case handling for very large elements vs. small spacing
+- [ ] T080 [P] Implement edge case handling for locked/fixed elements (deferred scope per Phase 5+)
+- [ ] T081 Create comprehensive edge case tests in `tests/unit/layout/test_edge_cases.py`
+- [ ] T082 Create performance tests in `tests/integration/test_layout_performance.py` (verify <2s for 300 elements, <5s for 500 elements)
+- [ ] T083 [P] Performance profiling and optimization if necessary to meet targets
+- [ ] T084 Create final round-trip integration test covering all scenarios in `tests/integration/test_layout_round_trip.py`
+- [ ] T085 Run full test suite and ensure 100% pass rate (unit + integration + BDD)
+- [ ] T086 [P] Create auto-layout-specifications.md technical document per spec deliverable (`specs/011-view-auto-layout/auto-layout-specifications.md`)
+- [ ] T087 [P] Create user-facing documentation in project README (usage examples, algorithms overview)
+- [ ] T088 [P] Update API documentation (docstrings, type hints for all public functions)
+- [ ] T089 [P] Create architecture documentation explaining module structure and design decisions
+- [ ] T090 [P] Create Sphinx RST documentation for layout feature in `docs/source/features/layout.rst`
+- [ ] T091 [P] Update Sphinx index in `docs/source/index.rst` to include layout feature documentation
+- [ ] T092 [P] Update Sphinx API documentation in `docs/source/api/view.rst` with layout module reference
+- [ ] T093 [P] Build Sphinx documentation: `make clean && make html` in docs/ directory
+- [ ] T094 Verify Sphinx build succeeds without warnings/errors and HTML output is correct
+- [ ] T095 Verify code quality (ruff linting, mypy/pyright type checking, test coverage)
+- [ ] T096 [P] Ensure undo/rollback integration with existing pyArchimate transaction system works correctly
+- [ ] T097 [P] Final validation against constitution principles (code quality, testing, performance, etc.)
+- [ ] T098 Create quick reference guide (`LAYOUT_QUICKSTART.md` in root or docs/)
 
 ---
 
@@ -286,11 +286,11 @@ Final testing, documentation, API hardening, performance optimization, and cross
 | Phase 1: Setup | T001-T014 (14 tasks) | Project structure, module initialization |
 | Phase 2: Foundational | T015-T027 (13 tasks) | Core classes, utilities, shared infrastructure |
 | Phase 3: US1 (Force-Directed) | T028-T046 (19 tasks) | Force-directed algorithm, routing, label placement |
-| Phase 4: US2 (Auto-Format) | T047-T054 (8 tasks) | Element standardization, formatting |
-| Phase 5: US3 (Hierarchical) | T055-T064 (10 tasks) | Hierarchical layout algorithm |
-| Phase 6: US4 (Customization) | T065-T074 (10 tasks) | Configuration options, advanced features |
-| Phase 7: Polish | T075-T097 (23 tasks) | Edge cases, performance, documentation, Sphinx build |
-| **TOTAL** | **97 tasks** | **Full feature implementation** |
+| Phase 4: US2 (Auto-Format) | T047-T055 (9 tasks) | Element standardization, formatting |
+| Phase 5: US3 (Hierarchical) | T056-T065 (10 tasks) | Hierarchical layout algorithm |
+| Phase 6: US4 (Customization) | T066-T075 (10 tasks) | Configuration options, advanced features |
+| Phase 7: Polish | T076-T098 (23 tasks) | Edge cases, performance, documentation, Sphinx build |
+| **TOTAL** | **98 tasks** | **Full feature implementation** |
 
 ---
 
@@ -301,8 +301,8 @@ Final testing, documentation, API hardening, performance optimization, and cross
 - Phase 1: T001-T014 (14 tasks) — ~2 days
 - Phase 2: T015-T027 (13 tasks) — ~3-4 days (critical path)
 - Phase 3: T028-T046 (19 tasks) — ~5-6 days (longest phase)
-- Phase 4: T047-T054 (8 tasks) — ~2-3 days
-- Phase 7 (Sphinx + Core Docs): T085-T097 (subset) — ~2 days
+- Phase 4: T047-T055 (9 tasks) — ~2-3 days
+- Phase 7 (Sphinx + Core Docs): T086-T098 (subset) — ~2 days
 - **Estimated MVP Duration**: 14-19 days (~3 weeks for experienced developer)
 
 ---

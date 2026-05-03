@@ -101,6 +101,8 @@ the specified parameters (e.g., increased spacing, element exclusion).
 
 ### Edge Cases
 
+- What happens when a view contains elements with no connections or relationships? (Elements should still be positioned in a coherent grid or pattern)
+- How does auto-layout handle elements that are locked or marked as fixed? (**MVP Scope: Not Required**. Locked/fixed element handling deferred to Phase 5+; MVP applies layout uniformly to all elements without respecting lock states.)
 - What happens when a view contains elements with no connections or relationships? (Elements should still be positioned
   in a coherent grid or pattern)
 - How does auto-layout handle elements that are locked or marked as fixed? (Should respect locks and not reposition
@@ -130,29 +132,17 @@ the specified parameters (e.g., increased spacing, element exclusion).
 
 ### Functional Requirements
 
-- **FR-001**: System MUST provide an auto-layout function that takes a view as input and repositions all elements to
-  maximize readability and minimize overlaps
-- **FR-002**: System MUST preserve all element properties (name, documentation, type) during auto-layout—only position
-  and size are affected
-- **FR-003**: System MUST preserve all connections and relationships during auto-layout—connections remain valid and
-  linked to correct endpoints
-- **FR-004**: System MUST provide auto-format capability that standardizes element appearance (size, font, alignment)
-  according to ArchiMate conventions
-- **FR-005**: System MUST ensure no elements overlap after auto-layout is applied (except where intentional grouping is
-  used)
-- **FR-006**: System MUST support both force-directed (physics-based) and hierarchical/layered layout algorithms, with
-  force-directed as the default for general-purpose layouts and hierarchical for tree-like structures
-- **FR-007**: System MUST implement connection routing that: (1) prevents connections from overlapping with each other
-  or passing through elements, (2) uses orthogonal (0°, ±90°) routing by default with ±45° only as fallback for
-  excessive crossings, (3) minimizes total connection crossings, and (4) equally distributes connection endpoints across
-  node edges
-- **FR-008**: System MUST provide advanced configuration options including: spacing, margin, alignment, element
-  exclusion, algorithm selection, node size constraints, and connection routing style preferences
-- **FR-011**: System MUST respect ArchiMate natural layering in all layout algorithms; elements must be organized
-  according to their layer (Business, Application/Element, Technology) with Business layer positioned above or to the
-  left of Application layer, which is above or to the left of Technology layer
-- **FR-009**: System MUST validate that auto-layout completes within a reasonable timeframe for views with up to 500
-  elements
+
+- **FR-001**: System MUST provide an auto-layout function that takes a view as input and repositions all elements to maximize readability and minimize overlaps
+- **FR-002**: System MUST preserve all element properties (name, documentation, type) during auto-layout—only position and size are affected
+- **FR-003**: System MUST preserve all connections and relationships during auto-layout—connections remain valid and linked to correct endpoints
+- **FR-004**: System MUST provide auto-format capability that standardizes element appearance (size, font, alignment) according to ArchiMate conventions
+- **FR-005**: System MUST ensure no elements overlap after auto-layout is applied (except where intentional grouping is used)
+- **FR-006**: System MUST support both force-directed (physics-based) and hierarchical/layered layout algorithms, with force-directed as the default for general-purpose layouts and hierarchical for tree-like structures
+- **FR-007**: System MUST implement connection routing that: (1) prevents connections from overlapping with each other or passing through elements, (2) uses orthogonal (0°, ±90°) routing by default with ±45° only as fallback for excessive crossings, (3) minimizes total connection crossings, and (4) equally distributes connection endpoints across node edges
+- **FR-008**: System MUST provide advanced configuration options including: spacing, margin, alignment, element exclusion, algorithm selection, node size constraints, and connection routing style preferences (see research.md § 7 "Configuration Options" for detailed option descriptions and implementation guidance; Phase 6 task)
+- **FR-011**: System MUST respect ArchiMate natural layering in all layout algorithms; elements must be organized according to their layer (Business, Application/Element, Technology) with Business layer positioned above or to the left of Application layer, which is above or to the left of Technology layer
+- **FR-009**: System MUST validate that auto-layout completes within a reasonable timeframe for views with up to 500 elements
 - **FR-010**: System MUST include undo/rollback capability so users can revert auto-layout if unsatisfied with results
 
 ### Key Entities

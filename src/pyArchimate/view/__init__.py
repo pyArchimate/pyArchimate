@@ -7,14 +7,14 @@ import math
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Optional, cast
 
-from .constants import ARCHI_CATEGORY, DEFAULT_THEME
-from .element import Element, set_id
-from .enums import ArchiType
-from .exceptions import ArchimateConceptTypeError
-from .logger import log
+from ..constants import ARCHI_CATEGORY, DEFAULT_THEME
+from ..element import Element, set_id
+from ..enums import ArchiType
+from ..exceptions import ArchimateConceptTypeError
+from ..logger import log
 
 if TYPE_CHECKING:
-    from .model import Model
+    from ..model import Model
 
 # ---------------------------------------------------------------------------
 # Module-level helpers
