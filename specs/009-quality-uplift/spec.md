@@ -30,7 +30,7 @@ A developer opening the SonarCloud dashboard for pyArchimate sees a residual set
 
 ### User Story 2 - Enable Additional Ruff Lint Rules (Priority: P1)
 
-A developer running `ruff check` on the codebase wants the linter to enforce a wider set of rules beyond the current baseline (`E`, `F`, `W`, `B`, `C`, `I`, `S110`). Incrementally enabling additional rule sets (e.g., `N` for naming, `UP` for pyupgrade, `A` for shadowing builtins, `ANN` for annotations, `PT` for pytest style) catches latent issues before they become harder to fix and aligns the codebase with modern Python idioms.
+A developer running `ruff check` on the codebase wants the linter to enforce a wider set of rules beyond the current baseline (`E`, `F`, `W`, `B`, `C`, `I`, `S110`). The four targeted rule sets are `UP` (pyupgrade), `N` (naming conventions), `A` (shadowing builtins), and `PT` (pytest style). Each is attempted incrementally; if a rule set surfaces more than 20 violations it is deferred to a follow-up feature with a documented TODO rather than abandoned.
 
 **Why this priority**: Ruff runs on every save and in CI; expanding the rule set has immediate payoff and is the lowest-friction quality lever available.
 

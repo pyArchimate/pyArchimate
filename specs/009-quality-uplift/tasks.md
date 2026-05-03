@@ -69,20 +69,20 @@
 
 - [ ] T016 [P] [US2] Run `ruff check src/ --select A`; fix 2× `A001` (builtin variable shadowing) by renaming the offending variables in their source files
 - [ ] T017 [P] [US2] Fix 4× `A003` (builtin attribute shadowing) by renaming the offending class/instance attributes in their source files
-- [ ] T018 [US2] Add `"A"` to `[tool.ruff.lint] select` in `pyproject.toml`; run `ruff check src/` to confirm 0 A violations
+- [ ] T018 [US2] Add `"A"` to `[tool.ruff.lint] select` in `pyproject.toml`; run `ruff check src/` to confirm 0 A violations; commit: `feat(ruff): enable A (builtin-shadowing) rule set`
 
 ### Batch 4c — Enable rule set `N` (naming conventions)
 
 - [ ] T019 [US2] Run `ruff check src/ --select N`; fix 6× `N811` (constant imported as non-constant) by renaming import aliases to `UPPER_CASE` in their source files
 - [ ] T020 [US2] Fix 1× `N802` (invalid function name) by renaming the function or adding `# noqa: N802  # <reason>` if renaming would break public API
 - [ ] T021 [US2] Evaluate 11× `N999` (invalid module name — camelCase files): for each, determine if the module can be renamed without breaking imports; rename if safe, otherwise add `# noqa: N999  # legacy module name preserved for API compatibility` to the module's first line
-- [ ] T022 [US2] Remove `"N999"` from `[tool.ruff.lint] ignore` in `pyproject.toml`; add `"N"` to `[tool.ruff.lint] select`; run `ruff check src/` to confirm 0 unresolved N violations
+- [ ] T022 [US2] Remove `"N999"` from `[tool.ruff.lint] ignore` in `pyproject.toml`; add `"N"` to `[tool.ruff.lint] select`; run `ruff check src/` to confirm 0 unresolved N violations; commit: `feat(ruff): enable N (naming) rule set; remove N999 global ignore`
 
 ### Batch 4d — Defer `UP` and `PT`
 
 - [ ] T023 [P] [US2] Add deferred TODO comment in `pyproject.toml` under `[tool.ruff.lint] select` for `UP`: `# TODO(009-quality-uplift): Enable UP rule set — 124 violations exceed the 20-violation cap; most are auto-fixable (ruff --fix) but UP042/UP032 need semantic review`
 - [ ] T024 [P] [US2] Add deferred TODO comment for `PT`: `# TODO(009-quality-uplift): Enable PT rule set — 163 violations exceed cap; primarily PT009 (unittest assertions) in legacy tests`
-- [ ] T025 [US2] Run `ruff check src/ tests/ --fix` (safe fixes only) then `ruff check src/ tests/` to confirm 0 errors with the new select list; commit: `feat(ruff): enable A and N rule sets; remove C901 and PLC0415 ignores`
+- [ ] T025 [US2] Run `ruff check src/ tests/ --fix` (safe fixes only) then `ruff check src/ tests/` to confirm 0 errors with the full updated select list (A and N active, C901 and PLC0415 removed); commit: `chore(ruff): add UP and PT deferral TODOs; verify full ruff suite green`
 
 **Checkpoint**: `ruff check src/ tests/` passes with A and N active, C901 and PLC0415 removed from ignore list.
 
@@ -116,14 +116,14 @@
 
 ## Phase 6: User Story 4 — Strengthen Mypy Strict Checks (Priority: P2)
 
-**Goal**: Resolve all 10 baseline mypy errors; evaluate and (if feasible) enable `disallow_untyped_defs`.
+**Goal**: Resolve all 10 baseline mypy errors; evaluate and (if feasible) enable `disallow_untyped_defs` and `disallow_untyped_calls`.
 
 **Independent Test**: `mypy src/` passes with 0 errors.
 
 ### Batch 6a — Fix baseline mypy errors
 
 - [ ] T033 [US4] Confirm `lxml-stubs` and `types-setuptools` are installed (done in T002); run `mypy src/` and verify the `import-untyped` errors for lxml and setuptools are gone
-- [ ] T034 [US4] Add `# type: ignore[import-untyped]  # Pillow stubs unavailable` to `src/pyArchimate/readers/_arisamlreader_helpers.py:61` mypy perspective (coordinate with T026 pyright fix — both can use the same comment format compatible with both tools)
+- [ ] T034 [US4] Add `# type: ignore[import-untyped]  # Pillow stubs unavailable` to `src/pyArchimate/readers/_arisamlreader_helpers.py:61` for mypy (run after T026; both modify the same line — T026 adds the pyright ignore, T034 extends it to satisfy mypy; merge into a single combined comment if both tools accept it)
 - [ ] T035 [US4] Fix `no-any-return` error in `src/pyArchimate/writers/archimateWriter.py:390`: add an explicit cast (`cast(str, ...)`) or annotate the return value; verify return type matches function signature
 - [ ] T036 [P] [US4] Fix `no-any-return` error in `src/pyArchimate/writers/archiWriter.py:372`: same approach as T035
 - [ ] T037 [US4] Run `mypy src/` to confirm 0 errors; commit: `fix(mypy): resolve all baseline type errors`
@@ -132,8 +132,10 @@
 
 - [ ] T038 [US4] Run `mypy src/ --disallow-untyped-defs` and count violations; record the count
 - [ ] T039 [US4] If violation count ≤ 20: fix all unannotated function signatures in the affected files, set `disallow_untyped_defs = true` in `pyproject.toml`, run `mypy src/` to confirm clean, commit: `fix(mypy): enable disallow_untyped_defs`; if > 20: add `# TODO(009-quality-uplift): Enable disallow_untyped_defs — <N> violations; deferred as stretch goal` to `pyproject.toml` and commit: `chore(mypy): document disallow_untyped_defs as deferred stretch goal`
+- [ ] T040b [US4] Run `mypy src/ --disallow-untyped-calls` and count violations; record the count
+- [ ] T040c [US4] If violation count ≤ 20: fix all call sites, set `disallow_untyped_calls = true` in `pyproject.toml`, run `mypy src/` to confirm clean, commit: `fix(mypy): enable disallow_untyped_calls`; if > 20: add `# TODO(009-quality-uplift): Enable disallow_untyped_calls — <N> violations; deferred as stretch goal` to `pyproject.toml` and commit: `chore(mypy): document disallow_untyped_calls as deferred stretch goal`
 
-**Checkpoint**: `mypy src/` passes with 0 baseline errors. `disallow_untyped_defs` either enabled or deferred with documented count.
+**Checkpoint**: `mypy src/` passes with 0 baseline errors. `disallow_untyped_defs` and `disallow_untyped_calls` each either enabled or deferred with documented count.
 
 ---
 
@@ -145,7 +147,7 @@
 
 - [ ] T040 [US5] Audit `[tool.ruff.lint] ignore` in `pyproject.toml`: confirm `C901` and `PLC0415` are absent (removed in Phase 4) and `N999` is absent (removed in Phase 4); confirm `E501` retains its justification comment: `# line-too-long — formatter handles wrapping; not enforced at lint level`
 - [ ] T041 [US5] Audit `[tool.pyright]` in `pyproject.toml`: confirm `reportAttributeAccessIssue`, `reportArgumentType`, `reportOptionalMemberAccess` are no longer `"none"` (promoted in Phase 5); confirm `reportMissingTypeStubs` retains a justification comment if still present
-- [ ] T042 [US5] Audit `[tool.mypy]` in `pyproject.toml`: confirm `disallow_untyped_calls = false` and `disallow_untyped_defs = false` each have a justification comment (or have been removed per T039 decision)
+- [ ] T042 [US5] Audit `[tool.mypy]` in `pyproject.toml`: confirm `disallow_untyped_calls = false` and `disallow_untyped_defs = false` each have a justification comment (or have been removed per T039/T040c decisions)
 - [ ] T043 [US5] Run `bash scripts/pre_commit_checks.sh` to confirm full suite passes after audit; commit: `chore: annotate or remove obsolete tool exclusions in pyproject.toml`
 
 **Checkpoint**: All suppressions are either gone or carry an explanatory comment. No silent exclusions remain.
@@ -157,7 +159,7 @@
 **Purpose**: Final verification, documentation update, and feature closure.
 
 - [ ] T044 Run full test suite including integration and BDD: `bash scripts/pre_push_checks.sh`; confirm all pass
-- [ ] T045 [P] Update `specs/009-quality-uplift/checklists/requirements.md` — mark all checklist items complete and add notes on deferred items (UP, PT, disallow_untyped_defs) with violation counts
+- [ ] T045 [P] Update `specs/009-quality-uplift/checklists/requirements.md` — mark all checklist items complete and add notes on deferred items (UP, PT, disallow_untyped_defs, disallow_untyped_calls) with violation counts
 - [ ] T046 [P] Update `specs/009-quality-uplift/research.md` with final state: actual SonarCloud issue counts fixed, final ruff rule sets active, final pyright/mypy config
 - [ ] T047 Commit: `docs(009): update research and checklist with final quality uplift results`
 
@@ -172,7 +174,7 @@
 - **US1 (Phase 3)**: Depends on Phase 2 (triage table must exist)
 - **US2 (Phase 4)**: Independent of US1; depends on Phase 2 only
 - **US3 (Phase 5)**: Independent of US1/US2; depends on Phase 2 only (T026 can run in parallel with US1/US2)
-- **US4 (Phase 6)**: T034 depends on T026 (same file — coordinate PIL ignore comment); otherwise independent
+- **US4 (Phase 6)**: T034 depends on T026 completion (same line in `_arisamlreader_helpers.py:61`); T040b/T040c follow T039; otherwise independent
 - **US5 (Phase 7)**: Depends on Phase 4 (ruff ignores removed), Phase 5 (pyright categories re-enabled), Phase 6 (mypy flags documented) — must be last story phase
 - **Polish (Phase 8)**: Depends on all story phases
 
@@ -217,7 +219,7 @@ Task: T036 (archiWriter.py no-any-return)
 | FR-003: No new violations introduced | FR | T010, T025, T032, T037, T043, T044 | All | SC-007 |
 | FR-004: Each ruff addition committed independently | FR | T013, T015, T018, T022, T025 | US2 | SC-002 |
 | FR-005: Pyright staged warning→error | FR | T027–T032 | US3 | SC-003 |
-| FR-006: Mypy flags committed independently | FR | T037, T039 | US4 | SC-004 |
+| FR-006: Mypy flags committed independently | FR | T037, T039, T040b, T040c | US4 | SC-004 |
 | FR-007: Exclusion removal verified by tool run | FR | T040–T043 | US5 | SC-005 |
 | FR-008: All suppressions have justification | FR | T007–T009, T014, T021, T026, T034, T042 | All | SC-006 |
 | FR-009: tests/legacy_* exclusions unchanged | FR | (policy — no task needed) | — | — |
@@ -225,7 +227,7 @@ Task: T036 (archiWriter.py no-any-return)
 | SC-001: SonarCloud Gate → Passed | SC | T011 | US1 | — |
 | SC-002: ≥2 ruff rule sets active | SC | T018, T022 | US2 | — |
 | SC-003: ≥2 pyright categories at "error" | SC | T029, T030, T031 | US3 | — |
-| SC-004: ≥1 mypy flag re-enabled | SC | T037, T039 | US4 | — |
+| SC-004: ≥1 mypy flag re-enabled | SC | T037, T039, T040b, T040c | US4 | — |
 | SC-005: ≥1 obsolete exclusion removed | SC | T040, T041 | US5 | — |
 | SC-006: Zero unexplained suppressions | SC | T045 (checklist audit) | All | — |
 | SC-007: Full test suite passes | SC | T044 | All | — |
