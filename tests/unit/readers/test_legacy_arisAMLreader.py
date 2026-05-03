@@ -1,3 +1,13 @@
+"""DEPRECATED: Legacy ARIS AML format reader tests.
+
+This module contains tests for the deprecated ARIS format reader.
+The ARIS format is no longer actively maintained or supported
+and will be removed in a future version.
+
+These tests are kept for backward compatibility but are not executed
+by default. Use tests for archimateReader or archiReader instead.
+"""
+
 import pytest
 from lxml import etree
 

@@ -36,7 +36,6 @@ Elements span the full ArchiMate 3 layer stack: **Strategy, Motivation, Business
 |---|---|---|
 | ArchiMate Open Exchange XML | yes | yes |
 | Archi tool format (.archimate) | yes | yes |
-| ARIS AML | yes | — |
 | CSV | — | yes |
 
 ## Key operations
@@ -50,7 +49,6 @@ Elements span the full ArchiMate 3 layer stack: **Strategy, Motivation, Business
 ## Limitations
 
 - No GUI, no diagram renderer
-- No write support for ARIS AML
 - Not designed for interactive or real-time use — batch/scripting oriented
 
 ## Documentation

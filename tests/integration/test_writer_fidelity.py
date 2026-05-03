@@ -8,6 +8,7 @@ the key invariant to protect during S3776 refactoring.
 """
 
 import pathlib
+import zipfile
 
 import pytest
 from lxml import etree
@@ -31,8 +32,15 @@ def _strip_folder_ids(root: etree._Element) -> None:
 
 
 def _canonical_from_file(path: str, strip_folder_ids: bool = False) -> bytes:
-    with open(path, "rb") as fh:
-        tree = etree.fromstring(fh.read())
+    # Handle ZIP archives (.archimate files)
+    if zipfile.is_zipfile(path):
+        with zipfile.ZipFile(path, 'r') as zf:
+            xml_data = zf.read('model.xml')
+            tree = etree.fromstring(xml_data)
+    else:
+        # Handle plain XML files
+        with open(path, "rb") as fh:
+            tree = etree.fromstring(fh.read())
     if strip_folder_ids:
         _strip_folder_ids(tree)
     return etree.tostring(tree, method="c14n")

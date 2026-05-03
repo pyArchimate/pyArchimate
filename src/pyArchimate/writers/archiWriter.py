@@ -1,5 +1,6 @@
 import os
 import sys
+import zipfile
 from typing import cast as _cast
 
 from lxml import etree as et
@@ -72,13 +73,10 @@ def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName, mo
         cat = 'Technology'
     folder_path = _resolve_folder_path(getattr(elem, 'folder', None), cat)
     folder = _get_folder(folders, folder_path)
-    if elem_type == 'Junction':
-        junction_type = getattr(elem, 'junction_type', 'and')
-        setattr(elem, 'type', junction_type.capitalize() + elem_type)  # noqa: B010
-        elem_type = getattr(elem, 'type', '')
+    xsi_type = elem_type
     elem_uuid = getattr(elem, 'uuid', '')
     attrs = {
-        str(xsi): 'archimate:' + elem_type,
+        str(xsi): 'archimate:' + xsi_type,
         'id': elem_uuid
     }
     e = et.SubElement(folder, 'element', attrs)
@@ -94,6 +92,10 @@ def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName, mo
         doc.text = desc
     for k, v in getattr(elem, 'props', {}).items():
         et.SubElement(e, 'property', key=k, value=str(v))
+    if elem_type == 'Junction':
+        junction_type = getattr(elem, 'junction_type', None)
+        if junction_type is not None:
+            et.SubElement(e, 'property', key='junctionType', value=junction_type)
     visual_style = getattr(elem, '_visual_style', {})
     for key in ['fillColor', 'lineColor', 'lineWidth', 'transparency']:
         if key in visual_style:
@@ -205,6 +207,15 @@ def _set_node_visual_attrs(child: _Element, node: object) -> None:
     lc_opacity = getattr(node, 'lc_opacity', 100)
     if str(lc_opacity) != '100':
         et.SubElement(child, 'feature', name='lineAlpha', value=str(int(255 * int(lc_opacity) / 100)))
+    image_path = getattr(node, 'image_path', None)
+    if image_path is not None:
+        child.set('imagePath', image_path)
+    image_position = getattr(node, 'image_position', None)
+    if image_position is not None:
+        child.set('imagePosition', str(image_position))
+    image_type = getattr(node, 'image_type', None)
+    if image_type is not None:
+        child.set('type', str(image_type))
 
 
 def _set_node_features(child: _Element, node: object) -> None:
@@ -217,6 +228,9 @@ def _set_node_features(child: _Element, node: object) -> None:
     gradient = getattr(node, 'gradient', None)
     if gradient is not None:
         et.SubElement(child, 'feature', name='gradient', value=gradient)
+    image_source = getattr(node, 'image_source', False)
+    if image_source:
+        et.SubElement(child, 'feature', name='imageSource', value='1')
 
 
 def _set_node_cat_content(child: _Element, node: object, xsi: et.QName) -> None:
@@ -339,8 +353,19 @@ def archi_writer(model: Model, file_path: str) -> str:
 
     if file_path is not None:
         try:
-            with open(file_path, 'wb') as fd:
-                fd.write(xml_str)
+            # Check if writing to .archimate format (ZIP archive)
+            if file_path.endswith('.archimate'):
+                # Create ZIP archive with model.xml + images
+                with zipfile.ZipFile(file_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+                    # Write XML at root of archive
+                    zf.writestr('model.xml', xml_str)
+                    # Write images if they exist
+                    for img_filename, img_bytes in model._images_dict.items():
+                        zf.writestr(img_filename, img_bytes)
+            else:
+                # Write plain XML for .xml format
+                with open(file_path, 'wb') as fd:
+                    fd.write(xml_str)
         except IOError:
             log.error(f'{__mod__}.write: Cannot write to file "{file_path}')
 

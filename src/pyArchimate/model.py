@@ -3,6 +3,7 @@
 import json
 import os
 import sys
+import zipfile
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -16,7 +17,7 @@ from .constants import (
     OPERATION_ERROR_MESSAGES,
 )
 from .element import Element, set_id
-from .enums import ArchiType, Writers
+from .enums import ArchiType
 from .exceptions import ArchimateConceptTypeError
 from .logger import log
 from .view import Node, Profile, View
@@ -264,6 +265,8 @@ class Model:
         self._viewpoint_views: dict[str, str] = {}          # view UUID → primary viewpoint slug
         self._element_hierarchy: dict[str, Optional[str]] = {}  # child_uuid → parent_uuid
         self._element_children: dict[str, set[str]] = {}        # parent_uuid → child_uuids
+        self._images_dict: dict[str, bytes] = {}  # filename → image bytes (for .archimate ZIP support)
+        self._image_files: list[str] = []  # list of image filenames from archive
 
     def add(self, concept_type=None, name=None, uuid=None, desc=None, folder=None, profile=None):
         """
@@ -471,25 +474,145 @@ class Model:
         """
         return list(self.conns_dict.values())
 
-    def write(self, file_path=None, writer=Writers.archimate):
+    def write(self, file_path=None, writer=None):
         """
         Method to write the file_path to an Archimate file
 
-        :param file_path:
+        Auto-selects writer based on file extension if not explicitly specified:
+        - `.archimate` files use Archi native format (archiWriter)
+        - `.xml` files use OpenGroup Exchange format (archimateWriter)
+        - Default to OpenGroup Exchange format
+
+        :param file_path: Output file path
         :type file_path: str
         :param writer: writer selection (enum value, registry key, or callable) used to format the output.
-        :type writer: Writers|str|callable
-        :return:  data structure
+                      If None, auto-detects based on file_path extension.
+        :type writer: Writers|str|callable|None
+        :return:  XML data structure as string
         :rtype: str
         """
-        from .writers import _resolve_writer
+        from .writers import _detect_writer_from_extension, _resolve_writer
+
+        if writer is None:
+            writer = _detect_writer_from_extension(file_path)
+
         writer_callable = _resolve_writer(writer)
         return writer_callable(self, file_path)
 
-    def _load_file_contents(self, file_path, operation):
+    @staticmethod
+    def _detect_zip_file(file_path: str) -> bool:
+        """Detect if file is a ZIP archive using magic bytes.
+
+        Args:
+            file_path: Path to file to check
+
+        Returns:
+            True if file starts with PK signature (0x504B), False otherwise
+
+        Example:
+            >>> Model._detect_zip_file("model.archimate")
+            True
+            >>> Model._detect_zip_file("model.xml")
+            False
+        """
         try:
+            with open(file_path, 'rb') as f:
+                magic = f.read(2)
+                return magic == b'PK'
+        except (IOError, OSError):
+            return False
+
+    @staticmethod
+    def _extract_xml_from_zip(file_path: str) -> str:
+        """Extract XML content from .archimate ZIP archive.
+
+        Args:
+            file_path: Path to .archimate ZIP file
+
+        Returns:
+            XML content as string
+
+        Raises:
+            FileNotFoundError: If file doesn't exist
+            zipfile.BadZipFile: If archive is corrupted
+            KeyError: If model.xml not found in archive
+
+        Example:
+            >>> content = Model._extract_xml_from_zip("model.archimate")
+            >>> assert content.startswith("<?xml")
+        """
+        try:
+            with zipfile.ZipFile(file_path, 'r') as zf:
+                with zf.open('model.xml') as xml_file:
+                    return xml_file.read().decode('utf-8')
+        except KeyError as e:
+            raise KeyError(f"Invalid .archimate file - model.xml not found in archive: {file_path}") from e
+
+    def _extract_images_from_zip(self, file_path: str) -> None:
+        """Extract image files from .archimate ZIP archive and store in Model.
+
+        Extracts all files from images/ folder in the archive and stores them
+        as {filename: bytes} in _images_dict for later writing.
+
+        Args:
+            file_path: Path to .archimate ZIP file
+
+        Raises:
+            zipfile.BadZipFile: If archive is corrupted (caught by caller)
+
+        Example:
+            >>> m = Model('test')
+            >>> m._extract_images_from_zip("model.archimate")
+            >>> print(len(m._images_dict))  # number of images extracted
+        """
+        try:
+            with zipfile.ZipFile(file_path, 'r') as zf:
+                # Extract all files in images/ folder
+                for file_info in zf.filelist:
+                    if file_info.filename.startswith('images/') and not file_info.is_dir():
+                        # Extract image data
+                        image_data = zf.read(file_info.filename)
+                        self._images_dict[file_info.filename] = image_data
+                        self._image_files.append(file_info.filename)
+        except (zipfile.BadZipFile, KeyError) as e:
+            # Images are optional - skip if extraction fails
+            log.debug(f"Failed to extract images from archive: {e}")
+
+    def _load_file_contents(self, file_path, operation):
+        """Load file contents with automatic ZIP/XML format detection.
+
+        Detects if file is a ZIP archive (.archimate) or plain XML (.xml) and
+        loads accordingly. ZIP files are extracted from the archive.
+
+        Args:
+            file_path: Path to file to load
+            operation: Operation name for error messages ('read', 'merge', etc.)
+
+        Returns:
+            XML content as string
+
+        Raises:
+            SystemExit: If file cannot be read or is invalid
+        """
+        try:
+            # Detect and handle ZIP archives (.archimate format)
+            if self._detect_zip_file(file_path):
+                try:
+                    # Extract images from archive (for round-trip preservation)
+                    self._extract_images_from_zip(file_path)
+                    return self._extract_xml_from_zip(file_path)
+                except zipfile.BadZipFile:
+                    log.error(f"{__mod__} {self.__class__.__name__}.{operation}: Invalid .archimate file - ZIP archive is corrupted: '{file_path}'")
+                    sys.exit(1)
+                except KeyError:
+                    log.error(f"{__mod__} {self.__class__.__name__}.{operation}: Invalid .archimate file - model.xml not found in archive: '{file_path}'")
+                    sys.exit(1)
+            # Load plain XML files (.xml format)
             with open(file_path, 'r', encoding='utf-8') as fd:
                 return fd.read()
+        except UnicodeDecodeError:
+            log.error(f"{__mod__} {self.__class__.__name__}.{operation}: File encoding error - unable to decode as UTF-8: '{file_path}'")
+            sys.exit(1)
         except IOError:
             log.error(f"{__mod__} {self.__class__.__name__}.{operation}: Cannot open or read file '{file_path}'")
             sys.exit(1)
@@ -520,15 +643,18 @@ class Model:
     def read(self, file_path, *args, **kwargs):
         """
         Method to read an Archimate file
-        The method detects automagically and read the following formats:
-        - ARIS AML
-        - Open Group Open Exchange File
-        - Archi Tool
 
-        :param file_path:
+        The method detects automatically and reads the following formats:
+        - Open Group Open Exchange File (.xml) - plain XML text
+        - Archi Tool (.archimate) - ZIP archive containing model.xml
+
+        ZIP archives (.archimate) are transparently extracted before parsing.
+        File format is detected using magic bytes (PK signature) for ZIP,
+        falling back to plain text reading for .xml files.
+
+        :param file_path: Path to the file to read
         :type file_path: str
-
-
+        :raises SystemExit: If file cannot be read or is invalid
         """
         reader, root, entry = self._prepare_reader(file_path, 'read')
         if reader is None or entry is None:

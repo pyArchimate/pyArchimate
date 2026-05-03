@@ -29,6 +29,27 @@ def _ensure_default_writers():
     _default_writers_initialized = True
 
 
+def _detect_writer_from_extension(file_path):
+    """Auto-detect writer based on file extension.
+
+    Args:
+        file_path: Path to file being written
+
+    Returns:
+        Writers enum value (archimate for .archimate, archi for .xml, default archimate)
+    """
+    if not file_path:
+        return Writers.archimate
+
+    file_path_lower = str(file_path).lower()
+    if file_path_lower.endswith('.archimate'):
+        return Writers.archi
+    elif file_path_lower.endswith('.xml'):
+        return Writers.archimate
+
+    return Writers.archimate
+
+
 def _resolve_writer(writer):
     if callable(writer):
         return writer
@@ -54,4 +75,4 @@ def _resolve_writer(writer):
     raise ValueError(f"Unknown writer '{writer}'. Registered writers: {list(_writer_registry.keys())}")
 
 
-__all__ = ["register_writer", "_resolve_writer", "_ensure_default_writers"]
+__all__ = ["register_writer", "_resolve_writer", "_ensure_default_writers", "_detect_writer_from_extension"]
