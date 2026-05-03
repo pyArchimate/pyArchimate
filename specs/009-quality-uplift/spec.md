@@ -10,6 +10,14 @@
 - **SonarCloud outstanding issues**: `https://sonarcloud.io/api/issues/search?projectKeys=pyArchimate_pyArchimate&severities=CRITICAL,MAJOR,MINOR&statuses=OPEN,CONFIRMED`
 - **SonarCloud project**: `pyArchimate_pyArchimate`
 
+## Clarifications
+
+### Session 2026-05-03
+
+- Q: Which ruff rule sets are in scope? → A: `UP`, `N`, `A`, and `PT` are all required.
+- Q: For re-enabled pyright categories, should the severity be `"warning"` or `"error"`? → A: Set to `"warning"` initially; promote each category to `"error"` once all its violations are resolved.
+- Q: What is the policy when a required ruff rule set produces too many violations to fix in this feature? → A: Cap at 20 violations per rule set; if over the cap, defer the rule set with a documented TODO referencing this feature.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Remediate Remaining SonarQube Issues (Priority: P1)
@@ -39,7 +47,7 @@ A developer running `ruff check` on the codebase wants the linter to enforce a w
 **Acceptance Scenarios**:
 
 1. **Given** the `C901` complexity rule is currently ignored, **When** the ignore is removed after reducing cognitive complexity in prior work (feature `002`), **Then** `ruff check` passes with no C901 violations, confirming the ignore is truly obsolete.
-2. **Given** a new rule set (e.g., `UP`) is added to the `select` list, **When** `ruff check` is run, **Then** either zero violations are reported or each violation is resolved before the rule set is committed as active.
+2. **Given** a required rule set (`UP`, `N`, `A`, or `PT`) is added to the `select` list, **When** `ruff check` is run and produces 20 or fewer violations, **Then** each violation is resolved and the rule set is committed as active; **When** it produces more than 20 violations, **Then** the rule set is reverted and a TODO is added to `pyproject.toml` referencing this feature for follow-up.
 3. **Given** the `N999` (module name) ignore is in place, **When** the codebase is audited, **Then** if all module files now conform to the naming convention the ignore is removed; otherwise it is retained with a documented reason.
 4. **Given** the `PLC0415` (non-top-level import) ignore is in place, **When** the dynamic-import pattern that necessitated it is reviewed, **Then** it is removed if no longer needed or retained with a comment explaining the pattern.
 
@@ -55,9 +63,9 @@ A developer running `pyright` on the codebase sees several categories of type er
 
 **Acceptance Scenarios**:
 
-1. **Given** `reportAttributeAccessIssue = "none"`, **When** this setting is changed to `"warning"` or `"error"`, **Then** `pyright` passes (possibly after type annotation fixes or `# type: ignore` suppressions with justifications).
-2. **Given** `reportArgumentType = "none"`, **When** this setting is re-enabled, **Then** all previously hidden argument-type mismatches are either corrected or explicitly suppressed with justifications.
-3. **Given** `reportOptionalMemberAccess = "none"`, **When** this setting is re-enabled, **Then** all optional-member accesses are guarded with appropriate null checks or casts.
+1. **Given** `reportAttributeAccessIssue = "none"`, **When** this setting is changed to `"warning"`, **Then** `pyright` passes; **When** all resulting warnings are resolved or justified, **Then** the setting is promoted to `"error"` and `pyright` still passes.
+2. **Given** `reportArgumentType = "none"`, **When** this setting is changed to `"warning"` then promoted to `"error"`, **Then** all previously hidden argument-type mismatches are either corrected or explicitly suppressed with justifications.
+3. **Given** `reportOptionalMemberAccess = "none"`, **When** this setting is changed to `"warning"` then promoted to `"error"`, **Then** all optional-member accesses are guarded with appropriate null checks or casts.
 
 ---
 
@@ -110,8 +118,8 @@ A developer reviewing `pyproject.toml` notices several lint/type-check ignores a
 - **FR-001**: All remaining SonarCloud issues MUST be reviewed; each is either fixed or suppressed with an inline justification comment.
 - **FR-002**: After remediation, the SonarCloud Quality Gate MUST pass with zero unresolved issues (excluding legacy test exclusions already in `sonar-project.properties`).
 - **FR-003**: No fix MAY introduce new SonarCloud violations, ruff errors, pyright errors, or mypy errors.
-- **FR-004**: Each ruff rule set addition MUST be committed independently with a passing `ruff check` at the time of commit.
-- **FR-005**: Each pyright category re-enablement MUST be committed independently with a passing `pyright` run at the time of commit.
+- **FR-004**: Each ruff rule set addition (`UP`, `N`, `A`, `PT`) MUST be committed independently with a passing `ruff check`; if a rule set produces more than 20 violations it MUST be reverted and a TODO added to `pyproject.toml` for follow-up.
+- **FR-005**: Each pyright category re-enablement MUST be committed in two stages: first as `"warning"` (passing `pyright`), then promoted to `"error"` once all violations are resolved (passing `pyright` again).
 - **FR-006**: Each mypy strictness flag re-enablement MUST be committed independently with a passing `mypy src/` run at the time of commit.
 - **FR-007**: Each obsolete `pyproject.toml` exclusion removal MUST be verified by running the relevant tool and confirming it passes before committing.
 - **FR-008**: Any suppression comment added (`# NOSONAR`, `# type: ignore`, `# noqa`) MUST include a brief justification explaining why the suppression is appropriate.
