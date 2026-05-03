@@ -286,3 +286,126 @@ def test_auto_format_with_grid_alignment() -> None:
     # Positions should be snapped to grid
     assert view.nodes[0].x == 40.0
     assert view.nodes[1].x == 60.0
+
+
+def test_hierarchical_layout_creates_layers() -> None:
+    """Test that hierarchical layout completes successfully."""
+    view = MockView(num_nodes=0)
+    view.nodes = [
+        MockNode(1),
+        MockNode(2),
+        MockNode(3),
+        MockNode(4),
+    ]
+    view.edges = [(0, 1), (0, 2), (1, 3), (2, 3)]
+
+    config = LayoutConfig(algorithm="hierarchical")
+    result = apply_layout(view, config)
+
+    assert result.success is True
+    assert result.elements_processed == 4
+    assert result.connections_processed == 4
+    # All nodes should have positions
+    for node in view.nodes:
+        assert node.x is not None
+        assert node.y is not None
+
+
+def test_hierarchical_layout_respects_dependencies() -> None:
+    """Test that hierarchical layout respects edge dependencies."""
+    view = MockView(num_nodes=0)
+    view.nodes = [
+        MockNode(1),
+        MockNode(2),
+        MockNode(3),
+    ]
+    view.edges = [(0, 1), (1, 2)]
+
+    config = LayoutConfig(algorithm="hierarchical")
+    result = apply_layout(view, config)
+
+    assert result.success is True
+    # Node 0 should be above node 1, which should be above node 2
+    assert view.nodes[0].y <= view.nodes[1].y <= view.nodes[2].y
+
+
+def test_hierarchical_layout_handles_tree() -> None:
+    """Test that hierarchical layout works with tree structures."""
+    view = MockView(num_nodes=0)
+    view.nodes = [
+        MockNode(1),
+        MockNode(2),
+        MockNode(3),
+        MockNode(4),
+    ]
+    # Root -> children
+    view.edges = [(0, 1), (0, 2), (0, 3)]
+
+    config = LayoutConfig(algorithm="hierarchical")
+    result = apply_layout(view, config)
+
+    assert result.success is True
+    # Root should be above all children
+    for i in range(1, 4):
+        assert view.nodes[0].y <= view.nodes[i].y
+
+
+def test_hierarchical_layout_disconnected_graph() -> None:
+    """Test that hierarchical layout handles disconnected components."""
+    view = MockView(num_nodes=0)
+    view.nodes = [
+        MockNode(1),
+        MockNode(2),
+        MockNode(3),
+        MockNode(4),
+    ]
+    # Two separate chains
+    view.edges = [(0, 1), (2, 3)]
+
+    config = LayoutConfig(algorithm="hierarchical")
+    result = apply_layout(view, config)
+
+    assert result.success is True
+    assert result.elements_processed == 4
+
+
+def test_hierarchical_layout_diamond_dag() -> None:
+    """Test that hierarchical layout handles diamond DAG structure."""
+    view = MockView(num_nodes=0)
+    view.nodes = [
+        MockNode(1),
+        MockNode(2),
+        MockNode(3),
+        MockNode(4),
+    ]
+    # Diamond: n0 -> [n1, n2] -> n3
+    view.edges = [(0, 1), (0, 2), (1, 3), (2, 3)]
+
+    config = LayoutConfig(algorithm="hierarchical")
+    result = apply_layout(view, config)
+
+    assert result.success is True
+    assert result.elements_processed == 4
+    # All nodes should be positioned
+    for node in view.nodes:
+        assert node.x is not None
+        assert node.y is not None
+
+
+def test_hierarchical_layout_preserves_properties() -> None:
+    """Test that hierarchical layout preserves element properties."""
+    view = MockView(num_nodes=0)
+    view.nodes = [
+        MockNode(1),
+        MockNode(2),
+    ]
+    view.nodes[0].type = "ApplicationComponent"
+    view.nodes[1].type = "DataObject"
+    view.edges = [(0, 1)]
+
+    config = LayoutConfig(algorithm="hierarchical")
+    result = apply_layout(view, config)
+
+    assert result.success is True
+    assert view.nodes[0].type == "ApplicationComponent"
+    assert view.nodes[1].type == "DataObject"

@@ -1,6 +1,7 @@
 """Layout algorithms registry and factory."""
 
 from .force_directed import ForceDirectedLayout
+from .hierarchical import HierarchicalLayout
 
 __all__ = ["get_algorithm", "list_algorithms", "register_algorithm"]
 
@@ -27,3 +28,4 @@ def list_algorithms() -> list:
 
 # Register built-in algorithms
 register_algorithm("force_directed", ForceDirectedLayout)
+register_algorithm("hierarchical", HierarchicalLayout)

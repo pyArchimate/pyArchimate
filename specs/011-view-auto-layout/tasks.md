@@ -198,16 +198,16 @@ Developers can apply hierarchical layout to views with parent-child relationship
 
 ---
 
-- [ ] T056 [US3] Implement HierarchicalLayout class skeleton in `src/pyArchimate/view/layout/algorithms/hierarchical.py`
-- [ ] T057 [US3] [P] Implement Sugiyama layer assignment step respecting ArchiMate layers in `src/pyArchimate/view/layout/algorithms/hierarchical.py`
-- [ ] T058 [US3] [P] Implement Sugiyama crossing minimization step in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (barycentric ordering)
-- [ ] T059 [US3] [P] Implement Sugiyama position assignment step in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (node positioning in layers)
-- [ ] T060 [US3] Implement edge routing for hierarchical layout in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (orthogonal routing respecting layers)
-- [ ] T061 [US3] Register hierarchical algorithm in layout registry
-- [ ] T062 [US3] [P] Create unit tests in `tests/unit/layout/test_hierarchical.py` (layer assignment, crossing minimization, position calculation)
-- [ ] T063 [US3] Create integration test for hierarchical layout in `tests/integration/test_layout_round_trip.py`
-- [ ] T064 [US3] Create BDD scenario in `tests/features/layout/auto_layout.feature` for "Hierarchical Layout"
-- [ ] T065 [US3] Implement BDD step definitions for hierarchical scenario
+- [x] T056 [US3] Implement HierarchicalLayout class skeleton in `src/pyArchimate/view/layout/algorithms/hierarchical.py`
+- [x] T057 [US3] [P] Implement Sugiyama layer assignment step respecting ArchiMate layers in `src/pyArchimate/view/layout/algorithms/hierarchical.py`
+- [x] T058 [US3] [P] Implement Sugiyama crossing minimization step in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (barycentric ordering)
+- [x] T059 [US3] [P] Implement Sugiyama position assignment step in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (node positioning in layers)
+- [x] T060 [US3] Implement edge routing for hierarchical layout in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (orthogonal routing respecting layers)
+- [x] T061 [US3] Register hierarchical algorithm in layout registry
+- [x] T062 [US3] [P] Create unit tests in `tests/unit/layout/test_hierarchical.py` (layer assignment, crossing minimization, position calculation)
+- [x] T063 [US3] Create integration test for hierarchical layout in `tests/integration/test_layout_round_trip.py`
+- [x] T064 [US3] Create BDD scenario in `tests/features/layout/auto_layout.feature` for "Hierarchical Layout"
+- [x] T065 [US3] Implement BDD step definitions for hierarchical scenario
 
 ---
 
