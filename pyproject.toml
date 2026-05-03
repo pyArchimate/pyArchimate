@@ -1,6 +1,6 @@
 [project]
 name = "pyArchimate"
-version = "1.4.2"
+version = "1.5.0"
 authors = [
   { name="Xavier Mayeur", email="xavier@mayeur.be" }
 ]

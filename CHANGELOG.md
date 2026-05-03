@@ -1,3 +1,25 @@
+## v1.5.0 (2026-05-03)
+
+### Feat
+
+- **feature-007**: Complete format selection and ARIS deprecation
+- **writers**: implement smart file format selection and deprecate ARIS
+- Add `ipykernel` dependency to `pyproject.toml` and update `poetry.lock`
+
+### Fix
+
+- **reader**: restore helper functions lost during rebase onto develop
+- **test**: update BDD tests to handle .archimate ZIP archives
+- **archimate**: preserve image associations in DiagramObject round-trip
+- resolve pre-commit check failures (linting and imports)
+- **writers**: correct schema location in archimateWriter OpenGroup Exchange format
+- **writers**: correct OpenGroup Exchange format structure in archimateWriter
+- **docs**: fix readthedocs.yaml indentation and update conf.py version
+
+### Refactor
+
+- Extract helper functions in _process_folder_element to reduce cognitive complexity
+
 ## v1.4.2 (2026-05-02)
 
 ### Feat
