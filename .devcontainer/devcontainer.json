@@ -4,6 +4,7 @@
     "init": true,
     "remoteUser": "devcontainer",
     "updateRemoteUserUID": true,
+    "runArgs": ["--network=host"],
     "features": {
         "ghcr.io/devcontainers/features/common-utils:2": {
             "installZsh": true,
