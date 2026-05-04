@@ -2,36 +2,18 @@
 
 set -euo pipefail
 
-server_base="${PLANTUML_SERVER:-https://www.plantuml.com/plantuml}"
-
-plantuml_encode() {
-  local file="$1"
-  python3 - "$file" <<'PY'
-import sys, zlib, base64
-
-std_b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-puml_b64 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'
-
-with open(sys.argv[1], 'r', encoding='utf-8') as fd:
-    data = fd.read()
-compressor = zlib.compressobj(level=-1, wbits=-15)
-compressed = compressor.compress(data.encode('utf-8')) + compressor.flush()
-encoded = base64.b64encode(compressed).decode('utf-8').rstrip('=')
-translated = encoded.translate(str.maketrans(std_b64, puml_b64))
-print(translated)
-PY
-  return $?
-}
+if ! command -v plantuml &>/dev/null; then
+  echo "Error: 'plantuml' binary not found in PATH." >&2
+  echo "Install it with: sudo apt-get install plantuml  or  brew install plantuml" >&2
+  exit 1
+fi
 
 for file in docs/diagrams/*.puml; do
-  echo "Rendering $file"
   if [[ ! -f "$file" ]]; then
     echo "Missing $file, skipping." >&2
     continue
   fi
-  encoded=$(plantuml_encode "$file")
-  output="docs/diagrams/$(basename "${file%.*}.png")"
-  curl -s -L --retry 3 "${server_base}/png/${encoded}" -o "$output"
-  echo "Rendered $output"
-  sleep 0.2
+  echo "Rendering $file"
+  plantuml -tpng -o "$(pwd)/docs/diagrams" "$file"
+  echo "Rendered docs/diagrams/$(basename "${file%.*}.png")"
 done

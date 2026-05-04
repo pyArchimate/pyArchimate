@@ -2,7 +2,7 @@
 
 ## build the doc
 - cd docs
-- make html
+- poetry run make html
 
 ## release a new version (on master branch)
 
@@ -36,7 +36,7 @@ poetry run scripts/check_layer_boundaries.py
 claude -p "Review each of the diagrams in @docs/diagrams/*.puml, compare against @src/pyArchimate, and update as required." --dangerously-skip-permissions
 
 # Re-render to PNG/SVG
-poetry run scripts/render_diagrams.sh
+bash scripts/render_diagrams.sh
 ```
 
 ### 4. Review AI.md for accuracy
@@ -49,7 +49,7 @@ claude -p "Review @AI.md for accuracy since the last release tag version." --dan
 
 ```bash
 poetry run scripts/create_documentation.sh
-# or: cd docs && make html
+# or: cd docs && poetry run make html
 ```
 
 ### 6. Commit any regenerated artefacts

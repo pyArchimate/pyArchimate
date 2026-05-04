@@ -1,3 +1,61 @@
 .wy-nav-content {
     max-width: none;
 }
+
+/* WCAG 2.1 Level AA contrast fixes (SC-008) */
+
+/* Nav sidebar search area: darken the blue background for home link (white text on #2980b9 = 4.19:1 → need 4.5:1) */
+.wy-side-nav-search {
+    background-color: #1c5f8a !important;
+}
+
+.wy-side-nav-search > a,
+.wy-side-nav-search a {
+    color: #ffffff !important;
+}
+
+/* Sidebar toctree nav: fix current/expanded item contrast */
+/* RTD .current a: grey (#808080) on semi-transparent white over dark → poor contrast */
+.wy-menu-vertical li.current > a {
+    color: #333333 !important;
+    background: #fcfcfc !important;
+}
+
+/* Sub-items inside current section (toctree-l2): ensure dark text on light bg */
+.wy-menu-vertical li ul li a {
+    color: #404040 !important;
+    background: #fcfcfc !important;
+}
+
+.wy-menu-vertical li ul li a:hover {
+    color: #1a5276 !important;
+    background: #eeeeee !important;
+}
+
+/* Content area links: darken #2980b9 → #1a5276 for ≥4.5:1 contrast on white */
+.rst-content a:not(.headerlink),
+.wy-nav-content a:not(.headerlink) {
+    color: #1a5276 !important;
+}
+
+.rst-content a:hover:not(.headerlink),
+.wy-nav-content a:hover:not(.headerlink) {
+    color: #154360 !important;
+}
+
+/* Breadcrumb / "View source" links */
+.wy-breadcrumbs a,
+.wy-breadcrumbs-aside a {
+    color: #1a5276 !important;
+}
+
+/* Footer links */
+footer a,
+footer a:visited {
+    color: #1a5276 !important;
+}
+
+/* Footer copyright text */
+footer p {
+    color: #333333;
+}

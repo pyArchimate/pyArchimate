@@ -48,7 +48,7 @@ Performance & Quality
 API Reference
 ~~~~~~~~~~~~~
 
-- :doc:`p3-quick-reference` - Quick lookup for all P3 methods
+- :doc:`hierarchy-styling-overview` - Overview of hierarchy, styling, and junction types
 - :doc:`api/element` - Element class P3 API reference
 - :doc:`api/model` - Model class P3 API reference
 - :doc:`guides/element-hierarchy` - Hierarchy usage guide
