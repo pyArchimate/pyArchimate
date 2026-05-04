@@ -47,7 +47,12 @@ def _create_folders(root: _Element) -> dict[str, _Element]:
 
 def _get_folder(folders: dict[str, _Element], folder_str: str) -> _Element:
     paths = folder_str.split('/')[1:]
-    prev_f = folders['/' + paths[0]]
+    first_folder = '/' + paths[0]
+    if first_folder not in folders:
+        log.warning(f"Unknown folder category '{first_folder}', using /Other as parent")
+        prev_f = folders['/Other']
+    else:
+        prev_f = folders[first_folder]
     cur_path = ''
     f = None
     for p in paths:

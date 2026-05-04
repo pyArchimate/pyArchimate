@@ -151,16 +151,17 @@ def default_color(elem_type: str, theme: Any = DEFAULT_THEME) -> str:
                    'motivation': "#F099FF", 'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
     if elem_type in ARCHI_CATEGORY:
         cat = ARCHI_CATEGORY[elem_type].lower()
+        cat = cat.split(' & ')[0].split('-')[0]
 
         if theme == 'archi' or theme is None:
-            return default_colors[cat]
+            return default_colors.get(cat, default_colors['other'])
         if theme == 'aris':
-            return aris_colors[cat]
+            return aris_colors.get(cat, aris_colors['other'])
         else:
             try:
                 return str(theme[cat])
-            except KeyError:
-                return default_colors[cat]
+            except (KeyError, TypeError):
+                return default_colors.get(cat, default_colors['other'])
     return default_colors['other']
 
 

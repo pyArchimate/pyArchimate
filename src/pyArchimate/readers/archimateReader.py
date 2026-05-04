@@ -344,11 +344,19 @@ def _read_view_connection(view, c, ns, merge_flg):
     if not rel_ref:
         log.warning(f"Skipping connection {c.get('identifier')}: no relationshipRef")
         return
+    source_id = c.get('source')
+    target_id = c.get('target')
+    if source_id not in view.nodes_dict:
+        log.warning(f"Skipping connection {c.get('identifier')}: source node {source_id} not found")
+        return
+    if target_id not in view.nodes_dict:
+        log.warning(f"Skipping connection {c.get('identifier')}: target node {target_id} not found")
+        return
     _uuid_c = None if merge_flg else c.get('identifier')
     _c = view.add_connection(
         ref=rel_ref,
-        source=c.get('source'),
-        target=c.get('target'),
+        source=source_id,
+        target=target_id,
         uuid=_uuid_c,
     )
     _apply_conn_style(_c, c.find(ns + 'style'), ns)
