@@ -107,16 +107,17 @@ A developer wants to export a pyArchimate view as a self-contained SVG image to 
 
 **Why this priority**: Enables programmatic verification of layout output and removes the dependency on Archi for visual inspection. Particularly valuable for automated testing and CI workflows.
 
-**Independent Test**: Load a view, call `view.to_svg()`, verify the returned string is valid SVG containing one rectangle per node (at correct position/size), one polyline per connection (clipped at node edges), and one label per connection on the longest segment.
+**Independent Test**: Load a view, call `view.to_svg()`, verify the returned string is valid SVG containing one ArchiMate symbol (with element-type-specific shape and color) per node at correct position/size, one polyline per connection (clipped at node edges), and one label per connection on the longest segment.
 
 **Acceptance Scenarios**:
 
-1. **Given** a view with positioned nodes, **When** `to_svg()` is called, **Then** the SVG contains one white rectangle with black border for each node at the correct x/y/w/h coordinates
-2. **Given** a view with connections carrying bendpoints, **When** `to_svg()` is called, **Then** each connection renders as an orthogonal polyline clipped at both node boundary edges, with a filled-triangle arrowhead at the target end
-3. **Given** a view with connections, **When** `to_svg()` is called, **Then** each connection has a label showing the short relationship type name (e.g. "Serving"), rendered as black text on a borderless white rectangle positioned on the longest segment of the connection
-4. **Given** `to_svg(filepath="out.svg")` is called, **Then** the SVG is also written to the specified file path
-5. **Given** an element name that exceeds the node rectangle width, **When** `to_svg()` is called, **Then** the name wraps to multiple lines and is vertically centered within the rectangle
-6. **Given** a view with positioned nodes and connections, **When** `to_svg()` is called, **Then** the SVG contains a white background rectangle covering the entire canvas from 0,0 to viewBox width/height
+1. **Given** a view with positioned nodes of various ArchiMate types, **When** `to_svg()` is called, **Then** the SVG contains one symbol per node with element-type-specific shape (embedded SVG path) and ArchiMate standard color at the correct x/y coordinates
+2. **Given** a view with positioned nodes where user has set custom fill_color or line_color properties, **When** `to_svg()` is called, **Then** the SVG respects per-element color overrides instead of standard palette
+3. **Given** a view with connections carrying bendpoints, **When** `to_svg()` is called, **Then** each connection renders as an orthogonal polyline clipped at both node boundary edges, with a filled-triangle arrowhead at the target end
+4. **Given** a view with connections, **When** `to_svg()` is called, **Then** each connection has a label showing the short relationship type name (e.g. "Serving"), rendered as black text on a borderless white rectangle positioned on the longest segment of the connection
+5. **Given** `to_svg(filepath="out.svg")` is called, **Then** the SVG is also written to the specified file path
+6. **Given** an element name that exceeds the node bounding box width, **When** `to_svg()` is called, **Then** the name wraps to multiple lines and is vertically centered beside or below the symbol (as separate text element)
+7. **Given** a view with positioned nodes and connections, **When** `to_svg()` is called, **Then** the SVG contains a white background rectangle covering the entire canvas from 0,0 to viewBox width/height
 
 ---
 
@@ -161,6 +162,14 @@ A developer wants to export a pyArchimate view as a self-contained SVG image to 
 
 - Q: Should SVG generated files include a white background? → A: Yes — render a white rectangle covering the entire SVG canvas (0,0 to width,height) to ensure self-contained, portable SVG output
 
+### Session 2026-05-04 (SVG Symbol Enhancement)
+
+- Q: How should ArchiMate symbols be represented in SVG export? → A: Embedded SVG paths per element type, defined as `<symbol>` elements in the SVG `<defs>` block and referenced via `<use>` elements in node groups
+- Q: Which color palette should be used for element symbols? → A: ArchiMate standard colors (from ArchiMate 3.x specification); per-element fill_color and line_color properties override the standard palette
+- Q: What scope of ArchiMate element types should be supported with symbol rendering? → A: All 30+ ArchiMate element types (Business, Application, Technology, Motivation, Implementation layers, Junctions, Groupings)
+- Q: How should node styling (stroke, fill, opacity) match Archi tool output? → A: Match Archi tool defaults: solid fill with type-specific color, 1px black stroke, 100% opacity; respect per-element property overrides
+- Q: Where should element name labels be positioned relative to symbols? → A: As separate `<text>` elements outside/beside the symbol, enabling clean symbol rendering and readable text (matching Archi tool behavior)
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -178,7 +187,10 @@ A developer wants to export a pyArchimate view as a self-contained SVG image to 
 - **FR-009**: System MUST validate that auto-layout completes within a reasonable timeframe for views with up to 500 elements
 - **FR-010**: System MUST include undo/rollback capability so users can revert auto-layout if unsatisfied with results
 - **FR-012**: System MUST provide a `View.to_svg(filepath=None)` method that returns a valid SVG string representing the view and writes to `filepath` when provided
-- **FR-013**: SVG export MUST render each node as a white rectangle with a black border at the node's exact x/y/w/h coordinates, with the element name centered and word-wrapped inside
+- **FR-013**: SVG export MUST render each node using an ArchiMate-specific symbol shape (embedded SVG path) corresponding to its element type, with fill color matching the ArchiMate standard palette for that type, 1px black stroke, and 100% opacity
+- **FR-013a**: SVG export MUST support all 30+ ArchiMate element types with dedicated symbol definitions (Business, Application, Technology, Motivation, Implementation layers, Junctions, Groupings, etc.)
+- **FR-013b**: SVG export MUST respect per-element fill_color and line_color property overrides; if set on a node, use the specified colors instead of standard palette
+- **FR-013c**: SVG export MUST render element name labels as separate `<text>` elements positioned outside/beside the symbol, word-wrapped to fit the node bounding box, and vertically centered
 - **FR-014**: SVG export MUST render each connection as an orthogonal polyline (using stored bendpoints) clipped at the source and target node boundary edges, with a small filled-triangle arrowhead at the target end
 - **FR-015**: SVG export MUST place a connection label showing the short relationship type name (trailing "Relationship" suffix stripped) as black text in a borderless white rectangle centered on the longest segment of the connection polyline
 - **FR-016**: SVG export MUST render a white background rectangle covering the entire SVG canvas (0,0 to viewBox width/height) to ensure the generated SVG is self-contained and displays correctly on any background
