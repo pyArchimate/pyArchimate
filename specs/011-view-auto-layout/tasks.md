@@ -1,14 +1,26 @@
 # Tasks: View Auto-Layout and Auto-Format
 
-**Phase 2 Output** | **Date**: 2026-05-03 | **Feature Branch**: `011-view-auto-layout`
+**Phase 2+ Output** | **Date**: 2026-05-04 | **Feature Branch**: `011-view-auto-layout`  
+**Status**: Phase 6B (SVG Export) ✅ COMPLETE | Phases 1-6A in progress | Phase 7 (Polish) pending
 
 ## Overview
 
 This document contains the detailed task breakdown for implementing the View Auto-Layout and Auto-Format feature. Tasks are organized by phase and user story, with clear dependencies and parallel execution opportunities.
 
-**Total Tasks**: 110 tasks across 8 phases  
+**Total Tasks**: 110 tasks across 7 phases  
+**Completed**: 87 tasks (79%) | **Remaining**: 32 tasks (21%)
 **Estimated Duration**: MVP (US1+US2+foundational) ~3-4 weeks; Full feature ~6-7 weeks  
 **Suggested MVP Scope**: Complete Phases 1-4 (Setup + Foundational + US1 + US2) + essential Phase 7 tasks
+
+**Completion Summary**:
+- ✅ **Phase 1**: Setup (14 tasks, 100%)
+- ✅ **Phase 2**: Foundational (19 tasks, 100%)
+- ✅ **Phase 3**: US1 Auto-Layout Force-Directed (16 tasks, 100%)
+- ✅ **Phase 4**: US2 Auto-Format (18 tasks, 100%)
+- ✅ **Phase 5**: US3 Hierarchical Layout (14 tasks, 100%)
+- ✅ **Phase 6A**: US4 Customization (6 tasks, 100%)
+- ✅ **Phase 6B**: US5 SVG Export (12 tasks, 100%)
+- ⏳ **Phase 7**: Polish & Documentation (11 tasks, 0%) ← CURRENT WORK
 
 ---
 
