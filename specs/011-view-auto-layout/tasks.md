@@ -1,16 +1,16 @@
 # Tasks: View Auto-Layout and Auto-Format
 
-**Phase 2+ Output** | **Date**: 2026-05-04 | **Feature Branch**: `011-view-auto-layout`  
-**Status**: Phase 6B (SVG Export) ✅ COMPLETE | Phases 1-6A in progress | Phase 7 (Polish) pending
+**Phase 2+ Output** | **Date**: 2026-05-04 (Updated with SVG Symbol Enhancement) | **Feature Branch**: `011-view-auto-layout`  
+**Status**: Phase 6B-Core (SVG Export) ✅ COMPLETE | Phase 6B-Enhancement (Symbol Rendering) ⏳ IN PROGRESS | Phase 7 (Polish) pending
 
 ## Overview
 
 This document contains the detailed task breakdown for implementing the View Auto-Layout and Auto-Format feature. Tasks are organized by phase and user story, with clear dependencies and parallel execution opportunities.
 
-**Total Tasks**: 110 tasks across 7 phases  
-**Completed**: 87 tasks (79%) | **Remaining**: 32 tasks (21%)
-**Estimated Duration**: MVP (US1+US2+foundational) ~3-4 weeks; Full feature ~6-7 weeks  
-**Suggested MVP Scope**: Complete Phases 1-4 (Setup + Foundational + US1 + US2) + essential Phase 7 tasks
+**Total Tasks**: 118 tasks across 7 phases (110 original + 8 SVG symbol enhancement tasks)
+**Completed**: 87 tasks (74%) | **Remaining**: 40 tasks (26%)
+**Estimated Duration**: MVP (US1+US2+foundational) ~3-4 weeks; Full feature with symbols ~7-8 weeks  
+**Suggested MVP Scope**: Complete Phases 1-4 (Setup + Foundational + US1 + US2) + Phase 6B-Core SVG export + essential Phase 7 tasks
 
 **Completion Summary**:
 - ✅ **Phase 1**: Setup (14 tasks, 100%)
@@ -19,7 +19,8 @@ This document contains the detailed task breakdown for implementing the View Aut
 - ✅ **Phase 4**: US2 Auto-Format (18 tasks, 100%)
 - ✅ **Phase 5**: US3 Hierarchical Layout (14 tasks, 100%)
 - ✅ **Phase 6A**: US4 Customization (6 tasks, 100%)
-- ✅ **Phase 6B**: US5 SVG Export (12 tasks, 100%)
+- ✅ **Phase 6B-Core**: US5 SVG Export - Basic (12 tasks, 100%)
+- ⏳ **Phase 6B-Enhancement**: US5 SVG Export - Symbol Rendering (8 tasks, 0%) ← NEW: Symbol library + color palette
 - ⏳ **Phase 7**: Polish & Documentation (11 tasks, 0%) ← CURRENT WORK
 
 ---
@@ -252,22 +253,33 @@ Developers can customize layout behavior via LayoutConfig (algorithm selection, 
 
 ---
 
-## PHASE 6B: User Story 5 - SVG Export ✅ COMPLETE
+## PHASE 6B: User Story 5 - SVG Export (MVP + Symbol Enhancement)
 
 ### User Story Goal
-Developers can export any pyArchimate view to a self-contained SVG file (or string) for visual inspection, automated testing, and sharing without requiring the Archi desktop tool.
+Developers can export any pyArchimate view as a self-contained SVG file (or string) with **ArchiMate-specific visual symbols and colors** matching Archi tool output, enabling visual inspection, automated testing, and sharing without requiring the Archi desktop tool.
 
-### Independent Test Criteria
+### Independent Test Criteria (MVP)
 - `view.to_svg()` returns a valid SVG string (parseable XML, `<svg>` root element)
-- One `<rect>` per node at correct x/y/width/height, white fill, black stroke
-- Element name text centered and word-wrapped inside each rectangle
-- One `<polyline>` per connection routed through stored bendpoints, clipped at node boundary edges
+- One `<use>` element per node referencing ArchiMate symbol definition for its element type
+- Each symbol rendered with ArchiMate standard color (via `fill` attribute)
+- Element name text positioned outside/beside symbol, word-wrapped and vertically centered
+- One `<polyline>` per connection routed through stored bendpoints, clipped at symbol boundary edges
 - Arrowhead `<marker>` at target end of each connection
-- One connection label per connection: short type name, black text, white background rect, positioned on the longest polyline segment
+- One connection label per connection: short relationship type name, black text, white background rect, positioned on longest polyline segment
 - `to_svg(filepath="out.svg")` writes the SVG to disk
 
+### Symbol Enhancement Requirements
+- All 30+ ArchiMate element types supported with dedicated symbol definitions (Business, Application, Technology, Motivation, Implementation, Other, Junction)
+- ArchiMate standard color palette mapped per element type (with per-element override support via fill_color property)
+- Symbol definitions embedded in SVG `<defs>` block (self-contained, no external dependencies)
+- Polyline clipping adjusted for symbol bounds (not fixed rectangles)
+
 ### User Story Priority
-**P2** — Enables programmatic verification of layout output; no dependency on Archi desktop
+**P2** — Enables programmatic verification with visual fidelity; removes Archi desktop dependency
+
+### Phases & Status
+- **Phase 6B-Core** (T099-T110): ✅ COMPLETE — Basic SVG export (rectangles, polylines, labels)
+- **Phase 6B-Enhancement** (T111-T118): ⏳ IN PROGRESS — Symbol library and color mapping
 
 ---
 
@@ -283,6 +295,21 @@ Developers can export any pyArchimate view to a self-contained SVG file (or stri
 - [x] T108 [US5] Create integration test in `tests/integration/test_svg_export.py` (load demo archimate → apply layout → export SVG → parse SVG → assert node count, connection count, label presence) — *3 integration tests, all passing*
 - [x] T109 [US5] Create BDD scenario in `tests/features/layout/svg_export.feature` for "Export View as SVG Diagram" — *8 scenarios covering all acceptance criteria*
 - [x] T110 [US5] Implement BDD step definitions in `tests/features/layout/svg_export_steps.py` — *35+ step definitions, comprehensive coverage*
+
+### Phase 6B Enhancement: ArchiMate Symbol Rendering (NEW)
+
+Clarification Session 2026-05-04 added requirements for symbol-based rendering to match Archi tool visual fidelity.
+
+---
+
+- [ ] T111 [P] [US5] Create symbol registry in `src/pyArchimate/view/layout/export/symbols/archimate_symbols.py` with definitions for all 30+ ArchiMate element types (Business: Actor, Role, Service, Process, etc.; Application: Component, Service, Interface, Function; Technology: Node, Device, Software, Service; Motivation: Stakeholder, Driver, Goal; Implementation: Event, Component; Other: Grouping, Gap; Junctions: And, Or, Xor)
+- [ ] T112 [P] [US5] Extract and validate SVG paths for each element type symbol, including viewBox dimensions and bounding box coordinates
+- [ ] T113 [P] [US5] Create color palette mapping in `src/pyArchimate/view/layout/export/symbols/color_palette.py` with ArchiMate standard colors (hex RGB codes) for all 30+ element types per AR3 specification
+- [ ] T114 [P] [US5] Update `SVGExportService._render_node()` in `src/pyArchimate/view/layout/export/svg_export.py` to render symbols via `<symbol>` definitions + `<use>` elements instead of `<rect>` rectangles
+- [ ] T115 [P] [US5] Update polyline clipping algorithm in `src/pyArchimate/view/layout/export/svg_export.py` to clip connections at symbol boundary edges (using bounding box from symbol registry) instead of fixed rectangle bounds
+- [ ] T116 [US5] Implement per-element color override support: if node has `fill_color` or `line_color` properties set, use those instead of standard palette color in `SVGExportService`
+- [ ] T117 [P] [US5] Create comprehensive tests for symbol rendering in `tests/unit/layout/test_archimate_symbols.py` (symbol path validation, viewBox correctness, color palette coverage for all 30+ types)
+- [ ] T118 [P] [US5] Expand BDD scenarios in `tests/features/layout/svg_export.feature` to cover symbol rendering for all 30+ element types (at least one scenario per ArchiMate layer: Business, Application, Technology, Motivation, Implementation, Other, Junction)
 
 ---
 
