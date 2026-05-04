@@ -1,3 +1,14 @@
+## v1.6.0 (2026-05-04)
+
+### Feat
+
+- add setup-tasks.sh script for speckit task generation workflow
+- **010**: implement sphinx docs restructuring with WCAG fixes and doctest
+- restructure sphinx documentation into three-tier navigation
+- add sphinx docs restructuring specification
+- add pre_feature.sh script for branch management and updates
+- add quality uplift specification and checklist for incremental code quality improvements
+
 ## v1.5.0 (2026-05-03)
 
 ### Feat
