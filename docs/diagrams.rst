@@ -1,6 +1,3 @@
-Architecture
-============
-
 The files in ``docs/diagrams`` are PlantUML sources that document the architecture of
 pyArchimate. They include both classic UML views (class, component, object, deployment, etc.)
 and derived C4-style diagrams that illustrate how the project is composed.
@@ -100,8 +97,8 @@ The rendered PNG artifacts live next to the PlantUML sources (``docs/diagrams/*.
    :alt: Communication diagram showing the collaboration of Model, View, Node, and Connection.
    :align: center
 
-Rendering
----------
+Rendering Diagrams
+^^^^^^^^^^^^^^^^^^
 
 To regenerate the PNG artifacts locate the PlantUML renderer and run the helper script:
 

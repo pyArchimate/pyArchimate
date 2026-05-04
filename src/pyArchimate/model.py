@@ -1193,7 +1193,7 @@ class Model:
     def find_by_hierarchy_path(self, path: str) -> list[Element]:
         """Find elements by hierarchy path (e.g., '/parent/child/element').
 
-        Supports wildcard matching at end: '/parent/child/*' matches all children of child.
+        Supports wildcard matching at end: ``'/parent/child/*'`` matches all children of child.
 
         :param path: Hierarchy path string starting with '/', levels separated by '/'
         :return: List of matching Elements

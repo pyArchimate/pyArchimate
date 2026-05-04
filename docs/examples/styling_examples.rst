@@ -1,213 +1,231 @@
 Visual Styling Code Examples
 =============================
 
-Complete working examples for element visual customization.
+.. note::
 
-Example 1: Basic Color Setup
-----------------------------
+   🔧 **Intermediate / Architecture** — Practical code examples for customizing element appearance.
 
-.. code-block:: python
+Example 1: Using Hex and Named Colors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   from pyArchimate import ArchiType
-   from pyArchimate.model import Model
-
-   model = Model('Styled Architecture')
-
-   # Create element
-   process = model.add(ArchiType.BusinessProcess, 'Process')
-
-   # Set color
-   process.set_fill_color('#ff0000')  # Red
-
-   # Retrieve color
-   color = process.get_fill_color()
-   assert color == '#ff0000'
-
-Example 2: Named Colors
------------------------
+Create elements with both hexadecimal and named color specifications:
 
 .. code-block:: python
 
-   # Use named colors (auto-converted to hex)
-   elem1 = model.add(ArchiType.BusinessProcess, 'Critical')
-   elem1.set_fill_color('red')
+   from pyArchimate import Model, ArchiType
 
-   elem2 = model.add(ArchiType.BusinessProcess, 'Healthy')
-   elem2.set_fill_color('green')
+   model = Model(name="Color Examples")
 
-   elem3 = model.add(ArchiType.BusinessProcess, 'Warning')
-   elem3.set_fill_color('orange')
+   # Create elements with hex colors
+   elem1 = model.add_element(
+       name="Critical System",
+       element_type=ArchiType.ApplicationService
+   )
+   elem1.set_fill_color("#FF5733")  # Bright red-orange (hex)
+   elem1.set_line_color("#8B0000")  # Dark red (hex)
+   elem1.set_line_width(2)
 
-   # All stored as hex internally
-   assert elem1.get_fill_color() == '#ff0000'
-   assert elem2.get_fill_color() == '#008000'
+   # Create elements with named colors
+   elem2 = model.add_element(
+       name="Standard Service",
+       element_type=ArchiType.ApplicationService
+   )
+   elem2.set_fill_color("lightblue")  # Named color (case-insensitive)
+   elem2.set_line_color("darkblue")   # Named color
 
-Example 3: Complete Styling
----------------------------
+   # Create elements with transparency
+   elem3 = model.add_element(
+       name="Legacy Service",
+       element_type=ArchiType.ApplicationService
+   )
+   elem3.set_fill_color("#CCCCCC")  # Gray
+   elem3.set_transparency(0.7)      # 70% transparent (30% opaque)
+
+   # Verify colors were set
+   print(f"Elem1 fill: {elem1.get_fill_color()}")      # #FF5733
+   print(f"Elem2 fill: {elem2.get_fill_color()}")      # lightblue
+   print(f"Elem3 transparency: {elem3.get_transparency()}")  # 0.7
+
+   model.write("colors.archimate")
+
+Example 2: Bulk Styling with set_visual_style
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Apply consistent styling to multiple elements using style dictionaries:
 
 .. code-block:: python
 
-   # Set all style properties
-   elem = model.add(ArchiType.BusinessProcess, 'Process')
+   from pyArchimate import Model, ArchiType
 
-   elem.set_fill_color('#ffeb3b')      # Yellow fill
-   elem.set_line_color('#ff6f00')      # Orange border
-   elem.set_line_width(2.0)            # 2px border
-   elem.set_transparency(0.8)          # 80% opaque
+   model = Model(name="Bulk Styling Example")
 
-   # Verify all properties
-   style = elem.get_visual_style()
-   assert style['fillColor'] == '#ffeb3b'
-   assert style['lineColor'] == '#ff6f00'
-   assert style['lineWidth'] == 2.0
-   assert style['transparency'] == 0.8
+   # Define a style template
+   critical_style = {
+       "fill_color": "#FFE6E6",  # Light red
+       "line_color": "#CC0000",  # Bright red
+       "line_width": 3,
+       "transparency": 0.0       # Fully opaque
+   }
 
-Example 4: Bulk Style Operations
---------------------------------
+   normal_style = {
+       "fill_color": "#E6F2FF",  # Light blue
+       "line_color": "#0066CC",  # Bright blue
+       "line_width": 1,
+       "transparency": 0.0
+   }
+
+   deprecated_style = {
+       "fill_color": "#CCCCCC",  # Gray
+       "line_color": "#666666",  # Darker gray
+       "line_width": 1,
+       "transparency": 0.5       # 50% transparent
+   }
+
+   # Create elements and apply styles based on category
+   critical_system = model.add_element(
+       name="Payment Gateway",
+       element_type=ArchiType.ApplicationService
+   )
+   critical_system.set_visual_style(critical_style)
+
+   normal_system = model.add_element(
+       name="Logging Service",
+       element_type=ArchiType.ApplicationService
+   )
+   normal_system.set_visual_style(normal_style)
+
+   legacy_system = model.add_element(
+       name="Legacy API",
+       element_type=ArchiType.ApplicationService
+   )
+   legacy_system.set_visual_style(deprecated_style)
+
+   # Verify styles
+   payment_style = critical_system.get_visual_style()
+   print(f"Payment Gateway style: {payment_style}")
+
+   model.write("bulk_styled.archimate")
+
+Example 3: Model-Wide Theme with Per-Element Overrides
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Set a default theme for the model and override for specific elements:
 
 .. code-block:: python
 
-   # Set multiple properties at once
-   elem = model.add(ArchiType.BusinessProcess, 'Process')
+   from pyArchimate import Model, ArchiType
 
-   elem.set_visual_style(
-       fill_color='#ffeb3b',
-       line_color='#ff6f00',
-       line_width=2.0,
-       transparency=0.9
+   model = Model(name="Themed Model")
+
+   # Define and set model-wide default theme
+   default_theme = {
+       "fill_color": "#F5F5F5",  # Light gray background
+       "line_color": "#333333",  # Dark gray border
+       "line_width": 1,
+       "transparency": 0.0
+   }
+
+   model.set_default_theme(default_theme)
+
+   # Create elements - they'll use the default theme
+   process1 = model.add_element(
+       name="Standard Process",
+       element_type=ArchiType.BusinessProcess
    )
 
-   # Get all properties
-   style = elem.get_visual_style()
-   assert len(style) == 4
+   process2 = model.add_element(
+       name="Critical Process",
+       element_type=ArchiType.BusinessProcess
+   )
 
-Example 5: Conditional Styling
-------------------------------
+   # Override the critical process with custom styling
+   override_style = {
+       "fill_color": "#FFC0C0",  # Light pink
+       "line_color": "#FF0000",  # Red
+       "line_width": 2,
+       "transparency": 0.0
+   }
+   process2.set_visual_style(override_style)
 
-.. code-block:: python
+   # Add related elements
+   service1 = model.add_element(
+       name="Service A",
+       element_type=ArchiType.ApplicationService
+   )
 
-   # Style based on element type
-   critical_process = model.add(ArchiType.BusinessProcess, 'Critical')
-   standard_process = model.add(ArchiType.BusinessProcess, 'Standard')
-   optional_process = model.add(ArchiType.BusinessProcess, 'Optional')
+   service2 = model.add_element(
+       name="Critical Service",
+       element_type=ArchiType.ApplicationService
+   )
+   service2.set_fill_color("#FF8888")  # Highlight with color
 
-   # Color code by importance
-   critical_process.set_fill_color('red')
-   critical_process.set_line_width(3.0)
+   # All elements now have styling - some from theme, some overridden
+   model.write("themed.archimate")
 
-   standard_process.set_fill_color('green')
-   standard_process.set_line_width(1.0)
+Example 4: Round-Trip Verification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   optional_process.set_fill_color('gray')
-   optional_process.set_line_width(1.0)
-
-Example 6: Hierarchy Styling
-----------------------------
-
-.. code-block:: python
-
-   # Create styled hierarchy
-   parent = model.add(ArchiType.BusinessFunction, 'Department')
-   parent.set_fill_color('#e8f4f8')  # Light blue
-   parent.set_transparency(0.95)
-
-   child1 = model.add(ArchiType.BusinessFunction, 'Team 1')
-   child1.set_fill_color('#b3e5fc')  # Medium blue
-   child1.set_transparency(0.9)
-
-   child2 = model.add(ArchiType.BusinessFunction, 'Team 2')
-   child2.set_fill_color('#b3e5fc')
-   child2.set_transparency(0.9)
-
-   model.add_child(parent.uuid, child1.uuid)
-   model.add_child(parent.uuid, child2.uuid)
-
-   # Different colors for different hierarchy levels
-
-Example 7: Resetting Styles
-----------------------------
+Verify that styling is preserved when reading and writing models:
 
 .. code-block:: python
 
-   # Create and style element
-   elem = model.add(ArchiType.BusinessProcess, 'Process')
-   elem.set_fill_color('red')
-   elem.set_transparency(0.5)
+   from pyArchimate import Model, ArchiType
 
-   # Reset all styles
-   elem.reset_visual_style()
+   # Create and style a model
+   model = Model(name="Styled Model")
 
-   # All properties now None
-   assert elem.get_fill_color() is None
-   assert elem.get_transparency() is None
+   elem = model.add_element(
+       name="Styled Element",
+       element_type=ArchiType.BusinessProcess
+   )
+   elem.set_fill_color("#FF6B6B")
+   elem.set_line_color("#C92A2A")
+   elem.set_line_width(2)
+   elem.set_transparency(0.2)
 
-Example 8: Partial Styling
---------------------------
+   # Save the model
+   model.write("original.archimate")
+   print("Saved original model with styling")
 
-.. code-block:: python
+   # Read it back
+   model2 = Model.read("original.archimate")
+   elem2 = model2.get_element(elem.id)
 
-   # Set only some properties
-   elem = model.add(ArchiType.BusinessProcess, 'Process')
+   # Verify styling was preserved
+   assert elem2.get_fill_color() == "#FF6B6B", "Fill color not preserved!"
+   assert elem2.get_line_color() == "#C92A2A", "Line color not preserved!"
+   assert elem2.get_line_width() == 2, "Line width not preserved!"
+   assert elem2.get_transparency() == 0.2, "Transparency not preserved!"
 
-   # Only set fill color
-   elem.set_fill_color('#ff0000')
+   print("✓ All styling preserved in round-trip!")
 
-   # Get style (only fillColor set)
-   style = elem.get_visual_style()
-   assert 'fillColor' in style
-   assert 'lineColor' not in style
-   assert 'lineWidth' not in style
+   # Modify and save again
+   elem2.set_fill_color("#4ECDC4")  # Teal
+   model2.write("modified.archimate")
 
-   # Add line color later
-   elem.set_line_color('blue')
-   style = elem.get_visual_style()
-   assert 'lineColor' in style
+   # Read again to verify second round-trip
+   model3 = Model.read("modified.archimate")
+   elem3 = model3.get_element(elem.id)
 
-Example 9: Round-Trip Preservation
----------------------------------
+   assert elem3.get_fill_color() == "#4ECDC4", "Updated color not preserved!"
+   print("✓ Updated styling preserved in second round-trip!")
 
-.. code-block:: python
+Styling Best Practices
+~~~~~~~~~~~~~~~~~~~~~~
 
-   # Create and style element
-   elem1 = model.add(ArchiType.BusinessProcess, 'Process')
-   elem1.set_fill_color('#ffeb3b')
-   elem1.set_line_color('#ff6f00')
-   elem1.set_transparency(0.8)
+1. **Use consistent color schemes**: Define reusable style dictionaries for different element categories.
 
-   # Export
-   model.write('model.archimate')
+2. **Reserve strong colors for important elements**: Use bright colors (e.g., red) sparingly to highlight critical systems.
 
-   # Re-import
-   m2 = Model('reloaded')
-   m2.read('model.archimate')
+3. **Maintain visual hierarchy**: Use transparency and line width to show importance and relationships.
 
-   # Verify styles preserved
-   elem2 = m2.elems_dict[elem1.uuid]
-   assert elem2.get_fill_color() == '#ffeb3b'
-   assert elem2.get_line_color() == '#ff6f00'
-   assert elem2.get_transparency() == 0.8
+4. **Test round-trip preservation**: Always verify that styling survives export and re-import cycles.
 
-Example 10: Multiple Elements Styling
-------------------------------------
+5. **Consider accessibility**: Ensure color choices provide sufficient contrast for readability (especially for colorblind users).
 
-.. code-block:: python
+Related Documentation
+~~~~~~~~~~~~~~~~~~~~~
 
-   # Create multiple elements with consistent styling
-   processes = []
-   for i in range(5):
-       proc = model.add(ArchiType.BusinessProcess, f'Process {i+1}')
-       proc.set_fill_color('#e3f2fd')  # Light blue
-       proc.set_line_color('#1976d2')  # Dark blue
-       proc.set_line_width(1.5)
-       processes.append(proc)
-
-   # Verify all styled
-   for proc in processes:
-       assert proc.get_fill_color() == '#e3f2fd'
-       assert proc.get_line_width() == 1.5
-
-See Also
---------
-
-- :doc:`../guides/visual-styling`: Complete styling guide
-- :doc:`../api/element`: Element API reference
+- :doc:`../guides/visual-styling` — Complete styling guide
+- :doc:`../api/element` — Element API
+- :doc:`../concepts` — Core concepts

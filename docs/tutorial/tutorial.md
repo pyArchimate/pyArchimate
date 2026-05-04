@@ -5,7 +5,7 @@ Minimum supported version: pyArchimate 1.0.x (Python 3.10+)
 This tutorial covers the core operations of pyArchimate: creating, loading,
 inspecting, modifying, and saving ArchiMate models.
 
-Experienced ArchiMate users can skip straight to [Installation](#1-installation).
+Experienced ArchiMate users can skip straight to Section 1: Installation.
 
 ---
 
@@ -309,8 +309,6 @@ model.write("export_demo.csv", writer=Writers.csv)
 
 ## Intermediate
 
----
-
 ## 11. Merging Models
 
 `model.merge()` loads a second file into an existing model, combining elements
@@ -462,8 +460,6 @@ print(f"Parent expanded to fit children? {node_cluster.w > 120}")  # True
 ---
 
 ## Advanced
-
----
 
 ## 16. Connection Routing (Bendpoints)
 

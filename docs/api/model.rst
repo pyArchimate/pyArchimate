@@ -1,5 +1,9 @@
-Model Class - P3 Hierarchy & Query API Reference
-==================================================
+Model Class - Hierarchy & Query API Reference
+==============================================
+
+.. note::
+
+   ⚙️ **New to this topic?** Start with :doc:`../guides/element-hierarchy` to understand how hierarchies work before exploring the full API reference.
 
 The ``Model`` class provides comprehensive methods for managing element hierarchies, querying relationships, and organizing elements into parent-child structures with full round-trip XML preservation.
 
@@ -264,24 +268,38 @@ Round-Trip Preservation
 
 All hierarchy relationships are automatically preserved during XML export/import:
 
-.. code-block:: python
+.. testcode::
 
-   # Create hierarchy
-   process = model.add(ArchiType.BusinessProcess, 'Process')
-   func = model.add(ArchiType.BusinessFunction, 'Function')
-   model.add_child(process.uuid, func.uuid)
+   import tempfile, os
+   from pyArchimate import Model, ArchiType
+
+   # Create model with hierarchy
+   m = Model('round-trip-test')
+   process = m.add(ArchiType.BusinessProcess, 'Process')
+   func = m.add(ArchiType.BusinessFunction, 'Function')
+   m.add_child(process.uuid, func.uuid)
 
    # Export to XML
-   model.write('model.archimate')
+   with tempfile.NamedTemporaryFile(suffix='.archimate', delete=False) as f:
+       tmp_path = f.name
+   m.write(tmp_path)
 
    # Import from XML
    m2 = Model('reloaded')
-   m2.read('model.archimate')
+   m2.read(tmp_path)
+   os.unlink(tmp_path)
 
    # Hierarchy is preserved exactly
    process2 = m2.elems_dict[process.uuid]
    func2 = m2.elems_dict[func.uuid]
-   assert m2.get_parent(func2.uuid) == process2
+   parent = m2.get_parent(func2.uuid)
+   print(f"Parent preserved: {parent.uuid == process2.uuid}")
+   print(f"Child name: {func2.name}")
+
+.. testoutput::
+
+   Parent preserved: True
+   Child name: Function
 
 Constraints and Limits
 ----------------------

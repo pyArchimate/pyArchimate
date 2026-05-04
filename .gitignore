@@ -18,6 +18,7 @@ Thumbs.db
 *.swp
 .idea/
 .claude/skills/
+.claude/settings.local.json
 .github/agents/
 .github/prompts/
 .specify/feature.json

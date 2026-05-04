@@ -1,7 +1,11 @@
-Element Class - P3 API Reference
-=================================
+Element Class API Reference
+============================
 
-The ``Element`` class represents ArchiMate elements with support for element hierarchy (parent-child relationships), visual styling, and junction type semantics (P3 features).
+.. note::
+
+   ⚙️ **New to this topic?** Start with :doc:`../guides/visual-styling` and :doc:`../guides/junction-types` to understand element styling and junction semantics before diving into the API details.
+
+The ``Element`` class represents ArchiMate elements with support for element hierarchy (parent-child relationships), visual styling, and junction type semantics.
 
 Visual Styling Methods
 ----------------------
@@ -218,7 +222,13 @@ See :doc:`../guides/element-hierarchy` for hierarchy usage guide.
 Round-Trip Preservation
 -----------------------
 
-All visual properties and junction types are automatically preserved during XML export/import cycles:
+All visual properties and junction types are automatically preserved during XML export/import cycles.
+
+.. note::
+
+   The examples below are validated by **review** (not ``make doctest``) because they interact with
+   the file system in ways that vary by environment. The ``getting-started.rst`` and
+   ``api/model.rst`` round-trip examples are validated by Sphinx doctest (``make doctest``).
 
 .. code-block:: python
 
