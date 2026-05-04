@@ -60,12 +60,12 @@ class HierarchicalLayout(LayoutAlgorithm):
             # Step 3: Position assignment
             positions = self._assign_positions(layers, config, nodes)
 
-            # Apply positions to nodes
+            # Apply positions to nodes (convert to integers for Archi XML compatibility)
             for i, node in enumerate(nodes):
                 if i in positions:
                     pos = positions[i]
-                    node.x = pos.x
-                    node.y = pos.y
+                    node.x = int(round(pos.x))
+                    node.y = int(round(pos.y))
 
             # Calculate metrics
             crossings = self._count_crossings(positions, edges)

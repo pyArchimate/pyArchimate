@@ -147,3 +147,61 @@ class LayerConstraint:
                     updated_positions[elem_id] = (x, new_y)
 
         return updated_positions
+
+    def enforce_layer_separation_with_exclusions(
+        self, positions: Dict, spacing: float = 100, excluded_ids: set = None
+    ) -> Dict:
+        """Enforce minimum separation between layers while excluding specified elements.
+
+        Args:
+            positions: Dict of element_id -> Position (Point or tuple)
+            spacing: Minimum spacing between layers
+            excluded_ids: Set of element IDs to exclude from repositioning
+
+        Returns:
+            Updated positions dict with layer constraints enforced
+        """
+        if excluded_ids is None:
+            excluded_ids = set()
+
+        # Group elements by layer (excluding specified IDs)
+        layers: Dict[ArchiMateLayer, list] = {}
+        for elem_id, layer in self.element_layers.items():
+            if elem_id not in excluded_ids:
+                if layer not in layers:
+                    layers[layer] = []
+                layers[layer].append(elem_id)
+
+        updated_positions = dict(positions)
+
+        # Ensure proper vertical ordering (Business > Application > Technology)
+        layer_y_ranges = {}
+        current_y = 0
+        for layer in [ArchiMateLayer.BUSINESS, ArchiMateLayer.APPLICATION, ArchiMateLayer.TECHNOLOGY]:
+            if layer in layers:
+                max_height = max(50, len(layers[layer]) * 30)
+                layer_y_ranges[layer] = (current_y, current_y + max_height)
+                current_y += max_height + spacing
+
+        # Adjust positions to enforce layer boundaries (skip excluded)
+        for elem_id, pos in updated_positions.items():
+            if elem_id in excluded_ids:
+                continue
+
+            layer = self.get_layer(elem_id)
+            if layer in layer_y_ranges:
+                y_min, y_max = layer_y_ranges[layer]
+                # Handle both Point objects and tuples
+                if hasattr(pos, 'x') and hasattr(pos, 'y'):
+                    x, y = pos.x, pos.y
+                else:
+                    x, y = pos[0], pos[1]
+                new_y = max(y_min, min(y, y_max - 50))
+                # Return as Point if input was Point, else as tuple
+                if hasattr(pos, 'x'):
+                    from ..utils.geometry import Point
+                    updated_positions[elem_id] = Point(x, new_y)
+                else:
+                    updated_positions[elem_id] = (x, new_y)
+
+        return updated_positions

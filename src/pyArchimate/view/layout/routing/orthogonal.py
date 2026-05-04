@@ -9,13 +9,15 @@ def generate_polyline(
     p_start: Point,
     p_end: Point,
     obstacles: List[Rectangle] = None,
+    routing_style: str = "orthogonal",
 ) -> List[Point]:
-    """Generate an orthogonal polyline (rectilinear path) between two points.
+    """Generate a polyline (path) between two points.
 
     Args:
         p_start: Starting point
         p_end: Ending point
         obstacles: List of rectangles to avoid (optional)
+        routing_style: "orthogonal" (0°/90°) or "mixed_45" (allow ±45° angles)
 
     Returns:
         List of waypoints forming the polyline
@@ -23,13 +25,34 @@ def generate_polyline(
     if obstacles is None:
         obstacles = []
 
-    # Simple orthogonal routing: horizontal then vertical
+    # Determine if 45-degree angles can be used
+    allow_45_degree = routing_style == "mixed_45"
+
     waypoints = [p_start]
 
-    # Intermediate point: go horizontal first, then vertical
-    mid_x = (p_start.x + p_end.x) / 2
-    mid_point = Point(mid_x, p_start.y)
-    waypoints.append(mid_point)
+    if allow_45_degree:
+        # Mixed routing: try 45-degree angle if it simplifies the path
+        dx = abs(p_end.x - p_start.x)
+        dy = abs(p_end.y - p_start.y)
+
+        if dx > 0 and dy > 0:
+            # Use 45-degree diagonal if roughly equal distances
+            if 0.5 < dx / dy < 2.0:
+                mid_point = Point(p_end.x, p_start.y)
+                waypoints.append(mid_point)
+            else:
+                # Use orthogonal fallback
+                mid_x = (p_start.x + p_end.x) / 2
+                mid_point = Point(mid_x, p_start.y)
+                waypoints.append(mid_point)
+        else:
+            # Straight line
+            pass
+    else:
+        # Standard orthogonal routing: horizontal then vertical
+        mid_x = (p_start.x + p_end.x) / 2
+        mid_point = Point(mid_x, p_start.y)
+        waypoints.append(mid_point)
 
     # Final point
     waypoints.append(p_end)

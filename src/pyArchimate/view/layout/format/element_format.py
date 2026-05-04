@@ -173,6 +173,7 @@ class FormatService:
         user_font_override: Optional[Dict[str, str]] = None,
         alignment: str = "free",
         grid_size: float = 10.0,
+        size_constraints: Optional[Dict[str, float]] = None,
     ) -> None:
         """Format an individual element.
 
@@ -182,27 +183,30 @@ class FormatService:
             user_font_override: Custom font properties from user, if any
             alignment: "free" or "grid" for position alignment
             grid_size: Grid cell size if alignment="grid"
+            size_constraints: Dict with optional constraints: {"min_width": float, "max_width": float, "min_height": float, "max_height": float}
         """
         element_type = getattr(element, "type", "unknown")
         spec = self.registry.get_spec(element_type)
 
-        # Apply size standardization (respect user overrides)
+        # Apply size standardization (respect user overrides and constraints)
         # Support both 'w'/'h' and 'width'/'height' attribute names
         if user_size_override is None:
-            if hasattr(element, 'w'):
-                element.w = spec.default_width
-                element.h = spec.default_height
-            else:
-                element.width = spec.default_width
-                element.height = spec.default_height
+            width = spec.default_width
+            height = spec.default_height
         else:
             width, height = user_size_override
-            if hasattr(element, 'w'):
-                element.w = width
-                element.h = height
-            else:
-                element.width = width
-                element.height = height
+
+        # Apply size constraints if provided
+        if size_constraints:
+            width = self._apply_size_constraint(width, size_constraints, "width")
+            height = self._apply_size_constraint(height, size_constraints, "height")
+
+        if hasattr(element, 'w'):
+            element.w = width
+            element.h = height
+        else:
+            element.width = width
+            element.height = height
 
         # Apply font standardization (respect user overrides)
         # Support both 'font_name' (pyArchimate) and 'font_family' (generic)
@@ -245,6 +249,27 @@ class FormatService:
         if alignment == "grid":
             self._snap_to_grid(element, grid_size)
 
+    def _apply_size_constraint(self, size: float, constraints: Dict[str, float], dimension: str) -> float:
+        """Apply min/max constraints to a dimension.
+
+        Args:
+            size: Current dimension value
+            constraints: Dict with min/max keys
+            dimension: "width" or "height"
+
+        Returns:
+            Constrained size value
+        """
+        min_key = f"min_{dimension}"
+        max_key = f"max_{dimension}"
+
+        if min_key in constraints:
+            size = max(size, constraints[min_key])
+        if max_key in constraints:
+            size = min(size, constraints[max_key])
+
+        return size
+
     def _snap_to_grid(self, element: Any, grid_size: float) -> None:
         """Snap element position to grid.
 
@@ -255,8 +280,9 @@ class FormatService:
         x = getattr(element, "x", 0)
         y = getattr(element, "y", 0)
 
-        element.x = round(x / grid_size) * grid_size
-        element.y = round(y / grid_size) * grid_size
+        # Convert to integers for Archi XML compatibility
+        element.x = int(round(x / grid_size) * grid_size)
+        element.y = int(round(y / grid_size) * grid_size)
 
     def format_view(
         self,
@@ -264,6 +290,7 @@ class FormatService:
         alignment: str = "free",
         grid_size: float = 10.0,
         excluded_element_ids: Optional[Set[str]] = None,
+        size_constraints: Optional[Dict[str, float]] = None,
     ) -> Dict[str, Any]:
         """Format all elements in a view.
 
@@ -272,6 +299,7 @@ class FormatService:
             alignment: "free" or "grid" for position alignment
             grid_size: Grid cell size if alignment="grid"
             excluded_element_ids: Element IDs to skip formatting
+            size_constraints: Dict with optional constraints: {"min_width": float, "max_width": float, "min_height": float, "max_height": float}
 
         Returns:
             Dictionary with formatting statistics
@@ -292,7 +320,12 @@ class FormatService:
                 continue
 
             try:
-                self.format_element(element, alignment=alignment, grid_size=grid_size)
+                self.format_element(
+                    element,
+                    alignment=alignment,
+                    grid_size=grid_size,
+                    size_constraints=size_constraints,
+                )
                 formatted_count += 1
             except Exception as e:
                 skipped_count += 1

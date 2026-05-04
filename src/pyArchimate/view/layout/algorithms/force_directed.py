@@ -27,7 +27,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
 
         Args:
             view: View object with nodes and edges
-            config: Layout configuration
+            config: Layout configuration (supports spacing, excluded_element_ids, layer_priority)
 
         Returns:
             LayoutResult with layout metrics
@@ -41,6 +41,12 @@ class ForceDirectedLayout(LayoutAlgorithm):
             raw_edges = getattr(view, "conns", []) or getattr(view, "edges", [])
             edges = normalize_edges(raw_edges, nodes)
 
+            # Build set of excluded element IDs
+            excluded_ids = set(config.excluded_element_ids)
+
+            # Filter edges to only include those not connected to excluded nodes
+            filtered_edges = [e for e in edges if e[0] not in excluded_ids and e[1] not in excluded_ids]
+
             if not nodes:
                 return LayoutResult(
                     success=True,
@@ -51,11 +57,14 @@ class ForceDirectedLayout(LayoutAlgorithm):
                     layout_time_ms=(time.time() - start_time) * 1000,
                 )
 
+            # Adjust repulsion constant based on spacing config
+            self.min_separation = config.spacing + 100
+
             # Initialize positions and velocities
             positions = self._initialize_positions(nodes, config)
             velocities = {node_id: Point(0, 0) for node_id in positions.keys()}
 
-            # Set up layer constraints
+            # Set up layer constraints with priority handling
             layer_constraint = LayerConstraint()
             for node_id, node in enumerate(nodes):
                 element_type = getattr(node, "type", "unknown")
@@ -65,16 +74,19 @@ class ForceDirectedLayout(LayoutAlgorithm):
             # Adaptive iteration limit based on element count
             max_iter = self._get_iteration_limit(len(nodes))
 
-            # Run physics simulation
+            # Run physics simulation (excluding specified elements)
             converged = False
             iteration = 0
             for iteration in range(max_iter):
-                # Calculate forces
-                forces = self._calculate_forces(positions, edges, layer_constraint)
+                # Calculate forces (skip excluded nodes)
+                forces = self._calculate_forces(positions, filtered_edges, layer_constraint)
 
-                # Update velocities and positions
+                # Update velocities and positions (skip excluded nodes)
                 max_velocity = 0.0
                 for node_id in positions:
+                    if node_id in excluded_ids:
+                        continue
+
                     if node_id in forces:
                         force = forces[node_id]
                         vx = force.x * self.damping
@@ -100,17 +112,19 @@ class ForceDirectedLayout(LayoutAlgorithm):
                     break
 
             # Resolve any remaining overlaps by pushing nodes apart
-            positions = self._resolve_overlaps(positions, nodes)
+            positions = self._resolve_overlaps(positions, nodes, excluded_ids)
 
-            # Enforce layer constraints
-            positions = layer_constraint.enforce_layer_separation(positions, config.spacing)
+            # Enforce layer constraints (mandatory or soft based on config)
+            if config.layer_priority == "mandatory":
+                positions = layer_constraint.enforce_layer_separation_with_exclusions(positions, config.spacing, excluded_ids)
 
-            # Store positions back to nodes (simulation)
+            # Store positions back to nodes (skip excluded)
+            # Convert to integers for Archi XML compatibility
             for i, node in enumerate(nodes):
-                if i in positions:
+                if i not in excluded_ids and i in positions:
                     pos = positions[i]
-                    node.x = pos.x
-                    node.y = pos.y
+                    node.x = int(round(pos.x))
+                    node.y = int(round(pos.y))
 
             elapsed_ms = (time.time() - start_time) * 1000
 
@@ -118,13 +132,16 @@ class ForceDirectedLayout(LayoutAlgorithm):
                 success=True,
                 view_id=getattr(view, "id", "unknown"),
                 algorithm_used="force_directed",
-                elements_processed=len(nodes),
-                connections_processed=len(edges),
+                elements_processed=len(nodes) - len(excluded_ids),
+                connections_processed=len(filtered_edges),
                 layout_time_ms=elapsed_ms,
                 quality_metrics={
                     "converged": converged,
                     "iterations": iteration + 1,
                     "max_iterations": max_iter,
+                    "excluded_elements": len(excluded_ids),
+                    "spacing": config.spacing,
+                    "layer_priority": config.layer_priority,
                 },
             )
 
@@ -168,17 +185,21 @@ class ForceDirectedLayout(LayoutAlgorithm):
         return positions
 
     def _resolve_overlaps(
-        self, positions: Dict[int, Point], nodes: List[Any]
+        self, positions: Dict[int, Point], nodes: List[Any], excluded_ids: set = None
     ) -> Dict[int, Point]:
         """Resolve remaining overlaps by pushing overlapping nodes apart.
 
         Args:
             positions: Current node positions
             nodes: List of nodes (for dimension information)
+            excluded_ids: Set of node IDs to exclude from adjustment
 
         Returns:
             Adjusted positions with overlaps resolved
         """
+        if excluded_ids is None:
+            excluded_ids = set()
+
         # Get node dimensions (width/height halves)
         node_dims = {}
         for i, node in enumerate(nodes):
@@ -196,6 +217,10 @@ class ForceDirectedLayout(LayoutAlgorithm):
                 for j in range(i + 1, len(node_ids)):
                     ni = node_ids[i]
                     nj = node_ids[j]
+
+                    # Skip excluded nodes
+                    if ni in excluded_ids or nj in excluded_ids:
+                        continue
 
                     pi = positions[ni]
                     pj = positions[nj]
