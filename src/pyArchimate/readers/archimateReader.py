@@ -340,11 +340,13 @@ def _get_xml_text(elem, tag, ns):
 
 def _read_view_connection(view, c, ns, merge_flg):
     # Skip view-only lines (xsi:type="Line") — no backing model relationship.
-    if c.get('relationshipRef') is None:
+    rel_ref = c.get('relationshipRef')
+    if not rel_ref:
+        log.warning(f"Skipping connection {c.get('identifier')}: no relationshipRef")
         return
     _uuid_c = None if merge_flg else c.get('identifier')
     _c = view.add_connection(
-        ref=c.get('relationshipRef'),
+        ref=rel_ref,
         source=c.get('source'),
         target=c.get('target'),
         uuid=_uuid_c,
