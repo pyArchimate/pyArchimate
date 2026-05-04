@@ -116,6 +116,7 @@ A developer wants to export a pyArchimate view as a self-contained SVG image to 
 3. **Given** a view with connections, **When** `to_svg()` is called, **Then** each connection has a label showing the short relationship type name (e.g. "Serving"), rendered as black text on a borderless white rectangle positioned on the longest segment of the connection
 4. **Given** `to_svg(filepath="out.svg")` is called, **Then** the SVG is also written to the specified file path
 5. **Given** an element name that exceeds the node rectangle width, **When** `to_svg()` is called, **Then** the name wraps to multiple lines and is vertically centered within the rectangle
+6. **Given** a view with positioned nodes and connections, **When** `to_svg()` is called, **Then** the SVG contains a white background rectangle covering the entire canvas from 0,0 to viewBox width/height
 
 ---
 
@@ -156,6 +157,10 @@ A developer wants to export a pyArchimate view as a self-contained SVG image to 
 - Q: What text should the connection label show? → A: Short relationship type name — e.g. "Serving", "Composition", "Association" (strip trailing "Relationship" suffix)
 - Q: When an element name is too long to fit inside its rectangle, how should the text be handled? → A: Wrap to multiple lines, vertically centered in the rectangle
 
+### Session 2026-05-04 (continued)
+
+- Q: Should SVG generated files include a white background? → A: Yes — render a white rectangle covering the entire SVG canvas (0,0 to width,height) to ensure self-contained, portable SVG output
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -176,6 +181,7 @@ A developer wants to export a pyArchimate view as a self-contained SVG image to 
 - **FR-013**: SVG export MUST render each node as a white rectangle with a black border at the node's exact x/y/w/h coordinates, with the element name centered and word-wrapped inside
 - **FR-014**: SVG export MUST render each connection as an orthogonal polyline (using stored bendpoints) clipped at the source and target node boundary edges, with a small filled-triangle arrowhead at the target end
 - **FR-015**: SVG export MUST place a connection label showing the short relationship type name (trailing "Relationship" suffix stripped) as black text in a borderless white rectangle centered on the longest segment of the connection polyline
+- **FR-016**: SVG export MUST render a white background rectangle covering the entire SVG canvas (0,0 to viewBox width/height) to ensure the generated SVG is self-contained and displays correctly on any background
 
 ### Key Entities
 

@@ -51,6 +51,9 @@ class SVGExportService:
         # Add defs block with arrowhead marker
         self._add_defs(svg)
 
+        # Add white background rectangle
+        self._add_background(svg, svg_width, svg_height)
+
         # Render connections first (so they appear behind nodes)
         for conn in view.conns:
             self._render_connection(svg, conn, view.nodes_dict)
@@ -132,6 +135,23 @@ class SVGExportService:
         ET.SubElement(marker, 'polygon', {
             'points': f'0 0, {self.ARROWHEAD_SIZE} {self.ARROWHEAD_SIZE // 2}, 0 {self.ARROWHEAD_SIZE}',
             'fill': 'black',
+        })
+
+    def _add_background(self, svg: ET.Element, width: float, height: float) -> None:
+        """Add white background rectangle to SVG canvas.
+
+        Args:
+            svg: SVG root element
+            width: SVG canvas width
+            height: SVG canvas height
+        """
+        ET.SubElement(svg, 'rect', {
+            'x': '0',
+            'y': '0',
+            'width': str(int(width)),
+            'height': str(int(height)),
+            'fill': 'white',
+            'stroke': 'none',
         })
 
     def _render_node(self, svg: ET.Element, node: Any) -> None:
