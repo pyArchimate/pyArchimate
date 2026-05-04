@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 
 class ArchiMateLayer(Enum):
@@ -57,18 +57,18 @@ class LayerConstraint:
 
     def __init__(self) -> None:
         """Initialize layer constraint system."""
-        self.element_layers: Dict[str, ArchiMateLayer] = {}
+        self.element_layers: Dict[int, ArchiMateLayer] = {}
 
-    def assign_layer(self, element_id: str, layer: ArchiMateLayer) -> None:
+    def assign_layer(self, element_id: int, layer: ArchiMateLayer) -> None:
         """Assign an element to a layer."""
         self.element_layers[element_id] = layer
 
-    def get_layer(self, element_id: str) -> ArchiMateLayer:
+    def get_layer(self, element_id: int) -> ArchiMateLayer:
         """Get the layer of an element."""
         return self.element_layers.get(element_id, ArchiMateLayer.OTHER)
 
     def validate_layer_order(
-        self, positions: Dict[str, tuple[float, float]], vertical: bool = True
+        self, positions: Dict[int, tuple[float, float]], vertical: bool = True
     ) -> bool:
         """Validate that element positions respect layer ordering.
 
@@ -101,8 +101,8 @@ class LayerConstraint:
         return True
 
     def enforce_layer_separation(
-        self, positions: Dict[str, tuple[float, float]], spacing: float = 100
-    ) -> Dict[str, tuple[float, float]]:
+        self, positions: Dict[int, Any], spacing: float = 100
+    ) -> Dict[int, Any]:
         """Enforce minimum separation between layers.
 
         Args:
@@ -113,7 +113,7 @@ class LayerConstraint:
             Updated positions dict with layer constraints enforced
         """
         # Group elements by layer
-        layers: Dict[ArchiMateLayer, list[str]] = {}
+        layers: Dict[ArchiMateLayer, list[int]] = {}
         for elem_id, layer in self.element_layers.items():
             if layer not in layers:
                 layers[layer] = []
@@ -122,8 +122,8 @@ class LayerConstraint:
         updated_positions = dict(positions)
 
         # Ensure proper vertical ordering (Business > Application > Technology)
-        layer_y_ranges = {}
-        current_y = 0
+        layer_y_ranges: dict[ArchiMateLayer, tuple[float, float]] = {}
+        current_y: float = 0
         for layer in [ArchiMateLayer.BUSINESS, ArchiMateLayer.APPLICATION, ArchiMateLayer.TECHNOLOGY]:
             if layer in layers:
                 max_height = max(50, len(layers[layer]) * 30)
@@ -137,7 +137,8 @@ class LayerConstraint:
                 y_min, y_max = layer_y_ranges[layer]
                 # Handle both Point objects and tuples
                 if hasattr(pos, 'x') and hasattr(pos, 'y'):
-                    x, y = pos.x, pos.y
+                    pos_point = cast(Any, pos)
+                    x, y = pos_point.x, pos_point.y
                 else:
                     x, y = pos[0], pos[1]
                 new_y = max(y_min, min(y, y_max - 50))
@@ -167,7 +168,7 @@ class LayerConstraint:
             excluded_ids = set()
 
         # Group elements by layer (excluding specified IDs)
-        layers: Dict[ArchiMateLayer, list] = {}
+        layers: Dict[ArchiMateLayer, list[int]] = {}
         for elem_id, layer in self.element_layers.items():
             if elem_id not in excluded_ids:
                 if layer not in layers:
@@ -177,8 +178,8 @@ class LayerConstraint:
         updated_positions = dict(positions)
 
         # Ensure proper vertical ordering (Business > Application > Technology)
-        layer_y_ranges = {}
-        current_y = 0
+        layer_y_ranges: dict[ArchiMateLayer, tuple[float, float]] = {}
+        current_y: float = 0
         for layer in [ArchiMateLayer.BUSINESS, ArchiMateLayer.APPLICATION, ArchiMateLayer.TECHNOLOGY]:
             if layer in layers:
                 max_height = max(50, len(layers[layer]) * 30)

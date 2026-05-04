@@ -345,8 +345,8 @@ class SVGExportService:
         chars_per_line = max(1, int(max_width / 6))
 
         words = text.split()
-        lines = []
-        current_line = []
+        lines: list[str] = []
+        current_line: list[str] = []
 
         for word in words:
             # Check if adding this word would exceed the limit
@@ -791,7 +791,7 @@ class SVGExportService:
             if 0 <= t <= 1:
                 ix = px1 + t * dx
                 if x1 <= ix <= x2:
-                    if best_t is None or (exit_from and t > best_t) or (not exit_from and t < best_t):
+                    if best_t is None or (exit_from and t > best_t) or (not exit_from and t < best_t):  # type: ignore[unreachable]
                         best_t = t
                         best_point = (ix, y1)
 
@@ -892,7 +892,7 @@ class SVGExportService:
         if len(points) < 2:
             return None
 
-        max_length = 0
+        max_length: float = 0.0
         max_idx = 0
 
         for i in range(len(points) - 1):

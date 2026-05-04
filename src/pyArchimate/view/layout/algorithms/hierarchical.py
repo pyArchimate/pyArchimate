@@ -107,7 +107,7 @@ class HierarchicalLayout(LayoutAlgorithm):
         Returns:
             Adjacency list: dict mapping node index to list of connected node indices
         """
-        graph = {i: [] for i in range(len(nodes))}
+        graph: dict[int, list[int]] = {i: [] for i in range(len(nodes))}
 
         for source, target in edges:
             if isinstance(source, int) and isinstance(target, int):
@@ -147,7 +147,7 @@ class HierarchicalLayout(LayoutAlgorithm):
 
         # Assign layers by topological level, respecting ArchiMate layers
         layers: List[List[int]] = []
-        assigned = set()
+        assigned: set[int] = set()
         current_layer = 0
 
         while len(assigned) < len(nodes):

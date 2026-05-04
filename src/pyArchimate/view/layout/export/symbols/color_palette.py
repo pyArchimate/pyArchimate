@@ -147,16 +147,20 @@ class ColorPalette:
             True if valid HEX color, False otherwise
         """
         if not isinstance(color, str):
-            return False
-        if not color.startswith("#"):
-            return False
-        if len(color) != 7:
-            return False
+            return False  # type: ignore[unreachable]
+        return (
+            color.startswith("#")
+            and len(color) == 7
+            and self._is_valid_hex(color[1:])
+        )
+
+    def _is_valid_hex(self, hex_str: str) -> bool:
+        """Check if string is valid hex."""
         try:
-            int(color[1:], 16)
+            int(hex_str, 16)
+            return True
         except ValueError:
             return False
-        return True
 
 
 # Singleton instance for easy access
