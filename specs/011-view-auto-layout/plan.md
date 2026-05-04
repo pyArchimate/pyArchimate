@@ -1,9 +1,9 @@
+# Implementation Plan: View Auto-Layout and Auto-Format (SVG Enhancement)
 # Implementation Plan: View Auto-Layout and Auto-Format
 
-**Branch**: `011-view-auto-layout` | **Date**: 2026-05-03 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `specs/011-view-auto-layout/spec.md`
-
-**Note**: This template is filled in by the `/speckit-plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
+**Branch**: `011-view-auto-layout` | **Date**: 2026-05-04 | **Spec**: `specs/011-view-auto-layout/spec.md`  
+**Status**: Update Phase (SVG Export enhancement clarifications integrated)  
+**Input**: Clarifications from Session 2026-05-04 (SVG Symbol Enhancement) + Existing Feature (P1-P2 User Stories 1-5)
 
 ## Summary
 
@@ -12,13 +12,19 @@ hierarchical), mandatory ArchiMate layer respecting, orthogonal connection routi
 advanced configuration options. MVP targets force-directed algorithm with hierarchical support. All algorithms must
 enforce Business→Application→Technology layer constraints and achieve <2s layout time for 300-element views.
 Implement `View.to_svg(filepath=None)` method to export ArchiMate diagrams as self-contained SVG images. SVG renders nodes as white rectangles with black borders at exact x/y/w/h coordinates, connections as orthogonal polylines with arrowheads, labels showing relationship type names, and word-wrapped element names vertically centered. This enables programmatic verification of layouts and removes dependency on Archi for visual inspection, valuable for CI/CD workflows. User Story 5 priority: P2.
+Enhance User Story 5 (SVG Export) to render ArchiMate diagrams with real element-type-specific symbols and standard palette colors, matching Archi tool visual fidelity. The existing implementation (87/110 tasks complete, Phases 1-6B done) uses simple white rectangles; this enhancement adds embedded SVG symbol definitions for all 30+ ArchiMate element types, ArchiMate standard color mapping, and per-element color override support.
 
 ## Technical Context
 
 **Language/Version**: Python 3.10+  
-**Primary Dependencies**: lxml (existing, for XML/SVG generation), pillow (for optional image export), poetry (package manager)  
-**Storage**: File I/O only (local filesystem) — views persisted as XML within .archimate archives  
+**Primary Dependencies**: lxml (existing), ElementTree (stdlib), pillow (optional for image export)  
+**Storage**: File I/O only (local filesystem — views persist as XML in .archimate archives)  
 **Testing**: pytest (unit/integration), behave (BDD acceptance tests)  
+**Target Platform**: Linux/macOS/Windows (cross-platform Python library)  
+**Project Type**: Library (file I/O only — no external services or database)  
+**Performance Goals**: SVG export <200ms for 500 elements; symbol rendering must not degrade performance  
+**Constraints**: Self-contained SVG output (no external dependencies); valid SVG 1.1; all ArchiMate element types supported  
+**Scale/Scope**: 30+ ArchiMate element types; 500+ element views; embedded symbol definitions
 **Target Platform**: Cross-platform Python library (file-based I/O, no external services)
 **Project Type**: Library (pyArchimate library for ArchiMate model manipulation)  
 **Performance Goals**: <2 seconds for views with 300 elements, <5 seconds for 500-element views (SC-001)  
@@ -54,6 +60,17 @@ specialized (hierarchical); custom configuration for spacing, margins, alignment
 
 ```text
 specs/011-view-auto-layout/
+├── spec.md                          # Feature specification (5 user stories + SVG clarifications)
+├── plan.md                          # This file (implementation plan)
+├── research.md                      # Phase 0 output (design decisions, algorithms, SVG approach)
+├── data-model.md                    # Phase 1 output (entities, symbol registry schema)
+├── quickstart.md                    # Phase 1 output (usage examples for to_svg())
+├── contracts/
+│   ├── layout-api.md               # Phase 1 output (LayoutConfig, apply_layout API)
+│   └── svg-export.md               # Phase 1 output (SVG contract with symbol details)
+├── checklists/
+│   └── requirements.md              # Specification quality checklist (100% complete)
+└── tasks.md                         # Phase 2 output (110 tasks: 87 complete, 32 remaining)
 ├── spec.md              # Feature specification (complete)
 ├── plan.md              # This file (/speckit-plan command output)
 ├── research.md          # Phase 0 output (to be generated)
@@ -64,11 +81,24 @@ specs/011-view-auto-layout/
 └── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
 ```
 
-### Source Code (repository structure)
+### Source Code Structure
 
 ```text
 src/pyArchimate/
 ├── view/
+│   ├── __init__.py                  # View class with to_svg() method
+│   ├── layout/
+│   │   ├── export/
+│   │   │   ├── svg_export.py       # SVGExportService (enhanced with symbols)
+│   │   │   ├── symbols/
+│   │   │   │   ├── __init__.py     # Symbol registry
+│   │   │   │   ├── archimate_symbols.py  # NEW: 30+ element type symbol definitions
+│   │   │   │   └── color_palette.py     # NEW: ArchiMate standard color mapping
+│   │   │   └── utils/
+│   │   │       └── svg_utils.py    # NEW: Helper functions for symbol rendering
+│   │   └── ...                      # Existing layout modules (unchanged)
+│   └── ...
+└── ...
 │   ├── layout/                  # NEW: Layout module
 │   │   ├── __init__.py
 │   │   ├── core.py              # LayoutConfig, LayoutResult, base layout interface
@@ -105,6 +135,10 @@ tests/
 │   │   ├── test_format.py
 │   │   └── test_svg_export.py
 │   └── ...existing tests...
+│   └── layout/
+│       ├── test_svg_export.py      # Updated: Symbol rendering tests
+│       ├── test_archimate_symbols.py   # NEW: Symbol definition validation
+│       └── test_color_palette.py   # NEW: Color mapping tests
 ├── integration/
 │   ├── test_layout_round_trip.py # Verify layout preserves model integrity
 │   ├── test_undo_rollback.py     # Test undo/rollback behavior
@@ -114,6 +148,56 @@ tests/
     └── layout/
         ├── auto_layout.feature    # BDD: auto-layout user stories
         └── auto_format.feature    # BDD: auto-format user stories
+│   └── test_svg_export.py          # Updated: Symbol integration tests
+├── features/
+│   └── layout/
+│       └── svg_export.feature      # Updated: 30+ element type scenarios
+└── ...
+```
+
+---
+
+## Phase 0: Research & Technical Decisions
+
+### Resolved Clarifications
+
+✓ **Symbol Representation** (Q1): Embedded SVG paths per element type via `<symbol>` definitions  
+✓ **Color Palette** (Q2): ArchiMate standard colors (AR3 spec) with per-element overrides  
+✓ **Element Coverage** (Q3): All 30+ ArchiMate types (Business, Application, Technology, etc.)  
+✓ **Styling** (Q4): Match Archi tool defaults (solid fill, 1px stroke, 100% opacity)  
+✓ **Label Placement** (Q5): Separate `<text>` elements outside/beside symbols
+
+### Research Artifacts Needed
+
+1. **archimate_symbols.py**: Define SVG path for each of 30+ element types
+   - Research: ArchiMate 3.x visual representation standard
+   - Source: Archi tool source code, ArchiMate specification documents
+   - Deliverable: Symbol registry mapping element type → SVG path + bounding box
+
+2. **color_palette.py**: Map ArchiMate standard colors to element types
+   - Research: ArchiMate 3.x default color palette
+   - Source: Archi tool's default color settings
+   - Deliverable: Color registry mapping element type → RGB/HEX color code
+
+3. **svg_utils.py**: Helper functions for symbol rendering
+   - Polyline clipping at symbol boundaries (vs. rectangle bounds)
+   - Symbol transform/scaling calculations
+   - Label positioning relative to variable-sized symbols
+
+---
+
+## Phase 1: Design & Contracts (SVG Enhancement)
+
+### Data Model Updates
+
+**Symbol Registry** (new):
+```python
+class SymbolDefinition:
+    element_type: str           # "BusinessActor", "ApplicationComponent", etc.
+    svg_path: str              # SVG path data
+    viewBox: str               # "0 0 100 100"
+    default_color: str         # "#4A90E2" (hex RGB)
+    bounding_box: Tuple[float, float, float, float]  # (x, y, w, h)
 ```
 
 **Structure Decision**: Single project (DEFAULT) — Layout functionality integrates into existing pyArchimate view module. New `layout/` subpackage contains algorithms, routing, formatting, and SVG export. Tests follow existing pytest/behave patterns with new test files under `tests/unit/layout/` and `tests/integration/`. No external services or databases.
@@ -207,11 +291,106 @@ tests/
 - [ ] Performance optimization and profiling
 - [ ] BDD acceptance tests
 - [ ] Documentation and user guide
+**Color Palette** (new):
+```python
+class ColorPalette:
+    palette_name: str = "archimate_standard"
+    colors: Dict[str, str]  # element_type → HEX color
+```
+
+**Enhanced Node** (updated):
+```python
+class Node:
+    # Existing fields
+    uuid: str
+    x, y, w, h: float
+    name: str
+    # Enhanced for symbol rendering
+    archimate_type: str  # "BusinessActor", etc.
+    fill_color: Optional[str]  # Override standard color
+    line_color: Optional[str]  # Override stroke color
+```
+
+### Contract Updates
+
+**contracts/svg-export.md** will be updated to specify:
+- Symbol definitions for all 30+ element types
+- Color mapping strategy (ArchiMate standard + overrides)
+- SVG structure (symbol defs + use references)
+- Rendering algorithm for symbol-aware polyline clipping
+
+---
+
+## Implementation Strategy
+
+### Phase 6B Enhancement (SVG Symbol Rendering)
+
+**Current**: T099-T110 are complete (basic rectangle rendering)  
+**New Tasks**: ~6-8 additional tasks for symbol rendering enhancement
+
+1. **Symbol Definition** (NEW):
+   - Create `archimate_symbols.py` with 30+ symbol definitions
+   - Validate symbol paths render correctly
+   - Create unit tests for symbol validation
+
+2. **Color Palette** (NEW):
+   - Create `color_palette.py` with ArchiMate standard colors
+   - Map each element type to color
+   - Support per-element overrides
+
+3. **SVG Enhancement** (NEW):
+   - Update `SVGExportService.to_svg()` to use symbols instead of rectangles
+   - Implement symbol lookup and rendering
+   - Update polyline clipping for symbols (vs. rectangles)
+
+4. **Testing** (NEW):
+   - Expand BDD scenarios to cover all 30+ element types
+   - Add unit tests for symbol rendering
+   - Performance tests to ensure <200ms with symbols
+
+### Estimated Effort
+
+- **Symbol Library Definition**: 2-3 days (symbol path extraction, validation)
+- **Color Palette Mapping**: 1 day (research + implementation)
+- **SVG Service Enhancement**: 1-2 days (symbol rendering, polyline clipping)
+- **Testing & Validation**: 1 day (comprehensive test coverage)
+- **Documentation Updates**: 1 day (contracts, quickstart, specs)
+
+**Total**: ~7 days (1 week) for full SVG enhancement
+
+---
+
+## Success Criteria
+
+✓ All 30+ ArchiMate element types render with correct symbol shape  
+✓ Colors match ArchiMate standard palette  
+✓ Per-element color overrides work correctly  
+✓ Performance maintained (<200ms for 500 elements)  
+✓ SVG output matches Archi tool visual style  
+✓ All acceptance scenarios pass (8+ BDD scenarios per element type family)  
+✓ 100% backward compatibility (existing simple rectangle code unaffected)
+
+---
+
+## Next Steps
+
+1. **Phase 0 Research**: Generate `research.md` with symbol library and color palette findings
+2. **Phase 1 Design**: Update `data-model.md` with symbol registry schema
+3. **Phase 1 Contracts**: Update `contracts/svg-export.md` with symbol specifications
+4. **Phase 1 Quickstart**: Update `quickstart.md` with symbol rendering examples
+5. **Phase 2 Tasks**: Generate updated `tasks.md` with symbol-specific implementation tasks
+
+---
 
 ## Complexity Tracking
 
 > **No Constitution violations detected.** All gates passed.
 
+| Item | Rationale |
+|------|-----------|
+| Symbol embedding (vs. external font) | Self-contained SVG output required; external dependencies violate constraint |
+| All 30+ types (vs. subset) | Completeness ensures fidelity; partial coverage would be user-visible gap |
+| Archi tool color matching (vs. custom palette) | User explicitly requested "similar to Architool" output |
 ---
 
 ## Phase 0: Research & Clarification

@@ -1,8 +1,8 @@
 # Contract: SVG Export API
 
-**Version**: 1.0  
-**Date**: 2026-05-04  
-**Feature**: User Story 5 — Export View as SVG Diagram
+**Version**: 1.1  
+**Date**: 2026-05-04 (Updated with Symbol Enhancement)  
+**Feature**: User Story 5 — Export View as SVG Diagram (with ArchiMate Symbol Rendering)
 
 ## Overview
 
@@ -40,37 +40,90 @@ def to_svg(self, filepath: Optional[str] = None) -> str:
 - **Idempotent**: Multiple calls with same view produce identical SVG output
 - **No state mutation**: View object is not modified by SVG export
 
-### FR-013: Node Rendering
+### FR-013: Node Rendering with ArchiMate Symbols
 
-Each node in the view renders as:
-- **Element**: `<rect>` with attributes:
-  - `x`: Integer pixel position (exact node.x)
-  - `y`: Integer pixel position (exact node.y)
-  - `width`: Integer pixels (exact node.w)
-  - `height`: Integer pixels (exact node.h)
-  - `fill`: "white" (required for background visibility)
-  - `stroke`: "black" (required for definition)
-  - `stroke-width`: "1" (1 pixel border)
+Each node in the view renders with an **element-type-specific ArchiMate symbol**:
 
-- **Label**: `<text>` element containing node name/label:
-  - Position: Centered at `(x + w/2, y + h/2)`
+- **Symbol Definition**: SVG path pre-defined for each ArchiMate element type (30+ types supported)
+  - Embedded in SVG `<defs>` block as `<symbol>` elements
+  - Each symbol has a unique ID (e.g., `id="archimate_actor"`)
+  - ViewBox coordinates (e.g., `viewBox="0 0 100 100"`)
+  - SVG path data defining the shape
+
+- **Symbol Rendering**: Reference via `<use>` element with attributes:
+  - `href`: Reference to symbol ID (e.g., `#archimate_actor`)
+  - `x`, `y`: Integer pixel position (exact node.x, node.y)
+  - `width`, `height`: Integer pixels (exact node.w, node.h)
+  - `fill`: ArchiMate standard color for element type (e.g., `#FFD700` for BusinessActor)
+    - OR per-element override if `node.fill_color` is set
+  - `stroke`: Black (`black`) with 1px width
+  - `stroke-width`: "1"
+
+- **Label**: `<text>` element positioned outside/beside symbol:
+  - Position: Below or adjacent to symbol (separate from symbol bounds)
   - Font: Arial, sans-serif (with fallback chain)
   - Font size: 10px
   - Color: black (`fill="black"`)
-  - Text anchor: middle (`text-anchor="middle"`)
-  - Word-wrapped to fit within rectangle width
-  - Vertically centered within rectangle height
+  - Text anchor: middle
+  - Word-wrapped to fit within node bounding box
+  - Vertically centered relative to node height
 
 **Example**:
 ```xml
+<defs>
+  <symbol id="archimate_actor" viewBox="0 0 100 100">
+    <path d="M 50 10 Q 70 30 70 50 Q 70 80 50 90 Q 30 80 30 50 Q 30 30 50 10 Z"/>
+  </symbol>
+</defs>
 <g class="node">
-  <rect x="50" y="100" width="120" height="55" fill="white" stroke="black" stroke-width="1"/>
-  <text x="110" y="125" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="black">
-    <tspan x="110">Application</tspan>
-    <tspan x="110" dy="12">Component</tspan>
+  <use href="#archimate_actor" x="50" y="100" width="120" height="55" fill="#FFD700" stroke="black" stroke-width="1"/>
+  <text x="110" y="175" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="black">
+    <tspan x="110">Business</tspan>
+    <tspan x="110" dy="12">Actor</tspan>
   </text>
 </g>
 ```
+
+### FR-013a: Symbol Definition Coverage
+
+SVG export MUST support all 30+ ArchiMate element types with dedicated symbol definitions:
+
+**Business Layer** (9 types): Actor, Role, BusinessService, BusinessProcess, BusinessInteraction, BusinessObject, Contract, Location, Product
+
+**Application Layer** (6 types): ApplicationComponent, ApplicationService, ApplicationInterface, ApplicationFunction, DataObject, ApplicationInteraction
+
+**Technology Layer** (9 types): Node, Device, SystemSoftware, TechnologyService, TechnologyInterface, Path, CommunicationNetwork, Artifact, Equipment
+
+**Motivation Layer** (8 types): Stakeholder, Driver, Assessment, Goal, Outcome, Principle, Requirement, Constraint
+
+**Implementation Layer** (4 types): ImplementationEvent, DeliverableComponent, ImplementationComponent, Plateau
+
+**Other** (3 types): Grouping, Location, Gap
+
+**Junction Types** (3 types): AndJunction, OrJunction, XorJunction
+
+### FR-013b: Color Palette Mapping
+
+SVG export MUST apply ArchiMate standard color palette:
+
+- Each element type has a default fill color from the ArchiMate 3.x standard palette
+- Color codes are hex RGB values (e.g., `#FFD700` for gold)
+- Example palette:
+  - BusinessActor: `#FFD700` (Gold)
+  - ApplicationComponent: `#87CEEB` (Sky Blue)
+  - TechnologyService: `#90EE90` (Light Green)
+  - (etc. for all 30+ types)
+
+**Per-element overrides**: If a node has `fill_color` or `line_color` properties set, use those instead of the standard palette color.
+
+### FR-013c: Label Positioning Relative to Symbols
+
+SVG export MUST position element name labels as **separate text elements** outside the symbol:
+
+- Text does not overlap or intersect with symbol shape
+- Text is positioned below or beside the symbol depending on available space
+- Maintains vertical centering relative to node height
+- Word wrapping accounts for variable symbol sizes (not fixed rectangle width)
 
 ### FR-014: Connection Rendering
 

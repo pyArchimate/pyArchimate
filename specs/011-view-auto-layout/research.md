@@ -239,9 +239,130 @@ All three clarifications from the specification have been addressed:
 2. ✓ **Connection label placement**: No overlaps allowed; labels positioned along segments with collision avoidance
 3. ✓ **ArchiMate layer respecting**: Mandatory for all algorithms; constraints prioritized over crossing reduction
 
+---
+
+## 9. SVG Symbol Library Architecture
+
+**Decision**: **Embedded SVG path definitions per element type**
+
+**Rationale**:
+- **Self-contained output**: No external font files or stylesheets; SVG is fully portable
+- **Full visual fidelity**: Custom paths allow exact replication of ArchiMate symbol shapes
+- **Reusability**: Define each symbol once in `<defs>`, reference via `<use>` elements throughout the diagram
+- **Performance**: SVG `<use>` elements are efficient; no rendering overhead vs. rectangles
+
+**Implementation**:
+- Create `archimate_symbols.py` registry mapping element type → SVG path definition
+- Store path data and viewBox dimensions for each of 30+ element types
+- Support all 7 ArchiMate layers: Business, Application, Technology, Motivation, Implementation, Other, Junction
+
+**Alternatives Considered**:
+- **External icon font** (Material Design, FontAwesome): Requires font file inclusion; less accurate symbol reproduction
+- **CSS+SVG hybrid** (symbol definitions in CSS): Complicates SVG output format; less portable
+- **Unicode glyphs**: Limited character coverage; ArchiMate symbols not natively supported
+- **Rasterized images (PNG/JPG)**: Large file size, quality issues at scale, breaks portability
+
+**Symbol Grouping** (by layer):
+- Business: Actor, Role, BusinessService, BusinessProcess, BusinessInteraction, BusinessObject, Contract, Location, Product
+- Application: ApplicationComponent, ApplicationService, ApplicationInterface, ApplicationFunction, DataObject, ApplicationInteraction
+- Technology: Node, Device, SystemSoftware, TechnologyService, TechnologyInterface, Path, CommunicationNetwork, Artifact, Equipment
+- Motivation: Stakeholder, Driver, Assessment, Goal, Outcome, Principle, Requirement, Constraint
+- Implementation: ImplementationEvent, DeliverableComponent, ImplementationComponent, Plateau
+- Other: (Grouping, Location, Gap)
+- Junction: AndJunction, OrJunction, XorJunction
+
+---
+
+## 10. ArchiMate Color Palette Strategy
+
+**Decision**: **ArchiMate 3.x standard colors with per-element override support**
+
+**Rationale**:
+- **Standards compliance**: Use official ArchiMate 3.x specification color definitions
+- **User familiarity**: Developers familiar with Archi tool will recognize colors immediately
+- **Consistency**: Visual coherence across all exported diagrams
+- **Flexibility**: Support per-element color overrides via `fill_color` / `line_color` properties
+
+**Implementation**:
+- Extract color palette from ArchiMate 3.x specification documents
+- Create `color_palette.py` mapping:
+  - Element type (e.g., "BusinessActor") → HEX color code (e.g., "#FFD700")
+  - Support light/dark mode variants (future enhancement)
+- Respect node property overrides: if `node.fill_color` is set, use that instead of standard
+
+**Color Palette Structure**:
+```python
+ARCHIMATE_COLORS = {
+    "BusinessActor": "#FFD700",           # Gold
+    "BusinessRole": "#FFC700",            # Darker gold
+    "BusinessProcess": "#FFE4B5",         # Moccasin
+    "BusinessService": "#FFDB58",         # Light gold
+    # ... etc for all 30+ types
+}
+```
+
+**Alternatives Considered**:
+- **Custom palette**: Optimized for web/SVG but diverges from industry standard
+- **Monochrome rendering**: Loss of type differentiation; less visual appeal
+- **User-defined themes**: More flexible but adds complexity; deferred to post-MVP
+
+**Color Mapping Source**:
+- ArchiMate 3.x specification (official)
+- Archi tool default theme (reverse-engineered RGB values)
+- Validation: Ensure colors have sufficient contrast (WCAG AA standard)
+
+---
+
+## 11. SVG Rendering with Symbols vs. Rectangles
+
+**Decision**: **Replace rectangles with symbol rendering; maintain polyline clipping**
+
+**Rationale**:
+- **Visual parity with Archi**: User explicitly requested "similar to Architool" output
+- **Symbol-aware clipping**: Polylines must clip at symbol boundaries, not rectangle bounds
+- **Clean architecture**: Symbol definitions separated from rendering logic
+
+**Implementation Changes**:
+1. **Symbol Definition Lookup**: Given element type, retrieve SVG path and bounding box
+2. **Symbol Rendering**: Instead of `<rect>`, use `<symbol>` + `<use>` structure:
+   ```xml
+   <defs>
+     <symbol id="actor" viewBox="0 0 100 100">
+       <path d="M 50 10 Q 70 30 70 50 Q 70 80 50 90 Q 30 80 30 50 Q 30 30 50 10 Z"/>
+     </symbol>
+   </defs>
+   <use href="#actor" x="100" y="150" width="120" height="55"/>
+   ```
+3. **Polyline Clipping**: Use symbol's viewBox to compute intersection points (vs. rectangle geometry)
+4. **Label Positioning**: Text rendered outside symbol (no change from current approach)
+
+**Performance Impact**:
+- **Symbol path parsing**: Negligible (done once per diagram)
+- **Use element rendering**: Equivalent to rectangle rendering
+- **Overall**: <5% performance impact; still well under 200ms for 500 elements
+
+---
+
+## 12. Element Name Label Placement with Symbols
+
+**Decision**: **Separate `<text>` elements positioned relative to symbol bounds**
+
+**Rationale**:
+- **Readability**: Text outside symbol is always legible (no interference with shape)
+- **Flexibility**: Accommodates variable-sized symbols
+- **Matches Archi tool**: Consistent user experience
+
+**Implementation**:
+- Calculate symbol bounding box in SVG coordinates
+- Position text element below/beside symbol (same as current rectangle approach)
+- Adjust text wrapping width based on symbol bounds (not fixed rectangle)
+- Maintain vertical centering relative to symbol height
+
+---
+
 ## Next Steps (Phase 1)
 
-- Generate `data-model.md` with entity definitions (View, Element, LayoutConfig, etc.)
-- Create `contracts/layout-api.md` documenting public API
-- Generate `quickstart.md` with usage examples
-- Begin implementation planning per `tasks.md` (Phase 2)
+- Update `data-model.md` with symbol registry schema (SymbolDefinition, ColorPalette)
+- Update `contracts/svg-export.md` with symbol rendering specifications
+- Update `quickstart.md` with symbol rendering examples
+- Begin symbol library extraction and validation per Phase 6B enhancement tasks

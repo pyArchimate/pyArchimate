@@ -265,6 +265,61 @@ LabelPlacement
 
 ---
 
+### SymbolDefinition (SVG Export Enhancement)
+**Location**: `src/pyArchimate/view/layout/export/symbols/archimate_symbols.py`
+
+Defines the visual representation (SVG path) for each ArchiMate element type.
+
+```python
+class SymbolDefinition:
+    """SVG symbol definition for ArchiMate element type."""
+    element_type: str                       # "BusinessActor", "ApplicationComponent", etc.
+    svg_path: str                          # SVG path data (d attribute)
+    viewBox: str                           # "0 0 100 100"
+    bounding_box: Tuple[float, float, float, float]  # (x, y, width, height)
+    default_color: str                     # "#FFD700" (ArchiMate standard hex color)
+```
+
+**Key Attributes**:
+- `svg_path`: Scalable SVG path string (e.g., "M 50 10 Q 70 30...")
+- `viewBox`: Defines coordinate system for the path
+- `bounding_box`: Used for polyline clipping calculations (in SVG coordinates)
+- `default_color`: From ArchiMate 3.x specification palette
+
+**Coverage**: All 30+ ArchiMate element types across 7 layers (Business, Application, Technology, Motivation, Implementation, Other, Junction)
+
+**Lifecycle**: Symbols are immutable, pre-defined data; loaded once at SVG export time and referenced via SVG `<use>` elements.
+
+---
+
+### ColorPalette (SVG Export Enhancement)
+**Location**: `src/pyArchimate/view/layout/export/symbols/color_palette.py`
+
+Maps ArchiMate element types to standard color codes.
+
+```python
+class ColorPalette:
+    """ArchiMate standard color palette."""
+    palette_name: str = "archimate_standard"     # Palette identifier
+    colors: Dict[str, str]                       # element_type → hex_color_code
+    
+    def get_color(self, element_type: str) -> str:
+        """Get standard color for element type."""
+        
+    def set_override(self, element_type: str, color: str) -> None:
+        """Set per-element color override."""
+```
+
+**Key Attributes**:
+- `colors`: Mapping of 30+ element types to HEX color codes (e.g., {"BusinessActor": "#FFD700"})
+- Supports dynamic overrides via per-element `fill_color` property
+
+**Source**: ArchiMate 3.x specification + Archi tool default theme
+
+**Validation**: Colors must have sufficient contrast (WCAG AA standard, luminance difference >4.5:1)
+
+---
+
 ## Entity Lifecycle
 
 ### Layout Operation Workflow
