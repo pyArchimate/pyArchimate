@@ -1119,5 +1119,21 @@ class View:
             return self.add_connection(r, source, target)
         return None
 
+    def to_svg(self, filepath: Optional[str] = None) -> str:
+        """Export view to SVG string and optionally write to file.
+
+        Args:
+            filepath: Optional path to write SVG file to. If provided, SVG is
+                     written to this file path. If None, only the SVG string
+                     is returned.
+
+        Returns:
+            SVG string (valid XML with <svg> root element)
+        """
+        from .layout.export import SVGExportService
+
+        service = SVGExportService()
+        return service.to_svg(self, filepath)
+
 
 __all__ = ["View", "Node", "Connection", "Profile", "Point", "Position", "default_color"]
