@@ -133,7 +133,17 @@ class LayerConstraint:
             layer = self.get_layer(elem_id)
             if layer in layer_y_ranges:
                 y_min, y_max = layer_y_ranges[layer]
-                new_y = max(y_min, min(pos[1], y_max - 50))
-                updated_positions[elem_id] = (pos[0], new_y)
+                # Handle both Point objects and tuples
+                if hasattr(pos, 'x') and hasattr(pos, 'y'):
+                    x, y = pos.x, pos.y
+                else:
+                    x, y = pos[0], pos[1]
+                new_y = max(y_min, min(y, y_max - 50))
+                # Return as Point if input was Point, else as tuple
+                if hasattr(pos, 'x'):
+                    from ..utils.geometry import Point
+                    updated_positions[elem_id] = Point(x, new_y)
+                else:
+                    updated_positions[elem_id] = (x, new_y)
 
         return updated_positions

@@ -6,7 +6,7 @@
 
 This document contains the detailed task breakdown for implementing the View Auto-Layout and Auto-Format feature. Tasks are organized by phase and user story, with clear dependencies and parallel execution opportunities.
 
-**Total Tasks**: 98 tasks across 7 phases  
+**Total Tasks**: 110 tasks across 8 phases  
 **Estimated Duration**: MVP (US1+US2+foundational) ~3-4 weeks; Full feature ~6-7 weeks  
 **Suggested MVP Scope**: Complete Phases 1-4 (Setup + Foundational + US1 + US2) + essential Phase 7 tasks
 
@@ -240,6 +240,40 @@ Developers can customize layout behavior via LayoutConfig (algorithm selection, 
 
 ---
 
+## PHASE 6B: User Story 5 - SVG Export
+
+### User Story Goal
+Developers can export any pyArchimate view to a self-contained SVG file (or string) for visual inspection, automated testing, and sharing without requiring the Archi desktop tool.
+
+### Independent Test Criteria
+- `view.to_svg()` returns a valid SVG string (parseable XML, `<svg>` root element)
+- One `<rect>` per node at correct x/y/width/height, white fill, black stroke
+- Element name text centered and word-wrapped inside each rectangle
+- One `<polyline>` per connection routed through stored bendpoints, clipped at node boundary edges
+- Arrowhead `<marker>` at target end of each connection
+- One connection label per connection: short type name, black text, white background rect, positioned on the longest polyline segment
+- `to_svg(filepath="out.svg")` writes the SVG to disk
+
+### User Story Priority
+**P2** — Enables programmatic verification of layout output; no dependency on Archi desktop
+
+---
+
+- [ ] T099 [US5] Implement `View.to_svg(filepath=None)` method skeleton in `src/pyArchimate/view/__init__.py` (returns SVG string, writes to filepath when provided)
+- [ ] T100 [US5] [P] Implement node rendering: white `<rect>` with black stroke at node x/y/w/h coordinates
+- [ ] T101 [US5] [P] Implement element name text rendering: centered, word-wrapped, vertically centered inside node rectangle (use `<text>` with `<tspan>` elements)
+- [ ] T102 [US5] [P] Implement SVG `<defs>` block with filled-triangle arrowhead `<marker>` definition
+- [ ] T103 [US5] [P] Implement polyline-to-boundary clipping: compute intersection of first/last polyline segment with source/target node rectangle edges
+- [ ] T104 [US5] [P] Implement connection rendering: `<polyline>` from clipped source edge to clipped target edge via stored bendpoints, with arrowhead marker at target end
+- [ ] T105 [US5] [P] Implement longest-segment detection: find the longest segment in each connection polyline for label placement
+- [ ] T106 [US5] [P] Implement connection label rendering: short type name (strip "Relationship" suffix), black `<text>` over white borderless `<rect>`, centered on the midpoint of the longest segment, rotated to match segment angle OR rendered horizontally with offset
+- [ ] T107 [US5] Create unit tests in `tests/unit/layout/test_svg_export.py` (rect coordinates, text wrapping, clipping, longest-segment detection, label position)
+- [ ] T108 [US5] Create integration test in `tests/integration/test_svg_export.py` (load demo archimate → apply layout → export SVG → parse SVG → assert node count, connection count, label presence)
+- [ ] T109 [US5] Create BDD scenario in `tests/features/layout/svg_export.feature` for "Export View as SVG Diagram"
+- [ ] T110 [US5] Implement BDD step definitions in `tests/features/layout/svg_export_steps.py`
+
+---
+
 ## PHASE 7: Polish & Documentation
 
 ### Goal
@@ -289,8 +323,9 @@ Final testing, documentation, API hardening, performance optimization, and cross
 | Phase 4: US2 (Auto-Format) | T047-T055 (9 tasks) | Element standardization, formatting |
 | Phase 5: US3 (Hierarchical) | T056-T065 (10 tasks) | Hierarchical layout algorithm |
 | Phase 6: US4 (Customization) | T066-T075 (10 tasks) | Configuration options, advanced features |
+| Phase 6B: US5 (SVG Export) | T099-T110 (12 tasks) | View.to_svg() method, node/connection/label rendering |
 | Phase 7: Polish | T076-T098 (23 tasks) | Edge cases, performance, documentation, Sphinx build |
-| **TOTAL** | **98 tasks** | **Full feature implementation** |
+| **TOTAL** | **110 tasks** | **Full feature implementation** |
 
 ---
 

@@ -99,6 +99,26 @@ the specified parameters (e.g., increased spacing, element exclusion).
 
 ---
 
+---
+
+### User Story 5 - Export View as SVG Diagram (Priority: P2)
+
+A developer wants to export a pyArchimate view as a self-contained SVG image to inspect, share, or validate the auto-layout result without opening Archi.
+
+**Why this priority**: Enables programmatic verification of layout output and removes the dependency on Archi for visual inspection. Particularly valuable for automated testing and CI workflows.
+
+**Independent Test**: Load a view, call `view.to_svg()`, verify the returned string is valid SVG containing one rectangle per node (at correct position/size), one polyline per connection (clipped at node edges), and one label per connection on the longest segment.
+
+**Acceptance Scenarios**:
+
+1. **Given** a view with positioned nodes, **When** `to_svg()` is called, **Then** the SVG contains one white rectangle with black border for each node at the correct x/y/w/h coordinates
+2. **Given** a view with connections carrying bendpoints, **When** `to_svg()` is called, **Then** each connection renders as an orthogonal polyline clipped at both node boundary edges, with a filled-triangle arrowhead at the target end
+3. **Given** a view with connections, **When** `to_svg()` is called, **Then** each connection has a label showing the short relationship type name (e.g. "Serving"), rendered as black text on a borderless white rectangle positioned on the longest segment of the connection
+4. **Given** `to_svg(filepath="out.svg")` is called, **Then** the SVG is also written to the specified file path
+5. **Given** an element name that exceeds the node rectangle width, **When** `to_svg()` is called, **Then** the name wraps to multiple lines and is vertically centered within the rectangle
+
+---
+
 ### Edge Cases
 
 - What happens when a view contains elements with no connections or relationships? (Elements should still be positioned in a coherent grid or pattern)
@@ -128,6 +148,14 @@ the specified parameters (e.g., increased spacing, element exclusion).
   force-directed and hierarchical); Business layer above/left of Application layer, which is above/left of Technology
   layer; layer constraints take priority over other optimization objectives
 
+### Session 2026-05-04
+
+- Q: Should `View.to_svg()` write to a file, return an SVG string, or support both? → A: Both — `to_svg(filepath=None)` returns the SVG string and also writes to `filepath` when provided
+- Q: Should connection polylines start/end at node boundary edges or node centers? → A: Node boundary edges — clip line at the exact rectangle edge
+- Q: Should connections render with an arrowhead at the target end? → A: Yes — small filled triangle arrowhead at the target end of each connection
+- Q: What text should the connection label show? → A: Short relationship type name — e.g. "Serving", "Composition", "Association" (strip trailing "Relationship" suffix)
+- Q: When an element name is too long to fit inside its rectangle, how should the text be handled? → A: Wrap to multiple lines, vertically centered in the rectangle
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -144,6 +172,10 @@ the specified parameters (e.g., increased spacing, element exclusion).
 - **FR-011**: System MUST respect ArchiMate natural layering in all layout algorithms; elements must be organized according to their layer (Business, Application/Element, Technology) with Business layer positioned above or to the left of Application layer, which is above or to the left of Technology layer
 - **FR-009**: System MUST validate that auto-layout completes within a reasonable timeframe for views with up to 500 elements
 - **FR-010**: System MUST include undo/rollback capability so users can revert auto-layout if unsatisfied with results
+- **FR-012**: System MUST provide a `View.to_svg(filepath=None)` method that returns a valid SVG string representing the view and writes to `filepath` when provided
+- **FR-013**: SVG export MUST render each node as a white rectangle with a black border at the node's exact x/y/w/h coordinates, with the element name centered and word-wrapped inside
+- **FR-014**: SVG export MUST render each connection as an orthogonal polyline (using stored bendpoints) clipped at the source and target node boundary edges, with a small filled-triangle arrowhead at the target end
+- **FR-015**: SVG export MUST place a connection label showing the short relationship type name (trailing "Relationship" suffix stripped) as black text in a borderless white rectangle centered on the longest segment of the connection polyline
 
 ### Key Entities
 
@@ -225,3 +257,4 @@ All layout algorithms MUST respect the natural layering structure of ArchiMate:
 - **Feature implementation**: Auto-layout and auto-format functions integrated into the pyArchimate view API
 - **Test suite**: Unit and integration tests validating layout correctness, performance, and edge cases
 - **User documentation**: Guide for using auto-layout and auto-format with examples
+- **SVG export method**: `View.to_svg(filepath=None)` integrated into the pyArchimate view API

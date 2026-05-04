@@ -7,6 +7,7 @@ import math
 from typing import Any, Dict, List, Set, Tuple, Optional
 from ..core import LayoutAlgorithm, LayoutConfig, LayoutResult
 from ..utils.geometry import Point, Rectangle
+from ..utils.edge_utils import normalize_edges
 from ..routing.layer_constraints import LayerConstraint, ArchiMateLayer
 
 
@@ -34,7 +35,8 @@ class HierarchicalLayout(LayoutAlgorithm):
 
         try:
             nodes = getattr(view, "nodes", [])
-            edges = getattr(view, "edges", [])
+            raw_edges = getattr(view, "conns", []) or getattr(view, "edges", [])
+            edges = normalize_edges(raw_edges, nodes)
 
             if not nodes:
                 return LayoutResult(
@@ -56,7 +58,7 @@ class HierarchicalLayout(LayoutAlgorithm):
             layers = self._minimize_crossings(layers, graph)
 
             # Step 3: Position assignment
-            positions = self._assign_positions(layers, config)
+            positions = self._assign_positions(layers, config, nodes)
 
             # Apply positions to nodes
             for i, node in enumerate(nodes):
@@ -252,13 +254,14 @@ class HierarchicalLayout(LayoutAlgorithm):
         return reordered_layers
 
     def _assign_positions(
-        self, layers: List[List[int]], config: LayoutConfig
+        self, layers: List[List[int]], config: LayoutConfig, nodes: List[Any]
     ) -> Dict[int, Point]:
         """Assign x,y coordinates to nodes based on layer structure.
 
         Args:
             layers: Layers with ordered node indices
             config: Layout configuration
+            nodes: List of nodes (for sizing information)
 
         Returns:
             Dictionary mapping node index to Point position
@@ -267,15 +270,25 @@ class HierarchicalLayout(LayoutAlgorithm):
 
         # Y coordinate based on layer
         y_base = config.margin
-        layer_height = max(100, self.layer_gap)  # Ensure proper separation
+        layer_height = max(150, self.layer_gap + 100)  # Larger separation to prevent overlap
 
         for layer_idx, layer in enumerate(layers):
             y = y_base + layer_idx * layer_height
 
             # X coordinate based on position within layer
-            # Spread nodes horizontally
+            # Calculate spacing based on element widths
             x_base = config.margin
-            spacing = config.spacing if config.spacing > 0 else 50
+            spacing = config.spacing if config.spacing > 0 else 80
+
+            # Increase spacing based on max element width in this layer
+            max_width = 0
+            for node_id in layer:
+                if node_id < len(nodes):
+                    w = getattr(nodes[node_id], 'w', 100)
+                    max_width = max(max_width, w)
+
+            # Add padding for visibility
+            spacing = max(spacing, max_width + 50)
 
             for pos_idx, node_id in enumerate(layer):
                 x = x_base + pos_idx * spacing

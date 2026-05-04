@@ -71,262 +71,49 @@ class ElementFormatRegistry:
         self._type_to_category: Dict[str, ArchiMateElementCategory] = {}
         self._initialize_standards()
 
+    # Archi default element size — all element types use the same dimensions
+    ARCHI_DEFAULT_WIDTH: int = 120
+    ARCHI_DEFAULT_HEIGHT: int = 55
+
     def _initialize_standards(self) -> None:
         """Initialize standard format specifications for all element types."""
-        # Business layer elements (larger, emphasizing role)
-        self._register_spec(
-            ArchiMateElementCategory.BUSINESS_ACTOR,
-            ElementFormatSpec(
-                ArchiMateElementCategory.BUSINESS_ACTOR,
-                default_width=100,
-                default_height=80,
-                font_family="Arial",
-                font_size=10,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["BusinessActor"],
-        )
+        w, h = self.ARCHI_DEFAULT_WIDTH, self.ARCHI_DEFAULT_HEIGHT
 
-        self._register_spec(
-            ArchiMateElementCategory.BUSINESS_ROLE,
-            ElementFormatSpec(
-                ArchiMateElementCategory.BUSINESS_ROLE,
-                default_width=100,
-                default_height=70,
-                font_family="Arial",
-                font_size=10,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["BusinessRole"],
-        )
+        type_map: dict[ArchiMateElementCategory, list[str]] = {
+            ArchiMateElementCategory.BUSINESS_ACTOR: ["BusinessActor"],
+            ArchiMateElementCategory.BUSINESS_ROLE: ["BusinessRole"],
+            ArchiMateElementCategory.BUSINESS_PROCESS: ["BusinessProcess"],
+            ArchiMateElementCategory.BUSINESS_FUNCTION: ["BusinessFunction"],
+            ArchiMateElementCategory.BUSINESS_SERVICE: ["BusinessService"],
+            ArchiMateElementCategory.BUSINESS_OBJECT: ["BusinessObject"],
+            ArchiMateElementCategory.BUSINESS_EVENT: ["BusinessEvent"],
+            ArchiMateElementCategory.BUSINESS_INTERFACE: ["BusinessInterface"],
+            ArchiMateElementCategory.APPLICATION_COMPONENT: ["ApplicationComponent"],
+            ArchiMateElementCategory.APPLICATION_SERVICE: ["ApplicationService"],
+            ArchiMateElementCategory.APPLICATION_INTERFACE: ["ApplicationInterface"],
+            ArchiMateElementCategory.APPLICATION_FUNCTION: ["ApplicationFunction"],
+            ArchiMateElementCategory.DATA_OBJECT: ["DataObject"],
+            ArchiMateElementCategory.TECHNOLOGY_NODE: ["TechnologyNode"],
+            ArchiMateElementCategory.TECHNOLOGY_ARTIFACT: ["TechnologyArtifact"],
+            ArchiMateElementCategory.TECHNOLOGY_SERVICE: ["TechnologyService"],
+            ArchiMateElementCategory.TECHNOLOGY_DEVICE: ["TechnologyDevice"],
+            ArchiMateElementCategory.TECHNOLOGY_INTERFACE: ["TechnologyInterface"],
+        }
 
-        self._register_spec(
-            ArchiMateElementCategory.BUSINESS_PROCESS,
-            ElementFormatSpec(
-                ArchiMateElementCategory.BUSINESS_PROCESS,
-                default_width=120,
-                default_height=80,
-                font_family="Arial",
-                font_size=10,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["BusinessProcess"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.BUSINESS_FUNCTION,
-            ElementFormatSpec(
-                ArchiMateElementCategory.BUSINESS_FUNCTION,
-                default_width=100,
-                default_height=80,
-                font_family="Arial",
-                font_size=10,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["BusinessFunction"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.BUSINESS_SERVICE,
-            ElementFormatSpec(
-                ArchiMateElementCategory.BUSINESS_SERVICE,
-                default_width=120,
-                default_height=60,
-                font_family="Arial",
-                font_size=10,
-                font_style="normal",
-                font_weight="bold",
-            ),
-            ["BusinessService"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.BUSINESS_OBJECT,
-            ElementFormatSpec(
-                ArchiMateElementCategory.BUSINESS_OBJECT,
-                default_width=80,
-                default_height=80,
-                font_family="Arial",
-                font_size=10,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["BusinessObject"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.BUSINESS_EVENT,
-            ElementFormatSpec(
-                ArchiMateElementCategory.BUSINESS_EVENT,
-                default_width=80,
-                default_height=60,
-                font_family="Arial",
-                font_size=9,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["BusinessEvent"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.BUSINESS_INTERFACE,
-            ElementFormatSpec(
-                ArchiMateElementCategory.BUSINESS_INTERFACE,
-                default_width=80,
-                default_height=60,
-                font_family="Arial",
-                font_size=9,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["BusinessInterface"],
-        )
-
-        # Application layer elements (medium size)
-        self._register_spec(
-            ArchiMateElementCategory.APPLICATION_COMPONENT,
-            ElementFormatSpec(
-                ArchiMateElementCategory.APPLICATION_COMPONENT,
-                default_width=100,
-                default_height=80,
-                font_family="Arial",
-                font_size=10,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["ApplicationComponent"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.APPLICATION_SERVICE,
-            ElementFormatSpec(
-                ArchiMateElementCategory.APPLICATION_SERVICE,
-                default_width=120,
-                default_height=60,
-                font_family="Arial",
-                font_size=10,
-                font_style="normal",
-                font_weight="bold",
-            ),
-            ["ApplicationService"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.APPLICATION_INTERFACE,
-            ElementFormatSpec(
-                ArchiMateElementCategory.APPLICATION_INTERFACE,
-                default_width=80,
-                default_height=60,
-                font_family="Arial",
-                font_size=9,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["ApplicationInterface"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.APPLICATION_FUNCTION,
-            ElementFormatSpec(
-                ArchiMateElementCategory.APPLICATION_FUNCTION,
-                default_width=100,
-                default_height=70,
-                font_family="Arial",
-                font_size=10,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["ApplicationFunction"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.DATA_OBJECT,
-            ElementFormatSpec(
-                ArchiMateElementCategory.DATA_OBJECT,
-                default_width=80,
-                default_height=80,
-                font_family="Arial",
-                font_size=10,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["DataObject"],
-        )
-
-        # Technology layer elements (smaller, technical detail)
-        self._register_spec(
-            ArchiMateElementCategory.TECHNOLOGY_NODE,
-            ElementFormatSpec(
-                ArchiMateElementCategory.TECHNOLOGY_NODE,
-                default_width=100,
-                default_height=80,
-                font_family="Arial",
-                font_size=9,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["TechnologyNode"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.TECHNOLOGY_ARTIFACT,
-            ElementFormatSpec(
-                ArchiMateElementCategory.TECHNOLOGY_ARTIFACT,
-                default_width=80,
-                default_height=80,
-                font_family="Arial",
-                font_size=9,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["TechnologyArtifact"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.TECHNOLOGY_SERVICE,
-            ElementFormatSpec(
-                ArchiMateElementCategory.TECHNOLOGY_SERVICE,
-                default_width=120,
-                default_height=60,
-                font_family="Arial",
-                font_size=9,
-                font_style="normal",
-                font_weight="bold",
-            ),
-            ["TechnologyService"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.TECHNOLOGY_DEVICE,
-            ElementFormatSpec(
-                ArchiMateElementCategory.TECHNOLOGY_DEVICE,
-                default_width=100,
-                default_height=80,
-                font_family="Arial",
-                font_size=9,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["TechnologyDevice"],
-        )
-
-        self._register_spec(
-            ArchiMateElementCategory.TECHNOLOGY_INTERFACE,
-            ElementFormatSpec(
-                ArchiMateElementCategory.TECHNOLOGY_INTERFACE,
-                default_width=80,
-                default_height=60,
-                font_family="Arial",
-                font_size=8,
-                font_style="normal",
-                font_weight="normal",
-            ),
-            ["TechnologyInterface"],
-        )
+        for category, archimate_types in type_map.items():
+            self._register_spec(
+                category,
+                ElementFormatSpec(
+                    category,
+                    default_width=w,
+                    default_height=h,
+                    font_family="Segoe UI",
+                    font_size=9,
+                    font_style="normal",
+                    font_weight="normal",
+                ),
+                archimate_types,
+            )
 
     def _register_spec(
         self,
@@ -363,10 +150,10 @@ class ElementFormatRegistry:
         # Return default spec for unknown types
         return ElementFormatSpec(
             ArchiMateElementCategory.UNKNOWN,
-            default_width=100,
-            default_height=80,
-            font_family="Arial",
-            font_size=10,
+            default_width=ElementFormatRegistry.ARCHI_DEFAULT_WIDTH,
+            default_height=ElementFormatRegistry.ARCHI_DEFAULT_HEIGHT,
+            font_family="Segoe UI",
+            font_size=9,
             font_style="normal",
             font_weight="normal",
         )
@@ -400,38 +187,59 @@ class FormatService:
         spec = self.registry.get_spec(element_type)
 
         # Apply size standardization (respect user overrides)
+        # Support both 'w'/'h' and 'width'/'height' attribute names
         if user_size_override is None:
-            element.width = spec.default_width
-            element.height = spec.default_height
+            if hasattr(element, 'w'):
+                element.w = spec.default_width
+                element.h = spec.default_height
+            else:
+                element.width = spec.default_width
+                element.height = spec.default_height
         else:
-            element.width, element.height = user_size_override
+            width, height = user_size_override
+            if hasattr(element, 'w'):
+                element.w = width
+                element.h = height
+            else:
+                element.width = width
+                element.height = height
 
         # Apply font standardization (respect user overrides)
+        # Support both 'font_name' (pyArchimate) and 'font_family' (generic)
         if user_font_override is None:
-            element.font_family = spec.font_family
-            element.font_size = spec.font_size
-            element.font_style = spec.font_style
-            element.font_weight = spec.font_weight
-        else:
-            if "font_family" in user_font_override:
-                element.font_family = user_font_override["font_family"]
+            if hasattr(element, 'font_name'):
+                element.font_name = spec.font_family
+                element.font_size = spec.font_size
             else:
                 element.font_family = spec.font_family
-
-            if "font_size" in user_font_override:
-                element.font_size = int(user_font_override["font_size"])
-            else:
                 element.font_size = spec.font_size
-
-            if "font_style" in user_font_override:
-                element.font_style = user_font_override["font_style"]
-            else:
                 element.font_style = spec.font_style
-
-            if "font_weight" in user_font_override:
-                element.font_weight = user_font_override["font_weight"]
-            else:
                 element.font_weight = spec.font_weight
+        else:
+            if hasattr(element, 'font_name'):
+                font_name = user_font_override.get("font_family") or user_font_override.get("font_name") or spec.font_family
+                element.font_name = font_name
+                element.font_size = int(user_font_override.get("font_size", spec.font_size))
+            else:
+                if "font_family" in user_font_override:
+                    element.font_family = user_font_override["font_family"]
+                else:
+                    element.font_family = spec.font_family
+
+                if "font_size" in user_font_override:
+                    element.font_size = int(user_font_override["font_size"])
+                else:
+                    element.font_size = spec.font_size
+
+                if "font_style" in user_font_override:
+                    element.font_style = user_font_override["font_style"]
+                else:
+                    element.font_style = spec.font_style
+
+                if "font_weight" in user_font_override:
+                    element.font_weight = user_font_override["font_weight"]
+                else:
+                    element.font_weight = spec.font_weight
 
         # Apply grid alignment if requested
         if alignment == "grid":
@@ -511,8 +319,8 @@ class FormatService:
         if not elements:
             return {"mean": 0, "std_dev": 0, "min": 0, "max": 0}
 
-        widths = [getattr(e, "width", 100) for e in elements]
-        heights = [getattr(e, "height", 80) for e in elements]
+        widths = [getattr(e, "w", getattr(e, "width", 100)) for e in elements]
+        heights = [getattr(e, "h", getattr(e, "height", 80)) for e in elements]
         areas = [w * h for w, h in zip(widths, heights)]
 
         mean_area = sum(areas) / len(areas)

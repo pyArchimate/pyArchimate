@@ -2,9 +2,10 @@
 
 import math
 import random
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, List
 from ..core import LayoutAlgorithm, LayoutConfig, LayoutResult
 from ..utils.geometry import Point, Rectangle
+from ..utils.edge_utils import normalize_edges
 from ..routing.layer_constraints import LayerConstraint, ArchiMateLayer
 
 
@@ -13,11 +14,13 @@ class ForceDirectedLayout(LayoutAlgorithm):
 
     def __init__(self) -> None:
         """Initialize force-directed layout."""
-        self.k_attraction = 0.5  # Spring attraction constant
-        self.k_repulsion = 5000.0  # Node repulsion constant
-        self.damping = 0.85  # Velocity damping for stability
-        self.tolerance = 1.0  # Convergence tolerance
-        self.max_iterations = 1000  # Maximum iterations
+        self.k_attraction = 0.01  # Spring attraction constant (very weak)
+        self.k_repulsion = 2000.0  # Node repulsion constant - strong repulsion
+        self.damping = 0.8  # Velocity damping for stability
+        self.tolerance = 0.05  # Convergence tolerance (strict)
+        self.max_iterations = 500  # Maximum iterations
+        self.max_velocity = 150.0  # Maximum velocity per iteration
+        self.min_separation = 200.0  # Minimum distance between nodes (increased from 150)
 
     def apply(self, view: Any, config: LayoutConfig) -> LayoutResult:
         """Apply force-directed layout to a view.
@@ -35,7 +38,8 @@ class ForceDirectedLayout(LayoutAlgorithm):
         try:
             # Get nodes and edges from view
             nodes = getattr(view, "nodes", [])
-            edges = getattr(view, "edges", [])
+            raw_edges = getattr(view, "conns", []) or getattr(view, "edges", [])
+            edges = normalize_edges(raw_edges, nodes)
 
             if not nodes:
                 return LayoutResult(
@@ -73,20 +77,30 @@ class ForceDirectedLayout(LayoutAlgorithm):
                 for node_id in positions:
                     if node_id in forces:
                         force = forces[node_id]
-                        velocities[node_id] = Point(
-                            force.x * self.damping,
-                            force.y * self.damping,
-                        )
+                        vx = force.x * self.damping
+                        vy = force.y * self.damping
+
+                        # Clamp velocity magnitude to prevent explosion
+                        v_mag = math.sqrt(vx * vx + vy * vy)
+                        if v_mag > self.max_velocity:
+                            scale = self.max_velocity / v_mag
+                            vx *= scale
+                            vy *= scale
+
+                        velocities[node_id] = Point(vx, vy)
                         positions[node_id] = Point(
-                            positions[node_id].x + velocities[node_id].x,
-                            positions[node_id].y + velocities[node_id].y,
+                            positions[node_id].x + vx,
+                            positions[node_id].y + vy,
                         )
-                        max_velocity = max(max_velocity, abs(velocities[node_id].x), abs(velocities[node_id].y))
+                        max_velocity = max(max_velocity, abs(vx), abs(vy))
 
                 # Check for convergence
                 if max_velocity < self.tolerance:
                     converged = True
                     break
+
+            # Resolve any remaining overlaps by pushing nodes apart
+            positions = self._resolve_overlaps(positions, nodes)
 
             # Enforce layer constraints
             positions = layer_constraint.enforce_layer_separation(positions, config.spacing)
@@ -115,7 +129,9 @@ class ForceDirectedLayout(LayoutAlgorithm):
             )
 
         except Exception as e:
+            import traceback
             elapsed_ms = (time.time() - start_time) * 1000
+            error_msg = f"{str(e)}\n{traceback.format_exc()}"
             return LayoutResult(
                 success=False,
                 view_id=getattr(view, "id", "unknown"),
@@ -123,7 +139,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
                 elements_processed=0,
                 connections_processed=0,
                 layout_time_ms=elapsed_ms,
-                error_message=str(e),
+                error_message=error_msg,
             )
 
     def _initialize_positions(self, nodes: list, config: LayoutConfig) -> Dict[int, Point]:
@@ -148,6 +164,68 @@ class ForceDirectedLayout(LayoutAlgorithm):
                 x = random.uniform(0, canvas_width)
                 y = random.uniform(0, canvas_height)
                 positions[i] = Point(x, y)
+
+        return positions
+
+    def _resolve_overlaps(
+        self, positions: Dict[int, Point], nodes: List[Any]
+    ) -> Dict[int, Point]:
+        """Resolve remaining overlaps by pushing overlapping nodes apart.
+
+        Args:
+            positions: Current node positions
+            nodes: List of nodes (for dimension information)
+
+        Returns:
+            Adjusted positions with overlaps resolved
+        """
+        # Get node dimensions (width/height halves)
+        node_dims = {}
+        for i, node in enumerate(nodes):
+            w = getattr(node, 'w', 100)
+            h = getattr(node, 'h', 80)
+            node_dims[i] = (w, h)
+
+        # Iteratively push overlapping nodes apart
+        max_iterations = 20
+        for _ in range(max_iterations):
+            any_adjusted = False
+
+            node_ids = list(positions.keys())
+            for i in range(len(node_ids)):
+                for j in range(i + 1, len(node_ids)):
+                    ni = node_ids[i]
+                    nj = node_ids[j]
+
+                    pi = positions[ni]
+                    pj = positions[nj]
+
+                    w1, h1 = node_dims.get(ni, (100, 80))
+                    w2, h2 = node_dims.get(nj, (100, 80))
+
+                    # Check if bounding boxes overlap
+                    dx = abs(pi.x - pj.x)
+                    dy = abs(pi.y - pj.y)
+                    min_dx = (w1 + w2) / 2.0 + 10
+                    min_dy = (h1 + h2) / 2.0 + 10
+
+                    if dx < min_dx and dy < min_dy:
+                        # Push nodes apart
+                        dist = pi.distance_to(pj)
+                        if dist > 0.1:
+                            direction_x = (pj.x - pi.x) / dist
+                            direction_y = (pj.y - pi.y) / dist
+                        else:
+                            direction_x, direction_y = 1.0, 0.0
+
+                        push = max(min_dx - dx, min_dy - dy) / 2.0 + 15
+
+                        positions[ni] = Point(pi.x - direction_x * push, pi.y - direction_y * push)
+                        positions[nj] = Point(pj.x + direction_x * push, pj.y + direction_y * push)
+                        any_adjusted = True
+
+            if not any_adjusted:
+                break
 
         return positions
 
@@ -200,8 +278,13 @@ class ForceDirectedLayout(LayoutAlgorithm):
                 if dist < 0.1:
                     dist = 0.1
 
-                # Repulsive force magnitude
-                magnitude = self.k_repulsion / (dist * dist)
+                # Repulsive force magnitude - increases as nodes get closer than min separation
+                if dist < self.min_separation:
+                    # Strong repulsion when nodes are too close
+                    magnitude = self.k_repulsion * (self.min_separation - dist) / (dist * dist)
+                else:
+                    # Weak repulsion when nodes are far enough apart
+                    magnitude = self.k_repulsion / (dist * dist) * 0.1
 
                 # Force direction
                 dx = (p_i.x - p_j.x) / dist
