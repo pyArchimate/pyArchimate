@@ -298,26 +298,28 @@ class Node:
 
     @property
     def name(self) -> Optional[str]:
-        if self.cat == 'Element':
+        if self.cat == 'Element' and self.concept:
             return self.concept.name
         return None
 
     @property
     def desc(self) -> Optional[str]:
-        return self.concept.desc
+        return self.concept.desc if self.concept else None
 
     @property
     def type(self) -> Optional[str]:
-        if self.cat == 'Element':
+        if self.cat == 'Element' and self.concept:
             return self.concept.type
         return None
 
     @property
-    def concept(self) -> Element:
+    def concept(self) -> Optional[Element]:
         try:
             return cast(Element, self.model.elems_dict[self._ref])
         except KeyError:
-            raise ArchimateConceptTypeError(f'Invalid element reference "{self._ref}"') from None
+            from ..logger import log
+            log.debug(f'Element reference "{self._ref}" not found in model')
+            return None
 
     @property
     def ref(self) -> Optional[str]:
