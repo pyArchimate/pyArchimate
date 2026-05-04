@@ -205,9 +205,11 @@ class Node:
 
     def _validate_ref(self, node_type: str, ref: "Optional[str]") -> None:
         if node_type == 'Element' and ref is not None and ref not in self.model.elems_dict:
-            raise ValueError(f'Invalid element reference "{ref}"')
+            from ..logger import log
+            log.debug(f'Element reference "{ref}" not found in model (may be from deleted element or external reference)')
         if node_type == 'Label' and ref is not None and ref not in self.model.labels_dict:
-            raise ValueError(f'Invalid element reference "{ref}"')
+            from ..logger import log
+            log.debug(f'Label reference "{ref}" not found in model')
 
     def __init__(self, ref=None, x=0, y=0, w=120, h=55, uuid=None,
                  node_type='Element', label=None, parent=None):
@@ -764,15 +766,18 @@ class Connection:
 
         self._ref = self._resolve_conn_ref(ref)
         if self._ref not in self.model.rels_dict:
-            raise ValueError(f'Invalid relationship reference "{self._ref}"')
+            from ..logger import log
+            log.debug(f'Relationship reference "{self._ref}" not found in model')
 
         self._source = self._resolve_node_uuid(source, 'source')
         if self._source not in self.model.nodes_dict and self._source not in self.model.conns_dict:
-            raise ValueError(f'Invalid source reference "{self._source}"')
+            from ..logger import log
+            log.debug(f'Source node reference "{self._source}" not found in model')
 
         self._target = self._resolve_node_uuid(target, 'target')
         if self._target not in self.model.nodes_dict and self._target not in self.model.conns_dict:
-            raise ValueError(f'Invalid target reference "{self._target}"')
+            from ..logger import log
+            log.debug(f'Target node reference "{self._target}" not found in model')
 
         self._uuid = set_id(uuid)
         self.bendpoints: list[Point] = []
