@@ -9,6 +9,13 @@ import math
 from typing import Any, Optional, Tuple
 from xml.etree import ElementTree as ET
 
+from .symbols.archimate_symbols import ARCHIMATE_SYMBOLS
+from .symbols.color_palette import get_element_color
+from .symbols.archimate_relationships import (
+    get_relationship_style,
+    RelationshipStyleService,
+)
+
 
 class SVGExportService:
     """Service for exporting pyArchimate views as SVG diagrams."""
@@ -54,9 +61,11 @@ class SVGExportService:
         # Add white background rectangle
         self._add_background(svg, svg_width, svg_height)
 
-        # Render connections first (so they appear behind nodes)
+        # Render connections/relationships first (so they appear behind nodes)
+        # Try new rendering with relationship styles, fall back to basic rendering if needed
+        relationship_service = RelationshipStyleService()
         for conn in view.conns:
-            self._render_connection(svg, conn, view.nodes_dict)
+            self._render_relationship(svg, conn, view.nodes_dict, relationship_service)
 
         # Render nodes on top
         for node in view.nodes:
@@ -121,7 +130,20 @@ class SVGExportService:
         """
         defs = ET.SubElement(svg, 'defs')
 
-        # Arrowhead marker (filled triangle)
+        # Add ArchiMate symbol definitions
+        for symbol_def in ARCHIMATE_SYMBOLS.values():
+            symbol = ET.SubElement(defs, 'symbol', {
+                'id': f'archimate_{symbol_def.element_type}',
+                'viewBox': symbol_def.viewBox,
+            })
+            ET.SubElement(symbol, 'path', {
+                'd': symbol_def.svg_path,
+                'fill': symbol_def.default_color,
+                'stroke': 'black',
+                'stroke-width': '1',
+            })
+
+        # Arrowhead marker (filled triangle) - for connections
         marker = ET.SubElement(defs, 'marker', {
             'id': 'arrowhead',
             'markerWidth': str(self.ARROWHEAD_SIZE),
@@ -135,6 +157,67 @@ class SVGExportService:
         ET.SubElement(marker, 'polygon', {
             'points': f'0 0, {self.ARROWHEAD_SIZE} {self.ARROWHEAD_SIZE // 2}, 0 {self.ARROWHEAD_SIZE}',
             'fill': 'black',
+        })
+
+        # Relationship markers
+        # Filled arrow (for serving, access, etc.)
+        marker_filled = ET.SubElement(defs, 'marker', {
+            'id': 'arrow-filled',
+            'markerWidth': '8',
+            'markerHeight': '8',
+            'refX': '6',
+            'refY': '4',
+            'orient': 'auto',
+        })
+        ET.SubElement(marker_filled, 'polygon', {
+            'points': '0 0, 8 4, 0 8',
+            'fill': 'black',
+        })
+
+        # Hollow arrow (for realization, etc.)
+        marker_hollow = ET.SubElement(defs, 'marker', {
+            'id': 'arrow-hollow',
+            'markerWidth': '8',
+            'markerHeight': '8',
+            'refX': '6',
+            'refY': '4',
+            'orient': 'auto',
+        })
+        ET.SubElement(marker_hollow, 'polygon', {
+            'points': '0 0, 8 4, 0 8',
+            'fill': 'none',
+            'stroke': 'black',
+            'stroke-width': '1',
+        })
+
+        # Diamond filled (for composition)
+        marker_diamond_filled = ET.SubElement(defs, 'marker', {
+            'id': 'diamond-filled',
+            'markerWidth': '8',
+            'markerHeight': '8',
+            'refX': '4',
+            'refY': '4',
+            'orient': 'auto',
+        })
+        ET.SubElement(marker_diamond_filled, 'polygon', {
+            'points': '4 0, 8 4, 4 8, 0 4',
+            'fill': 'black',
+        })
+
+        # Diamond hollow (for aggregation)
+        marker_diamond_hollow = ET.SubElement(defs, 'marker', {
+            'id': 'diamond-hollow',
+            'markerWidth': '8',
+            'markerHeight': '8',
+            'refX': '4',
+            'refY': '4',
+            'orient': 'auto',
+        })
+        ET.SubElement(marker_diamond_hollow, 'polygon', {
+            'points': '4 0, 8 4, 4 8, 0 4',
+            'fill': 'none',
+            'stroke': 'black',
+            'stroke-width': '1',
         })
 
     def _add_background(self, svg: ET.Element, width: float, height: float) -> None:
@@ -155,7 +238,7 @@ class SVGExportService:
         })
 
     def _render_node(self, svg: ET.Element, node: Any) -> None:
-        """Render a single node as a rectangle with text.
+        """Render a single node as an ArchiMate symbol with text.
 
         Args:
             svg: SVG root element
@@ -165,31 +248,42 @@ class SVGExportService:
         y = float(getattr(node, 'y', 0))
         w = float(getattr(node, 'w', 120))
         h = float(getattr(node, 'h', 55))
+        element_type = getattr(node, 'type', 'BusinessActor')
+        element_id = getattr(node, 'uuid', None)
 
         # Group for node
         g = ET.SubElement(svg, 'g', {'class': 'node'})
 
-        # Rectangle
-        ET.SubElement(g, 'rect', {
+        # Get symbol definition
+        symbol_def = ARCHIMATE_SYMBOLS.get(element_type)
+        if not symbol_def:
+            # Fallback to BusinessActor if type not found
+            symbol_def = ARCHIMATE_SYMBOLS['BusinessActor']
+
+        # Get color (check for per-element override via fill_color property)
+        color = getattr(node, 'fill_color', None) or get_element_color(element_type, element_id)
+
+        # Render symbol via <use> element
+        ET.SubElement(g, 'use', {
+            'href': f'#archimate_{symbol_def.element_type}',
             'x': str(int(x)),
             'y': str(int(y)),
             'width': str(int(w)),
             'height': str(int(h)),
-            'fill': 'white',
+            'fill': color,
             'stroke': 'black',
             'stroke-width': '1',
         })
 
-        # Text with element name
+        # Text with element name (positioned below/beside symbol)
         element_name = getattr(node, 'name', getattr(node, 'label', ''))
         if element_name:
             self._render_wrapped_text(
                 g,
                 element_name,
                 x + w / 2,  # center x
-                y + h / 2,  # center y
+                y + h + 15,  # below symbol
                 w - 2 * self.TEXT_PADDING,  # available width
-                h,  # available height
             )
 
     def _render_wrapped_text(
@@ -199,7 +293,6 @@ class SVGExportService:
         center_x: float,
         center_y: float,
         max_width: float,
-        _max_height: float,
     ) -> None:
         """Render text with automatic word wrapping.
 
@@ -209,7 +302,6 @@ class SVGExportService:
             center_x: X coordinate of center point
             center_y: Y coordinate of center point
             max_width: Maximum width for text
-            _max_height: Maximum height for text
         """
         # Word wrap the text
         lines = self._word_wrap_text(text, max_width)
@@ -271,6 +363,200 @@ class SVGExportService:
             lines.append(' '.join(current_line))
 
         return lines if lines else [text]
+
+    def _render_marker_shape(
+        self,
+        svg: ET.Element,
+        endpoint: tuple[float, float],
+        direction_from: tuple[float, float],
+        marker_type: str,
+        color: str,
+        position: str,
+    ) -> None:
+        """Render a marker shape (arrow or diamond) at a polyline endpoint.
+
+        Args:
+            svg: SVG root element
+            endpoint: (x, y) position of the marker
+            direction_from: (x, y) of the point before endpoint (for direction)
+            marker_type: Type of marker ('filled', 'hollow', 'diamond')
+            color: Color of the marker
+            position: 'start' or 'end' (affects direction)
+        """
+        import math
+
+        ex, ey = endpoint
+        dx = direction_from[0] - ex
+        dy = direction_from[1] - ey
+
+        # Normalize direction
+        dist = math.sqrt(dx*dx + dy*dy)
+        if dist < 0.1:
+            return
+
+        dx /= dist
+        dy /= dist
+
+        if position == 'end':
+            # Arrow pointing in direction of line
+            dx = -dx
+            dy = -dy
+
+        # Create arrow pointing marker (larger size for visibility)
+        marker_size = 12
+        if marker_type in ('filled', 'hollow'):
+            # Triangle arrow: base perpendicular to direction, point along direction
+            perp_x = -dy
+            perp_y = dx
+
+            # Triangle vertices (pointing along dx, dy direction)
+            p1 = (ex + dx * marker_size, ey + dy * marker_size)  # Point
+            p2 = (ex - perp_x * marker_size/2 - dx * marker_size/3, ey - perp_y * marker_size/2 - dy * marker_size/3)  # Base corners
+            p3 = (ex + perp_x * marker_size/2 - dx * marker_size/3, ey + perp_y * marker_size/2 - dy * marker_size/3)
+
+            points_str = f'{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]}'
+
+            fill = color if marker_type == 'filled' else 'none'
+            stroke = 'none' if marker_type == 'filled' else color
+            stroke_width = '1' if marker_type == 'filled' else '1.5'
+
+            ET.SubElement(svg, 'polygon', {
+                'points': points_str,
+                'fill': fill,
+                'stroke': stroke,
+                'stroke-width': stroke_width,
+                'stroke-linejoin': 'miter',
+            })
+
+        elif marker_type == 'diamond':
+            # Diamond marker (larger for visibility)
+            size = 8
+            p1 = (ex + dx * size, ey + dy * size)
+            p2 = (ex - dy * size, ey + dx * size)
+            p3 = (ex - dx * size, ey - dy * size)
+            p4 = (ex + dy * size, ey - dx * size)
+
+            points_str = f'{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]} {p4[0]},{p4[1]}'
+
+            fill = color if marker_type == 'diamond' else 'none'
+            stroke = 'none' if marker_type == 'diamond' else color
+            stroke_width = '1' if marker_type == 'diamond' else '1.5'
+
+            ET.SubElement(svg, 'polygon', {
+                'points': points_str,
+                'fill': fill,
+                'stroke': stroke,
+                'stroke-width': stroke_width,
+                'stroke-linejoin': 'miter',
+            })
+
+    def _render_relationship(
+        self,
+        svg: ET.Element,
+        conn: Any,
+        nodes_dict: dict[str, Any],
+        relationship_service: RelationshipStyleService,
+    ) -> None:
+        """Render a single relationship with ArchiMate styling.
+
+        Args:
+            svg: SVG root element
+            conn: Connection/relationship to render
+            nodes_dict: Dictionary of nodes by uuid
+            relationship_service: Service for relationship styles
+        """
+        source_uuid = getattr(conn, '_source', None)
+        target_uuid = getattr(conn, '_target', None)
+
+        if not source_uuid or not target_uuid:
+            return
+
+        source_node = nodes_dict.get(source_uuid)
+        target_node = nodes_dict.get(target_uuid)
+
+        if not source_node or not target_node:
+            return
+
+        # Get bendpoints
+        bendpoints = getattr(conn, 'bendpoints', [])
+
+        # Build polyline points
+        points = self._get_clipped_polyline_points(
+            source_node,
+            target_node,
+            bendpoints,
+        )
+
+        if len(points) < 2:
+            return
+
+        # Get relationship type and style
+        rel_type = getattr(conn, 'type', 'Association')
+        relationship_style = relationship_service.get_style(rel_type)
+
+        # If no style found, try without "Relationship" suffix
+        if not relationship_style and 'Relationship' in rel_type:
+            relationship_style = relationship_service.get_style(rel_type.replace('Relationship', ''))
+
+        # Fall back to basic connection rendering if no style found
+        if not relationship_style:
+            self._render_connection(svg, conn, nodes_dict)
+            return
+
+        # Apply per-relationship overrides if available
+        stroke_color = getattr(conn, 'stroke_color', None) or relationship_style.stroke_color
+        stroke_width = getattr(conn, 'stroke_width', None) or relationship_style.stroke_width
+        stroke_dasharray = getattr(conn, 'stroke_style', None) or relationship_style.stroke_dasharray
+
+        # Render polyline with relationship style
+        points_str = ' '.join(f'{int(p[0])},{int(p[1])}' for p in points)
+        polyline_attrs = {
+            'points': points_str,
+            'fill': 'none',
+            'stroke': stroke_color,
+            'stroke-width': str(stroke_width),
+            'opacity': '0.8',
+        }
+
+        # Add dash pattern if specified
+        if stroke_dasharray:
+            polyline_attrs['stroke-dasharray'] = stroke_dasharray
+
+        # Add markers if specified
+        if relationship_style.marker_start:
+            polyline_attrs['marker-start'] = relationship_style.marker_start
+        if relationship_style.marker_end:
+            polyline_attrs['marker-end'] = relationship_style.marker_end
+
+        ET.SubElement(svg, 'polyline', polyline_attrs)
+
+        # Render custom arrow/diamond markers as explicit path elements
+        if len(points) >= 2:
+            # End marker
+            if relationship_style.marker_end:
+                self._render_marker_shape(
+                    svg,
+                    points[-1],
+                    points[-2],
+                    relationship_style.arrow_type,
+                    stroke_color,
+                    'end',
+                )
+            # Start marker
+            if relationship_style.marker_start:
+                self._render_marker_shape(
+                    svg,
+                    points[0],
+                    points[1],
+                    relationship_style.arrow_type,
+                    stroke_color,
+                    'start',
+                )
+
+        # Render relationship label
+        label_text = self._get_short_type_name(rel_type)
+        if label_text and len(points) >= 2:
+            self._render_connection_label(svg, points, label_text)
 
     def _render_connection(
         self,
@@ -382,24 +668,86 @@ class SVGExportService:
                 target_bounds,
                 exit_from=False,
             )
+
+            # Extend endpoint by ~8 pixels in the direction away from the previous point
+            # This ensures SVG markers (arrows, diamonds) are fully visible outside the symbol
+            prev_point = full_points[-2]
+            dx = end_point[0] - prev_point[0]
+            dy = end_point[1] - prev_point[1]
+            dist = (dx*dx + dy*dy) ** 0.5
+
+            if dist > 0:
+                # Extend by 8 pixels to ensure markers are fully visible
+                extension = 8.0
+                end_point = (
+                    end_point[0] + (dx / dist) * extension,
+                    end_point[1] + (dy / dist) * extension
+                )
+
             full_points[-1] = end_point
+
+        # Extend start point similarly for marker_start visibility
+        if len(full_points) >= 2:
+            start_point = full_points[0]
+            next_point = full_points[1]
+            dx = next_point[0] - start_point[0]
+            dy = next_point[1] - start_point[1]
+            dist = (dx*dx + dy*dy) ** 0.5
+
+            if dist > 0:
+                # Extend backward by 8 pixels to ensure start markers are visible
+                extension = 8.0
+                start_point = (
+                    start_point[0] - (dx / dist) * extension,
+                    start_point[1] - (dy / dist) * extension
+                )
+                full_points[0] = start_point
 
         return full_points
 
     def _get_node_bounds(self, node: Any) -> Tuple[float, float, float, float]:
-        """Get node rectangle bounds.
+        """Get node bounds using symbol bounding box when available.
+
+        For symbol-based rendering, this uses the symbol's bounding box coordinates
+        scaled to the node's width and height. For compatibility, falls back to
+        simple rectangle bounds if symbol not found.
 
         Args:
             node: Node object
 
         Returns:
-            Tuple of (x, y, x+w, y+h)
+            Tuple of (x, y, x+w, y+h) representing the symbol's boundary
         """
         x = float(getattr(node, 'x', 0))
         y = float(getattr(node, 'y', 0))
         w = float(getattr(node, 'w', 120))
         h = float(getattr(node, 'h', 55))
-        return (x, y, x + w, y + h)
+        element_type = getattr(node, 'type', 'BusinessActor')
+
+        # Get symbol definition to use its bounding box
+        symbol_def = ARCHIMATE_SYMBOLS.get(element_type)
+        if not symbol_def:
+            # Fallback: use rectangle bounds
+            return (x, y, x + w, y + h)
+
+        # Scale symbol bounding box to node dimensions
+        sym_x, sym_y, sym_w, sym_h = symbol_def.bounding_box
+        # ViewBox is typically 0 0 100 100
+        vb_parts = symbol_def.viewBox.split()
+        vb_w = float(vb_parts[2]) if len(vb_parts) > 2 else 100.0
+        vb_h = float(vb_parts[3]) if len(vb_parts) > 3 else 100.0
+
+        # Scale from viewBox coordinates to node coordinates
+        scale_x = w / vb_w if vb_w > 0 else 1.0
+        scale_y = h / vb_h if vb_h > 0 else 1.0
+
+        # Transform symbol bounds to node coordinate space
+        bounds_x1 = x + sym_x * scale_x
+        bounds_y1 = y + sym_y * scale_y
+        bounds_x2 = x + (sym_x + sym_w) * scale_x
+        bounds_y2 = y + (sym_y + sym_h) * scale_y
+
+        return (bounds_x1, bounds_y1, bounds_x2, bounds_y2)
 
     def _clip_line_at_rectangle(
         self,

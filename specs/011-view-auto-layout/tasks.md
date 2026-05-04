@@ -1,16 +1,16 @@
 # Tasks: View Auto-Layout and Auto-Format
 
 **Phase 2+ Output** | **Date**: 2026-05-04 (Updated with SVG Symbol Enhancement) | **Feature Branch**: `011-view-auto-layout`  
-**Status**: Phase 6B-Core (SVG Export) ✅ COMPLETE | Phase 6B-Enhancement (Symbol Rendering) ⏳ IN PROGRESS | Phase 7 (Polish) pending
+**Status**: Phase 6B-Core (SVG Export) ✅ COMPLETE | Phase 6B-Enhancement (Symbol Rendering) ✅ COMPLETE | Phase 6C (Relationship Rendering) ⏳ IN PROGRESS | Phase 7 (Polish) pending
 
 ## Overview
 
 This document contains the detailed task breakdown for implementing the View Auto-Layout and Auto-Format feature. Tasks are organized by phase and user story, with clear dependencies and parallel execution opportunities.
 
-**Total Tasks**: 118 tasks across 7 phases (110 original + 8 SVG symbol enhancement tasks)
-**Completed**: 87 tasks (74%) | **Remaining**: 40 tasks (26%)
-**Estimated Duration**: MVP (US1+US2+foundational) ~3-4 weeks; Full feature with symbols ~7-8 weeks  
-**Suggested MVP Scope**: Complete Phases 1-4 (Setup + Foundational + US1 + US2) + Phase 6B-Core SVG export + essential Phase 7 tasks
+**Total Tasks**: 126 tasks across 8 phases (110 original + 8 SVG symbol enhancement + 8 relationship rendering tasks)
+**Completed**: 95 tasks (75%) | **Remaining**: 31 tasks (25%)
+**Estimated Duration**: MVP (US1+US2+foundational) ~3-4 weeks; Full feature with symbols and relationships ~8-10 weeks  
+**Suggested MVP Scope**: Complete Phases 1-6B (Setup through SVG Export with Symbols) + Phase 6C (Relationship Rendering) + essential Phase 7 tasks
 
 **Completion Summary**:
 - ✅ **Phase 1**: Setup (14 tasks, 100%)
@@ -20,7 +20,8 @@ This document contains the detailed task breakdown for implementing the View Aut
 - ✅ **Phase 5**: US3 Hierarchical Layout (14 tasks, 100%)
 - ✅ **Phase 6A**: US4 Customization (6 tasks, 100%)
 - ✅ **Phase 6B-Core**: US5 SVG Export - Basic (12 tasks, 100%)
-- ⏳ **Phase 6B-Enhancement**: US5 SVG Export - Symbol Rendering (8 tasks, 0%) ← NEW: Symbol library + color palette
+- ✅ **Phase 6B-Enhancement**: US5 SVG Export - Symbol Rendering (8 tasks, 100%) ← Symbol library from archimate-symbols repository + color palette + unit tests
+- ⏳ **Phase 6C**: US5.1 SVG Relationship Rendering (8 tasks, 0%) ← ArchiMate relationship symbols and styling
 - ⏳ **Phase 7**: Polish & Documentation (11 tasks, 0%) ← CURRENT WORK
 
 ---
@@ -302,14 +303,39 @@ Clarification Session 2026-05-04 added requirements for symbol-based rendering t
 
 ---
 
-- [ ] T111 [P] [US5] Create symbol registry in `src/pyArchimate/view/layout/export/symbols/archimate_symbols.py` with definitions for all 30+ ArchiMate element types (Business: Actor, Role, Service, Process, etc.; Application: Component, Service, Interface, Function; Technology: Node, Device, Software, Service; Motivation: Stakeholder, Driver, Goal; Implementation: Event, Component; Other: Grouping, Gap; Junctions: And, Or, Xor)
-- [ ] T112 [P] [US5] Extract and validate SVG paths for each element type symbol, including viewBox dimensions and bounding box coordinates
-- [ ] T113 [P] [US5] Create color palette mapping in `src/pyArchimate/view/layout/export/symbols/color_palette.py` with ArchiMate standard colors (hex RGB codes) for all 30+ element types per AR3 specification
-- [ ] T114 [P] [US5] Update `SVGExportService._render_node()` in `src/pyArchimate/view/layout/export/svg_export.py` to render symbols via `<symbol>` definitions + `<use>` elements instead of `<rect>` rectangles
-- [ ] T115 [P] [US5] Update polyline clipping algorithm in `src/pyArchimate/view/layout/export/svg_export.py` to clip connections at symbol boundary edges (using bounding box from symbol registry) instead of fixed rectangle bounds
-- [ ] T116 [US5] Implement per-element color override support: if node has `fill_color` or `line_color` properties set, use those instead of standard palette color in `SVGExportService`
-- [ ] T117 [P] [US5] Create comprehensive tests for symbol rendering in `tests/unit/layout/test_archimate_symbols.py` (symbol path validation, viewBox correctness, color palette coverage for all 30+ types)
-- [ ] T118 [P] [US5] Expand BDD scenarios in `tests/features/layout/svg_export.feature` to cover symbol rendering for all 30+ element types (at least one scenario per ArchiMate layer: Business, Application, Technology, Motivation, Implementation, Other, Junction)
+- [x] T111 [P] [US5] Create symbol registry in `src/pyArchimate/view/layout/export/symbols/archimate_symbols.py` with definitions for all 30+ ArchiMate element types (Business: Actor, Role, Service, Process, etc.; Application: Component, Service, Interface, Function; Technology: Node, Device, Software, Service; Motivation: Stakeholder, Driver, Goal; Implementation: Event, Component; Other: Grouping, Gap; Junctions: And, Or, Xor)
+- [x] T112 [P] [US5] Extract and validate SVG paths for each element type symbol, including viewBox dimensions and bounding box coordinates
+- [x] T113 [P] [US5] Create color palette mapping in `src/pyArchimate/view/layout/export/symbols/color_palette.py` with ArchiMate standard colors (hex RGB codes) for all 30+ element types per AR3 specification
+- [x] T114 [P] [US5] Update `SVGExportService._render_node()` in `src/pyArchimate/view/layout/export/svg_export.py` to render symbols via `<symbol>` definitions + `<use>` elements instead of `<rect>` rectangles
+- [x] T115 [P] [US5] Update polyline clipping algorithm in `src/pyArchimate/view/layout/export/svg_export.py` to clip connections at symbol boundary edges (using bounding box from symbol registry) instead of fixed rectangle bounds
+- [x] T116 [US5] Implement per-element color override support: if node has `fill_color` or `line_color` properties set, use those instead of standard palette color in `SVGExportService`
+- [x] T117 [P] [US5] Create comprehensive tests for symbol rendering in `tests/unit/layout/test_archimate_symbols.py` (symbol path validation, viewBox correctness, color palette coverage for all 30+ types)
+- [x] T118 [P] [US5] Expand BDD scenarios in `tests/features/layout/svg_export.feature` to cover symbol rendering for all 30+ element types (at least one scenario per ArchiMate layer: Business, Application, Technology, Motivation, Implementation, Other, Junction)
+
+---
+
+## PHASE 6C: US5.1 SVG Relationship Rendering
+
+### Goal
+Render ArchiMate relationships with official symbols and styling in SVG export, making exported diagrams visually complete and standards-compliant.
+
+### Independent Test Criteria
+- All 12+ ArchiMate relationship types have defined styles
+- Relationship rendering matches ArchiMate specification
+- Per-relationship color/style overrides work correctly
+- SVG output is valid and renders correctly in browsers
+- Performance impact is negligible (<5% overhead)
+
+---
+
+- [x] T119 [P] [US5.1] Create relationship symbol definitions in `src/pyArchimate/view/layout/export/symbols/archimate_relationships.py` with RelationshipStyle NamedTuple for all 12+ ArchiMate relationship types (Realization: dashed/hollow, Serving: solid/filled, Access: dotted, Assignment, Implementation, etc.) with stroke colors, line patterns, and arrow types per ArchiMate 3.x standard
+- [x] T120 [P] [US5.1] Implement RelationshipStyleService class in `src/pyArchimate/view/layout/export/svg_export.py` with methods: get_style(), get_all_styles(), validate_styles(), apply_overrides() to support per-relationship customization
+- [x] T121 [P] [US5.1] Extend `_add_defs()` method in SVGExportService to add ArchiMate relationship markers in `src/pyArchimate/view/layout/export/svg_export.py`: arrow-filled, arrow-hollow, arrow-double, diamond-filled, diamond-hollow (8x8px markers with proper ref coordinates)
+- [x] T122 [P] [US5.1] Implement `_render_relationship()` method in `src/pyArchimate/view/layout/export/svg_export.py` to render SVG polylines with relationship style attributes (stroke color, stroke-width, stroke-dasharray, marker-end) with opacity=0.8 for visual hierarchy
+- [x] T123 [P] [US5.1] Update rendering order in `to_svg()` method in `src/pyArchimate/view/layout/export/svg_export.py` to render background → relationships → elements → labels for proper layering and visual clarity
+- [x] T124 [US5.1] Implement per-relationship customization support in `src/pyArchimate/view/layout/export/svg_export.py`: check Connection object for stroke_color, stroke_style, stroke_width overrides and apply to base style with validation
+- [x] T125 [P] [US5.1] Create unit tests in `tests/unit/layout/test_archimate_relationships.py` (15+ tests): relationship style definitions, service lookup, override application, style validation, color validation for all relationship types
+- [x] T126 [P] [US5.1] Add BDD scenarios in `tests/features/layout/svg_export.feature` (5+ scenarios): Realization relationships, Serving relationships, mixed types, color overrides, overlapping relationships visibility
 
 ---
 
