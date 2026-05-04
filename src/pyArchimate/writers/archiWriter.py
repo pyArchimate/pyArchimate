@@ -162,7 +162,9 @@ def _write_relationship(folders: dict[str, _Element], rel: object, xsi: et.QName
 def _write_connection(child: _Element, conn: object, xsi: et.QName) -> None:
     conn_source = getattr(conn, 'source', None)
     conn_target = getattr(conn, 'target', None)
-    assert conn_source is not None and conn_target is not None
+    if conn_source is None or conn_target is None:
+        log.debug(f"Skipping connection {getattr(conn, 'uuid', '?')}: missing source or target node")
+        return
     c = et.SubElement(child, 'sourceConnection', {
         str(xsi): "archimate:Connection",
         'id': getattr(conn, 'uuid', ''),
