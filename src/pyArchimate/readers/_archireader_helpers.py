@@ -138,7 +138,7 @@ def _resolve_bp_coords(bp: Any, source_node: Any, target_node: Any) -> tuple[int
 def _parse_connection(sc: Any, parent: View) -> None:
     ref = sc.get('archimateRelationship')
     if ref not in parent.model.rels_dict:
-        log.warning(f'Unknown connection ref {ref}')
+        log.debug(f'Unknown connection ref {ref}')
         return
     try:
         conn = parent.add_connection(ref=ref, source=sc.get('source'),
@@ -179,7 +179,6 @@ def _resolve_rel_endpoints(e: Any, model: Any) -> tuple[Any, Any] | None:
     src_id, dst_id = e.get('source'), e.get('target')
     if (src_id not in model.elems_dict and src_id not in model.rels_dict) \
             or (dst_id not in model.elems_dict and dst_id not in model.rels_dict):
-        log.warning(f"Invalid {src_id} or {dst_id}")
         return None
     src = model.elems_dict[src_id] if src_id in model.elems_dict else model.rels_dict[src_id]
     dst = model.elems_dict[dst_id] if dst_id in model.elems_dict else model.rels_dict[dst_id]
