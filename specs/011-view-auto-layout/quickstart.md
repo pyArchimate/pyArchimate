@@ -327,9 +327,154 @@ config = LayoutConfig(spacing=50, margin=50, excluded_element_ids=view.all_eleme
 
 *Times are approximate and depend on hardware and diagram complexity.*
 
+## Export Views as SVG Diagrams
+
+**User Story 5**: Export a laid-out (or any) view as a self-contained SVG image for inspection, sharing, or CI/CD workflows without requiring the Archi desktop tool.
+
+### Basic SVG Export
+
+```python
+from pyArchimate.view import load_view
+
+# Load a view
+view = load_view("architecture.archimate")
+
+# Export as SVG string
+svg_string = view.to_svg()
+print(svg_string)  # Valid SVG 1.1 XML
+
+# Export and write to file
+svg_string = view.to_svg(filepath="architecture.svg")
+# File written to disk
+```
+
+### SVG Output Features
+
+The exported SVG includes:
+- **White background rectangle** covering the entire canvas (0,0 to viewBox width/height)
+- **Element nodes** as white rectangles with black borders, positioned at exact x/y/w/h coordinates
+- **Element names** centered and word-wrapped inside rectangles
+- **Connections** as orthogonal polylines using stored bendpoints
+- **Arrowheads** (filled triangles) at connection target ends
+- **Connection labels** showing short relationship type names (e.g., "Serving", "Composition") on the longest segment
+
+### Example Workflow
+
+```python
+from pyArchimate.view import load_view, save_view
+from pyArchimate.view.layout import apply_layout
+
+# Load a messy diagram
+view = load_view("messy_architecture.archimate")
+
+# Apply auto-layout
+layout_result = apply_layout(view)
+
+if layout_result.layout_quality in ["good", "acceptable"]:
+    # Save the laid-out view
+    save_view(layout_result.view, "architecture_clean.archimate")
+    
+    # Export as SVG for CI/CD verification or sharing
+    svg_output = layout_result.view.to_svg(filepath="architecture_clean.svg")
+    print("SVG exported to architecture_clean.svg")
+```
+
+### Integration in CI/CD Pipelines
+
+```python
+#!/usr/bin/env python
+"""Automated diagram layout and SVG export for CI/CD."""
+
+from pathlib import Path
+from pyArchimate.view import load_view
+from pyArchimate.view.layout import apply_layout
+
+def export_all_views_as_svg(archimate_file: str, output_dir: str = "diagrams") -> None:
+    """Load all views from .archimate file, apply layout, export as SVG."""
+    
+    # Load model and iterate views
+    views = load_view(archimate_file)
+    output_path = Path(output_dir)
+    output_path.mkdir(exist_ok=True)
+    
+    for view in views:
+        # Apply layout
+        result = apply_layout(view)
+        
+        if result.layout_quality == "poor":
+            print(f"Warning: {view.name} layout quality is poor ({result.total_crossings} crossings)")
+        
+        # Export SVG
+        svg_file = output_path / f"{view.name}.svg"
+        result.view.to_svg(filepath=str(svg_file))
+        print(f"Exported: {svg_file}")
+
+if __name__ == "__main__":
+    export_all_views_as_svg("model.archimate", "diagrams")
+```
+
+### SVG Characteristics
+
+| Aspect | Details |
+|--------|---------|
+| **Format** | SVG 1.1 (valid XML) |
+| **Self-contained** | No external stylesheets or fonts required |
+| **Coordinates** | 1:1 pixel mapping; no transformation needed |
+| **ViewBox** | Dynamically calculated from element bounds + margin |
+| **Performance** | <200ms export time for views with up to 500 elements |
+| **Text** | Arial, sans-serif; word-wrapped to element width |
+| **Browser Support** | All modern browsers; renders correctly on Firefox, Chrome, Safari, Edge |
+
+### Visualization Without Archi
+
+Once exported as SVG, you can:
+- **View in browser**: Open SVG file in any web browser
+- **Edit in tools**: Import into Inkscape, Adobe Illustrator, or other SVG editors
+- **Embed in docs**: Include SVG in HTML, Markdown, or PDF documentation
+- **Version control**: Commit SVG to Git for change tracking
+- **Automate**: Process SVG with Python (xml.etree, lxml) for testing or verification
+
+### Example: Automated Diagram Validation
+
+```python
+from pathlib import Path
+import xml.etree.ElementTree as ET
+
+def validate_svg_export(svg_file: str) -> dict:
+    """Validate SVG export meets expected criteria."""
+    
+    tree = ET.parse(svg_file)
+    root = tree.getroot()
+    
+    # Define SVG namespace
+    ns = {'svg': 'http://www.w3.org/2000/svg'}
+    
+    # Count elements
+    rects = root.findall('.//svg:rect', ns)
+    polylines = root.findall('.//svg:polyline', ns)
+    texts = root.findall('.//svg:text', ns)
+    
+    # Check for white background
+    bg_rect = [r for r in rects if r.get('fill') == 'white' and r.get('x') == '0' and r.get('y') == '0']
+    
+    return {
+        'file': svg_file,
+        'element_nodes': len(rects) - len(bg_rect),  # Exclude background
+        'connections': len(polylines),
+        'labels': len(texts),
+        'has_background': len(bg_rect) > 0,
+        'valid': len(bg_rect) > 0,  # Must have white background
+    }
+
+# Usage
+result = validate_svg_export("architecture.svg")
+print(f"SVG validation: {result}")
+assert result['valid'], "SVG missing required white background"
+```
+
 ## API Reference
 
-For detailed API documentation, see [contracts/layout-api.md](contracts/layout-api.md).
+For detailed API documentation, see [contracts/layout-api.md](contracts/layout-api.md) and [contracts/svg-export.md](contracts/svg-export.md).
 
 ## Next Steps
 
