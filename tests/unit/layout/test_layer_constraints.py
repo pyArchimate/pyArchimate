@@ -1,6 +1,5 @@
 """Tests for ArchiMate layer constraint module."""
 
-import pytest
 from src.pyArchimate.view.layout.routing.layer_constraints import (
     ArchiMateLayer,
     LayerConstraint,

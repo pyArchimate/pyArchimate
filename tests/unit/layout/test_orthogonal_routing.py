@@ -1,12 +1,11 @@
 """Tests for orthogonal routing utilities."""
 
-import pytest
 from src.pyArchimate.view.layout.routing.orthogonal import (
-    generate_polyline,
-    detect_line_crossings,
-    count_edge_crossings,
-    spread_connection_endpoints,
     apply_barycentric_crossing_reduction,
+    count_edge_crossings,
+    detect_line_crossings,
+    generate_polyline,
+    spread_connection_endpoints,
 )
 from src.pyArchimate.view.layout.utils.geometry import Point
 
@@ -108,8 +107,8 @@ def test_spread_connection_endpoints_multiple() -> None:
     assert (0, 2) in endpoints
 
     # Both should have endpoints (start and end points)
-    start1, end1 = endpoints[(0, 1)]
-    start2, end2 = endpoints[(0, 2)]
+    start1, _end1 = endpoints[(0, 1)]
+    start2, _end2 = endpoints[(0, 2)]
 
     # Start points should be at different y-positions (different outgoing from node 0)
     assert start1.y != start2.y

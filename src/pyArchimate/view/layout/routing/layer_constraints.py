@@ -1,7 +1,9 @@
 """ArchiMate layer constraint handling for layout operations."""
 
+from __future__ import annotations
+
 from enum import Enum
-from typing import Dict, Set
+from typing import Any, Dict
 
 
 class ArchiMateLayer(Enum):
@@ -149,8 +151,8 @@ class LayerConstraint:
         return updated_positions
 
     def enforce_layer_separation_with_exclusions(
-        self, positions: Dict, spacing: float = 100, excluded_ids: set = None
-    ) -> Dict:
+        self, positions: dict[int, Any], spacing: float = 100, excluded_ids: set[int] | None = None
+    ) -> dict[int, Any]:
         """Enforce minimum separation between layers while excluding specified elements.
 
         Args:

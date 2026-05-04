@@ -179,7 +179,7 @@ class TestColorPalette:
 
     def test_palette_colors_are_valid_hex(self):
         """Verify all palette colors are valid HEX codes."""
-        for element_type, color in ARCHIMATE_PALETTE.items():
+        for _element_type, color in ARCHIMATE_PALETTE.items():
             assert color.startswith("#")
             assert len(color) == 7
             # Verify it's a valid hex code

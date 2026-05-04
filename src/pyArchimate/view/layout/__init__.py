@@ -4,11 +4,11 @@ This module provides layout algorithms and formatting utilities for ArchiMate vi
 """
 
 import time
-from typing import Any, Optional
+from typing import Any, Optional, cast
+
+from .algorithms import get_algorithm
 from .core import LayoutConfig, LayoutResult
 from .format import FormatService
-from .algorithms import get_algorithm
-from .routing.orthogonal import generate_polyline
 from .utils.geometry import Point
 
 
@@ -33,7 +33,7 @@ def apply_layout(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResu
         algorithm = algorithm_class()
 
         # Apply layout
-        result = algorithm.apply(view, config)
+        result = cast(LayoutResult, algorithm.apply(view, config))
 
         # Apply orthogonal routing to connections
         _apply_orthogonal_routing(view)
@@ -75,7 +75,7 @@ def apply_format(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResu
             view,
             alignment=config.alignment,
             grid_size=config.grid_size,
-            excluded_element_ids=set(config.excluded_element_ids),
+            excluded_element_ids={str(id) for id in config.excluded_element_ids},
             size_constraints=config.node_size_constraints if config.node_size_constraints else None,
         )
 
@@ -244,7 +244,7 @@ def _apply_orthogonal_routing(view: Any) -> None:
 
     # Compute endpoint spreads: for each node, distribute its incoming/outgoing connections
     # Maps (node_uuid, 'src'/'tgt', conn_id) → (spread_x, spread_y) for edge distribution
-    endpoint_spreads: dict[tuple, tuple[float, float]] = {}
+    endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]] = {}
 
     for node_uuid, node in nodes_dict.items():
         # Find all connections from this node (source)
@@ -296,8 +296,8 @@ def _apply_orthogonal_routing(view: Any) -> None:
     src_offsets: dict[int, float] = {}
 
     for direction in ('down', 'up'):
-        tgt_groups: dict[str, list] = defaultdict(list)
-        src_groups_dir: dict[str, list] = defaultdict(list)
+        tgt_groups: dict[str, list[Any]] = defaultdict(list)
+        src_groups_dir: dict[str, list[Any]] = defaultdict(list)
         for conn in conns:
             s = nodes_dict.get(getattr(conn, '_source', None))
             t = nodes_dict.get(getattr(conn, '_target', None))
@@ -315,7 +315,7 @@ def _apply_orthogonal_routing(view: Any) -> None:
                 continue
             s_nodes = [nodes_dict.get(getattr(c, '_source', None)) for c in group]
             sorted_g = [c for c, _ in sorted(
-                zip(group, s_nodes),
+                zip(group, s_nodes, strict=False),
                 key=lambda p: float(getattr(p[1], 'cx', 0)) if p[1] else 0,
             )]
             for i, conn in enumerate(sorted_g):
@@ -327,7 +327,7 @@ def _apply_orthogonal_routing(view: Any) -> None:
                 continue
             t_nodes = [nodes_dict.get(getattr(c, '_target', None)) for c in group]
             sorted_g = [c for c, _ in sorted(
-                zip(group, t_nodes),
+                zip(group, t_nodes, strict=False),
                 key=lambda p: float(getattr(p[1], 'cx', 0)) if p[1] else 0,
             )]
             for i, conn in enumerate(sorted_g):

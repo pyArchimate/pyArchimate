@@ -4,10 +4,10 @@ This module provides formatting and standardization functionality for ArchiMate 
 including size standardization, font consistency, and grid alignment.
 """
 
-from dataclasses import dataclass
-from typing import Any, Dict, Optional, Set, Tuple
-from enum import Enum
 import math
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, Optional, Set, Tuple
 
 
 class ArchiMateElementCategory(Enum):
@@ -354,7 +354,7 @@ class FormatService:
 
         widths = [getattr(e, "w", getattr(e, "width", 100)) for e in elements]
         heights = [getattr(e, "h", getattr(e, "height", 80)) for e in elements]
-        areas = [w * h for w, h in zip(widths, heights)]
+        areas = [w * h for w, h in zip(widths, heights, strict=False)]
 
         mean_area = sum(areas) / len(areas)
         variance = sum((a - mean_area) ** 2 for a in areas) / len(areas)

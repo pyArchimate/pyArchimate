@@ -1,10 +1,12 @@
 """Step definitions for auto-layout BDD scenarios."""
 
-from behave import given, when, then
+import time
 from dataclasses import dataclass
+
+from behave import given, then, when
+
 from src.pyArchimate.view.layout import apply_layout
 from src.pyArchimate.view.layout.core import LayoutConfig
-import time
 
 
 @dataclass

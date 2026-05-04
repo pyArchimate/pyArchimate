@@ -272,10 +272,11 @@ class Node:
         del self.model.nodes_dict[self._uuid]
         if delete_from_model:
             e = self.concept
-            related_nodes = [n for n in self.model.nodes if n.ref == e.uuid]
-            for n in related_nodes:
-                n.delete(recurse)
-            e.delete()
+            if e is not None:
+                related_nodes = [n for n in self.model.nodes if n.ref == e.uuid]
+                for n in related_nodes:
+                    n.delete(recurse)
+                e.delete()
 
     def add(self, ref=None, x=0, y=0, w=120, h=55, uuid=None,
             node_type='Element', label=None, nested_rel_type=None):
@@ -1046,7 +1047,7 @@ class View:
         :type viewpoint_id: str
         :raises ValueError: if viewpoint_id is not a recognised slug
         """
-        from .viewpoint_registry import (
+        from ..viewpoint_registry import (
             validate_viewpoint_slug,  # noqa: PLC0415  # deferred: avoids circular import at module load time
         )
         validate_viewpoint_slug(viewpoint_id)
@@ -1078,6 +1079,8 @@ class View:
 
     def _find_or_create_rel(self, source: "Node", target: "Node",
                              rel_type: Optional[str], name: Optional[str]) -> "Optional[Any]":
+        if source.concept is None or target.concept is None:
+            return None
         src_uuid = source.concept.uuid
         tgt_uuid = target.concept.uuid
         if name is None:

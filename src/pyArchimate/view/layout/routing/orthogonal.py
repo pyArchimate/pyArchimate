@@ -1,14 +1,15 @@
 """Orthogonal connection routing for layout operations."""
 
 from typing import Dict, List, Tuple
+
 from ..utils.geometry import Point, Rectangle
-from ..utils.graph import detect_crossings, count_crossings
+from ..utils.graph import detect_crossings
 
 
 def generate_polyline(
     p_start: Point,
     p_end: Point,
-    obstacles: List[Rectangle] = None,
+    obstacles: List[Rectangle] | None = None,
     routing_style: str = "orthogonal",
 ) -> List[Point]:
     """Generate a polyline (path) between two points.

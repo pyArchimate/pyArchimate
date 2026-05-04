@@ -1,7 +1,6 @@
 """Integration tests for layout API functions."""
 
-import pytest
-from src.pyArchimate.view.layout import apply_layout, apply_format, undo_layout, LayoutConfig, LayoutResult
+from src.pyArchimate.view.layout import LayoutConfig, LayoutResult, apply_format, apply_layout, undo_layout
 
 
 class MockView:

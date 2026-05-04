@@ -1,6 +1,7 @@
 """Unit tests for hierarchical layout functionality."""
 
 from dataclasses import dataclass
+
 from src.pyArchimate.view.layout.algorithms.hierarchical import HierarchicalLayout
 from src.pyArchimate.view.layout.core import LayoutConfig
 from src.pyArchimate.view.layout.utils.geometry import Point
@@ -23,8 +24,8 @@ class MockView:
     """Mock view for testing."""
 
     id: str = "test_view"
-    nodes: list = None
-    edges: list = None
+    nodes: list | None = None
+    edges: list | None = None
 
     def __post_init__(self):
         if self.nodes is None:
@@ -266,7 +267,7 @@ class TestHierarchicalLayout:
         view.edges = [(0, 1), (0, 2)]
 
         config1 = LayoutConfig(spacing=50)
-        result1 = layout.apply(view, config1)
+        layout.apply(view, config1)
         pos1 = [(n.x, n.y) for n in view.nodes]
 
         view.nodes = [
@@ -275,7 +276,7 @@ class TestHierarchicalLayout:
             MockElement(id="n3", type="ApplicationComponent"),
         ]
         config2 = LayoutConfig(spacing=100)
-        result2 = layout.apply(view, config2)
+        layout.apply(view, config2)
         pos2 = [(n.x, n.y) for n in view.nodes]
 
         # Different spacing should produce different layouts

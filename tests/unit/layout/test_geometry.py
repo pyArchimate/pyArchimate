@@ -1,8 +1,6 @@
 """Tests for geometry utilities."""
 
-import math
-import pytest
-from src.pyArchimate.view.layout.utils.geometry import Point, Rectangle, distance, midpoint, bounding_box
+from src.pyArchimate.view.layout.utils.geometry import Point, Rectangle, bounding_box, distance, midpoint
 
 
 class TestPoint:

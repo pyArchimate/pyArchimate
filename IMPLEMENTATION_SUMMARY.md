@@ -24,6 +24,7 @@ Complete implementation of auto-layout and auto-format features for pyArchimate,
 - ✅ Overlap resolution post-processing
 
 **Configuration**:
+
 ```python
 config = LayoutConfig(
     algorithm='force_directed',
@@ -54,6 +55,7 @@ result = apply_layout(view, config)
 - Data Objects: 80×80
 
 **Configuration**:
+
 ```python
 result = apply_format(view)
 ```
@@ -69,6 +71,7 @@ result = apply_format(view)
 - ✅ Organized hierarchy visualization
 
 **Configuration**:
+
 ```python
 config = LayoutConfig(algorithm='hierarchical')
 result = apply_layout(view, config)
@@ -89,6 +92,7 @@ result = apply_layout(view, config)
 - ✅ Automatic corner point calculation
 
 **Example**:
+
 ```
 Source Node
      |
@@ -105,6 +109,7 @@ Source Node
 - **File**: `temp/auto-layout-demo.archimate`
 
 ### Results After Hierarchical Layout
+
 ```
 ✓ No overlapping elements
 ✓ Zero edge crossings
@@ -141,6 +146,7 @@ Source Node
 ## 💡 Usage Guide
 
 ### Basic Hierarchical Layout (Recommended)
+
 ```python
 from pyArchimate.view.layout import apply_layout, apply_format
 from pyArchimate.view.layout.core import LayoutConfig
@@ -162,6 +168,7 @@ model.write('output.archimate')
 ```
 
 ### Force-Directed Layout (Alternative)
+
 ```python
 config = LayoutConfig(
     algorithm='force_directed',

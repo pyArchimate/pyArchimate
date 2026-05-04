@@ -6,7 +6,6 @@ type to its standard color code. Supports per-element color overrides via elemen
 
 from typing import Optional
 
-
 # ArchiMate 3.x Standard Color Palette
 # Colors extracted directly from symbol definitions for consistency
 ARCHIMATE_PALETTE = {

@@ -1,10 +1,10 @@
 """Element formatting utilities for standardizing view appearance."""
 
 from .element_format import (
-    FormatService,
+    ArchiMateElementCategory,
     ElementFormatRegistry,
     ElementFormatSpec,
-    ArchiMateElementCategory,
+    FormatService,
 )
 
 __all__ = [

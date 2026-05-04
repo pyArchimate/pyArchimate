@@ -1,7 +1,9 @@
 """Step definitions for auto-format BDD scenarios."""
 
-from behave import given, when, then
 from dataclasses import dataclass
+
+from behave import given, then, when
+
 from pyArchimate.view.layout import apply_format
 from pyArchimate.view.layout.core import LayoutConfig
 from pyArchimate.view.layout.format import FormatService
@@ -63,7 +65,7 @@ def step_set_inconsistent_fonts(context):
         ("Courier", 8, "normal", "normal"),
         ("Helvetica", 14, "normal", "bold"),
     ]
-    for element, (family, size, style, weight) in zip(context.view.nodes, fonts):
+    for element, (family, size, style, weight) in zip(context.view.nodes, fonts, strict=False):
         element.font_family = family
         element.font_size = size
         element.font_style = style
@@ -555,7 +557,7 @@ def step_create_positioned_view(context):
 @then("element positions should remain unchanged")
 def step_verify_positions_unchanged(context):
     """Verify element positions unchanged."""
-    for element, (orig_x, orig_y) in zip(context.view.nodes, context.original_positions):
+    for element, (orig_x, orig_y) in zip(context.view.nodes, context.original_positions, strict=False):
         assert element.x == orig_x
         assert element.y == orig_y
 
@@ -592,7 +594,7 @@ def step_apply_format_grid(context):
 @then("element positions should not change")
 def step_verify_free_positions_unchanged(context):
     """Verify free mode doesn't change positions."""
-    for element, (orig_x, orig_y) in zip(context.view.nodes, context.original_positions):
+    for element, (orig_x, orig_y) in zip(context.view.nodes, context.original_positions, strict=False):
         assert element.x == orig_x
         assert element.y == orig_y
 
@@ -601,7 +603,7 @@ def step_verify_free_positions_unchanged(context):
 def step_verify_not_snapped(context):
     """Verify positions not snapped."""
     # Original positions were scattered, should remain
-    for element, (orig_x, orig_y) in zip(context.view.nodes, context.original_positions):
+    for element, (orig_x, orig_y) in zip(context.view.nodes, context.original_positions, strict=False):
         assert element.x == orig_x
         assert element.y == orig_y
 

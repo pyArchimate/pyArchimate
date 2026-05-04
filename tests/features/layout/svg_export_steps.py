@@ -4,10 +4,10 @@ import tempfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
-from behave import given, when, then
+from behave import given, then, when
 
 from src.pyArchimate.model import Model
-from src.pyArchimate.view import View, Node
+from src.pyArchimate.view import View
 
 
 @given('a view with {num:d} elements positioned in a grid')
@@ -237,7 +237,7 @@ def step_rectangles_have_correct_attributes(context):
     root = ET.fromstring(svg_part)
     rects = root.findall('.//{http://www.w3.org/2000/svg}rect')
 
-    for rect, node in zip(rects, context.view.nodes):
+    for rect, node in zip(rects, context.view.nodes, strict=False):
         assert int(rect.get('x', 0)) == int(node.x)
         assert int(rect.get('y', 0)) == int(node.y)
         assert int(rect.get('width', 0)) == int(node.w)
@@ -282,7 +282,7 @@ def step_polylines_use_bendpoints(context):
     """Verify polylines use the stored bendpoints."""
     # This is inherently true since SVGExportService reads bendpoints
     # Just verify the connection has bendpoints
-    for conn in context.view.conns:
+    for _conn in context.view.conns:
         # Bendpoints may be empty for simple connections
         pass
 
@@ -411,7 +411,7 @@ def step_rects_have_correct_sizes(context):
     root = ET.fromstring(svg_part)
     rects = root.findall('.//{http://www.w3.org/2000/svg}rect')
 
-    for rect, node in zip(rects, context.view.nodes):
+    for rect, node in zip(rects, context.view.nodes, strict=False):
         assert int(rect.get('width', 0)) == int(node.w)
         assert int(rect.get('height', 0)) == int(node.h)
 

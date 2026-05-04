@@ -3,12 +3,12 @@
 Implements the Sugiyama layered layout method with ArchiMate layer constraints.
 """
 
-import math
-from typing import Any, Dict, List, Set, Tuple, Optional
+from typing import Any, Dict, List, Tuple
+
 from ..core import LayoutAlgorithm, LayoutConfig, LayoutResult
-from ..utils.geometry import Point, Rectangle
+from ..routing.layer_constraints import ArchiMateLayer, LayerConstraint
 from ..utils.edge_utils import normalize_edges
-from ..routing.layer_constraints import LayerConstraint, ArchiMateLayer
+from ..utils.geometry import Point
 
 
 class HierarchicalLayout(LayoutAlgorithm):
@@ -140,7 +140,7 @@ class HierarchicalLayout(LayoutAlgorithm):
             layer_constraint.assign_layer(i, archimate_layer)
 
         # Use topological sort with layer constraints
-        in_degree = {i: 0 for i in range(len(nodes))}
+        in_degree = dict.fromkeys(range(len(nodes)), 0)
         for source in graph:
             for target in graph[source]:
                 in_degree[target] = in_degree.get(target, 0) + 1
@@ -187,7 +187,7 @@ class HierarchicalLayout(LayoutAlgorithm):
             else:
                 break
 
-        return layers if layers else [[i for i in range(len(nodes))]]
+        return layers if layers else [list(range(len(nodes)))]
 
     def _respects_archimate_ordering(
         self,

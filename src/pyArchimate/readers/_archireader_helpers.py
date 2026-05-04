@@ -28,8 +28,8 @@ def _parse_node_type(parent: Any, child: Any, xsi: str) -> Any:
             try:
                 if node.concept.prop('label') is not None:
                     node.label_expression = str(node.concept.prop('label'))
-            except Exception:
-                pass
+            except Exception as e:
+                log.debug(f"Failed to set label expression for node {node.id}: {e}")
     elif type_n == 'Group':
         node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'),
                           node_type='Container', label=child.get('name'))
@@ -330,7 +330,7 @@ def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path
 
     if folder_path == '':
         max_retries = len(unresolved) + 1
-        for retry_count in range(max_retries):
+        for _retry_count in range(max_retries):
             still_unresolved = []
             for e, type_e, folder in unresolved:
                 endpoints = _resolve_rel_endpoints(e, model)
@@ -350,7 +350,7 @@ def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path
                 break
             unresolved = still_unresolved
 
-        for e, type_e, folder in still_unresolved:
+        for e, _type_e, _folder in still_unresolved:
             log.debug(f"Unable to resolve relationship {e.get('id')}: endpoints not found")
 
 

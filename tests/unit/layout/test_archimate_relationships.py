@@ -6,14 +6,11 @@ Tests relationship style definitions, service lookups, and customization.
 import sys
 from pathlib import Path
 
-import pytest
-
 # Add src directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "src"))
 
 from pyArchimate.view.layout.export.symbols.archimate_relationships import (
     ARCHIMATE_RELATIONSHIP_STYLES,
-    RelationshipStyle,
     RelationshipStyleService,
     get_relationship_style,
 )
@@ -60,7 +57,7 @@ class TestRelationshipStyles:
 
     def test_all_styles_have_valid_colors(self):
         """Verify all styles have valid HEX color codes."""
-        for rel_type, style in ARCHIMATE_RELATIONSHIP_STYLES.items():
+        for _rel_type, style in ARCHIMATE_RELATIONSHIP_STYLES.items():
             assert style.stroke_color.startswith("#")
             assert len(style.stroke_color) == 7
             # Verify it's valid hex

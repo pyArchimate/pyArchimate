@@ -1,6 +1,6 @@
 """Utilities for edge/connection handling in layout algorithms."""
 
-from typing import Any, List, Tuple, Dict
+from typing import Any, Dict, List, Tuple
 
 
 def normalize_edges(edges: Any, nodes: List[Any]) -> List[Tuple[int, int]]:

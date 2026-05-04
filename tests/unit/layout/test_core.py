@@ -1,7 +1,8 @@
 """Tests for layout core module (LayoutConfig, LayoutResult)."""
 
 import pytest
-from src.pyArchimate.view.layout.core import LayoutConfig, LayoutResult, LayoutAlgorithm
+
+from src.pyArchimate.view.layout.core import LayoutAlgorithm, LayoutConfig, LayoutResult
 
 
 def test_layout_config_defaults() -> None:

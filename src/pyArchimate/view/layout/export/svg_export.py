@@ -9,12 +9,11 @@ import math
 from typing import Any, Optional, Tuple
 from xml.etree import ElementTree as ET
 
-from .symbols.archimate_symbols import ARCHIMATE_SYMBOLS
-from .symbols.color_palette import get_element_color
 from .symbols.archimate_relationships import (
-    get_relationship_style,
     RelationshipStyleService,
 )
+from .symbols.archimate_symbols import ARCHIMATE_SYMBOLS
+from .symbols.color_palette import get_element_color
 
 
 class SVGExportService:

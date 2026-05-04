@@ -1,6 +1,7 @@
 """Label placement for connections without overlaps."""
 
-from typing import Dict, List, Optional, Tuple
+from typing import List, Tuple
+
 from ..utils.geometry import Point, Rectangle
 
 

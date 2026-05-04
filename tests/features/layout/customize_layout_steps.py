@@ -1,13 +1,14 @@
 """BDD step definitions for customize layout feature."""
 
-from behave import given, when, then, step
 import sys
 from pathlib import Path
+
+from behave import given, then, when
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "src"))
 
-from pyArchimate.view.layout import apply_layout, apply_format
+from pyArchimate.view.layout import apply_format, apply_layout
 from pyArchimate.view.layout.core import LayoutConfig
 
 
@@ -243,14 +244,14 @@ def step_create_config(context):
     if hasattr(context, 'invalid_param'):
         try:
             kwargs = {context.invalid_param: context.invalid_value}
-            config = LayoutConfig(**kwargs)
+            LayoutConfig(**kwargs)
             context.config_valid = True
         except ValueError as e:
             context.config_valid = False
             context.validation_error = str(e)
     elif hasattr(context, 'invalid_constraints'):
         try:
-            config = LayoutConfig(node_size_constraints=context.invalid_constraints)
+            LayoutConfig(node_size_constraints=context.invalid_constraints)
             context.config_valid = True
         except ValueError as e:
             context.config_valid = False

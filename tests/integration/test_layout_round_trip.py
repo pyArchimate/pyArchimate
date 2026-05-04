@@ -1,6 +1,6 @@
 """Integration tests for layout round-trip (apply layout and preserve integrity)."""
 
-from src.pyArchimate.view.layout import apply_layout, apply_format
+from src.pyArchimate.view.layout import apply_format, apply_layout
 from src.pyArchimate.view.layout.core import LayoutConfig
 
 
@@ -18,7 +18,7 @@ class MockView:
         """Verify view integrity after layout."""
         if len(self.nodes) != len(self.original_nodes):
             return False
-        for node, orig in zip(self.nodes, self.original_nodes):
+        for node, orig in zip(self.nodes, self.original_nodes, strict=False):
             if node.id != orig.id or node.type != orig.type:
                 return False
         return True
@@ -160,7 +160,7 @@ def test_auto_format_preserves_node_properties() -> None:
     view = MockView(num_nodes=3)
 
     for i, node in enumerate(view.nodes):
-        node.type = f"ApplicationComponent"
+        node.type = "ApplicationComponent"
         node.documentation = f"Component {i} documentation"
         node.width = 150  # Non-standard
 

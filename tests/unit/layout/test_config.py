@@ -1,6 +1,7 @@
 """Unit tests for LayoutConfig customization options."""
 
 import pytest
+
 from src.pyArchimate.view.layout.core import LayoutConfig
 
 

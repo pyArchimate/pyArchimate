@@ -25,8 +25,8 @@ class LayoutConfig:
     spacing: float = 50.0
     margin: float = 20.0
     alignment: str = "free"
-    excluded_element_ids: list = field(default_factory=list)
-    node_size_constraints: dict = field(default_factory=dict)
+    excluded_element_ids: list[int] = field(default_factory=list)
+    node_size_constraints: dict[str, Any] = field(default_factory=dict)
     routing_style: str = "orthogonal"
     layer_priority: str = "mandatory"
     grid_size: float = 10.0
@@ -100,7 +100,7 @@ class LayoutResult:
     elements_processed: int
     connections_processed: int
     layout_time_ms: float
-    quality_metrics: dict = field(default_factory=dict)
+    quality_metrics: dict[str, Any] = field(default_factory=dict)
     error_message: Optional[str] = None
 
 

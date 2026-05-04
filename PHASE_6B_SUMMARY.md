@@ -27,7 +27,7 @@ Phase 6B implements **User Story 5: Export View as SVG Diagram**, enabling devel
 #### View Integration
 - **File**: `src/pyArchimate/view/__init__.py`
 - **Method**: `View.to_svg(filepath=None)`
-- **Behavior**: 
+- **Behavior**:
   - Returns SVG string (valid XML)
   - Optionally writes to file when filepath provided
   - Wraps SVGExportService functionality
@@ -162,6 +162,7 @@ tests/features/layout/
 ## Test Results
 
 ### Integration Tests
+
 ```
 tests/integration/test_svg_export.py::test_svg_export_with_demo_view       PASSED
 tests/integration/test_svg_export.py::test_svg_export_to_file              PASSED

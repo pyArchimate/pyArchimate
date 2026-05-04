@@ -1,11 +1,12 @@
 """Unit tests for element formatting functionality."""
 
 from dataclasses import dataclass
+
 from src.pyArchimate.view.layout.format import (
-    FormatService,
+    ArchiMateElementCategory,
     ElementFormatRegistry,
     ElementFormatSpec,
-    ArchiMateElementCategory,
+    FormatService,
 )
 
 
@@ -30,7 +31,7 @@ class MockView:
     """Mock view for testing."""
 
     id: str = "test_view"
-    nodes: list = None
+    nodes: list | None = None
 
     def __post_init__(self):
         if self.nodes is None:

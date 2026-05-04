@@ -2,11 +2,12 @@
 
 import math
 import random
-from typing import Any, Dict, Tuple, List
+from typing import Any, Dict, List
+
 from ..core import LayoutAlgorithm, LayoutConfig, LayoutResult
-from ..utils.geometry import Point, Rectangle
+from ..routing.layer_constraints import ArchiMateLayer, LayerConstraint
 from ..utils.edge_utils import normalize_edges
-from ..routing.layer_constraints import LayerConstraint, ArchiMateLayer
+from ..utils.geometry import Point
 
 
 class ForceDirectedLayout(LayoutAlgorithm):
@@ -76,8 +77,9 @@ class ForceDirectedLayout(LayoutAlgorithm):
 
             # Run physics simulation (excluding specified elements)
             converged = False
-            iteration = 0
-            for iteration in range(max_iter):
+            iterations_completed = 0
+            for i, _ in enumerate(range(max_iter)):
+                iterations_completed = i
                 # Calculate forces (skip excluded nodes)
                 forces = self._calculate_forces(positions, filtered_edges, layer_constraint)
 
@@ -137,7 +139,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
                 layout_time_ms=elapsed_ms,
                 quality_metrics={
                     "converged": converged,
-                    "iterations": iteration + 1,
+                    "iterations": iterations_completed + 1,
                     "max_iterations": max_iter,
                     "excluded_elements": len(excluded_ids),
                     "spacing": config.spacing,
@@ -185,7 +187,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
         return positions
 
     def _resolve_overlaps(
-        self, positions: Dict[int, Point], nodes: List[Any], excluded_ids: set = None
+        self, positions: Dict[int, Point], nodes: List[Any], excluded_ids: set[int] | None = None
     ) -> Dict[int, Point]:
         """Resolve remaining overlaps by pushing overlapping nodes apart.
 

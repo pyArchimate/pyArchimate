@@ -1,6 +1,5 @@
 """Tests for force-directed layout algorithm."""
 
-import pytest
 from src.pyArchimate.view.layout.algorithms.force_directed import ForceDirectedLayout
 from src.pyArchimate.view.layout.core import LayoutConfig, LayoutResult
 

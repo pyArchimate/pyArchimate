@@ -1,8 +1,6 @@
 """Integration tests for LayoutConfig customization parameters."""
 
-import pytest
-from unittest.mock import Mock, MagicMock
-from src.pyArchimate.view.layout import apply_layout, apply_format
+from src.pyArchimate.view.layout import apply_format, apply_layout
 from src.pyArchimate.view.layout.core import LayoutConfig
 
 

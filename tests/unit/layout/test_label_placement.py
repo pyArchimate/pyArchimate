@@ -1,12 +1,11 @@
 """Tests for label placement utilities."""
 
-import pytest
 from src.pyArchimate.view.layout.routing.label_placement import (
-    position_label_on_connection,
-    detect_label_collision,
-    avoid_label_collision,
-    truncate_label,
     LabelPlacement,
+    avoid_label_collision,
+    detect_label_collision,
+    position_label_on_connection,
+    truncate_label,
 )
 from src.pyArchimate.view.layout.utils.geometry import Point, Rectangle
 
