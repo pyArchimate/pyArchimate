@@ -19,37 +19,26 @@ Minimal Working Example
 
 Create your first ArchiMate model with this simple script:
 
-.. code-block:: python
+.. testcode::
 
-   from pyArchimate import (
-       Model,
-       ArchiType,
-       RelationType,
-   )
+   from pyArchimate import Model, ArchiType
 
    # Create a new model
    model = Model(name="My First Model")
 
-   # Add some elements
-   business = model.add_element(
-       name="Business Process",
-       element_type=ArchiType.BusinessProcess,
-   )
-   app = model.add_element(
-       name="Application Service",
-       element_type=ArchiType.ApplicationService,
-   )
+   # Add elements (using model.add: element_type, name)
+   business = model.add(ArchiType.BusinessProcess, "Business Process")
+   app = model.add(ArchiType.ApplicationService, "Application Service")
 
-   # Create a relationship
-   model.add_relationship(
-       source=business,
-       target=app,
-       relationship_type=RelationType.ServesBy,
-   )
+   # Create a relationship (rel_type as string, e.g. 'Serving')
+   model.add_relationship("Serving", source=business, target=app)
 
-   # Write to file
-   model.write("my_model.archimate")
-   print("Model saved to my_model.archimate")
+   # Confirm the model has the expected elements
+   print(f"Model '{model.name}' has {len(model.elements)} elements")
+
+.. testoutput::
+
+   Model 'My First Model' has 2 elements
 
 What's Next?
 ~~~~~~~~~~~~

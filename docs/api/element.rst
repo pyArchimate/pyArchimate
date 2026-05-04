@@ -222,7 +222,13 @@ See :doc:`../guides/element-hierarchy` for hierarchy usage guide.
 Round-Trip Preservation
 -----------------------
 
-All visual properties and junction types are automatically preserved during XML export/import cycles:
+All visual properties and junction types are automatically preserved during XML export/import cycles.
+
+.. note::
+
+   The examples below are validated by **review** (not ``make doctest``) because they interact with
+   the file system in ways that vary by environment. The ``getting-started.rst`` and
+   ``api/model.rst`` round-trip examples are validated by Sphinx doctest (``make doctest``).
 
 .. code-block:: python
 

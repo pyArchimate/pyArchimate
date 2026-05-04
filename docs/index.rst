@@ -36,6 +36,7 @@ pyArchimate
    changelog
    src
    hierarchy-styling-overview
+   diagrams/README
 
 Indices and tables
 ==================

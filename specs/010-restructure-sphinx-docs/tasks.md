@@ -12,12 +12,12 @@
 
 Enable Markdown support in Sphinx (blocking all other work).
 
-- [ ] T001 Add `myst-parser` to `docs/requirements.txt`
-- [ ] T002 Add `myst-parser` to `[dependency-groups] docs` in `pyproject.toml`
-- [ ] T003 Update `docs/conf.py`: add `myst_parser` to extensions list
-- [ ] T004 Update `docs/conf.py`: add `source_suffix` mapping for `.rst` and `.md` files
-- [ ] T051 Add `pa11y` to `[dependency-groups] docs` in `pyproject.toml` (required for SC-008 WCAG verification)
-- [ ] T052 Configure `sphinx.ext.doctest` in `docs/conf.py`: add to extensions list + add `doctest_global_setup = "from pyArchimate import Model, Element, View, Relationship"` (required for SC-005 / FR-009)
+- [x] T001 Add `myst-parser` to `docs/requirements.txt`
+- [x] T002 Add `myst-parser` to `[dependency-groups] docs` in `pyproject.toml`
+- [x] T003 Update `docs/conf.py`: add `myst_parser` to extensions list
+- [x] T004 Update `docs/conf.py`: add `source_suffix` mapping for `.rst` and `.md` files
+- [x] T051 Add `pa11y` to `[dependency-groups] docs` in `pyproject.toml` (required for SC-008 WCAG verification)
+- [x] T052 Configure `sphinx.ext.doctest` in `docs/conf.py`: add to extensions list + add `doctest_global_setup = "from pyArchimate import Model, Element, View, Relationship"` (required for SC-005 / FR-009)
 
 **Completion Test**: `poetry run make html` succeeds; `poetry run python -c "import myst_parser"` passes; `poetry run make doctest` runs without configuration error
 
@@ -27,9 +27,9 @@ Enable Markdown support in Sphinx (blocking all other work).
 
 Rebuild the documentation index to support three-tier navigation (blocking all page creation).
 
-- [ ] T005 Rewrite `docs/index.rst`: create three `toctree` sections (Basic Usage, Intermediate / Architecture, Advanced / API Reference)
-- [ ] T006 [P] Create `docs/hierarchy-styling-overview.rst` stub (one-page redirect to hierarchy, styling, and junction guides)
-- [ ] T007 [P] Verify all three toctree sections reference valid pages (no forward-reference errors in next phase)
+- [x] T005 Rewrite `docs/index.rst`: create three `toctree` sections (Basic Usage, Intermediate / Architecture, Advanced / API Reference)
+- [x] T006 [P] Create `docs/hierarchy-styling-overview.rst` stub (one-page redirect to hierarchy, styling, and junction guides)
+- [x] T007 [P] Verify all three toctree sections reference valid pages (no forward-reference errors in next phase)
 
 **Completion Test**: `make clean html` produces zero `document isn't included in any toctree` warnings; sidebar displays three labeled sections
 
@@ -41,14 +41,14 @@ Goal: Users can start with pyArchimate in under 2 minutes (SC-001).
 
 #### 3.1 Basic Landing Pages
 
-- [ ] T008 [P] [US1] Create `docs/getting-started.rst`: Installation (1-liner) + Minimal Working Example (15-line code block from tutorial.md §2-3) + What's Next links
-- [ ] T009 [P] [US1] Create `docs/concepts.rst`: The Three Layers table + Elements (ArchiType + shim note) + Relationships (type table) + Views/Diagrams + Viewpoints (brief) + Properties
-- [ ] T010 [P] [US1] Add tier label (`.. note::`) to `docs/getting-started.rst` top: "ℹ️ **Basic Usage**"
-- [ ] T011 [P] [US1] Add tier label (`.. note::`) to `docs/concepts.rst` top: "ℹ️ **Basic Usage**"
+- [x] T008 [P] [US1] Create `docs/getting-started.rst`: Installation (1-liner) + Minimal Working Example (15-line code block from tutorial.md §2-3) + What's Next links
+- [x] T009 [P] [US1] Create `docs/concepts.rst`: The Three Layers table + Elements (ArchiType + shim note) + Relationships (type table) + Views/Diagrams + Viewpoints (brief) + Properties
+- [x] T010 [P] [US1] Add tier label (`.. note::`) to `docs/getting-started.rst` top: "ℹ️ **Basic Usage**"
+- [x] T011 [P] [US1] Add tier label (`.. note::`) to `docs/concepts.rst` top: "ℹ️ **Basic Usage**"
 
 #### 3.2 Wire Tutorial into Sphinx
 
-- [ ] T012 [US1] Verify `docs/tutorial/tutorial.md` is discoverable by Sphinx (no edits needed; `myst-parser` + `source_suffix` handle it)
+- [x] T012 [US1] Verify `docs/tutorial/tutorial.md` is discoverable by Sphinx (no edits needed; `myst-parser` + `source_suffix` handle it)
 
 **Completion Test**: 
 - New user can open `docs/_build/html/getting-started.html`, copy the code example, run it successfully
@@ -66,29 +66,29 @@ Goal: Users understand the architecture and can extend/integrate pyArchimate (SC
 
 #### 4.1 Architecture & Guides
 
-- [ ] T013 [P] [US2] Create `docs/architecture.rst`: Package Structure table (module → responsibility) + Layered Dependencies prose + `.. include:: diagrams.rst` + Extension Points section
-- [ ] T014 [P] [US2] Create `docs/guides/extending.rst`: Custom Readers (registry pattern) + Custom Writers (enum pattern) + Custom Properties/Profiles + Logging Integration + Import Shim notes
-- [ ] T015 [P] [US2] Add tier label (`.. note::`) to `docs/architecture.rst` top: "🔧 **Intermediate / Architecture**"
-- [ ] T016 [P] [US2] Add tier label (`.. note::`) to `docs/guides/extending.rst` top: "🔧 **Intermediate / Architecture**"
+- [x] T013 [P] [US2] Create `docs/architecture.rst`: Package Structure table (module → responsibility) + Layered Dependencies prose + `.. include:: diagrams.rst` + Extension Points section
+- [x] T014 [P] [US2] Create `docs/guides/extending.rst`: Custom Readers (registry pattern) + Custom Writers (enum pattern) + Custom Properties/Profiles + Logging Integration + Import Shim notes
+- [x] T015 [P] [US2] Add tier label (`.. note::`) to `docs/architecture.rst` top: "🔧 **Intermediate / Architecture**"
+- [x] T016 [P] [US2] Add tier label (`.. note::`) to `docs/guides/extending.rst` top: "🔧 **Intermediate / Architecture**"
 
 #### 4.2 Recreate Deleted Guides (fix broken refs from api/*.rst)
 
-- [ ] T017 [P] [US2] Create `docs/guides/element-hierarchy.rst`: Overview + Creating Hierarchies (add_child, max depth 5) + Querying (get_parent/children/ancestors/descendants/depth/find_by_hierarchy_path) + Removing + Round-Trip Preservation + See Also → `api/model` + `examples/hierarchy_examples`
-- [ ] T018 [P] [US2] Create `docs/guides/visual-styling.rst`: Color Model + Per-Element Styling (set/get fill/line/transparency) + Bulk Styling (set_visual_style dict) + Model-wide Themes (default_theme) + Round-Trip + See Also → `api/element` + `examples/styling_examples`
-- [ ] T019 [P] [US2] Create `docs/guides/junction-types.rst`: What Is Junction + Supported Types table (AND/OR/XOR) + Set/Get + Typical Patterns + See Also → `api/element`
-- [ ] T020 [P] [US2] Add tier label (`.. note::`) to each guide top: "🔧 **Intermediate / Architecture**"
+- [x] T017 [P] [US2] Create `docs/guides/element-hierarchy.rst`: Overview + Creating Hierarchies (add_child, max depth 5) + Querying (get_parent/children/ancestors/descendants/depth/find_by_hierarchy_path) + Removing + Round-Trip Preservation + See Also → `api/model` + `examples/hierarchy_examples`
+- [x] T018 [P] [US2] Create `docs/guides/visual-styling.rst`: Color Model + Per-Element Styling (set/get fill/line/transparency) + Bulk Styling (set_visual_style dict) + Model-wide Themes (default_theme) + Round-Trip + See Also → `api/element` + `examples/styling_examples`
+- [x] T019 [P] [US2] Create `docs/guides/junction-types.rst`: What Is Junction + Supported Types table (AND/OR/XOR) + Set/Get + Typical Patterns + See Also → `api/element`
+- [x] T020 [P] [US2] Add tier label (`.. note::`) to each guide top: "🔧 **Intermediate / Architecture**"
 
 #### 4.3 Recreate Deleted Examples (fix broken refs from guides/*.rst)
 
-- [ ] T021 [P] [US2] Create `docs/examples/hierarchy_examples.rst`: 4 self-contained code blocks (3-level parent-child, path wildcard, subtree walk, cycle detection); all code valid against current API
-- [ ] T022 [P] [US2] Create `docs/examples/styling_examples.rst`: 4 self-contained code blocks (hex + named colors, bulk set_visual_style, theme + override, round-trip verification); all code valid against current API
-- [ ] T023 [P] [US2] Add tier label (`.. note::`) to each example top: "🔧 **Intermediate / Architecture**"
+- [x] T021 [P] [US2] Create `docs/examples/hierarchy_examples.rst`: 4 self-contained code blocks (3-level parent-child, path wildcard, subtree walk, cycle detection); all code valid against current API
+- [x] T022 [P] [US2] Create `docs/examples/styling_examples.rst`: 4 self-contained code blocks (hex + named colors, bulk set_visual_style, theme + override, round-trip verification); all code valid against current API
+- [x] T023 [P] [US2] Add tier label (`.. note::`) to each example top: "🔧 **Intermediate / Architecture**"
 
 #### 4.4 Update concepts.rst with full content
 
-- [ ] T024 [US2] Expand `docs/concepts.rst`: Add Viewpoints section listing all 13 standard viewpoints (slug, name, description); cross-ref to `api/viewpoints`
-- [ ] T025 [US2] Verify all concept definitions use canonical terminology from spec clarifications
-- [ ] T053 [P] [US2] Audit existing `docs/api/*.rst` pages for FR-008 compliance: verify each page groups content by module/capability (not raw filename); reorganize any page that lists functions by file rather than purpose
+- [x] T024 [US2] Expand `docs/concepts.rst`: Add Viewpoints section listing all 13 standard viewpoints (slug, name, description); cross-ref to `api/viewpoints`
+- [x] T025 [US2] Verify all concept definitions use canonical terminology from spec clarifications
+- [x] T053 [P] [US2] Audit existing `docs/api/*.rst` pages for FR-008 compliance: verify each page groups content by module/capability (not raw filename); reorganize any page that lists functions by file rather than purpose
 
 **Completion Test**:
 - Developer can read Architecture Overview and map package structure to source files in `src/pyArchimate/`
@@ -107,22 +107,22 @@ Goal: Comprehensive API documentation with design rationale (SC-003, SC-005).
 
 #### 5.1 Advanced API Pages
 
-- [ ] T026 [P] [US3] Create `docs/api/viewpoints.rst`: Overview (get_viewpoints, get_elements_by_viewpoint, assign_viewpoint, remove_viewpoint) + Standard Viewpoints table (13 slugs + names + descriptions from viewpoint_registry.py) + Code Example + `.. automodule::` for pyArchimate.viewpoint + pyArchimate.viewpoint_registry
-- [ ] T027 [P] [US3] Add tier label (`.. note::`) to `docs/api/viewpoints.rst` top: "⚙️ **Advanced / API Reference**" with "New to this topic?" link to `guides/extending`
+- [x] T026 [P] [US3] Create `docs/api/viewpoints.rst`: Overview (get_viewpoints, get_elements_by_viewpoint, assign_viewpoint, remove_viewpoint) + Standard Viewpoints table (13 slugs + names + descriptions from viewpoint_registry.py) + Code Example + `.. automodule::` for pyArchimate.viewpoint + pyArchimate.viewpoint_registry
+- [x] T027 [P] [US3] Add tier label (`.. note::`) to `docs/api/viewpoints.rst` top: "⚙️ **Advanced / API Reference**" with "New to this topic?" link to `guides/extending`
 
 #### 5.2 Add "New to this topic?" notes to existing Advanced API pages
 
-- [ ] T028 [P] [US3] Add "New to this topic?" note at top of `docs/api/element.rst` linking to `guides/visual-styling` and `guides/junction-types`
-- [ ] T029 [P] [US3] Add "New to this topic?" note at top of `docs/api/model.rst` linking to `guides/element-hierarchy`
+- [x] T028 [P] [US3] Add "New to this topic?" note at top of `docs/api/element.rst` linking to `guides/visual-styling` and `guides/junction-types`
+- [x] T029 [P] [US3] Add "New to this topic?" note at top of `docs/api/model.rst` linking to `guides/element-hierarchy`
 
 #### 5.3 Verify API examples & doctest setup (cross-phase)
 
 *Note: T030–T032 are validation tasks for code examples created in US1 and US2. Grouped here in Phase 5 for dependency ordering (doctest setup requires all example pages to exist), but not labeled with [US#] to indicate cross-story scope.*
 
-- [ ] T030 Add Sphinx doctest directives to `docs/getting-started.rst` code example (required for SC-005; validates US1 example; depends on T052)
-- [ ] T031 Verify round-trip example in `docs/api/model.rst` is marked as doctest-able (required for SC-005; validates US2 example; depends on T052)
-- [ ] T032 Document in `docs/api/element.rst` which examples are doctest-validated vs. review-validated per clarification (cross-phase validation)
-- [ ] T054 [P] [US3] Scan `src/pyArchimate/` for public APIs raising `DeprecationWarning`; add `.. deprecated::` directive with deprecation version and recommended replacement to each corresponding page in `docs/api/` (FR-010, SC-009)
+- [x] T030 Add Sphinx doctest directives to `docs/getting-started.rst` code example (required for SC-005; validates US1 example; depends on T052)
+- [x] T031 Verify round-trip example in `docs/api/model.rst` is marked as doctest-able (required for SC-005; validates US2 example; depends on T052)
+- [x] T032 Document in `docs/api/element.rst` which examples are doctest-validated vs. review-validated per clarification (cross-phase validation)
+- [x] T054 [P] [US3] Scan `src/pyArchimate/` for public APIs raising `DeprecationWarning`; add `.. deprecated::` directive with deprecation version and recommended replacement to each corresponding page in `docs/api/` (FR-010, SC-009)
 
 **Completion Test**:
 - `make doctest` passes on Getting Started + round-trip examples
@@ -138,15 +138,15 @@ Goal: Comprehensive API documentation with design rationale (SC-003, SC-005).
 
 Final integration and validation.
 
-- [ ] T033 [P] Extract all public APIs from `src/pyArchimate/` (modules, classes, functions) and cross-check against documented APIs in `docs/` (generated by autodoc + manual pages); report any gaps (SC-003 verification)
-- [ ] T034 [P] Verify all 15 doc files created/modified match plan.md file list
-- [ ] T035 [P] Run `make clean html 2>&1 | grep -E "WARNING|ERROR|error" | grep -v "duplicate.*pyarchimate"` → zero output
-- [ ] T036 [P] Verify all broken `:doc:` refs from original branch are now resolved
-- [ ] T037 Run full Sphinx build: `make clean html` completes in <60s
-- [ ] T038 Spot-check cross-references: follow 5 "See Also" links + 3 "New to this topic?" links → all resolve
-- [ ] T039 Run `pa11y` on `docs/_build/html/index.html` and 3 key pages (getting-started, architecture, api/model); fix any WCAG 2.1 Level AA failures reported (SC-008)
-- [ ] T040 Search test: Verify Sphinx search index includes concepts + API names (SC-006)
-- [ ] T055 [P] Verify SC-009: confirm all deprecated public APIs surfaced by T054 have a visible `.. deprecated::` notice in `docs/_build/html/`; zero deprecated APIs appear without a migration note
+- [x] T033 [P] Extract all public APIs from `src/pyArchimate/` (modules, classes, functions) and cross-check against documented APIs in `docs/` (generated by autodoc + manual pages); report any gaps (SC-003 verification)
+- [x] T034 [P] Verify all 15 doc files created/modified match plan.md file list
+- [x] T035 [P] Run `make clean html 2>&1 | grep -E "WARNING|ERROR|error" | grep -v "duplicate.*pyarchimate"` → zero output
+- [x] T036 [P] Verify all broken `:doc:` refs from original branch are now resolved
+- [x] T037 Run full Sphinx build: `make clean html` completes in <60s
+- [x] T038 Spot-check cross-references: follow 5 "See Also" links + 3 "New to this topic?" links → all resolve
+- [x] T039 Run `pa11y` on `docs/_build/html/index.html` and 3 key pages (getting-started, architecture, api/model); fix any WCAG 2.1 Level AA failures reported (SC-008)
+- [x] T040 Search test: Verify Sphinx search index includes concepts + API names (SC-006)
+- [x] T055 [P] Verify SC-009: confirm all deprecated public APIs surfaced by T054 have a visible `.. deprecated::` notice in `docs/_build/html/`; zero deprecated APIs appear without a migration note
 
 **Completion Test**: 
 - `make clean html` exits with code 0, zero warning/error output
@@ -160,16 +160,16 @@ Final integration and validation.
 
 Update all architecture PlantUML diagrams to reflect current pyArchimate library state.
 
-- [ ] T041 [P] Audit `docs/diagrams/context.puml` and `c4_context.puml` against current integration points; verify system boundaries match actual readers/writers/external tools
-- [ ] T042 [P] Audit `docs/diagrams/package.puml` and `c4_container.puml` against current module structure; verify package hierarchy (pyArchimate, readers, writers, helpers, model) is accurate
-- [ ] T043 [P] Audit `docs/diagrams/component.puml` and `c4_component.puml` against current public API; verify Element, Relationship, Model, View classes and their interfaces are correctly represented
-- [ ] T044 [P] Audit `docs/diagrams/class.puml` against current source; verify class relationships, inheritance, and method signatures match `src/pyArchimate/`
-- [ ] T045 [P] Audit `docs/diagrams/deployment.puml` and `c4_deployment.puml` against current deployment model (Read the Docs, RTD theme, Python 3.10+); update if infrastructure changes
-- [ ] T046 [P] Audit remaining diagrams (`object.puml`, `composite.puml`, `state.puml`, `sequence.puml`, `activity.puml`, `communication.puml`) for relevance to current library; mark deprecated if no longer used
-- [ ] T047 [P] Update all `.puml` source files with current architecture; commit changes
-- [ ] T048 Run `scripts/render_diagrams.sh` to regenerate all `.png` files from updated `.puml` sources
-- [ ] T049 Verify all `.png` files regenerated successfully (check file timestamps + visual inspection of key diagrams)
-- [ ] T050 Verify `docs/_build/html/architecture.html` displays diagrams correctly with correct image paths post-build
+- [x] T041 [P] Audit `docs/diagrams/context.puml` and `c4_context.puml` against current integration points; verify system boundaries match actual readers/writers/external tools
+- [x] T042 [P] Audit `docs/diagrams/package.puml` and `c4_container.puml` against current module structure; verify package hierarchy (pyArchimate, readers, writers, helpers, model) is accurate
+- [x] T043 [P] Audit `docs/diagrams/component.puml` and `c4_component.puml` against current public API; verify Element, Relationship, Model, View classes and their interfaces are correctly represented
+- [x] T044 [P] Audit `docs/diagrams/class.puml` against current source; verify class relationships, inheritance, and method signatures match `src/pyArchimate/`
+- [x] T045 [P] Audit `docs/diagrams/deployment.puml` and `c4_deployment.puml` against current deployment model (Read the Docs, RTD theme, Python 3.10+); update if infrastructure changes
+- [x] T046 [P] Audit remaining diagrams (`object.puml`, `composite.puml`, `state.puml`, `sequence.puml`, `activity.puml`, `communication.puml`) for relevance to current library; mark deprecated if no longer used
+- [x] T047 [P] Update all `.puml` source files with current architecture; commit changes
+- [x] T048 Run `scripts/render_diagrams.sh` to regenerate all `.png` files from updated `.puml` sources
+- [x] T049 Verify all `.png` files regenerated successfully (check file timestamps + visual inspection of key diagrams)
+- [x] T050 Verify `docs/_build/html/architecture.html` displays diagrams correctly with correct image paths post-build
 
 **Completion Test**:
 - All 15 `.puml` files reviewed and updated for accuracy

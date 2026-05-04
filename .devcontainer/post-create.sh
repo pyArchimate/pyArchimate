@@ -56,6 +56,12 @@ run_command "sudo apt-get update && sudo apt-get install -y default-jre"
 run_command "sudo apt-get install -y libatk1.0-0 at-spi2-common libatk-bridge2.0-0 libgtk-3-0 libgtk-4-1 libgdk-pixbuf-xlib-2.0-0 libasound2 libasound2-data libcups2 libx11-xcb1 libxcomposite1 libxrandr2 libxss1 libwayland-client0 libwayland-egl1 libxdamage1 libxkbcommon0 libxshmfence1 libdbus-1-3 libdrm2 libegl1 libgbm1 libgl1-mesa-dri libgstreamer1.0-0"
 echo "✅ Done"
 
+# Installing PlantUML
+echo -e "\n🌱 Installing PlantUML..."
+run_command "sudo apt-get install -y plantuml"
+run_command "sudo curl -L https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar -o /usr/share/plantuml/plantuml.jar"
+echo "✅ Done"
+
 # Installing GitHub CLI
 echo -e "\n🐙 Installing GitHub CLI..."
 run_command "curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg"

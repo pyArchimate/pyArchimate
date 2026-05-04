@@ -61,6 +61,8 @@ docs = [
     "sphinx (>=8.0.0,<10.0.0); python_version >= '3.12'",
     "sphinx-rtd-theme (>=3.1.0,<4.0.0); python_version >= '3.12'",
     "myst-parser (>=0.18.0)",
+    # pa11y (>=6.0.0) — Node.js CLI tool; install via: npm install -g pa11y
+    # Required for SC-008 WCAG 2.1 Level AA accessibility verification
 ]
 
 [tool.setuptools.package-dir]
