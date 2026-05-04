@@ -2,7 +2,7 @@
 
 **Feature Branch**: `010-restructure-sphinx-docs`  
 **Created**: 2026-05-03  
-**Status**: Draft  
+**Status**: Updated  
 **Input**: User description: "As a maintainer of pyArchimate library, I would like to cleanup and restructure the sphinx docs to reflect the actual architecture and capabilities of the library so that the API doc is clear and structured according to a basic/intermediate and advanced usage of it"
 
 ## User Scenarios & Testing *(mandatory)*
@@ -50,7 +50,7 @@ A developer or maintainer needs detailed API references, internal design decisio
 **Acceptance Scenarios**:
 
 1. **Given** a developer needs low-level API details, **When** they navigate to the full API reference, **Then** they find complete signatures, parameters, return types, and internal relationships clearly documented
-2. **Given** a developer wants to understand internal design decisions, **When** they read the "Design Decisions" or similar section, **Then** they see rationale for architectural choices (e.g., why certain patterns were used)
+2. **Given** a developer wants to understand internal design decisions, **When** they read the "Extending pyArchimate" guide, **Then** they see rationale for architectural choices (e.g., why certain patterns were used, where extension points exist)
 3. **Given** documentation is read by a contributor, **When** they review the codebase, **Then** documented patterns match actual implementation
 
 ---
@@ -67,12 +67,20 @@ A developer or maintainer needs detailed API references, internal design decisio
 - Q: Visual separation of tiers (badges, boxes, color coding) → A: Sphinx admonition boxes (`.. note::`) with tier labels ("ℹ️ Basic", "🔧 Intermediate", "⚙️ Advanced") at section start
 - Q: Cross-tier linking strategy (Intermediate ↔ Advanced) → A: Asymmetric linking — Intermediate guides link to Advanced API in "See Also" at end; Advanced API links back to guides in "New to this topic?" at start
 
+### Session 2026-05-04
+
+- Q: Deprecated API handling → A: In scope — deprecated public APIs must be marked with `.. deprecated::` directives in their API reference pages, with a note indicating the replacement or removal version
+- Q: US3 "Design Decisions" section → A: Covered by `guides/extending.rst`; no separate Design Decisions page needed
+- Q: Doctest configuration → A: `sphinx.ext.doctest` must be added to `docs/conf.py` extensions with `doctest_global_setup` imports; `make doctest` must pass on Getting Started and round-trip examples
+- Q: Existing `api/*.rst` FR-008 compliance → A: Lightweight verification task — confirm existing autodoc pages are organized by module/capability; reorganize only if a page groups by raw file rather than purpose
+- Q: WCAG tooling → A: `pa11y` added to `[dependency-groups] docs` in `pyproject.toml`; run as part of accessibility verification task (T039)
+
 ---
 
 ### Edge Cases
 
 - What happens when users search for a specific class or function and land in advanced API documentation without context? → **Resolved**: Each Advanced API page includes a "New to this topic?" note linking to the relevant guide in the Intermediate tier.
-- How does the documentation handle deprecated features or legacy compatibility layers?
+- How does the documentation handle deprecated features or legacy compatibility layers? → **Resolved**: Deprecated public APIs are marked with `.. deprecated::` directives in their API reference page; each deprecated entry notes the replacement or removal version (see FR-010).
 - How are cross-references between basic and advanced sections organized to avoid circular navigation? → **Resolved**: Asymmetric linking — Intermediate guides link to Advanced in "See Also" (end); Advanced links back to guides in "New to this topic?" (start).
 
 ## Requirements *(mandatory)*
@@ -87,7 +95,8 @@ A developer or maintainer needs detailed API references, internal design decisio
 - **FR-006**: Documentation MUST explain core domain concepts (ArchiMate elements, relationships, metamodel) with clear definitions and visual aids where applicable
 - **FR-007**: Documentation MUST include a search or index that helps users locate both concepts and specific APIs
 - **FR-008**: Documentation MUST be organized by module/capability rather than by implementation file structure
-- **FR-009**: All code examples in documentation MUST be valid, tested, and reflect current API (no outdated examples)
+- **FR-009**: All code examples in documentation MUST be valid and reflect the current API (no outdated examples); Getting Started and round-trip examples MUST be validated via Sphinx doctest directives; remaining examples are validated by review
+- **FR-010**: All deprecated public APIs MUST be marked with `.. deprecated::` directives in their API reference page, including the version in which deprecation was introduced and the recommended replacement or migration path
 
 ### Key Entities *(include if feature involves data)*
 
@@ -107,7 +116,8 @@ A developer or maintainer needs detailed API references, internal design decisio
 - **SC-005**: Code examples in Getting Started and round-trip sections are validated via Sphinx doctest; remaining examples are verified against the current release by review and reflect actual API behavior
 - **SC-006**: Search or table of contents allows users to locate documentation by concept (e.g., "How to add a custom element?") or by API name (e.g., "ModelWriter class")
 - **SC-007**: No broken internal links or references between documentation sections
-- **SC-008**: Documentation meets WCAG 2.1 Level AA accessibility compliance for keyboard navigation, color contrast, semantic HTML, and alternative text for images/diagrams
+- **SC-008**: Documentation meets WCAG 2.1 Level AA accessibility compliance for keyboard navigation, color contrast, semantic HTML, and alternative text for images/diagrams; verified using `pa11y` automated accessibility testing
+- **SC-009**: All deprecated public APIs visible in the built documentation include a `.. deprecated::` notice with version and replacement information; zero deprecated APIs appear without a migration note
 
 ## Assumptions
 
@@ -122,5 +132,6 @@ A developer or maintainer needs detailed API references, internal design decisio
 - **Existing Resources**: Current Sphinx build system, theme, and deployment process will be preserved; only content structure and organization change
 - **Testing Approach**: Code examples will be validated via existing test suite where applicable; new dedicated tests for documentation examples are out of scope for this feature
 - **Docstring Standards**: Existing public module and class docstrings follow a consistent format (e.g., Google, NumPy, or Sphinx style) suitable for autodoc extraction; if gaps exist, they will be filled during implementation
-- **Accessibility Infrastructure**: The Sphinx theme and configured extensions will provide baseline WCAG 2.1 Level AA support; custom styling or JavaScript enhancements will comply with these standards
+- **Accessibility Infrastructure**: The Sphinx theme and configured extensions will provide baseline WCAG 2.1 Level AA support; `pa11y` will be used as the automated verification tool; custom styling or JavaScript enhancements will comply with these standards
+- **Deprecated API Scope**: Only public APIs that are already marked as deprecated in the source code (via `DeprecationWarning` or similar) will receive `.. deprecated::` directives; identifying new deprecations is out of scope for this feature
 - **Navigation UI**: Sphinx theme or custom CSS can support visual tier indicators (badges, color coding, sidebar labels) without requiring custom JavaScript or external templating systems

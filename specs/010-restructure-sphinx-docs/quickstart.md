@@ -19,17 +19,17 @@ poetry install --with docs
 cd docs
 
 # Full clean build (use this to verify zero warnings)
-make clean html
+poetry run make clean html
 
 # Incremental build (faster during development)
-make html
+poetry run make html
 ```
 
 ## Verify Build Passes
 
 ```bash
 cd docs
-make clean html 2>&1 | grep -E "WARNING|ERROR|error" | grep -v "duplicate.*pyarchimate"
+poetry run make clean html 2>&1 | grep -E "WARNING|ERROR|error" | grep -v "duplicate.*pyarchimate"
 # Expected: (no output — zero warnings)
 ```
 

@@ -2,7 +2,7 @@
 
 **Feature**: 010-restructure-sphinx-docs  
 **Branch**: `010-restructure-sphinx-docs`  
-**Date**: 2026-05-03  
+**Date**: 2026-05-04 (updated from 2026-05-03)  
 
 ---
 
@@ -13,11 +13,13 @@
 Enable Markdown support in Sphinx (blocking all other work).
 
 - [ ] T001 Add `myst-parser` to `docs/requirements.txt`
-- [ ] T002 Add `myst-parser` to `pyproject.toml` docs optional-dependency group
+- [ ] T002 Add `myst-parser` to `[dependency-groups] docs` in `pyproject.toml`
 - [ ] T003 Update `docs/conf.py`: add `myst_parser` to extensions list
 - [ ] T004 Update `docs/conf.py`: add `source_suffix` mapping for `.rst` and `.md` files
+- [ ] T051 Add `pa11y` to `[dependency-groups] docs` in `pyproject.toml` (required for SC-008 WCAG verification)
+- [ ] T052 Configure `sphinx.ext.doctest` in `docs/conf.py`: add to extensions list + add `doctest_global_setup = "from pyArchimate import Model, Element, View, Relationship"` (required for SC-005 / FR-009)
 
-**Completion Test**: `pip install -r docs/requirements.txt && python -c "import myst_parser"` succeeds without error
+**Completion Test**: `poetry run make html` succeeds; `poetry run python -c "import myst_parser"` passes; `poetry run make doctest` runs without configuration error
 
 ---
 
@@ -86,6 +88,7 @@ Goal: Users understand the architecture and can extend/integrate pyArchimate (SC
 
 - [ ] T024 [US2] Expand `docs/concepts.rst`: Add Viewpoints section listing all 13 standard viewpoints (slug, name, description); cross-ref to `api/viewpoints`
 - [ ] T025 [US2] Verify all concept definitions use canonical terminology from spec clarifications
+- [ ] T053 [P] [US2] Audit existing `docs/api/*.rst` pages for FR-008 compliance: verify each page groups content by module/capability (not raw filename); reorganize any page that lists functions by file rather than purpose
 
 **Completion Test**:
 - Developer can read Architecture Overview and map package structure to source files in `src/pyArchimate/`
@@ -116,9 +119,10 @@ Goal: Comprehensive API documentation with design rationale (SC-003, SC-005).
 
 *Note: T030–T032 are validation tasks for code examples created in US1 and US2. Grouped here in Phase 5 for dependency ordering (doctest setup requires all example pages to exist), but not labeled with [US#] to indicate cross-story scope.*
 
-- [ ] T030 Add Sphinx doctest directives to `docs/getting-started.rst` code example (required for SC-005; validates US1 example)
-- [ ] T031 Verify round-trip example in `docs/api/model.rst` is marked as doctest-able (required for SC-005; validates US2 example)
+- [ ] T030 Add Sphinx doctest directives to `docs/getting-started.rst` code example (required for SC-005; validates US1 example; depends on T052)
+- [ ] T031 Verify round-trip example in `docs/api/model.rst` is marked as doctest-able (required for SC-005; validates US2 example; depends on T052)
 - [ ] T032 Document in `docs/api/element.rst` which examples are doctest-validated vs. review-validated per clarification (cross-phase validation)
+- [ ] T054 [P] [US3] Scan `src/pyArchimate/` for public APIs raising `DeprecationWarning`; add `.. deprecated::` directive with deprecation version and recommended replacement to each corresponding page in `docs/api/` (FR-010, SC-009)
 
 **Completion Test**:
 - `make doctest` passes on Getting Started + round-trip examples
@@ -140,8 +144,9 @@ Final integration and validation.
 - [ ] T036 [P] Verify all broken `:doc:` refs from original branch are now resolved
 - [ ] T037 Run full Sphinx build: `make clean html` completes in <60s
 - [ ] T038 Spot-check cross-references: follow 5 "See Also" links + 3 "New to this topic?" links → all resolve
-- [ ] T039 Accessibility check: Verify WCAG 2.1 Level AA compliance via RTD theme defaults (SC-008)
+- [ ] T039 Run `pa11y` on `docs/_build/html/index.html` and 3 key pages (getting-started, architecture, api/model); fix any WCAG 2.1 Level AA failures reported (SC-008)
 - [ ] T040 Search test: Verify Sphinx search index includes concepts + API names (SC-006)
+- [ ] T055 [P] Verify SC-009: confirm all deprecated public APIs surfaced by T054 have a visible `.. deprecated::` notice in `docs/_build/html/`; zero deprecated APIs appear without a migration note
 
 **Completion Test**: 
 - `make clean html` exits with code 0, zero warning/error output
@@ -190,8 +195,9 @@ Update all architecture PlantUML diagrams to reflect current pyArchimate library
 | FR-005 | Functional | T017–T032 | US2, US3 | SC-003, SC-005 |
 | FR-006 | Functional | T009, T011, T024, T025 | US1, US2 | SC-003 |
 | FR-007 | Functional | T005, T006, T040 | US1, US2, US3 | SC-006 |
-| FR-008 | Functional | T005, T013, T014 | US1, US2 | SC-004 |
-| FR-009 | Functional | T021, T022, T030, T031, T032 | US2, US3 | SC-005 |
+| FR-008 | Functional | T005, T013, T014, T053 | US1, US2 | SC-004 |
+| FR-009 | Functional | T021, T022, T030, T031, T032, T052 | US2, US3 | SC-005 |
+| FR-010 | Functional | T054, T055 | US3 | SC-009 |
 | SC-001 | Success | T008, T010, T012 | US1 | Test: 2-min Getting Started runnable |
 | SC-002 | Success | T005, T010, T011, T015, T016, T020, T027, T038 | US1, US2, US3 | Test: Sidebar shows 3 labeled sections |
 | SC-003 | Success | T017–T032, T033 | US2, US3 | Test: Every API has signature + example (verified by T033) |
@@ -199,33 +205,34 @@ Update all architecture PlantUML diagrams to reflect current pyArchimate library
 | SC-005 | Success | T030, T031, T032 | US3 | Test: `make doctest` passes |
 | SC-006 | Success | T040 | US3 | Test: Search finds concepts + APIs |
 | SC-007 | Success | T035, T038 | All | Test: Zero broken ref warnings |
-| SC-008 | Success | T039 | All | Test: WCAG 2.1 Level AA compliance |
+| SC-008 | Success | T039, T051 | All | Test: `pa11y` reports zero WCAG 2.1 AA failures |
+| SC-009 | Success | T054, T055 | US3 | Test: Zero deprecated APIs without `.. deprecated::` notice |
 
 ---
 
 ## Dependency Graph
 
 ```
-Phase 1: T001 → T002 → T003 → T004
+Phase 1: T001 → T002 → T003 → T004 → T051, T052 [parallel]
          ↓
 Phase 2: T005 (blocks all other page tasks)
          ↓ T006, T007 [P]
          ↓
 Phase 3: T008–T012 [P] (can run in parallel; no inter-deps)
          ↓
-Phase 4: T013–T025 [P] (T024–T025 depend on T024, but mostly parallel)
+Phase 4: T013–T025, T053 [P] (T024–T025 depend on T024, but mostly parallel)
          ↓
-Phase 5: T026–T032 [P] (T028–T029 depend on T026 existing, others independent)
+Phase 5: T026–T032, T054 [P] (T030–T031 depend on T052; T028–T029 depend on T026)
          ↓
-Phase 6: T033–T039 [P] (verification; some require all prior tasks complete)
+Phase 6: T033–T040, T055 [P] (verification; some require all prior tasks complete)
 ```
 
-**Critical path**: T001 → T004 → T005 → {T008–T012 || T013–T025 || T026–T032} → T033–T039
+**Critical path**: T001 → T004 → T052 → T005 → {T008–T012 || T013–T025 || T026–T032} → T033–T040
 
 **Parallelizable tasks by story** (after Phase 2):
 - **US1 (Phase 3)**: T008, T009, T010, T011, T012 can run in parallel (no file dependencies)
-- **US2 (Phase 4)**: T013, T014, T017–T023 can run mostly in parallel; T024–T025 should complete last
-- **US3 (Phase 5)**: T026, T027, T028, T029 can run in parallel; T030–T032 should complete last
+- **US2 (Phase 4)**: T013, T014, T017–T023, T053 can run mostly in parallel; T024–T025 should complete last
+- **US3 (Phase 5)**: T026, T027, T028, T029, T054 can run in parallel; T030–T032 should complete last
 
 ---
 
@@ -293,16 +300,16 @@ Deliver all three user stories (T001–T039) in a single PR:
 
 ## Task Count Summary
 
-- **Phase 1** (Setup): 4 tasks
+- **Phase 1** (Setup): 6 tasks (T001–T004, T051–T052)
 - **Phase 2** (Foundational): 3 tasks
 - **Phase 3** (US1): 5 tasks
-- **Phase 4** (US2): 13 tasks
-- **Phase 5** (US3): 7 tasks
-- **Phase 6** (Verification): 8 tasks (includes new T033 for SC-003 verification)
+- **Phase 4** (US2): 14 tasks (adds T053 FR-008 audit)
+- **Phase 5** (US3): 8 tasks (adds T054 deprecated API directives)
+- **Phase 6** (Verification): 9 tasks (T039 updated for pa11y; adds T055 SC-009 check)
 - **Phase 7** (PlantUML Diagrams): 10 tasks (diagram audit + regeneration)
 
-**Total**: 50 tasks (15 file creations/modifications in docs/, 10 diagram updates, 25 verification/integration tasks)
+**Total**: 55 tasks (15 file creations/modifications in docs/, 10 diagram updates, 30 verification/integration/setup tasks)
 
-**Parallelizable**: 31 tasks (marked with `[P]` — includes 9 audit tasks in Phase 7)
+**Parallelizable**: 34 tasks (marked with `[P]`)
 
 **Estimated effort**: 6–7 hours for full feature including diagrams; 2–3 hours for MVP (US1 docs only)
