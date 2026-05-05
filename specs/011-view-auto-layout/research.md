@@ -123,24 +123,61 @@ fonts set by user are preserved if not flagged for auto-format.
 
 ## 6. Performance Strategy
 
-### Decision: Adaptive Iteration Limits; Lazy Evaluation of Crossings
+### Decision: Spatial Hashing for Repulsion Forces + Adaptive Iteration Limits
 
-Layout algorithms use adaptive iteration limits based on element count to achieve <2s for 300 elements and <5s for 500
+Layout algorithms use spatial hashing to reduce O(n²) repulsion calculation to O(n × c) where c ≈ 8-15 neighbors per
+cell, combined with adaptive iteration limits based on element count to achieve <2s for 300 elements and <5s for 500
 elements.
+
+**Current Bottleneck** (Critical blocker for production):
+
+```
+Benchmark Results (force-directed, O(n²) repulsion):
+- 50 nodes:   458ms  ✅ PASS
+- 100 nodes:  1824ms ✅ PASS  
+- 300 nodes:  8500ms ❌ 4.2x over target
+- 500 nodes:  23900ms ❌ 4.8x over target
+```
+
+Profiling identified repulsion force calculation as 60% of iteration time; it compares all O(n²) node pairs per
+iteration.
 
 **Rationale**:
 
-- Force-directed physics simulation is iterative; convergence depends on graph size.
-- Fixed iteration limits risk poor layouts for small graphs (over-iteration) or incomplete layouts for large graphs (
-  under-iteration).
-- Lazy crossing evaluation (compute only when needed for 45° fallback decision) reduces overhead.
+- Force-directed physics simulation is iterative; repulsion forces decay with distance (inversely proportional to
+  distance²)
+- Nodes beyond 100-150 pixels have negligible force contribution; spatial hashing avoids unnecessary calculations
+- Spatial hashing reduces candidate set from n² to ~9c (c = nodes per cell ≈ 8-15 for ArchiMate diagrams)
+- Spatial hashing O(1) average-case lookup is simpler than KD-tree O(log n) and avoids NumPy dependency overhead
+- Expected speedup: 15-20x on repulsion calculation alone (sufficient to hit <2s target)
 
 **Implementation Approach**:
 
-- Estimate iteration budget: `max_iterations = 100 + element_count`; scale inversely with element density
-- Monitor convergence: Stop early if node movement drops below threshold (e.g., <0.1px per iteration)
-- Lazy crossing detection: Only compute crossing count if orthogonal routing produces visibly tangled layout
-- Profile and tune iteration limits empirically with representative test graphs
+1. **Spatial Hash Grid**: Divide 2D space into grid cells (cell_size ≈ 150px for ArchiMate element sizes)
+    - Hash node positions: `cell = (int(x // cell_size), int(y // cell_size))`
+    - Query 3×3 neighbor region: 9 cells containing candidate nodes
+    - Complexity: O(n) grid population + O(n × c) repulsion calculation per iteration
+
+2. **Adaptive Iteration Limits**: Stop early when convergence achieved
+    - Monitor max node movement per iteration
+    - Exit if movement < 0.1px AND decreases 2 consecutive iterations
+    - Budget: `max_iterations = 100 + element_count`; scale inversely with density
+    - Expected benefit: 15-25% iteration reduction for typical diagrams
+
+3. **Performance Validation**:
+    - Benchmark 50, 100, 300, 500 node graphs
+    - Target: 300 nodes <2s, 500 nodes <5s
+    - Verify no layout quality degradation
+
+**Alternatives Rejected**:
+
+- **NumPy vectorization**: 15MB dependency overhead; only beneficial for >200 nodes (outside typical use case)
+- **KD-tree**: More complex to implement; overkill if spatial hashing meets targets (can revisit for v1.1)
+
+**Performance Impact**:
+
+- Repulsion: O(n²) → O(n × c) = ~15-20x speedup
+- Expected result: 8.5s → 1.2-1.8s for 300 nodes ✅
 
 ## 7. Undo/Rollback Mechanism
 

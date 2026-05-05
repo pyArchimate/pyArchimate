@@ -236,6 +236,41 @@ class LabelPlacement:
 - `bounds` must be non-negative width/height
 - `position` must be within reasonable canvas bounds
 
+### SpatialHashGrid (Performance Optimization)
+
+**Location**: `src/pyArchimate/view/layout/utils/geometry.py`
+
+Grid-based spatial index for O(1) neighbor lookups during force-directed layout (critical for achieving <2s target).
+
+```python
+class SpatialHashGrid:
+    """2D spatial hash for efficient repulsion force calculations."""
+    
+    cell_size: float = 150.0  # Grid cell size in pixels (tuned for ArchiMate elements)
+    grid: Dict[Tuple[int, int], Set[str]] = {}  # {cell_coords: set(node_ids)}
+    
+    def hash_position(x: float, y: float) -> Tuple[int, int]:
+        """Map (x, y) to grid cell coordinates. O(1)."""
+        
+    def add_node(node_id: str, x: float, y: float) -> None:
+        """Add node to grid at position. O(1)."""
+        
+    def get_neighbors(x: float, y: float, radius: int = 1) -> Set[str]:
+        """Get all nodes in 3x3 neighborhood (radius=1). O(1) average."""
+        
+    def clear() -> None:
+        """Reset grid for next iteration."""
+```
+
+**Purpose**: Replace O(n²) repulsion force calculation with O(n × c) where c ≈ 8-15 neighbors per cell. Expected result:
+8.5s → 1.2-1.8s for 300 nodes.
+
+**Validation Rules**:
+
+- `cell_size` must be > 0
+- `cell_size` typically 100-200px (tuned empirically)
+- All nodes must be hashed before neighbor queries
+
 ---
 
 ## Relationships
