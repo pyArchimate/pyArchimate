@@ -128,8 +128,8 @@ def test_auto_format_standardizes_element_sizes() -> None:
 
     # Verify all elements have standard size
     for node in view.nodes:
-        assert node.width == 100  # Standard for ApplicationComponent
-        assert node.height == 80
+        assert node.width == 120  # Standard for all element types
+        assert node.height == 55
 
 
 def test_auto_format_standardizes_fonts() -> None:
@@ -149,8 +149,8 @@ def test_auto_format_standardizes_fonts() -> None:
 
     # Verify all elements have standard fonts
     for node in view.nodes:
-        assert node.font_family == "Arial"
-        assert node.font_size == 10
+        assert node.font_family == "Segoe UI"
+        assert node.font_size == 9
         assert node.font_style == "normal"
         assert node.font_weight == "normal"
 
@@ -172,7 +172,7 @@ def test_auto_format_preserves_node_properties() -> None:
     for i, node in enumerate(view.nodes):
         assert node.type == "ApplicationComponent"
         assert node.documentation == f"Component {i} documentation"
-        assert node.width == 100  # Standardized
+        assert node.width == 120  # Standardized
 
 
 def test_auto_format_different_element_types() -> None:
@@ -201,10 +201,10 @@ def test_auto_format_different_element_types() -> None:
 
     assert result.success is True
 
-    # Verify type-specific sizes
-    assert view.nodes[0].width == 100 and view.nodes[0].height == 80  # ApplicationComponent
-    assert view.nodes[1].width == 120 and view.nodes[1].height == 60  # ApplicationService
-    assert view.nodes[2].width == 80 and view.nodes[2].height == 80   # DataObject
+    # Verify all types use standard size
+    assert view.nodes[0].width == 120 and view.nodes[0].height == 55  # ApplicationComponent
+    assert view.nodes[1].width == 120 and view.nodes[1].height == 55  # ApplicationService
+    assert view.nodes[2].width == 120 and view.nodes[2].height == 55  # DataObject
 
 
 def test_auto_format_with_excluded_elements() -> None:
@@ -224,9 +224,9 @@ def test_auto_format_with_excluded_elements() -> None:
     # First element should not be formatted
     assert view.nodes[0].width == 150
 
-    # Others should be formatted
-    assert view.nodes[1].width == 100
-    assert view.nodes[2].width == 100
+    # Others should be formatted to standard size
+    assert view.nodes[1].width == 120
+    assert view.nodes[2].width == 120
 
 
 def test_auto_format_reduces_size_variance() -> None:
@@ -278,7 +278,7 @@ def test_auto_format_with_grid_alignment() -> None:
     view.nodes[1].x = 62.3
 
     # Format with grid alignment
-    config = LayoutConfig(alignment="grid", node_size_constraints={"grid_size": 10.0})
+    config = LayoutConfig(alignment="grid", grid_size=10.0)
     result = apply_format(view, config)
 
     assert result.success is True
