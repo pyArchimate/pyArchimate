@@ -203,12 +203,16 @@ def _write_connection(child: _Element, conn: object, xsi: et.QName) -> None:
     text_position = getattr(conn, 'text_position', None)
     if text_position is not None:
         c.set('textPosition', text_position)
+    source_x = int(getattr(conn_source, 'x', conn_source.cx))
+    source_y = int(getattr(conn_source, 'y', conn_source.cy))
+    target_x = int(getattr(conn_target, 'x', conn_target.cx))
+    target_y = int(getattr(conn_target, 'y', conn_target.cy))
     for bp in getattr(conn, 'bendpoints', []):
         et.SubElement(c, 'bendpoint',
-                      startX=str(int(bp.x - conn_source.cx)),
-                      startY=str(int(bp.y - conn_source.cy)),
-                      endX=str(int(bp.x - conn_target.cx)),
-                      endY=str(int(bp.y - conn_target.cy)))
+                      startX=str(int(bp.x - source_x)),
+                      startY=str(int(bp.y - source_y)),
+                      endX=str(int(bp.x - target_x)),
+                      endY=str(int(bp.y - target_y)))
 
 
 def _set_node_visual_attrs(child: _Element, node: object) -> None:

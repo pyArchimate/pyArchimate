@@ -3,7 +3,7 @@ from typing import cast
 
 from lxml import etree
 
-from src.pyArchimate import ArchiType
+from src.pyArchimate import ArchiType, Point
 from src.pyArchimate.model import Model
 from src.pyArchimate.view import View
 from src.pyArchimate.writers.archiWriter import archi_writer
@@ -112,6 +112,25 @@ def test_archi_writer_connection_font_color(tmp_path):
     target = tmp_path / 'conn_font.archimate'
     xml_str = archi_writer(model, str(target))
     assert 'fontColor' in xml_str
+
+
+def test_archi_writer_connection_bendpoint_offsets_use_node_origin(tmp_path):
+    """Bendpoint offsets are written relative to the node top-left for Archi import."""
+    model = Model('conn-bp-origin')
+    a = model.add(ArchiType.ApplicationComponent, 'A')
+    b = model.add(ArchiType.ApplicationService, 'B')
+    rel = model.add_relationship(ArchiType.Serving, source=a, target=b)
+    view = cast(View, model.add(ArchiType.View, 'V'))
+    na = view.add(ref=a.uuid, x=10, y=10, w=100, h=50)
+    nb = view.add(ref=b.uuid, x=210, y=10, w=100, h=50)
+    conn = view.add_connection(ref=rel.uuid, source=na, target=nb)
+    conn.add_bendpoint(Point(110, 50))
+    target = tmp_path / 'conn_bp_origin.archimate'
+    xml_str = archi_writer(model, str(target))
+    assert 'startX="100"' in xml_str
+    assert 'startY="40"' in xml_str
+    assert 'endX="-100"' in xml_str
+    assert 'endY="40"' in xml_str
 
 
 def test_archi_writer_node_icon_color_and_gradient(tmp_path):

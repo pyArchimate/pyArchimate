@@ -11,6 +11,7 @@ from src.pyArchimate.readers._archireader_helpers import (
 )
 from src.pyArchimate.readers.archiReader import archi_reader
 
+
 # =============================================================================
 # _parse_rel_attributes — direct tests
 # =============================================================================
@@ -111,6 +112,15 @@ class _N:
     cy = 100
 
 
+class _EdgeN:
+    cx = 50
+    cy = 100
+    x = 20
+    y = 60
+    w = 60
+    h = 40
+
+
 def test_resolve_bp_coords_start_xy():
     bp = etree.Element("bendpoint", startX="10", startY="20")
     x, y = _resolve_bp_coords(bp, _N(), _N())
@@ -131,6 +141,13 @@ def test_resolve_bp_coords_no_attrs():
     bp = etree.Element("bendpoint")
     x, y = _resolve_bp_coords(bp, _N(), _N())
     assert x == 50
+    assert y == 100
+
+
+def test_resolve_bp_coords_prefers_top_left_basis_when_it_matches_edge():
+    bp = etree.Element("bendpoint", startX="0", startY="40")
+    x, y = _resolve_bp_coords(bp, _EdgeN(), _EdgeN())
+    assert x == 20
     assert y == 100
 
 
