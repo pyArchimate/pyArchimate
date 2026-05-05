@@ -1,4 +1,4 @@
-#!/bin/sh
+#C/spe!/bin/sh
 
 git fetch --all --prune
 git checkout master
