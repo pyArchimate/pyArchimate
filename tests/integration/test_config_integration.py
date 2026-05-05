@@ -41,11 +41,36 @@ class MockNode:
 
 
 class MockConnection:
-    """Mock connection for testing."""
+    """Mock connection for testing (matches Connection interface)."""
 
     def __init__(self, source_id, target_id):
         self._source = source_id
         self._target = target_id
+        self._bendpoints = []
+        self.stroke_color = None
+        self.stroke_style = None
+        self.stroke_width = None
+
+    @property
+    def source_id(self):
+        return self._source
+
+    @property
+    def target_id(self):
+        return self._target
+
+    @property
+    def bendpoints(self):
+        """Get connection routing bendpoints."""
+        return self._bendpoints
+
+    def remove_all_bendpoints(self):
+        """Clear bendpoints (reset routing)."""
+        self._bendpoints = []
+
+    def add_bendpoint(self, point):
+        """Add a bendpoint to the routing path."""
+        self._bendpoints.append(point)
 
 
 class MockView:

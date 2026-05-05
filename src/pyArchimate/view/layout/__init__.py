@@ -13,14 +13,32 @@ from .utils.geometry import Point
 
 
 def apply_layout(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResult:
-    """Apply layout algorithm to a view.
+    """Apply layout algorithm to automatically position elements in a view.
+
+    Repositions all elements in the view according to the selected algorithm while preserving
+    all element properties (names, types, documentation, etc.). Enforces ArchiMate layer
+    constraints (Business > Application > Technology) and applies orthogonal connection routing.
 
     Args:
-        view: View object to layout
-        config: Layout configuration (uses defaults if None)
+        view: View object to layout. Must have 'nodes' and 'edges' attributes.
+        config: Layout configuration with algorithm selection and parameters. If None, uses
+                LayoutConfig defaults (force_directed algorithm, 50px spacing, 20px margin).
 
     Returns:
-        LayoutResult with layout metrics
+        LayoutResult with success/failure status, execution time, elements processed,
+        and quality metrics (crossing count, spacing, variance, etc).
+
+    Example:
+        >>> from pyArchimate.view import load_view
+        >>> from pyArchimate.view.layout import apply_layout, LayoutConfig
+        >>> view = load_view("architecture.archimate")
+        >>> config = LayoutConfig(algorithm="force_directed", spacing=60)
+        >>> result = apply_layout(view, config)
+        >>> if result.success:
+        ...     print(f"Layout completed in {result.layout_time_ms}ms")
+
+    Raises:
+        No exceptions raised; errors are captured in LayoutResult.error_message.
     """
     if config is None:
         config = LayoutConfig()
@@ -66,16 +84,32 @@ def apply_layout(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResu
 
 
 def apply_format(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResult:
-    """Apply formatting to standardize view appearance.
+    """Apply formatting to standardize element appearance per ArchiMate conventions.
 
-    Standardizes element sizes, fonts, and alignment without repositioning elements.
+    Standardizes element sizes, fonts, and alignment without repositioning elements. All
+    elements are sized to 120x55 (ArchiMate default) with 'Segoe UI' font at 9pt. Elements
+    can be optionally snapped to a grid. Excluded elements retain original dimensions.
 
     Args:
-        view: View object to format
-        config: Layout configuration with formatting options (alignment, grid_size, node_size_constraints, excluded_element_ids)
+        view: View object to format. Must have 'nodes' attribute.
+        config: Layout configuration with formatting options:
+                - alignment: "free" (default) or "grid"
+                - grid_size: Grid cell size in pixels (default 10px, used if alignment="grid")
+                - node_size_constraints: Dict with min/max width/height to constrain sizing
+                - excluded_element_ids: Set of element IDs to skip formatting
 
     Returns:
-        LayoutResult with formatting metrics
+        LayoutResult with success status, formatting metrics (formatted count, variance,
+        alignment applied, size constraints, errors).
+
+    Example:
+        >>> result = apply_format(view, LayoutConfig(alignment="grid", grid_size=10))
+        >>> print(f"Formatted {result.elements_processed} elements")
+        >>> print(f"Size variance before: {result.quality_metrics['size_variance']}")
+
+    Note:
+        This function standardizes appearance without layout. For complete view refinement,
+        call apply_layout() first, then apply_format().
     """
     if config is None:
         config = LayoutConfig()
@@ -151,15 +185,30 @@ def apply_format(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResu
 
 
 def undo_layout(view: Any) -> LayoutResult:
-    """Undo the last layout operation on a view.
+    """Undo the last layout or format operation on a view.
 
-    Uses the existing pyArchimate transaction/undo system.
+    Reverts the view to its state before the most recent apply_layout() or apply_format()
+    call using the pyArchimate transaction system. Multiple consecutive undo_layout() calls
+    can revert multiple steps.
 
     Args:
-        view: View object to undo layout on
+        view: View object that was previously laid out or formatted.
 
     Returns:
-        LayoutResult indicating success/failure
+        LayoutResult with success status. If successful, algorithm_used="undo" and
+        layout_time_ms indicates how long the undo operation took.
+
+    Example:
+        >>> result1 = apply_layout(view)
+        >>> # Try a different algorithm
+        >>> result2 = undo_layout(view)
+        >>> if result2.success:
+        ...     config = LayoutConfig(algorithm="hierarchical")
+        ...     result3 = apply_layout(view, config)
+
+    Note:
+        Undo support requires integration with pyArchimate's transaction system.
+        Currently returns success; full transaction rollback planned for Phase 8.
     """
     start_time = time.time()
 

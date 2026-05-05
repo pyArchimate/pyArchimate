@@ -1,18 +1,59 @@
-# Implementation Plan: View Auto-Layout and Auto-Format (SVG Enhancement)
 # Implementation Plan: View Auto-Layout and Auto-Format
 
 **Branch**: `011-view-auto-layout` | **Date**: 2026-05-04 | **Spec**: `specs/011-view-auto-layout/spec.md`  
-**Status**: Update Phase (SVG Export enhancement clarifications integrated)  
-**Input**: Clarifications from Session 2026-05-04 (SVG Symbol Enhancement) + Existing Feature (P1-P2 User Stories 1-5)
+**Status**: Phase 7 (Polish & Documentation) — Core implementation complete  
+**Release Status**: 🔶 BETA
 
 ## Summary
 
-Implement auto-layout and auto-format functionality for ArchiMate views with two layout algorithms (force-directed and
-hierarchical), mandatory ArchiMate layer respecting, orthogonal connection routing with intelligent label placement, and
-advanced configuration options. MVP targets force-directed algorithm with hierarchical support. All algorithms must
-enforce Business→Application→Technology layer constraints and achieve <2s layout time for 300-element views.
-Implement `View.to_svg(filepath=None)` method to export ArchiMate diagrams as self-contained SVG images. SVG renders nodes as white rectangles with black borders at exact x/y/w/h coordinates, connections as orthogonal polylines with arrowheads, labels showing relationship type names, and word-wrapped element names vertically centered. This enables programmatic verification of layouts and removes dependency on Archi for visual inspection, valuable for CI/CD workflows. User Story 5 priority: P2.
-Enhance User Story 5 (SVG Export) to render ArchiMate diagrams with real element-type-specific symbols and standard palette colors, matching Archi tool visual fidelity. The existing implementation (87/110 tasks complete, Phases 1-6B done) uses simple white rectangles; this enhancement adds embedded SVG symbol definitions for all 30+ ArchiMate element types, ArchiMate standard color mapping, and per-element color override support.
+Implement auto-layout and auto-format functionality for ArchiMate views with:
+- **Two layout algorithms**: Force-directed (physics-based) and hierarchical (Sugiyama layered)
+- **Mandatory layer respecting**: Business→Application→Technology layer constraints
+- **Connection routing**: Orthogonal primary, ±45° fallback with intelligent label placement
+- **SVG export**: `View.to_svg(filepath=None)` with ArchiMate-specific symbols and standard colors
+- **Advanced configuration**: Spacing, margins, alignment, element exclusion, layer priority, routing style
+- **Performance target**: <2 seconds for 300-element views, <5 seconds for 500-element views
+
+**Current Status**: Phases 1-6C complete (95/126 tasks, 75%). Phase 7 (Polish & Documentation) in progress.
+
+---
+
+## 🔶 Beta Release Plan
+
+This feature will be released as **BETA** in version X.Y.0-beta.1:
+
+### Beta Scope
+
+**Included in Beta**:
+- Force-directed and hierarchical layout algorithms
+- SVG export with ArchiMate symbols and colors
+- Configuration options (spacing, margin, alignment, etc.)
+- Undo/rollback support
+- Full test coverage (unit, integration, BDD)
+
+**Known Beta Limitations**:
+- Performance optimization in progress (target: <2s for 300 elements)
+- Locked/fixed elements not yet supported
+- Complex edge cases (circular deps, extreme size variance) have basic support
+- Some connection label overlap scenarios not handled
+
+### Beta Feedback Process
+
+Users can provide feedback via:
+1. GitHub issues (with "beta" label)
+2. Email to project maintainers
+3. Testing reports with reproduction steps
+
+### Beta → Stable Timeline
+
+- **Beta period**: 1-2 releases (estimated 4-8 weeks)
+- **Stable release gates**:
+  - Performance targets met (<2s for 300 elements)
+  - All edge cases handled gracefully
+  - User feedback incorporated
+  - API stability confirmed
+
+---
 
 ## Technical Context
 
@@ -70,15 +111,7 @@ specs/011-view-auto-layout/
 │   └── svg-export.md               # Phase 1 output (SVG contract with symbol details)
 ├── checklists/
 │   └── requirements.md              # Specification quality checklist (100% complete)
-└── tasks.md                         # Phase 2 output (110 tasks: 87 complete, 32 remaining)
-├── spec.md              # Feature specification (complete)
-├── plan.md              # This file (/speckit-plan command output)
-├── research.md          # Phase 0 output (to be generated)
-├── data-model.md        # Phase 1 output (to be generated)
-├── quickstart.md        # Phase 1 output (to be generated)
-├── contracts/           # Phase 1 output (to be generated)
-│   └── layout-api.md    # Public API contract for layout functions
-└── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
+└── tasks.md                         # Phase 2 output (126 tasks: 95 complete, 31 remaining)
 ```
 
 ### Source Code Structure
@@ -87,18 +120,6 @@ specs/011-view-auto-layout/
 src/pyArchimate/
 ├── view/
 │   ├── __init__.py                  # View class with to_svg() method
-│   ├── layout/
-│   │   ├── export/
-│   │   │   ├── svg_export.py       # SVGExportService (enhanced with symbols)
-│   │   │   ├── symbols/
-│   │   │   │   ├── __init__.py     # Symbol registry
-│   │   │   │   ├── archimate_symbols.py  # NEW: 30+ element type symbol definitions
-│   │   │   │   └── color_palette.py     # NEW: ArchiMate standard color mapping
-│   │   │   └── utils/
-│   │   │       └── svg_utils.py    # NEW: Helper functions for symbol rendering
-│   │   └── ...                      # Existing layout modules (unchanged)
-│   └── ...
-└── ...
 │   ├── layout/                  # NEW: Layout module
 │   │   ├── __init__.py
 │   │   ├── core.py              # LayoutConfig, LayoutResult, base layout interface
@@ -135,10 +156,6 @@ tests/
 │   │   ├── test_format.py
 │   │   └── test_svg_export.py
 │   └── ...existing tests...
-│   └── layout/
-│       ├── test_svg_export.py      # Updated: Symbol rendering tests
-│       ├── test_archimate_symbols.py   # NEW: Symbol definition validation
-│       └── test_color_palette.py   # NEW: Color mapping tests
 ├── integration/
 │   ├── test_layout_round_trip.py # Verify layout preserves model integrity
 │   ├── test_undo_rollback.py     # Test undo/rollback behavior
@@ -146,13 +163,9 @@ tests/
 │   └── ...existing tests...
 └── features/
     └── layout/
-        ├── auto_layout.feature    # BDD: auto-layout user stories
-        └── auto_format.feature    # BDD: auto-format user stories
-│   └── test_svg_export.py          # Updated: Symbol integration tests
-├── features/
-│   └── layout/
-│       └── svg_export.feature      # Updated: 30+ element type scenarios
-└── ...
+        ├── auto_layout.feature      # BDD: auto-layout user stories
+        ├── auto_format.feature      # BDD: auto-format user stories
+        └── svg_export.feature       # BDD: SVG export scenarios
 ```
 
 ---

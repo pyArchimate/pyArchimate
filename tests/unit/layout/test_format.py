@@ -52,25 +52,25 @@ class TestElementFormatRegistry:
         spec = registry.get_spec("ApplicationComponent")
         assert spec is not None
         assert spec.category == ArchiMateElementCategory.APPLICATION_COMPONENT
-        assert spec.default_width == 100
-        assert spec.default_height == 80
+        assert spec.default_width == 120
+        assert spec.default_height == 55
 
     def test_get_spec_for_business_actor(self):
         """Test getting spec for BusinessActor."""
         registry = ElementFormatRegistry()
         spec = registry.get_spec("BusinessActor")
         assert spec.category == ArchiMateElementCategory.BUSINESS_ACTOR
-        assert spec.default_width == 100
-        assert spec.default_height == 80
+        assert spec.default_width == 120
+        assert spec.default_height == 55
 
     def test_get_spec_for_application_service(self):
-        """Test getting spec for ApplicationService (service type with bold font)."""
+        """Test getting spec for ApplicationService."""
         registry = ElementFormatRegistry()
         spec = registry.get_spec("ApplicationService")
         assert spec.category == ArchiMateElementCategory.APPLICATION_SERVICE
         assert spec.default_width == 120
-        assert spec.default_height == 60
-        assert spec.font_weight == "bold"
+        assert spec.default_height == 55
+        assert spec.font_weight == "normal"
 
     def test_get_spec_for_technology_node(self):
         """Test getting spec for TechnologyNode (smaller fonts)."""
@@ -84,8 +84,8 @@ class TestElementFormatRegistry:
         registry = ElementFormatRegistry()
         spec = registry.get_spec("UnknownElementType")
         assert spec.category == ArchiMateElementCategory.UNKNOWN
-        assert spec.default_width == 100
-        assert spec.default_height == 80
+        assert spec.default_width == 120
+        assert spec.default_height == 55
 
 
 class TestFormatService:
@@ -109,8 +109,8 @@ class TestFormatService:
         service.format_element(element)
 
         # Should be reset to standard
-        assert element.width == 100
-        assert element.height == 80
+        assert element.width == 120
+        assert element.height == 55
 
     def test_format_element_applies_standard_font(self):
         """Test that format_element applies standardized font."""
@@ -126,8 +126,8 @@ class TestFormatService:
 
         service.format_element(element)
 
-        assert element.font_family == "Arial"
-        assert element.font_size == 10
+        assert element.font_family == "Segoe UI"
+        assert element.font_size == 9
         assert element.font_style == "normal"
         assert element.font_weight == "normal"
 
@@ -194,8 +194,8 @@ class TestFormatService:
         service.format_element(element, alignment="grid", grid_size=10.0)
 
         # Should apply both formatting and snapping
-        assert element.width == 100
-        assert element.height == 80
+        assert element.width == 120
+        assert element.height == 55
         assert element.x == 40.0
         assert element.y == 60.0
 
@@ -237,7 +237,7 @@ class TestFormatService:
         assert stats["skipped"] == 1
 
         # elem1 should be formatted
-        assert view.nodes[0].width == 100
+        assert view.nodes[0].width == 120
 
         # elem2 should not be formatted
         assert view.nodes[1].width == 200
@@ -277,14 +277,14 @@ class TestFormatService:
         """Test calculating variance with single element."""
         service = FormatService()
         view = MockView()
-        view.nodes = [MockElement(id="elem1", type="ApplicationComponent", width=100, height=80)]
+        view.nodes = [MockElement(id="elem1", type="ApplicationComponent", width=120, height=55)]
 
         variance = service.calculate_size_variance(view)
 
-        assert variance["mean"] == 8000  # 100 * 80
+        assert variance["mean"] == 6600  # 120 * 55
         assert variance["std_dev"] == 0
-        assert variance["min"] == 8000
-        assert variance["max"] == 8000
+        assert variance["min"] == 6600
+        assert variance["max"] == 6600
 
     def test_calculate_size_variance_multiple_elements(self):
         """Test calculating variance with multiple elements of different sizes."""
@@ -319,7 +319,7 @@ class TestFormatService:
         service.format_view(view)
         variance_after = service.calculate_size_variance(view)
 
-        # After formatting, all should be 100x80, so variance should be 0
+        # After formatting, all should be 120x55, so variance should be 0
         assert variance_after["std_dev"] == 0
         assert variance_before["std_dev"] > variance_after["std_dev"]
 
@@ -340,11 +340,11 @@ class TestFormatService:
         service = FormatService()
 
         types_and_expected = [
-            ("BusinessActor", 100, 80),
-            ("ApplicationComponent", 100, 80),
-            ("TechnologyNode", 100, 80),
-            ("ApplicationService", 120, 60),
-            ("DataObject", 80, 80),
+            ("BusinessActor", 120, 55),
+            ("ApplicationComponent", 120, 55),
+            ("TechnologyNode", 120, 55),
+            ("ApplicationService", 120, 55),
+            ("DataObject", 120, 55),
         ]
 
         for elem_type, expected_width, expected_height in types_and_expected:

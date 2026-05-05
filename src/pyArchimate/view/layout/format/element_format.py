@@ -315,7 +315,7 @@ class FormatService:
         for element in elements:
             element_id = getattr(element, "id", None)
 
-            if element_id in excluded_element_ids:
+            if element_id is not None and (str(element_id) in excluded_element_ids or element_id in excluded_element_ids):
                 skipped_count += 1
                 continue
 

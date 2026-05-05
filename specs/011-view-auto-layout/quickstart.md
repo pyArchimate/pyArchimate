@@ -1,6 +1,9 @@
 # Quickstart: Auto-Layout and Auto-Format
 
-**Version**: 1.0 | **Date**: 2026-05-03
+**Version**: 1.0 | **Date**: 2026-05-03  
+**⚠️ Status**: BETA — Features are stable but may evolve. Feedback welcome.
+
+---
 
 ## 5-Minute Overview
 

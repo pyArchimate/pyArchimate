@@ -7,6 +7,40 @@
 to auto-format and auto-layout a view. before clarifying and making plans and tasks, I want to write a
 auto-layout-specifications.md documents containing the rules to apply when autoformatting"
 
+---
+
+## ⚠️ BETA FEATURE NOTICE
+
+**Auto-Layout and SVG Export are BETA features.**
+
+The following functionality is currently in beta and subject to change:
+- **Auto-Layout** (User Stories 1-3): Force-directed and hierarchical layout algorithms
+- **SVG Export** (User Story 5): `View.to_svg()` method with ArchiMate symbols and styling
+
+### Beta Characteristics
+
+**What's stable**:
+- Core API signatures (`apply_layout()`, `apply_format()`, `to_svg()`)
+- Basic functionality for typical use cases (100-500 element views)
+- SVG output format (SVG 1.1 compatible)
+
+**What may change**:
+- Layout algorithm parameters and tuning
+- Configuration option names and default values
+- SVG rendering details (symbol definitions, colors, label placement)
+- Performance characteristics
+- Error handling and edge case behavior
+
+**Known Limitations**:
+- Locked/fixed element handling deferred to Phase 8
+- Performance not yet optimized for >500 elements
+- Some complex edge cases (circular dependencies, extreme size variance) have minimal testing
+- Connection label overlap detection not implemented
+
+**Feedback Welcome**: Users are encouraged to report issues and suggest improvements. Beta features will be refined based on user feedback before final release.
+
+---
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Auto-Layout Messy Diagram (Priority: P1)
@@ -267,6 +301,26 @@ All layout algorithms MUST respect the natural layering structure of ArchiMate:
   additional algorithms in future releases
 - **Exclusions**: Auto-layout does not modify element documentation, relationships to elements outside the view, or
   model integrity; it only adjusts visualization
+
+## Terminology Glossary
+
+Key terms used throughout this specification and implementation:
+
+| Term | Definition | Context |
+|------|-----------|---------|
+| **Connection** | A directed relationship between two nodes/elements (e.g., "Serving", "Composition"). Rendered as a polyline with arrowhead in SVG export. | All phases (layout, routing, export) |
+| **Node** | A visual representation of an element in the layout system. Has position (x, y), size (w, h), and linked to element properties (name, type, documentation). | Phases 1-4 (layout algorithms) |
+| **Element** | An ArchiMate element instance in the specification domain (e.g., BusinessActor, ApplicationComponent). Mapped to Node in layout context. | Specification & export |
+| **Orthogonal Routing** | Connection routing using only horizontal (0°) and vertical (±90°) angles. Primary routing style per FR-007. | Phase 3 (routing) |
+| **Polyline** | An SVG path consisting of multiple line segments (via bendpoints). Represents a routed connection between node boundaries. | Phase 5 (SVG export) |
+| **Bendpoint** | An intermediate coordinate in a polyline path that defines routing direction changes. Stored and used to reconstruct visual paths. | Phases 3-5 (routing & export) |
+| **Symbol** | An ArchiMate-specific SVG shape representing an element type (e.g., small diamond for BusinessActor). Defined in `<symbol>` elements within SVG `<defs>` block. | Phase 6B-Enhancement (SVG) |
+| **Layer Constraint** | A rule enforcing ArchiMate natural layer ordering: Business ≥ Application ≥ Technology. Mandatory in all layout algorithms per FR-011. | Phases 2-5 (all algorithms) |
+| **Layout Algorithm** | Computational method for positioning nodes: force-directed (physics simulation) or hierarchical (Sugiyama/layer-based). | Phases 3 & 5 |
+| **View** | Container holding elements (nodes), connections, and visual properties. Target of auto-layout and auto-format operations. | All phases |
+| **SVG Export** | Process of rendering a view as a self-contained SVG image with symbols, colors, and orthogonal routing. Output of User Story 5. | Phases 5-6C |
+| **Arrowhead/Marker** | SVG `<marker>` element representing directional indicator at target end of a connection. Indicates relationship direction. | Phase 6B-Core (SVG) |
+| **Background Rectangle** | White `<rect>` covering entire SVG canvas (0,0 to viewBox width/height). Ensures self-contained, portable SVG output per FR-016. | Phase 6B-Core (SVG) |
 
 ## Deliverables
 
