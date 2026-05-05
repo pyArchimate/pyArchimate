@@ -24,6 +24,8 @@ class SVGExportService:
     TEXT_PADDING = 4  # pixels inside element rectangles
     ARROWHEAD_SIZE = 8  # size of arrowhead marker
     LABEL_PADDING = 2  # padding inside label background
+    ENDPOINT_SPREAD_STEP = 12.0  # pixels between parallel connection anchors
+    EDGE_CORNER_MARGIN = 12.0  # keep endpoint spread away from corners
 
     def __init__(self) -> None:
         """Initialize SVG export service."""
@@ -60,11 +62,14 @@ class SVGExportService:
         # Add white background rectangle
         self._add_background(svg, svg_width, svg_height)
 
+        # Compute temporary endpoint spreads so repeated connections do not stack
+        endpoint_spreads = self._compute_endpoint_spreads(view)
+
         # Render connections/relationships first (so they appear behind nodes)
         # Try new rendering with relationship styles, fall back to basic rendering if needed
         relationship_service = RelationshipStyleService()
         for conn in view.conns:
-            self._render_relationship(svg, conn, view.nodes_dict, relationship_service)
+            self._render_relationship(svg, conn, view.nodes_dict, relationship_service, endpoint_spreads)
 
         # Render nodes on top
         for node in view.nodes:
@@ -274,14 +279,14 @@ class SVGExportService:
             'stroke-width': '1',
         })
 
-        # Text with element name (positioned below/beside symbol)
+        # Text with element name centered inside the symbol
         element_name = getattr(node, 'name', getattr(node, 'label', ''))
         if element_name:
             self._render_wrapped_text(
                 g,
                 element_name,
                 x + w / 2,  # center x
-                y + h + 15,  # below symbol
+                y + h / 2,  # inside symbol
                 w - 2 * self.TEXT_PADDING,  # available width
             )
 
@@ -306,7 +311,7 @@ class SVGExportService:
         lines = self._word_wrap_text(text, max_width)
 
         # Calculate vertical positioning
-        line_height = 12  # pixels
+        line_height = 11  # pixels
         total_height = len(lines) * line_height
         start_y = center_y - total_height / 2
 
@@ -455,6 +460,7 @@ class SVGExportService:
         conn: Any,
         nodes_dict: dict[str, Any],
         relationship_service: RelationshipStyleService,
+            endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]],
     ) -> None:
         """Render a single relationship with ArchiMate styling.
 
@@ -484,6 +490,8 @@ class SVGExportService:
             source_node,
             target_node,
             bendpoints,
+            endpoint_spreads.get((source_uuid, 'src', id(conn)), (0.0, 0.0)),
+            endpoint_spreads.get((target_uuid, 'tgt', id(conn)), (0.0, 0.0)),
         )
 
         if len(points) < 2:
@@ -499,7 +507,7 @@ class SVGExportService:
 
         # Fall back to basic connection rendering if no style found
         if not relationship_style:
-            self._render_connection(svg, conn, nodes_dict)
+            self._render_connection(svg, conn, nodes_dict, endpoint_spreads)
             return
 
         # Apply per-relationship overrides if available
@@ -529,29 +537,6 @@ class SVGExportService:
 
         ET.SubElement(svg, 'polyline', polyline_attrs)
 
-        # Render custom arrow/diamond markers as explicit path elements
-        if len(points) >= 2:
-            # End marker
-            if relationship_style.marker_end:
-                self._render_marker_shape(
-                    svg,
-                    points[-1],
-                    points[-2],
-                    relationship_style.arrow_type,
-                    stroke_color,
-                    'end',
-                )
-            # Start marker
-            if relationship_style.marker_start:
-                self._render_marker_shape(
-                    svg,
-                    points[0],
-                    points[1],
-                    relationship_style.arrow_type,
-                    stroke_color,
-                    'start',
-                )
-
         # Render relationship label
         label_text = self._get_short_type_name(rel_type)
         if label_text and len(points) >= 2:
@@ -562,6 +547,7 @@ class SVGExportService:
         svg: ET.Element,
         conn: Any,
         nodes_dict: dict[str, Any],
+            endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]],
     ) -> None:
         """Render a single connection as a polyline with optional label.
 
@@ -590,6 +576,8 @@ class SVGExportService:
             source_node,
             target_node,
             bendpoints,
+            endpoint_spreads.get((source_uuid, 'src', id(conn)), (0.0, 0.0)),
+            endpoint_spreads.get((target_uuid, 'tgt', id(conn)), (0.0, 0.0)),
         )
 
         if len(points) < 2:
@@ -617,6 +605,8 @@ class SVGExportService:
         source_node: Any,
         target_node: Any,
         bendpoints: list[Any],
+            source_spread: tuple[float, float] = (0.0, 0.0),
+            target_spread: tuple[float, float] = (0.0, 0.0),
     ) -> list[Tuple[float, float]]:
         """Get polyline points clipped at node boundary edges.
 
@@ -634,12 +624,24 @@ class SVGExportService:
         tx = float(getattr(target_node, 'x', 0)) + float(getattr(target_node, 'w', 120)) / 2
         ty = float(getattr(target_node, 'y', 0)) + float(getattr(target_node, 'h', 55)) / 2
 
+        sx += source_spread[0]
+        sy += source_spread[1]
+        tx += target_spread[0]
+        ty += target_spread[1]
+
         # Get node bounds
         source_bounds = self._get_node_bounds(source_node)
         target_bounds = self._get_node_bounds(target_node)
 
-        # Build full polyline (source center → bendpoints → target center)
-        full_points = [(sx, sy)]
+        # Prefer a fixed edge side for each endpoint so anchors stay away from corners.
+        source_side = self._preferred_boundary_side(source_bounds, (tx, ty), exit_from=True)
+        target_side = self._preferred_boundary_side(target_bounds, (sx, sy), exit_from=True)
+
+        start_point = self._boundary_anchor(source_bounds, source_side, source_spread)
+        end_point = self._boundary_anchor(target_bounds, target_side, target_spread)
+
+        # Build full polyline (source anchor → bendpoints → target anchor)
+        full_points = [start_point]
 
         # Add bendpoints
         for bp in bendpoints:
@@ -647,62 +649,233 @@ class SVGExportService:
             by = float(getattr(bp, 'y', 0))
             full_points.append((bx, by))
 
-        full_points.append((tx, ty))
+        full_points.append(end_point)
 
-        # Clip first segment at source boundary
+        # Insert source boundary stub so the first segment exits orthogonally.
         if len(full_points) >= 2:
-            start_point = self._clip_line_at_rectangle(
-                full_points[0],
-                full_points[1],
-                source_bounds,
-                exit_from=True,
-            )
-            full_points[0] = start_point
+            full_points.insert(1, self._boundary_stub(full_points[0], source_side))
 
-        # Clip last segment at target boundary
+        # Preserve the chosen target side for the final segment and marker orientation.
+        target_orientation = 'horizontal' if target_side in ('left', 'right') else 'vertical'
         if len(full_points) >= 2:
-            end_point = self._clip_line_at_rectangle(
-                full_points[-2],
-                full_points[-1],
-                target_bounds,
-                exit_from=False,
-            )
-
-            # Extend endpoint by ~8 pixels in the direction away from the previous point
-            # This ensures SVG markers (arrows, diamonds) are fully visible outside the symbol
-            prev_point = full_points[-2]
-            dx = end_point[0] - prev_point[0]
-            dy = end_point[1] - prev_point[1]
-            dist = (dx*dx + dy*dy) ** 0.5
-
-            if dist > 0:
-                # Extend by 8 pixels to ensure markers are fully visible
-                extension = 8.0
-                end_point = (
-                    end_point[0] + (dx / dist) * extension,
-                    end_point[1] + (dy / dist) * extension
-                )
-
             full_points[-1] = end_point
 
-        # Extend start point similarly for marker_start visibility
-        if len(full_points) >= 2:
-            start_point = full_points[0]
-            next_point = full_points[1]
-            dx = next_point[0] - start_point[0]
-            dy = next_point[1] - start_point[1]
-            dist = (dx*dx + dy*dy) ** 0.5
+        source_orientation = 'horizontal' if source_side in ('top', 'bottom') else 'vertical'
 
-            if dist > 0:
-                # Extend backward by 8 pixels to ensure start markers are visible
-                extension = 8.0
-                start_point = (
-                    start_point[0] - (dx / dist) * extension,
-                    start_point[1] - (dy / dist) * extension
-                )
-                full_points[0] = start_point
+        full_points = self._orthogonalize_polyline_points(
+            full_points,
+            target_orientation=target_orientation,
+            source_orientation=source_orientation,
+        )
 
         return full_points
+
+    def _orthogonalize_polyline_points(
+            self,
+            points: list[Tuple[float, float]],
+            target_orientation: str = 'vertical',
+            source_orientation: str = 'vertical',
+    ) -> list[Tuple[float, float]]:
+        """Insert corners so each segment is axis-aligned.
+
+        The SVG export should use only horizontal and vertical segments.
+        Existing bendpoints are preserved, but diagonal segments are split
+        into L-shaped turns.
+        """
+        if len(points) < 2:
+            return points
+
+        orthogonal: list[Tuple[float, float]] = [points[0]]
+        for idx, (prev, cur) in enumerate(zip(points, points[1:])):
+            if prev[0] == cur[0] or prev[1] == cur[1]:
+                orthogonal.append(cur)
+                continue
+
+            if idx == len(points) - 2:
+                corner = (prev[0], cur[1]) if target_orientation == 'horizontal' else (cur[0], prev[1])
+            elif idx == 0:
+                corner = (prev[0], cur[1]) if source_orientation == 'horizontal' else (cur[0], prev[1])
+            elif abs(cur[0] - prev[0]) >= abs(cur[1] - prev[1]):
+                corner = (cur[0], prev[1])
+            else:
+                corner = (prev[0], cur[1])
+
+            if orthogonal[-1] != corner:
+                orthogonal.append(corner)
+            orthogonal.append(cur)
+
+        return orthogonal
+
+    @staticmethod
+    def _boundary_side(
+            bounds: Tuple[float, float, float, float],
+            point: Tuple[float, float],
+    ) -> str | None:
+        """Return which rectangle edge a point lies on."""
+        x1, y1, x2, y2 = bounds
+        px, py = point
+        if abs(py - y1) < 0.01:
+            return 'top'
+        if abs(py - y2) < 0.01:
+            return 'bottom'
+        if abs(px - x1) < 0.01:
+            return 'left'
+        if abs(px - x2) < 0.01:
+            return 'right'
+        return None
+
+    @staticmethod
+    def _boundary_stub(
+            point: Tuple[float, float],
+            side: str,
+            length: float = 8.0,
+    ) -> Tuple[float, float]:
+        """Create a short orthogonal stub away from a boundary edge."""
+        x, y = point
+        if side == 'top':
+            return x, y - length
+        if side == 'bottom':
+            return x, y + length
+        if side == 'left':
+            return x - length, y
+        if side == 'right':
+            return x + length, y
+        return point
+
+    def _boundary_anchor(
+            self,
+            bounds: Tuple[float, float, float, float],
+            side: str,
+            spread: tuple[float, float],
+    ) -> Tuple[float, float]:
+        """Place an anchor on the requested edge, clamped away from corners."""
+        x1, y1, x2, y2 = bounds
+        margin = self.EDGE_CORNER_MARGIN
+        if side in ('left', 'right'):
+            axis_value = (y1 + y2) / 2.0 + spread[1]
+            y = max(y1 + margin, min(y2 - margin, axis_value))
+            x = x1 if side == 'left' else x2
+            return x, y
+
+        axis_value = (x1 + x2) / 2.0 + spread[0]
+        x = max(x1 + margin, min(x2 - margin, axis_value))
+        y = y1 if side == 'top' else y2
+        return x, y
+
+    @staticmethod
+    def _preferred_boundary_side(
+            bounds: Tuple[float, float, float, float],
+            other_point: Tuple[float, float],
+            exit_from: bool = True,
+    ) -> str:
+        """Pick the edge side that best matches the connection direction."""
+        x1, y1, x2, y2 = bounds
+        cx = (x1 + x2) / 2.0
+        cy = (y1 + y2) / 2.0
+        ox, oy = other_point
+        dx = ox - cx
+        dy = oy - cy
+
+        if abs(dx) >= abs(dy):
+            if dx >= 0:
+                return 'right' if exit_from else 'left'
+            return 'left' if exit_from else 'right'
+
+        if dy >= 0:
+            return 'bottom' if exit_from else 'top'
+        return 'top' if exit_from else 'bottom'
+
+    @staticmethod
+    def _infer_boundary_orientation(
+            bounds: Tuple[float, float, float, float],
+            point: Tuple[float, float],
+            exit_from: bool = False,
+    ) -> str:
+        """Infer whether a boundary point lies on a horizontal or vertical edge."""
+        x1, y1, x2, y2 = bounds
+        px, py = point
+        if abs(px - x1) < 0.01 or abs(px - x2) < 0.01:
+            return 'horizontal'
+        if abs(py - y1) < 0.01 or abs(py - y2) < 0.01:
+            return 'vertical'
+        return 'vertical' if exit_from else 'horizontal'
+
+    def _compute_endpoint_spreads(
+            self,
+            view: Any,
+    ) -> dict[tuple[str, str, int], tuple[float, float]]:
+        """Compute temporary source/target offsets for repeated connections.
+
+        The calculation mirrors the layout layer's spreading logic, but it is
+        kept local to SVG export so the model itself is not mutated.
+        """
+        endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]] = {}
+        nodes_dict = getattr(view, 'nodes_dict', {})
+        conns = getattr(view, 'conns', [])
+
+        for node_uuid, node in nodes_dict.items():
+            src_conns = [c for c in conns if getattr(c, '_source', None) == node_uuid]
+            if len(src_conns) > 1:
+                src_conns_sorted = sorted(
+                    src_conns,
+                    key=lambda c: float(
+                        getattr(nodes_dict.get(getattr(c, '_target', None)), 'cx', getattr(node, 'cx', 0))),
+                )
+                for i, conn in enumerate(src_conns_sorted):
+                    target_node = nodes_dict.get(getattr(conn, '_target', None))
+                    if not target_node:
+                        continue
+                    dy = float(getattr(target_node, 'cy', 0)) - float(getattr(node, 'cy', 0))
+                    dx = float(getattr(target_node, 'cx', 0)) - float(getattr(node, 'cx', 0))
+                    spread_val = self._distributed_spread(
+                        i,
+                        len(src_conns_sorted),
+                        float(getattr(node, 'w', 120)) if abs(dy) > abs(dx) else float(getattr(node, 'h', 55)),
+                    )
+                    if abs(dy) > abs(dx):
+                        spread_x, spread_y = spread_val, 0.0
+                    else:
+                        spread_x, spread_y = 0.0, spread_val
+                    endpoint_spreads[(node_uuid, 'src', id(conn))] = (spread_x, spread_y)
+
+            tgt_conns = [c for c in conns if getattr(c, '_target', None) == node_uuid]
+            if len(tgt_conns) > 1:
+                tgt_conns_sorted = sorted(
+                    tgt_conns,
+                    key=lambda c: float(
+                        getattr(nodes_dict.get(getattr(c, '_source', None)), 'cx', getattr(node, 'cx', 0))),
+                )
+                for i, conn in enumerate(tgt_conns_sorted):
+                    source_node = nodes_dict.get(getattr(conn, '_source', None))
+                    if not source_node:
+                        continue
+                    dy = float(getattr(node, 'cy', 0)) - float(getattr(source_node, 'cy', 0))
+                    dx = float(getattr(node, 'cx', 0)) - float(getattr(source_node, 'cx', 0))
+                    spread_val = self._distributed_spread(
+                        i,
+                        len(tgt_conns_sorted),
+                        float(getattr(node, 'w', 120)) if abs(dy) > abs(dx) else float(getattr(node, 'h', 55)),
+                    )
+                    if abs(dy) > abs(dx):
+                        spread_x, spread_y = spread_val, 0.0
+                    else:
+                        spread_x, spread_y = 0.0, spread_val
+                    endpoint_spreads[(node_uuid, 'tgt', id(conn))] = (spread_x, spread_y)
+
+        return endpoint_spreads
+
+    def _distributed_spread(self, index: int, count: int, edge_span: float) -> float:
+        """Return a centered spread value constrained to the middle of an edge."""
+        if count <= 1:
+            return 0.0
+
+        usable_span = max(0.0, edge_span - 2 * self.EDGE_CORNER_MARGIN)
+        if usable_span <= 0.0:
+            return 0.0
+
+        step = min(self.ENDPOINT_SPREAD_STEP, usable_span / max(1, count - 1))
+        total_span = step * (count - 1)
+        return -total_span / 2.0 + index * step
 
     def _get_node_bounds(self, node: Any) -> Tuple[float, float, float, float]:
         """Get node bounds using symbol bounding box when available.

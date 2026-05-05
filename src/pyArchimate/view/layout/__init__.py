@@ -241,6 +241,20 @@ def _apply_orthogonal_routing(view: Any) -> None:
     from collections import defaultdict
 
     _SPREAD_STEP = 12.0  # px between parallel horizontal bridges
+    _EDGE_CORNER_MARGIN = 12.0  # keep connection anchors away from corners
+
+    def _distributed_spread(index: int, count: int, edge_span: float) -> float:
+        """Return a centered spread value constrained to the middle of an edge."""
+        if count <= 1:
+            return 0.0
+
+        usable_span = max(0.0, edge_span - 2 * _EDGE_CORNER_MARGIN)
+        if usable_span <= 0.0:
+            return 0.0
+
+        step = min(_SPREAD_STEP, usable_span / max(1, count - 1))
+        total_span = step * (count - 1)
+        return -total_span / 2.0 + index * step
 
     # Compute endpoint spreads: for each node, distribute its incoming/outgoing connections
     # Maps (node_uuid, 'src'/'tgt', conn_id) → (spread_x, spread_y) for edge distribution
@@ -262,7 +276,11 @@ def _apply_orthogonal_routing(view: Any) -> None:
                     dy = float(target_node.cy) - float(node.cy)
                     dx = float(target_node.cx) - float(node.cx)
                     # Spread horizontally if vertical, vertically if horizontal
-                    spread_val = (i - (len(src_conns_sorted) - 1) / 2.0) * _SPREAD_STEP
+                    spread_val = _distributed_spread(
+                        i,
+                        len(src_conns_sorted),
+                        float(getattr(node, 'w', 120)) if abs(dy) > abs(dx) else float(getattr(node, 'h', 55)),
+                    )
                     if abs(dy) > abs(dx):  # Mostly vertical
                         spread_x, spread_y = spread_val, 0.0
                     else:  # Mostly horizontal
@@ -284,7 +302,11 @@ def _apply_orthogonal_routing(view: Any) -> None:
                     dy = float(node.cy) - float(source_node.cy)
                     dx = float(node.cx) - float(source_node.cx)
                     # Spread horizontally if vertical, vertically if horizontal
-                    spread_val = (i - (len(tgt_conns_sorted) - 1) / 2.0) * _SPREAD_STEP
+                    spread_val = _distributed_spread(
+                        i,
+                        len(tgt_conns_sorted),
+                        float(getattr(node, 'w', 120)) if abs(dy) > abs(dx) else float(getattr(node, 'h', 55)),
+                    )
                     if abs(dy) > abs(dx):  # Mostly vertical
                         spread_x, spread_y = spread_val, 0.0
                     else:  # Mostly horizontal

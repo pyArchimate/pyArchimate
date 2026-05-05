@@ -29,7 +29,7 @@ def _parse_node_type(parent: Any, child: Any, xsi: str) -> Any:
                 if node.concept.prop('label') is not None:
                     node.label_expression = str(node.concept.prop('label'))
             except Exception as e:
-                log.debug(f"Failed to set label expression for node {node.id}: {e}")
+                log.debug(f"Failed to set label expression for node {getattr(node, 'uuid', None)}: {e}")
     elif type_n == 'Group':
         node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'),
                           node_type='Container', label=child.get('name'))
