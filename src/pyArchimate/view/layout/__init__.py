@@ -497,9 +497,7 @@ def _apply_orthogonal_routing(view: Any) -> None:
         sx, sy = float(source_node.cx), float(source_node.cy)
         tx, ty = float(target_node.cx), float(target_node.cy)
         sh_half = float(source_node.h) / 2.0
-        sw_half = float(source_node.w) / 2.0
         th_half = float(target_node.h) / 2.0
-        tw_half = float(target_node.w) / 2.0
 
         source_bounds = (float(source_node.x), float(source_node.y),
                          float(source_node.x + source_node.w), float(source_node.y + source_node.h))

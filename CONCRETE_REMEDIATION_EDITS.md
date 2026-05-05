@@ -15,20 +15,21 @@
 Find the `apply_format()` function in `src/pyArchimate/view/layout/__init__.py` (approximately line 50-80)
 
 ### Before
+
 ```python
 def apply_format(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResult:
     """Apply formatting to view elements."""
     config = config or LayoutConfig()
-    
+  
     try:
         start_time = time.time()
-        
+  
         # Format all elements in view
         format_service = FormatService(config)
         result = format_service.apply(view)
-        
+  
         layout_time_ms = (time.time() - start_time) * 1000
-        
+  
         return LayoutResult(
             success=True,
             view_id=view.id,
@@ -47,31 +48,32 @@ def apply_format(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResu
 ```
 
 ### After
+
 ```python
 def apply_format(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResult:
     """Apply formatting to view elements, respecting excluded_element_ids."""
     config = config or LayoutConfig()
-    
+  
     try:
         start_time = time.time()
-        
+  
         # Filter elements to format (exclude those in config.excluded_element_ids)
         excluded_ids = set(config.excluded_element_ids or [])
         nodes_to_format = [
-            node for node in view.nodes 
+            node for node in view.nodes
             if getattr(node, 'id', None) not in excluded_ids
         ]
-        
+  
         # Format filtered elements
         format_service = FormatService(config)
         result = format_service.apply_filtered(view, nodes_to_format)
-        
+  
         layout_time_ms = (time.time() - start_time) * 1000
-        
+  
         # Track skipped elements in quality metrics
         quality_metrics = result.quality_metrics or {}
         quality_metrics["skipped"] = len(view.nodes) - len(nodes_to_format)
-        
+  
         return LayoutResult(
             success=True,
             view_id=view.id,
@@ -95,13 +97,14 @@ def apply_format(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResu
 Find the `FormatService.apply()` method (approximately line 50-100)
 
 **Add new method**:
+
 ```python
 def apply_filtered(self, view: Any, nodes_to_format: List[Any]) -> "FormatResult":
     """Apply formatting to a filtered list of nodes only."""
     skipped_count = 0
     formatted_count = 0
     errors = []
-    
+  
     for node in nodes_to_format:
         try:
             # Apply formatting to this node
@@ -109,7 +112,7 @@ def apply_filtered(self, view: Any, nodes_to_format: List[Any]) -> "FormatResult
             formatted_count += 1
         except Exception as e:
             errors.append(f"Error formatting node {node.id}: {str(e)}")
-    
+  
     return FormatResult(
         elements_processed=formatted_count,
         quality_metrics={
@@ -135,6 +138,7 @@ def apply_filtered(self, view: Any, nodes_to_format: List[Any]) -> "FormatResult
 **Test Verification**: `pytest tests/integration/test_config_integration.py -v` (should see 15/15 pass)
 
 ### Current Code (Lines 43-48)
+
 ```python
 class MockConnection:
     """Mock connection for testing."""
@@ -145,6 +149,7 @@ class MockConnection:
 ```
 
 ### After (Enhanced)
+
 ```python
 class MockConnection:
     """Mock connection for testing (matches Connection interface)."""
@@ -164,16 +169,16 @@ class MockConnection:
     @property
     def target_id(self):
         return self._target
-    
+  
     @property
     def bendpoints(self):
         """Get connection routing bendpoints."""
         return self._bendpoints
-    
+  
     def remove_all_bendpoints(self):
         """Clear bendpoints (reset routing)."""
         self._bendpoints = []
-    
+  
     def add_bendpoint(self, x, y):
         """Add a bendpoint to the routing path."""
         self._bendpoints.append((x, y))
@@ -191,11 +196,13 @@ class MockConnection:
 ### Change 1: Line 4 Header
 
 **Before**:
+
 ```
 **Status**: Phase 6B-Core (SVG Export) ✅ COMPLETE | Phase 6B-Enhancement (Symbol Rendering) ✅ COMPLETE | Phase 6C (Relationship Rendering) ⏳ IN PROGRESS | Phase 7 (Polish) pending
 ```
 
 **After**:
+
 ```
 **Status**: Phase 6B-Core (SVG Export) ✅ COMPLETE | Phase 6B-Enhancement (Symbol Rendering) ✅ COMPLETE | Phase 6C (Relationship Rendering) ✅ COMPLETE | Phase 7 (Polish) ⏳ IN PROGRESS
 ```
@@ -203,6 +210,7 @@ class MockConnection:
 ### Change 2: Line 12 (Completion Summary)
 
 **Before**:
+
 ```
 **Completion Summary**:
 - ✅ **Phase 1**: Setup (14 tasks, 100%)
@@ -218,6 +226,7 @@ class MockConnection:
 ```
 
 **After**:
+
 ```
 **Completion Summary**:
 - ✅ **Phase 1**: Setup (14 tasks, 100%)
@@ -244,6 +253,7 @@ class MockConnection:
 ### Change 1: Remove Duplicate Header & Summary (Lines 7-15)
 
 **Before** (Lines 1-15):
+
 ```markdown
 # Implementation Plan: View Auto-Layout and Auto-Format (SVG Enhancement)
 # Implementation Plan: View Auto-Layout and Auto-Format
@@ -263,6 +273,7 @@ Enhance User Story 5 (SVG Export) to render ArchiMate diagrams with real element
 ```
 
 **After** (Consolidated):
+
 ```markdown
 # Implementation Plan: View Auto-Layout and Auto-Format
 
@@ -418,14 +429,14 @@ class TestUndoLayout:
         # Apply layout (will change positions)
         config = LayoutConfig(algorithm="force_directed")
         result = apply_layout(view, config)
-        
+  
         # Positions should change (layout applied)
         # Note: Mock layout might not actually move nodes, so we'll check that undo works
         # even if position didn't change
-        
+  
         # Undo layout
         undo_result = undo_layout(view)
-        
+  
         assert undo_result.success
         assert undo_result.algorithm_used == "undo"
         # Positions should be restored (or at least undo should complete successfully)
@@ -439,7 +450,7 @@ class TestUndoLayout:
         # Apply and then undo
         config = LayoutConfig(algorithm="force_directed")
         apply_layout(view, config)
-        
+  
         result = undo_layout(view)
 
         assert result.success

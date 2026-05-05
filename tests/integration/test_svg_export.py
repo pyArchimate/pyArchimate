@@ -201,7 +201,7 @@ def test_svg_export_uses_orthogonal_connection_segments():
         assert raw is not None
         coords = [tuple(float(v) for v in pt.split(',')) for pt in raw.split(' ')]
         assert len(coords) >= 2
-        for p1, p2 in zip(coords, coords[1:]):
+        for p1, p2 in zip(coords, coords[1:], strict=False):
             assert p1[0] == p2[0] or p1[1] == p2[1]
 
 

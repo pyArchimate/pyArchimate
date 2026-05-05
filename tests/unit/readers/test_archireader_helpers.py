@@ -11,7 +11,6 @@ from src.pyArchimate.readers._archireader_helpers import (
 )
 from src.pyArchimate.readers.archiReader import archi_reader
 
-
 # =============================================================================
 # _parse_rel_attributes — direct tests
 # =============================================================================

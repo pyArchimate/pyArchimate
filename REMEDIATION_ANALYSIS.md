@@ -26,12 +26,13 @@ The 011-view-auto-layout feature is **95% complete** (95/126 tasks). Analysis id
 **Status**: ❌ FAILING
 
 **Error**:
+
 ```
 AssertionError: assert 3 == 1
   where 3 = LayoutResult(...elements_processed=3)
 ```
 
-**Root Cause**: 
+**Root Cause**:
 The `apply_format()` function ignores the `excluded_element_ids` configuration parameter. Format is applied uniformly to all 3 nodes instead of excluding nodes 1 and 2.
 
 **Expected Behavior**:
@@ -45,6 +46,7 @@ The `apply_format()` function ignores the `excluded_element_ids` configuration p
 
 **Suggested Fix**:
 Before formatting each node in `FormatService.apply()`:
+
 ```python
 if node.id in config.excluded_element_ids:
     skip_count += 1
@@ -62,11 +64,12 @@ if node.id in config.excluded_element_ids:
 **Status**: ❌ FAILING
 
 **Error**:
+
 ```
 AttributeError: 'MockConnection' object has no attribute 'remove_all_bendpoints'
 ```
 
-**Root Cause**: 
+**Root Cause**:
 The mock `MockConnection` class (line 43-48) doesn't implement the full `Connection` interface. Real layout algorithms call `.remove_all_bendpoints()` on connections to reset routing during layout, but the mock lacks this method.
 
 **Expected Behavior**:
@@ -79,13 +82,14 @@ The mock `MockConnection` class (line 43-48) doesn't implement the full `Connect
 
 **Suggested Fix Option A** (Recommended - Minimal):
 Add the missing method to MockConnection:
+
 ```python
 class MockConnection:
     def __init__(self, source_id, target_id):
         self._source = source_id
         self._target = target_id
         self._bendpoints = []  # Add this
-    
+  
     def remove_all_bendpoints(self):  # Add this method
         """Clear bendpoints (routing)."""
         self._bendpoints = []
@@ -93,6 +97,7 @@ class MockConnection:
 
 **Suggested Fix Option B** (Better - Use Real Objects):
 Replace MockConnection with minimal real Connection stub:
+
 ```python
 # Instead of MockConnection, use a simplified Connection that has required attributes
 class MinimalConnection:
@@ -100,10 +105,10 @@ class MinimalConnection:
         self.source_id = source_id
         self.target_id = target_id
         self._bendpoints = []
-    
+  
     def remove_all_bendpoints(self):
         self._bendpoints = []
-    
+  
     # Add other critical Connection interface methods
 ```
 
@@ -118,14 +123,15 @@ class MinimalConnection:
 **Status**: ❌ FAILING
 
 **Error**:
+
 ```
 AttributeError: 'MockConnection' object has no attribute 'remove_all_bendpoints'
 ```
 
-**Root Cause**: 
+**Root Cause**:
 Same as Test 2. Hierarchical layout algorithm requires full Connection interface including bendpoint management.
 
-**Fix**: 
+**Fix**:
 Same as Test 2 — enhance MockConnection class.
 
 **Effort**: (Included in Test 2 fix)
@@ -238,21 +244,25 @@ Same as Test 2 — enhance MockConnection class.
 **File**: `specs/011-view-auto-layout/tasks.md`
 
 **Current Line 4**:
+
 ```
 **Status**: Phase 6B-Core (SVG Export) ✅ COMPLETE | Phase 6B-Enhancement (Symbol Rendering) ✅ COMPLETE | Phase 6C (Relationship Rendering) ⏳ IN PROGRESS | Phase 7 (Polish) pending
 ```
 
 **Suggested Edit**:
+
 ```
 **Status**: Phase 6B-Core (SVG Export) ✅ COMPLETE | Phase 6B-Enhancement (Symbol Rendering) ✅ COMPLETE | Phase 6C (Relationship Rendering) ✅ COMPLETE | Phase 7 (Polish) ⏳ IN PROGRESS
 ```
 
 **Current Line 24**:
+
 ```
 - ⏳ **Phase 6C**: US5.1 SVG Relationship Rendering (8 tasks, 0%) ← ArchiMate relationship symbols and styling
 ```
 
 **Suggested Edit**:
+
 ```
 - ✅ **Phase 6C**: US5.1 SVG Relationship Rendering (8 tasks, 100%) ← COMPLETE: ArchiMate relationship symbols and styling
 ```

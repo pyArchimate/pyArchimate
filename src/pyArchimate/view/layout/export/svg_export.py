@@ -686,7 +686,7 @@ class SVGExportService:
             return points
 
         orthogonal: list[Tuple[float, float]] = [points[0]]
-        for idx, (prev, cur) in enumerate(zip(points, points[1:])):
+        for idx, (prev, cur) in enumerate(zip(points, points[1:], strict=False)):
             if prev[0] == cur[0] or prev[1] == cur[1]:
                 orthogonal.append(cur)
                 continue

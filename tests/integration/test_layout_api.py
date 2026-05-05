@@ -2,8 +2,14 @@
 
 from src.pyArchimate import ArchiType
 from src.pyArchimate.model import Model
-from src.pyArchimate.view.layout import LayoutConfig, LayoutResult, _apply_orthogonal_routing, apply_format, \
-    apply_layout, undo_layout
+from src.pyArchimate.view.layout import (
+    LayoutConfig,
+    LayoutResult,
+    _apply_orthogonal_routing,
+    apply_format,
+    apply_layout,
+    undo_layout,
+)
 
 
 class MockView:

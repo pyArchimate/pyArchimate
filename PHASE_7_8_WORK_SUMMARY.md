@@ -21,7 +21,7 @@
 
 #### T088: API Documentation Updates ✅
 - **What**: Enhanced docstrings for public functions with detailed examples
-- **Locations**: 
+- **Locations**:
   - `src/pyArchimate/view/layout/__init__.py`
 - **Functions Enhanced**:
   - `apply_layout()`: Added parameter details, example code, return value documentation
@@ -133,6 +133,7 @@ Formal Phase 8 task breakdown added to `specs/011-view-auto-layout/tasks.md` wit
 **Result**: ✅ All 24 tests in test_format.py now passing (100%)
 
 **Verification**:
+
 ```
 tests/unit/layout/test_format.py::TestElementFormatRegistry ............... PASSED
 tests/unit/layout/test_format.py::TestFormatService ................... PASSED
