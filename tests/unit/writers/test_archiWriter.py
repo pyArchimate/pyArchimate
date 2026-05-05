@@ -148,3 +148,14 @@ def test_archi_writer_view_with_primary_viewpoint(tmp_path):
     target = tmp_path / 'vp_view.archimate'
     xml_str = archi_writer(model, str(target))
     assert 'viewpoint' in xml_str
+
+
+def test_archi_writer_preserves_technology_and_physical_folder(tmp_path):
+    """Folder names like 'Technology & Physical' should not be treated as a Technology prefix."""
+    model = Model('tech-folder')
+    elem = model.add(ArchiType.Equipment, 'Rack')
+    elem.folder = '/Technology & Physical'
+    target = tmp_path / 'tech_folder.archimate'
+    xml_str = archi_writer(model, str(target))
+    assert target.exists()
+    assert 'Rack' in xml_str

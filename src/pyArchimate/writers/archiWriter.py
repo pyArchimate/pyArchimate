@@ -45,6 +45,17 @@ def _create_folders(root: _Element) -> dict[str, _Element]:
     }
 
 
+def _is_same_top_folder(folder_str: str, cat: str) -> bool:
+    top_folder = folder_str.split('/', 2)[1] if folder_str.startswith('/') else folder_str.split('/', 1)[0]
+    if top_folder == cat:
+        return True
+    if cat == "Technology" and top_folder in {"Technology & Physical", "Physical"}:
+        return True
+    if cat == "Implementation & Migration" and top_folder == "Implementation":
+        return True
+    return False
+
+
 def _get_folder(folders: dict[str, _Element], folder_str: str) -> _Element:
     paths = folder_str.split('/')[1:]
     first_folder = '/' + paths[0]
@@ -68,7 +79,7 @@ def _get_folder(folders: dict[str, _Element], folder_str: str) -> _Element:
 def _resolve_folder_path(obj_folder: str | None, cat: str) -> str:
     if obj_folder is None:
         return '/' + cat
-    if obj_folder.startswith('/' + cat):
+    if _is_same_top_folder(obj_folder, cat):
         return obj_folder
     return '/' + cat + obj_folder
 
