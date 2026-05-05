@@ -530,8 +530,8 @@ After optimization (T099-T103), current performance on Intel i7, 16GB RAM:
 | Phase 6: US4 (Customization) | T066-T075 (10 tasks) | Configuration options | ✅ 100% |
 | Phase 6B: US5 (SVG Export) | T099-T118 (20 tasks) | SVG with symbols & relationships | ✅ 100% |
 | Phase 7: Polish | T076-T098 (23 tasks) | Edge cases, docs, testing | ⏳ 96% (22/23) |
-| Phase 8: Performance & Enhancement | T099-T114 (16 tasks) | Optimization, locked elements, label collision | ⏳ Planned |
-| **TOTAL** | **146 tasks** | **Full feature + post-beta** | **96% (141/146)** |
+| Phase 8: Performance & Enhancement | T099-T114 (16 tasks) | Optimization, locked elements, label collision | ⏳ 31% (5/16) |
+| **TOTAL** | **146 tasks** | **Full feature + post-beta** | **94% (147/156)** |
 
 ---
 
