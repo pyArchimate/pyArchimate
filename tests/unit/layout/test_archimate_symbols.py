@@ -6,8 +6,6 @@ Tests symbol definitions, color palette, and symbol validation.
 import sys
 from pathlib import Path
 
-import pytest
-
 # Add src directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "src"))
 

@@ -113,7 +113,7 @@ def test_force_calculation() -> None:
     positions = {0: Point(0, 0), 1: Point(100, 0)}
     edges = [(0, 1)]
 
-    from src.pyArchimate.view.layout.routing.layer_constraints import LayerConstraint, ArchiMateLayer
+    from src.pyArchimate.view.layout.routing.layer_constraints import ArchiMateLayer, LayerConstraint
     layer_constraint = LayerConstraint()
     layer_constraint.assign_layer(0, ArchiMateLayer.BUSINESS)
     layer_constraint.assign_layer(1, ArchiMateLayer.APPLICATION)
