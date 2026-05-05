@@ -1,6 +1,9 @@
 """Integration tests for layout API functions."""
 
-from src.pyArchimate.view.layout import LayoutConfig, LayoutResult, apply_format, apply_layout, undo_layout
+from src.pyArchimate import ArchiType
+from src.pyArchimate.model import Model
+from src.pyArchimate.view.layout import LayoutConfig, LayoutResult, _apply_orthogonal_routing, apply_format, \
+    apply_layout, undo_layout
 
 
 class MockView:
@@ -105,3 +108,42 @@ def test_layout_result_attributes() -> None:
     assert hasattr(result, "layout_time_ms")
     assert hasattr(result, "quality_metrics")
     assert hasattr(result, "error_message")
+
+
+def test_orthogonal_routing_places_same_row_source_anchor_on_edge() -> None:
+    """Same-row routed connections should start at the source edge, not the center."""
+    model = Model("routing-test")
+    view = model.add(ArchiType.View, "V")
+
+    source = model.add(ArchiType.ApplicationComponent, "Source")
+    target = model.add(ArchiType.ApplicationComponent, "Target")
+    source_node = view.add(source, x=40, y=40, w=120, h=60)
+    target_node = view.add(target, x=260, y=40, w=120, h=60)
+    rel = model.add_relationship(ArchiType.Serving, source=source, target=target)
+    conn = view.add_connection(ref=rel.uuid, source=source_node, target=target_node)
+
+    _apply_orthogonal_routing(view)
+
+    bendpoints = conn.get_all_bendpoints()
+    assert len(bendpoints) >= 2
+    assert bendpoints[0].x == source_node.x + source_node.w
+    assert bendpoints[-1].x == target_node.x
+
+
+def test_orthogonal_routing_places_vertical_target_anchor_on_edge() -> None:
+    """Vertical routing should end at the target edge, not the center."""
+    model = Model("routing-target-test")
+    view = model.add(ArchiType.View, "V")
+
+    source = model.add(ArchiType.ApplicationComponent, "Source")
+    target = model.add(ArchiType.ApplicationComponent, "Target")
+    source_node = view.add(source, x=40, y=40, w=120, h=60)
+    target_node = view.add(target, x=40, y=220, w=120, h=60)
+    rel = model.add_relationship(ArchiType.Serving, source=source, target=target)
+    conn = view.add_connection(ref=rel.uuid, source=source_node, target=target_node)
+
+    _apply_orthogonal_routing(view)
+
+    bendpoints = conn.get_all_bendpoints()
+    assert len(bendpoints) >= 2
+    assert bendpoints[-1].y == target_node.y

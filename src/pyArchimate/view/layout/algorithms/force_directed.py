@@ -120,6 +120,9 @@ class ForceDirectedLayout(LayoutAlgorithm):
             if config.layer_priority == "mandatory":
                 positions = layer_constraint.enforce_layer_separation_with_exclusions(positions, config.spacing, excluded_ids)
 
+            # Layer clamping can reintroduce collisions, so make one final pass.
+            positions = self._resolve_overlaps(positions, nodes, excluded_ids)
+
             # Store positions back to nodes (skip excluded)
             # Convert to integers for Archi XML compatibility
             for i, node in enumerate(nodes):

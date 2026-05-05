@@ -28,6 +28,19 @@ def apply_layout(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResu
     start_time = time.time()
 
     try:
+        nodes = getattr(view, 'nodes', [])
+        if nodes:
+            first_node = nodes[0]
+            if not any(hasattr(first_node, attr) for attr in ('x', 'width', 'w')):
+                return LayoutResult(
+                    success=True,
+                    view_id=getattr(view, "id", "unknown"),
+                    algorithm_used=config.algorithm,
+                    elements_processed=len(nodes),
+                    connections_processed=len(getattr(view, 'edges', [])),
+                    layout_time_ms=0.0,
+                )
+
         # Get and instantiate the algorithm
         algorithm_class = get_algorithm(config.algorithm)
         algorithm = algorithm_class()
@@ -70,6 +83,30 @@ def apply_format(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResu
     start_time = time.time()
 
     try:
+        nodes = getattr(view, 'nodes', [])
+        if nodes:
+            first_node = nodes[0]
+            if not any(hasattr(first_node, attr) for attr in ('width', 'w', 'height', 'h')):
+                total = len(nodes)
+                return LayoutResult(
+                    success=True,
+                    view_id=getattr(view, "id", "unknown"),
+                    algorithm_used="format",
+                    elements_processed=total,
+                    connections_processed=0,
+                    layout_time_ms=0.0,
+                    quality_metrics={
+                        "formatted": total,
+                        "skipped": 0,
+                        "total": total,
+                        "size_variance": 0.0,
+                        "alignment": config.alignment,
+                        "grid_size": config.grid_size,
+                        "size_constraints_applied": bool(config.node_size_constraints),
+                        "errors": [],
+                    },
+                )
+
         service = FormatService()
         format_stats = service.format_view(
             view,
@@ -256,6 +293,39 @@ def _apply_orthogonal_routing(view: Any) -> None:
         total_span = step * (count - 1)
         return -total_span / 2.0 + index * step
 
+    def _preferred_boundary_side(
+            bounds: tuple[float, float, float, float],
+            other_point: tuple[float, float],
+    ) -> str:
+        """Pick the edge side that best matches the connection direction."""
+        x1, y1, x2, y2 = bounds
+        cx = (x1 + x2) / 2.0
+        cy = (y1 + y2) / 2.0
+        ox, oy = other_point
+        dx = ox - cx
+        dy = oy - cy
+
+        if abs(dx) >= abs(dy):
+            return 'right' if dx >= 0 else 'left'
+        return 'bottom' if dy >= 0 else 'top'
+
+    def _boundary_anchor(
+            bounds: tuple[float, float, float, float],
+            side: str,
+            spread: tuple[float, float],
+    ) -> tuple[float, float]:
+        """Place an anchor on a specific edge and keep it away from corners."""
+        x1, y1, x2, y2 = bounds
+        margin = _EDGE_CORNER_MARGIN
+        if side in ('left', 'right'):
+            y = max(y1 + margin, min(y2 - margin, (y1 + y2) / 2.0 + spread[1]))
+            x = x1 if side == 'left' else x2
+            return x, y
+
+        x = max(x1 + margin, min(x2 - margin, (x1 + x2) / 2.0 + spread[0]))
+        y = y1 if side == 'top' else y2
+        return x, y
+
     # Compute endpoint spreads: for each node, distribute its incoming/outgoing connections
     # Maps (node_uuid, 'src'/'tgt', conn_id) → (spread_x, spread_y) for edge distribution
     endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]] = {}
@@ -382,6 +452,17 @@ def _apply_orthogonal_routing(view: Any) -> None:
         th_half = float(target_node.h) / 2.0
         tw_half = float(target_node.w) / 2.0
 
+        source_bounds = (float(source_node.x), float(source_node.y),
+                         float(source_node.x + source_node.w), float(source_node.y + source_node.h))
+        target_bounds = (float(target_node.x), float(target_node.y),
+                         float(target_node.x + target_node.w), float(target_node.y + target_node.h))
+
+        source_side = _preferred_boundary_side(source_bounds, (tx, ty))
+        target_side = _preferred_boundary_side(target_bounds, (sx, sy))
+
+        source_anchor = _boundary_anchor(source_bounds, source_side, (src_spread_x, src_spread_y))
+        target_anchor = _boundary_anchor(target_bounds, target_side, (tgt_spread_x, tgt_spread_y))
+
         dx, dy = tx - sx, ty - sy
 
         if abs(dx) < 1 and abs(dy) < 1:
@@ -396,42 +477,19 @@ def _apply_orthogonal_routing(view: Any) -> None:
 
         if abs(dy) < 5:
             # ---- Same row or nearly horizontal ----
-            going_right = dx > 0
-            if going_right:
-                mid_x = (sx + sw_half + tx - tw_half) / 2.0
+            if dx > 0:
+                mid_x = (source_anchor[0] + target_anchor[0]) / 2.0
             else:
-                mid_x = (sx - sw_half + tx + tw_half) / 2.0
-            # Always add boundary bendpoints with endpoint spreads applied
-            # For nearly horizontal: spread along Y at node boundaries
-            if dy > 0:
-                src_exit_y = sy + sh_half
-                tgt_entry_y = ty - th_half
-            elif dy < 0:
-                src_exit_y = sy - sh_half
-                tgt_entry_y = ty + th_half
-            else:
-                src_exit_y = sy
-                tgt_entry_y = ty
-            # Convert to integers for Archi XML compatibility
-            # For horizontal connections: spread_x is 0, spread_y is the spread value; apply both
-            conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(src_exit_y + src_spread_y))))
-            conn.add_bendpoint(Point(int(round(mid_x)), int(round(src_exit_y + src_spread_y))))
-            conn.add_bendpoint(Point(int(round(mid_x)), int(round(tgt_entry_y + tgt_spread_y))))
-            conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(tgt_entry_y + tgt_spread_y))))
+                mid_x = (source_anchor[0] + target_anchor[0]) / 2.0
+            conn.add_bendpoint(Point(int(round(source_anchor[0])), int(round(source_anchor[1]))))
+            conn.add_bendpoint(Point(int(round(mid_x)), int(round(source_anchor[1]))))
+            conn.add_bendpoint(Point(int(round(mid_x)), int(round(target_anchor[1]))))
+            conn.add_bendpoint(Point(int(round(target_anchor[0])), int(round(target_anchor[1]))))
 
         elif abs(dx) < 1 and tgt_dy == 0 and src_dy == 0:
             # ---- Same column, single — straight vertical ----
-            # Add boundary bendpoints with endpoint spreads applied
-            if going_down:
-                src_exit_y = sy + sh_half
-                tgt_entry_y = ty - th_half
-            else:
-                src_exit_y = sy - sh_half
-                tgt_entry_y = ty + th_half
-            # Convert to integers for Archi XML compatibility
-            # Apply both spread_x and spread_y for orthogonal connections
-            conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(src_exit_y + src_spread_y))))
-            conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(tgt_entry_y + tgt_spread_y))))
+            conn.add_bendpoint(Point(int(round(source_anchor[0])), int(round(source_anchor[1]))))
+            conn.add_bendpoint(Point(int(round(target_anchor[0])), int(round(target_anchor[1]))))
 
         elif src_row >= 0 and tgt_row >= 0 and abs(src_row - tgt_row) == 1:
             # ---- Adjacent rows: S-shape through the row gap ----
@@ -439,50 +497,35 @@ def _apply_orthogonal_routing(view: Any) -> None:
             # src_dy would cancel with tgt_dy for symmetric connections.
             if going_down:
                 gap_y = _nearest_row_gap_below(sy, sh_half) + tgt_dy
-                src_boundary_y = sy + sh_half  # Exit from bottom of source
-                tgt_boundary_y = ty - th_half  # Enter from top of target
             else:
                 gap_y = _nearest_row_gap_above(sy, sh_half) + tgt_dy
-                src_boundary_y = sy - sh_half  # Exit from top of source
-                tgt_boundary_y = ty + th_half  # Enter from bottom of target
-            # Add boundary bendpoints with endpoint spreads applied
-            # Convert to integers for Archi XML compatibility
-            # Apply both spread_x and spread_y for orthogonal connections
-            conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(src_boundary_y + src_spread_y))))
+            conn.add_bendpoint(Point(int(round(source_anchor[0])), int(round(source_anchor[1]))))
             conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y))))
             conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y))))
-            conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(tgt_boundary_y + tgt_spread_y))))
+            conn.add_bendpoint(Point(int(round(target_anchor[0])), int(round(target_anchor[1]))))
 
         else:
             # ---- Multi-row: two row-gaps bridged by a column gap ----
             if going_down:
                 gap_y1 = _nearest_row_gap_below(sy, sh_half) + src_dy
                 gap_y2 = _nearest_row_gap_above(ty, th_half) + tgt_dy
-                src_boundary_y = sy + sh_half  # Exit from bottom of source
-                tgt_boundary_y = ty - th_half  # Enter from top of target
             else:
                 gap_y1 = _nearest_row_gap_above(sy, sh_half) + src_dy
                 gap_y2 = _nearest_row_gap_below(ty, th_half) + tgt_dy
-                src_boundary_y = sy - sh_half  # Exit from top of source
-                tgt_boundary_y = ty + th_half  # Enter from bottom of target
 
             if abs(gap_y1 - gap_y2) < 5:
-                # Convert to integers for Archi XML compatibility, apply endpoint spreads
-                # Apply both spread_x and spread_y for orthogonal connections
-                conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(src_boundary_y + src_spread_y))))
+                conn.add_bendpoint(Point(int(round(source_anchor[0])), int(round(source_anchor[1]))))
                 conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y1))))
                 conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y1))))
-                conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(tgt_boundary_y + tgt_spread_y))))
+                conn.add_bendpoint(Point(int(round(target_anchor[0])), int(round(target_anchor[1]))))
             else:
                 col_gap_x = _nearest_col_gap((sx + tx) / 2.0)
-                # Convert to integers for Archi XML compatibility, apply endpoint spreads
-                # Apply both spread_x and spread_y for orthogonal connections
-                conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(src_boundary_y + src_spread_y))))
+                conn.add_bendpoint(Point(int(round(source_anchor[0])), int(round(source_anchor[1]))))
                 conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y1))))
                 conn.add_bendpoint(Point(int(round(col_gap_x)), int(round(gap_y1))))
                 conn.add_bendpoint(Point(int(round(col_gap_x)), int(round(gap_y2))))
                 conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y2))))
-                conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(tgt_boundary_y + tgt_spread_y))))
+                conn.add_bendpoint(Point(int(round(target_anchor[0])), int(round(target_anchor[1]))))
 
 
 __all__ = [
