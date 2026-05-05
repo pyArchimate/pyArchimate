@@ -111,7 +111,7 @@ Feature: Auto-Format Elements and Connections
     Then element positions should be snapped to 10-pixel grid
     And elements should be aligned consistently
 
-  Scenario SC-004 - Achieve 80% Size Variance Reduction
+  Scenario: Achieve Size Variance Reduction (SC-004)
     Given a view with element size variance of 5000 square pixels
     When I apply auto-format to the view
     Then size variance should be reduced to less than 1000 square pixels
