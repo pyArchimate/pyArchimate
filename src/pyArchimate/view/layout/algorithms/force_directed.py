@@ -18,7 +18,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
         self.k_attraction = 0.01  # Spring attraction constant (very weak)
         self.k_repulsion = 2000.0  # Node repulsion constant - strong repulsion
         self.damping = 0.8  # Velocity damping for stability
-        self.tolerance = 0.05  # Convergence tolerance (strict)
+        self.tolerance = 0.1  # Convergence tolerance (increased from 0.05 for faster exit)
         self.max_iterations = 500  # Maximum iterations
         self.max_velocity = 150.0  # Maximum velocity per iteration
         self.min_separation = 200.0  # Minimum distance between nodes (increased from 150)
@@ -356,21 +356,26 @@ class ForceDirectedLayout(LayoutAlgorithm):
             forces[target_idx].x -= magnitude * dx
             forces[target_idx].y -= magnitude * dy
 
-        # Apply layer constraint forces
-        for node_i in positions.keys():
+        # Apply layer constraint forces (optimized to only check different layers)
+        node_ids = list(positions.keys())
+        for i in range(len(node_ids)):
+            node_i = node_ids[i]
             layer_i = layer_constraint.get_layer(node_i)
 
-            for node_j in positions.keys():
-                if node_i == node_j:
-                    continue
-
+            # Only compare with nodes in different layers to reduce O(n²) overhead
+            for j in range(i + 1, len(node_ids)):
+                node_j = node_ids[j]
                 layer_j = layer_constraint.get_layer(node_j)
 
-                # If node_i should be above node_j but isn't, apply downward force
+                # Skip if same layer
+                if layer_i.layer_order() == layer_j.layer_order():
+                    continue
+
+                # If node_i should be above node_j but isn't, apply corrective force
                 if layer_i.layer_order() < layer_j.layer_order():
                     if positions[node_i].y > positions[node_j].y:
-                        # Wrong order, apply corrective force
-                        forces[node_i].y -= 100  # Push up
-                        forces[node_j].y += 100  # Push down
+                        # Wrong order, apply corrective force (reduced to prevent instability)
+                        forces[node_i].y -= 50  # Push up
+                        forces[node_j].y += 50  # Push down
 
         return forces
