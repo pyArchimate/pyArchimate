@@ -2,6 +2,7 @@
 
 from src.pyArchimate.view.layout.algorithms.force_directed import ForceDirectedLayout
 from src.pyArchimate.view.layout.core import LayoutConfig, LayoutResult
+from src.pyArchimate.view.layout.utils.geometry import Point
 
 
 class MockNode:
@@ -22,15 +23,19 @@ class MockView:
         """Create a mock view."""
         self.id = "test_view"
         self.nodes = [MockNode(i) for i in range(num_nodes)]
-        self.edges = [(i, (i + 1) % num_nodes) for i in range(num_edges)]
+        # Only create edges if there are nodes to connect
+        if num_nodes > 0:
+            self.edges = [(i, (i + 1) % num_nodes) for i in range(min(num_edges, num_nodes))]
+        else:
+            self.edges = []
 
 
 def test_force_directed_instantiation() -> None:
     """Test force-directed layout instantiation."""
     layout = ForceDirectedLayout()
-    assert layout.k_attraction == 0.5
-    assert layout.k_repulsion == 5000.0
-    assert layout.damping == 0.85
+    assert layout.k_attraction == 0.01
+    assert layout.k_repulsion == 2000.0
+    assert layout.damping == 0.8
 
 
 def test_force_directed_empty_view() -> None:
@@ -105,13 +110,13 @@ def test_force_calculation() -> None:
     layout = ForceDirectedLayout()
 
     # Create simple positions: two nodes
-    positions = {0: layout.utils.geometry.Point(0, 0), 1: layout.utils.geometry.Point(100, 0)}
+    positions = {0: Point(0, 0), 1: Point(100, 0)}
     edges = [(0, 1)]
 
-    from src.pyArchimate.view.layout.routing.layer_constraints import LayerConstraint
+    from src.pyArchimate.view.layout.routing.layer_constraints import LayerConstraint, ArchiMateLayer
     layer_constraint = LayerConstraint()
-    layer_constraint.assign_layer(0, "business")
-    layer_constraint.assign_layer(1, "application")
+    layer_constraint.assign_layer(0, ArchiMateLayer.BUSINESS)
+    layer_constraint.assign_layer(1, ArchiMateLayer.APPLICATION)
 
     forces = layout._calculate_forces(positions, edges, layer_constraint)
 

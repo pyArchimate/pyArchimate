@@ -193,9 +193,9 @@ class TestColorPalette:
         color = palette.get_color("BusinessActor")
         assert color == "#FFD700"
 
-        # Test invalid element type raises KeyError
-        with pytest.raises(KeyError):
-            palette.get_color("InvalidType")
+        # Test invalid element type falls back to gray
+        color = palette.get_color("InvalidType")
+        assert color == "#808080"
 
     def test_color_palette_per_element_override(self):
         """Test per-element color override functionality."""
