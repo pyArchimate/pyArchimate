@@ -63,6 +63,34 @@ class SVGExportService:
 
         return sorted_nodes
 
+    def _build_complete_nodes_dict(self, view: Any) -> dict[str, Any]:
+        """Build a dictionary of all nodes including nested ones.
+
+        This creates a flat dictionary mapping node UUIDs to node objects,
+        including both root-level nodes and nodes nested within containers.
+        This is needed for connection rendering to work with nested nodes.
+
+        Args:
+            view: View object to scan for nodes
+
+        Returns:
+            Dictionary mapping node UUID to node object
+        """
+        nodes_dict = dict(view.nodes_dict)  # Start with root-level nodes
+
+        def add_nested_nodes(parent_node: Any) -> None:
+            """Recursively add nested nodes from containers."""
+            for child in parent_node.nodes:
+                nodes_dict[child.uuid] = child
+                # Recursively add grandchildren
+                add_nested_nodes(child)
+
+        # Add all nested nodes from root-level containers
+        for root_node in view.nodes:
+            add_nested_nodes(root_node)
+
+        return nodes_dict
+
     def to_svg(self, view: Any, filepath: Optional[str] = None) -> str:
         """Export view to SVG string and optionally write to file.
 
@@ -97,11 +125,14 @@ class SVGExportService:
         # Compute temporary endpoint spreads so repeated connections do not stack
         endpoint_spreads = self._compute_endpoint_spreads(view)
 
+        # Build complete nodes dictionary including nested nodes (for connection rendering)
+        complete_nodes_dict = self._build_complete_nodes_dict(view)
+
         # Render connections/relationships first (so they appear behind nodes)
         # Try new rendering with relationship styles, fall back to basic rendering if needed
         relationship_service = RelationshipStyleService()
         for conn in view.conns:
-            self._render_relationship(svg, conn, view.nodes_dict, relationship_service, endpoint_spreads)
+            self._render_relationship(svg, conn, complete_nodes_dict, relationship_service, endpoint_spreads)
 
         # Render nodes on top, respecting containment hierarchy (parents before children)
         sorted_nodes = self._sort_nodes_by_hierarchy(view)
