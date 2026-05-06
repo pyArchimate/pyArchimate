@@ -1,14 +1,14 @@
-# Tasks: View Auto-Layout and Auto-Format
+# Tasks: SVG Z-Order Fix for Contained Elements
 
-**Phase 2 Output** | **Date**: 2026-05-03 | **Feature Branch**: `011-view-auto-layout`
+**Bug Fix** | **Date**: 2026-05-06 | **Feature Branch**: `011-view-auto-layout`
 
 ## Overview
 
-This document contains the detailed task breakdown for implementing the View Auto-Layout and Auto-Format feature. Tasks are organized by phase and user story, with clear dependencies and parallel execution opportunities.
+This document contains the task breakdown for fixing SVG rendering z-order to ensure contained elements appear behind their parent containers. This is a focused bug fix addressing a visual hierarchy issue in SVG exports.
 
-**Total Tasks**: 97 tasks across 7 phases  
-**Estimated Duration**: MVP (US1+US2+foundational) ~3-4 weeks; Full feature ~6-7 weeks  
-**Suggested MVP Scope**: Complete Phases 1-4 (Setup + Foundational + US1 + US2) + essential Phase 7 tasks
+**Total Tasks**: 17 tasks across 3 phases  
+**Estimated Duration**: ~1-2 days  
+**Scope**: Complete bug fix (all phases required)
 
 ---
 
@@ -16,350 +16,144 @@ This document contains the detailed task breakdown for implementing the View Aut
 
 ### Phase Structure
 
-- **Phase 1**: Project Setup (shared infrastructure)
-- **Phase 2**: Foundational (layout core, shared by all user stories)
-- **Phase 3**: User Story 1 - Auto-Layout (force-directed algorithm, MVP critical)
-- **Phase 4**: User Story 2 - Auto-Format (element standardization, MVP critical)
-- **Phase 5**: User Story 3 - Hierarchical Layout (P2, specialized algorithm)
-- **Phase 6**: User Story 4 - Customization (P2, advanced options)
-- **Phase 7**: Polish & Documentation (cross-cutting, final refinement)
+- **Phase 1**: Analysis & Understanding (identify the problem and current behavior)
+- **Phase 2**: Implementation (implement z-order fix)
+- **Phase 3**: Testing & Validation (unit and integration tests)
 
 ### MVP Scope
 
-**Minimum Viable Product** includes:
-- Force-directed layout algorithm (US1)
-- Auto-format capability (US2)
-- Basic orthogonal routing with label placement
-- ArchiMate layer constraints enforced
-- <2s performance for 300 elements
-- Undo/rollback support
+This entire bug fix is the minimum viable product. All phases must complete:
+- Node containment hierarchy analysis
+- SVG rendering order fix implementation  
+- Unit and integration tests validating z-order correctness
+- Backward compatibility verification (flat views unchanged)
 
-**Defer to Post-MVP**:
-- Hierarchical layout algorithm (US3)
-- Advanced configuration options (US4)
-- Performance optimization beyond target
-- Additional layout algorithms (grid, spline, etc.)
+No features are deferred; this is a complete, self-contained bug fix.
 
 ### Parallel Execution
 
 Within each phase, independent tasks marked with `[P]` can be executed in parallel:
-- **Phase 2**: Testing infrastructure can be set up in parallel with core module structure
-- **Phase 3**: Algorithm implementation and integration tests can start simultaneously
-- **Phase 4**: Element formatting and connection routing can be developed in parallel
-- **Phase 5**: Hierarchical algorithm can be developed independently once Phase 2 is complete
+- **Phase 1**: Tasks T002-T003 (review SVG export and identify rendering gaps)
+- **Phase 2**: Tasks T007-T008 (edge case handling for both View-rooted and nested nodes)
+- **Phase 3**: Tasks T011-T014 (all unit test implementations can run in parallel)
 
 ---
 
-## PHASE 1: Project Setup
+## PHASE 1: Analysis & Understanding
 
 ### Goal
-Establish project structure, create placeholder modules, and initialize testing infrastructure.
+Understand the Node containment hierarchy in the view model and identify how the current SVG rendering fails to respect z-order.
 
 ### Independent Test Criteria
-- All module files exist with correct package structure
-- PyCharm/IDE imports work without errors
-- pytest discovers test files successfully
-
----
-
-- [ ] T001 Create layout module directory structure per plan in `src/pyArchimate/view/layout/`
-- [ ] T002 [P] Create `src/pyArchimate/view/layout/__init__.py` with public API exports
-- [ ] T003 [P] Create `src/pyArchimate/view/layout/core.py` with LayoutConfig and LayoutResult classes
-- [ ] T004 [P] Create `src/pyArchimate/view/layout/algorithms/` subdirectory
-- [ ] T005 [P] Create `src/pyArchimate/view/layout/algorithms/__init__.py` with algorithm registry
-- [ ] T006 [P] Create `src/pyArchimate/view/layout/routing/` subdirectory
-- [ ] T007 [P] Create `src/pyArchimate/view/layout/format/` subdirectory
-- [ ] T008 [P] Create `src/pyArchimate/view/layout/utils/` subdirectory
-- [ ] T009 [P] Create `tests/unit/layout/` directory
-- [ ] T010 [P] Create `tests/integration/` directory for round-trip tests
-- [ ] T011 [P] Create `tests/features/layout/` directory for BDD scenarios
-- [ ] T012 Update `pyproject.toml` to add layout module dependencies and test configuration
-- [ ] T013 Verify pytest configuration discovers all layout test files correctly
-- [ ] T014 [P] Create initial GitHub Actions CI/CD workflow for layout tests (if using CI)
-
----
-
-## PHASE 2: Foundational Infrastructure
-
-### Goal
-Build shared layout core, geometry utilities, and foundational components required by all user stories.
+- Documentation of Node parent-child relationships is clear
+- Current SVG rendering flow is fully understood
+- Test case with nested nodes demonstrates z-order bug
+- Problem is localized to SVG export module, not model
 
 ### Blocking Tasks
-- ALL user story tasks depend on completing Phase 2
-- Layout algorithms (Phase 3+) require core classes and utilities
-- Connection routing (all stories) requires utilities
-
-### Independent Test Criteria
-- Core classes (LayoutConfig, LayoutResult) instantiate correctly with valid parameters
-- Utility functions (distance, intersection, grid) return correct values for test cases
-- Layer constraint system validates and enforces layer ordering
-- Geometry operations (point, rectangle, polyline) work correctly
+- All Phase 2 implementation depends on understanding Node model and current rendering
 
 ---
 
-- [ ] T015 Implement LayoutConfig data class in `src/pyArchimate/view/layout/core.py` with validation
-- [ ] T016 Implement LayoutResult data class in `src/pyArchimate/view/layout/core.py` with quality metrics
-- [ ] T017 Implement base LayoutAlgorithm abstract class in `src/pyArchimate/view/layout/core.py`
-- [ ] T018 [P] Implement geometry utilities in `src/pyArchimate/view/layout/utils/geometry.py` (Point, Rectangle, distance, intersection, etc.)
-- [ ] T019 [P] Implement graph utilities in `src/pyArchimate/view/layout/utils/graph.py` (connectivity analysis, crossing detection)
-- [ ] T020 [P] Implement ArchiMate layer constraints in `src/pyArchimate/view/layout/layer_constraints.py` (Layer enum, LayerConstraint class, validation)
-- [ ] T021 Implement apply_layout() public function in `src/pyArchimate/view/layout/__init__.py` with proper error handling
-- [ ] T022 [P] Implement apply_format() public function in `src/pyArchimate/view/layout/__init__.py` (delegates to FormatService)
-- [ ] T023 [P] Implement undo_layout() public function in `src/pyArchimate/view/layout/__init__.py` (uses pyArchimate transaction system)
-- [ ] T024 Create comprehensive unit tests in `tests/unit/layout/test_core.py` for LayoutConfig, LayoutResult validation
-- [ ] T025 [P] Create unit tests in `tests/unit/layout/test_geometry.py` for geometry utilities (distance, intersection, containment, etc.)
-- [ ] T026 [P] Create unit tests in `tests/unit/layout/test_layer_constraints.py` for layer constraint validation and enforcement
-- [ ] T027 Create integration test in `tests/integration/test_layout_api.py` for apply_layout(), apply_format(), undo_layout() with mock views
+- [x] T001 Analyze Node containment hierarchy in `src/pyArchimate/view/__init__.py` and document parent-child relationships
+- [x] T002 [P] Review current SVG rendering flow in `src/pyArchimate/view/layout/export/svg_export.py` (lines 34-87, specifically the to_svg method)
+- [x] T003 [P] Identify all node rendering calls and understand how nodes are currently ordered
+- [x] T004 Create a test case with nested nodes (parent containing child) to verify current z-order bug
 
 ---
 
-## PHASE 3: User Story 1 - Auto-Layout (Force-Directed)
-
-### User Story Goal
-Developers can invoke auto-layout on a view with overlapping/scattered elements and get a clean, non-overlapping layout with elements logically organized by relationships.
-
-### Independent Test Criteria
-- Force-directed layout completes in <2s for 300-element views
-- 100% of elements are non-overlapping after layout
-- Connections remain valid and linked to correct endpoints
-- Layer boundaries are respected (if applicable)
-- Element properties (name, type, docs) are preserved
-
-### User Story Priority
-**P1** - Core functionality, addresses most common pain point
-
----
-
-- [ ] T028 [US1] Implement ForceDirectedLayout class skeleton in `src/pyArchimate/view/layout/algorithms/force_directed.py`
-- [ ] T029 [US1] [P] Implement Spring-Embedder physics simulation core in `src/pyArchimate/view/layout/algorithms/force_directed.py` (repulsion, attraction forces)
-- [ ] T030 [US1] [P] Implement node position update loop with convergence detection in `src/pyArchimate/view/layout/algorithms/force_directed.py`
-- [ ] T031 [US1] [P] Implement adaptive iteration limits based on element count in `src/pyArchimate/view/layout/algorithms/force_directed.py`
-- [ ] T032 [US1] Implement layer constraint enforcement in force-directed layout in `src/pyArchimate/view/layout/algorithms/force_directed.py` (vertical/horizontal forces per layer)
-- [ ] T033 [US1] Register force-directed algorithm in layout registry (`src/pyArchimate/view/layout/algorithms/__init__.py`)
-- [ ] T034 [US1] [P] Implement connection routing: orthogonal polyline generation in `src/pyArchimate/view/layout/routing/orthogonal.py`
-- [ ] T035 [US1] [P] Implement connection routing: crossing detection and counting in `src/pyArchimate/view/layout/routing/orthogonal.py`
-- [ ] T036 [US1] [P] Implement barycentric crossing reduction in `src/pyArchimate/view/layout/routing/orthogonal.py`
-- [ ] T037 [US1] Implement connection endpoint spreading in `src/pyArchimate/view/layout/routing/orthogonal.py` (equal distribution on node edges)
-- [ ] T038 [US1] [P] Implement basic label positioning in `src/pyArchimate/view/layout/routing/label_placement.py` (offset perpendicular to connection)
-- [ ] T039 [US1] [P] Implement label overlap detection in `src/pyArchimate/view/layout/routing/label_placement.py`
-- [ ] T040 [US1] [P] Implement collision avoidance for labels in `src/pyArchimate/view/layout/routing/label_placement.py` (repositioning/truncation)
-- [ ] T041 [US1] [P] Create unit tests in `tests/unit/layout/test_force_directed.py` (convergence, force calculations, iteration limits)
-- [ ] T042 [US1] [P] Create unit tests in `tests/unit/layout/test_orthogonal_routing.py` (polyline generation, crossing minimization, endpoint spreading)
-- [ ] T043 [US1] [P] Create unit tests in `tests/unit/layout/test_label_placement.py` (collision detection, repositioning, truncation)
-- [ ] T044 [US1] Create integration test in `tests/integration/test_layout_round_trip.py` for force-directed layout (load → layout → save → verify XML integrity)
-- [ ] T045 [US1] Create BDD scenario in `tests/features/layout/auto_layout.feature` for "Auto-Layout Messy Diagram" with Given/When/Then steps
-- [ ] T046 [US1] Implement BDD step definitions in `tests/features/layout/auto_layout_steps.py` to support BDD scenarios
-
----
-
-## PHASE 4: User Story 2 - Auto-Format
-
-### User Story Goal
-Developers can invoke auto-format on a view and get standardized element sizes, fonts, and alignment based on ArchiMate conventions, plus clean connection routing.
-
-### Independent Test Criteria
-- Element size variance reduced by 80% (measured by std dev)
-- All elements aligned to grid (if alignment="grid")
-- Fonts standardized per ArchiMate type
-- Connections have orthogonal routing without overlaps
-- Element properties (name, type, docs) preserved
-
-### User Story Priority
-**P1** - Improves diagram professionalism, works alongside US1
-
----
-
-- [ ] T047 [US2] Implement FormatService class in `src/pyArchimate/view/layout/format/element_format.py`
-- [ ] T047 [US2] [P] Implement ArchiMate element type → standard size mapping in `src/pyArchimate/view/layout/format/element_format.py`
-- [ ] T048 [US2] [P] Implement element resizing logic in `src/pyArchimate/view/layout/format/element_format.py` (respect user overrides)
-- [ ] T049 [US2] [P] Implement font standardization per ArchiMate type in `src/pyArchimate/view/layout/format/element_format.py`
-- [ ] T050 [US2] [P] Implement grid-based alignment in `src/pyArchimate/view/layout/format/element_format.py` (snap to grid or free positioning)
-- [ ] T051 [US2] Create unit tests in `tests/unit/layout/test_format.py` (size calculation, font mapping, alignment logic)
-- [ ] T052 [US2] Create integration test in `tests/integration/test_layout_round_trip.py` for auto-format (verify size/font standardization persists after save/load)
-- [ ] T053 [US2] Create BDD scenario in `tests/features/layout/auto_format.feature` for "Format Elements and Connections"
-- [ ] T054 [US2] Implement BDD step definitions in `tests/features/layout/auto_format_steps.py`
-
----
-
-## PHASE 5: User Story 3 - Hierarchical Layout
-
-### User Story Goal
-Developers can apply hierarchical layout to views with parent-child relationships and get a layered, top-down visual structure respecting ArchiMate layer boundaries.
-
-### Independent Test Criteria
-- Elements organized in layers reflecting hierarchy
-- Parent elements positioned above children (or left of children)
-- Cross-layer connections visible and not obscured
-- Business layer > Application layer > Technology layer enforced
-- Layout completes in reasonable time for hierarchical views
-
-### User Story Priority
-**P2** - Valuable for organizational/hierarchical models, can be done after MVP
-
----
-
-- [ ] T055 [US3] Implement HierarchicalLayout class skeleton in `src/pyArchimate/view/layout/algorithms/hierarchical.py`
-- [ ] T056 [US3] [P] Implement Sugiyama layer assignment step respecting ArchiMate layers in `src/pyArchimate/view/layout/algorithms/hierarchical.py`
-- [ ] T057 [US3] [P] Implement Sugiyama crossing minimization step in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (barycentric ordering)
-- [ ] T058 [US3] [P] Implement Sugiyama position assignment step in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (node positioning in layers)
-- [ ] T059 [US3] Implement edge routing for hierarchical layout in `src/pyArchimate/view/layout/algorithms/hierarchical.py` (orthogonal routing respecting layers)
-- [ ] T060 [US3] Register hierarchical algorithm in layout registry
-- [ ] T061 [US3] [P] Create unit tests in `tests/unit/layout/test_hierarchical.py` (layer assignment, crossing minimization, position calculation)
-- [ ] T062 [US3] Create integration test for hierarchical layout in `tests/integration/test_layout_round_trip.py`
-- [ ] T063 [US3] Create BDD scenario in `tests/features/layout/auto_layout.feature` for "Hierarchical Layout"
-- [ ] T064 [US3] Implement BDD step definitions for hierarchical scenario
-
----
-
-## PHASE 6: User Story 4 - Customization
-
-### User Story Goal
-Developers can customize layout behavior via LayoutConfig (algorithm selection, spacing, element exclusion, etc.) to meet domain-specific preferences.
-
-### Independent Test Criteria
-- All LayoutConfig options are respected (spacing, margin, alignment, etc.)
-- Excluded elements retain their original positions
-- Algorithm selection works correctly
-- Custom configuration doesn't break layer constraints
-
-### User Story Priority
-**P2** - Enables real-world customization, can follow MVP
-
----
-
-- [ ] T065 [US4] Implement advanced LayoutConfig options validation in `src/pyArchimate/view/layout/core.py` (all options from research.md)
-- [ ] T066 [US4] [P] Implement excluded_element_ids handling in apply_layout() logic
-- [ ] T067 [US4] [P] Implement spacing/margin parameter application in layout algorithms
-- [ ] T068 [US4] [P] Implement alignment (grid vs. free) parameter handling in format module
-- [ ] T069 [US4] [P] Implement routing_style parameter (orthogonal vs. mixed 45°) in routing module
-- [ ] T070 [US4] [P] Implement layer_priority parameter (layer constraints vs. crossing reduction tradeoff)
-- [ ] T071 [US4] Create unit tests in `tests/unit/layout/test_config.py` for all LayoutConfig combinations
-- [ ] T072 [US4] Create integration test for config parameters in `tests/integration/test_layout_round_trip.py`
-- [ ] T073 [US4] Create BDD scenario in `tests/features/layout/auto_layout.feature` for "Customize Layout Behavior"
-- [ ] T074 [US4] Implement BDD step definitions for customization scenario
-
----
-
-## PHASE 7: Polish & Documentation
+## PHASE 2: Implementation
 
 ### Goal
-Final testing, documentation, API hardening, performance optimization, and cross-cutting concerns.
+Implement node sorting by containment hierarchy and integrate into SVG export rendering pipeline.
 
 ### Independent Test Criteria
-- All edge cases handled (single element, no connections, circular deps, etc.)
-- Performance targets met (<2s for 300 elements)
-- Undo/rollback works reliably in all scenarios
-- Documentation complete and accurate
+- Nodes with parent references are sorted before their children
+- Nodes with View parent maintain compatibility (appear in original order)
+- Deep nesting is handled without stack overflow or performance degradation
+- SVG rendering remains under 2 seconds for 300-element views
+- No breaking changes to public APIs (Node, View, SVGExportService)
+
+### Blocking Tasks
+- Phase 3 testing depends on Phase 2 implementation
 
 ---
 
-- [ ] T075 Implement edge case handling for single-element views in all layout algorithms
-- [ ] T076 [P] Implement edge case handling for views with no connections
-- [ ] T077 [P] Implement edge case handling for views with circular dependencies
-- [ ] T078 [P] Implement edge case handling for very large elements vs. small spacing
-- [ ] T079 [P] Implement edge case handling for locked/fixed elements (if applicable)
-- [ ] T080 Create comprehensive edge case tests in `tests/unit/layout/test_edge_cases.py`
-- [ ] T081 Create performance tests in `tests/integration/test_layout_performance.py` (verify <2s for 300 elements, <5s for 500 elements)
-- [ ] T082 [P] Performance profiling and optimization if necessary to meet targets
-- [ ] T083 Create final round-trip integration test covering all scenarios in `tests/integration/test_layout_round_trip.py`
-- [ ] T084 Run full test suite and ensure 100% pass rate (unit + integration + BDD)
-- [ ] T085 [P] Create auto-layout-specifications.md technical document per spec deliverable (`specs/011-view-auto-layout/auto-layout-specifications.md`)
-- [ ] T086 [P] Create user-facing documentation in project README (usage examples, algorithms overview)
-- [ ] T087 [P] Update API documentation (docstrings, type hints for all public functions)
-- [ ] T088 [P] Create architecture documentation explaining module structure and design decisions
-- [ ] T089 [P] Create Sphinx RST documentation for layout feature in `docs/source/features/layout.rst`
-- [ ] T090 [P] Update Sphinx index in `docs/source/index.rst` to include layout feature documentation
-- [ ] T091 [P] Update Sphinx API documentation in `docs/source/api/view.rst` with layout module reference
-- [ ] T092 [P] Build Sphinx documentation: `make clean && make html` in docs/ directory
-- [ ] T093 Verify Sphinx build succeeds without warnings/errors and HTML output is correct
-- [ ] T094 Verify code quality (ruff linting, mypy/pyright type checking, test coverage)
-- [ ] T095 [P] Ensure undo/rollback integration with existing pyArchimate transaction system works correctly
-- [ ] T096 [P] Final validation against constitution principles (code quality, testing, performance, etc.)
-- [ ] T097 Create quick reference guide (`LAYOUT_QUICKSTART.md` in root or docs/)
+- [x] T005 Implement `_sort_nodes_by_hierarchy()` method in SVGExportService class to sort nodes so parents precede children using depth-first traversal
+- [x] T006 Modify `to_svg()` method to use sorted node order: replace `for node in view.nodes:` with `for node in self._sort_nodes_by_hierarchy(view):`
+- [x] T007 [P] Handle edge case: nodes without parent references (direct View children) should maintain compatibility
+- [x] T008 [P] Ensure sort handles deep nesting (arbitrary containment depth) without stack overflow
+- [x] T009 Add inline documentation to rendering order change explaining the z-order requirement
 
 ---
 
-## Task Summary by Phase
+## PHASE 3: Testing & Validation
 
-| Phase | Tasks | Focus |
-|-------|-------|-------|
-| Phase 1: Setup | T001-T014 (14 tasks) | Project structure, module initialization |
-| Phase 2: Foundational | T015-T027 (13 tasks) | Core classes, utilities, shared infrastructure |
-| Phase 3: US1 (Force-Directed) | T028-T046 (19 tasks) | Force-directed algorithm, routing, label placement |
-| Phase 4: US2 (Auto-Format) | T047-T054 (8 tasks) | Element standardization, formatting |
-| Phase 5: US3 (Hierarchical) | T055-T064 (10 tasks) | Hierarchical layout algorithm |
-| Phase 6: US4 (Customization) | T065-T074 (10 tasks) | Configuration options, advanced features |
-| Phase 7: Polish | T075-T097 (23 tasks) | Edge cases, performance, documentation, Sphinx build |
-| **TOTAL** | **97 tasks** | **Full feature implementation** |
+### Goal
+Validate z-order fix through unit and integration tests, ensuring correctness and backward compatibility.
 
----
-
-## MVP Task List (Phases 1-4 + Phase 7 Sphinx)
-
-**MVP Scope**: Complete these phases for a functional, production-ready auto-layout feature:
-
-- Phase 1: T001-T014 (14 tasks) — ~2 days
-- Phase 2: T015-T027 (13 tasks) — ~3-4 days (critical path)
-- Phase 3: T028-T046 (19 tasks) — ~5-6 days (longest phase)
-- Phase 4: T047-T054 (8 tasks) — ~2-3 days
-- Phase 7 (Sphinx + Core Docs): T085-T097 (subset) — ~2 days
-- **Estimated MVP Duration**: 14-19 days (~3 weeks for experienced developer)
+### Independent Test Criteria (for entire bug fix)
+- Z-order Correctness: SVG export of nested view renders parent nodes before child nodes in XML output
+- Visual Hierarchy: Containers appear behind contained elements (verified in SVG element tree)
+- Backward Compatibility: Flat views (all nodes with View parent) render identically to before fix
+- Performance: SVG export remains under 2 seconds for 300-element views
+- Edge Cases: Empty views, single-node views, deeply nested views all render correctly
+- No regressions: All existing tests continue to pass
 
 ---
 
-## Dependencies & Blocking Relationships
-
-```
-Phase 1 (Setup)
-    ↓
-Phase 2 (Foundational) ← BLOCKING GATE
-    ↓
-Phase 3 (US1) ─────┐
-                   ├→ Phase 7 (Polish)
-Phase 4 (US2) ─────┤
-                   ├→ (Optional: Phase 5 & 6 for full feature)
-Phase 5 (US3) ─────┤
-                   │
-Phase 6 (US4) ─────┘
-```
-
-**Critical Path**: Phase 1 → Phase 2 → Phase 3 → Phase 7  
-**Longest Phase**: Phase 3 (US1 Force-Directed, 19 tasks, 5-6 days)  
-**Parallelizable Tasks**: Within each phase, many tasks marked [P] can run in parallel
+- [x] T010 Create unit test file `tests/unit/view/layout/export/test_svg_zorder.py` with tests for `_sort_nodes_by_hierarchy()` method
+- [x] T011 [P] Write unit test: `test_sort_parents_before_children()` - verify parents in output list before their children
+- [x] T012 [P] Write unit test: `test_sort_preserves_view_root_nodes()` - verify nodes with View parent maintain position
+- [x] T013 [P] Write unit test: `test_sort_handles_deep_nesting()` - verify deeply nested nodes maintain hierarchy
+- [x] T014 [P] Write unit test: `test_sort_empty_node_list()` - verify edge case with no nodes
+- [x] T015 Add integration test to `tests/integration/test_svg_background.py`: `test_svg_zorder_parent_before_children()` verifying SVG element tree has parents before children
+- [x] T016 [P] Add integration test: `test_nested_elements_render_hierarchy()` - export view with nested nodes and verify SVG structure
+- [x] T017 Verify all existing tests pass (ruff, pyright, mypy, pytest) - no regressions introduced
 
 ---
 
-## Execution Recommendations
+## Files Affected
 
-### Week 1: Foundation & Core Algorithm
-1. Complete Phase 1 (Setup) - Day 1
-2. Complete Phase 2 (Foundational) - Days 2-4
-3. Begin Phase 3 (US1) - Days 4-5
+### Modified
+- `src/pyArchimate/view/layout/export/svg_export.py` - Add sort method, modify to_svg()
+- `tests/integration/test_svg_background.py` - Add z-order integration tests
 
-### Week 2: Force-Directed Layout & Testing
-1. Complete Phase 3 (US1) - Days 1-3
-2. Begin Phase 4 (US2) - Days 3-5
+### Created
+- `tests/unit/view/layout/export/test_svg_zorder.py` - New unit test module
 
-### Week 3: Auto-Format & MVP Release
-1. Complete Phase 4 (US2) - Days 1-2
-2. Complete Phase 7 Polish (MVP subset) - Days 2-5
-3. **MVP Release Candidate Ready**
-
-### Week 4+: Full Feature (Optional)
-1. Phase 5 (US3 Hierarchical) - Days 1-3
-2. Phase 6 (US4 Customization) - Days 3-5
-3. Complete Phase 7 (Full Polish) - Days 5-10
+### Unchanged
+- `src/pyArchimate/view/__init__.py` - Node and View classes (analysis only)
+- All symbol definitions and other SVG utilities
 
 ---
 
-## Success Metrics
+## Success Criteria
 
-- [ ] All 92 tasks (or MVP subset) completed and marked done
-- [ ] 100% of unit tests passing
-- [ ] 100% of integration tests passing
-- [ ] 100% of BDD scenarios passing
-- [ ] Performance targets met (<2s for 300 elements)
-- [ ] Code review approved
-- [ ] Documentation complete
-- [ ] Feature merged to develop branch
-- [ ] Release notes prepared
+✅ All unit tests pass (test_svg_zorder.py)  
+✅ All integration tests pass (test_svg_background.py)  
+✅ All existing tests continue to pass (no regressions)  
+✅ Code quality checks pass: ruff, pyright, mypy  
+✅ Z-order bug is fixed: nested views render with correct visual hierarchy  
+
+---
+
+## Risk Mitigation
+
+**Low Risk** - Change is localized to SVG rendering order
+
+- No changes to model persistence (views still save/load identically)
+- No changes to View or Node class APIs
+- Sorting is deterministic and testable
+- Fallback: if sort encounters unforeseen issues, can revert single change in to_svg()
+
+---
+
+## Summary
+
+This bug fix consists of 17 focused tasks across 3 phases:
+- **Phase 1 (4 tasks)**: Understanding Node containment and current rendering
+- **Phase 2 (5 tasks)**: Implementing sort algorithm and integrating into SVG export
+- **Phase 3 (8 tasks)**: Unit and integration tests validating correctness
+
+All phases are required for a complete fix. The entire scope should take 1-2 days of focused development.

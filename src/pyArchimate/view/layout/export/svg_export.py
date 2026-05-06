@@ -31,6 +31,38 @@ class SVGExportService:
         """Initialize SVG export service."""
         pass
 
+    def _sort_nodes_by_hierarchy(self, view: Any) -> list[Any]:
+        """Sort nodes so that containing elements render before contained elements.
+
+        This ensures proper z-order in SVG output where parent containers appear
+        behind their child nodes. Uses depth-first traversal to visit parents
+        before children.
+
+        Args:
+            view: View object containing nodes to sort
+
+        Returns:
+            List of nodes in proper rendering order (parents before children)
+        """
+        sorted_nodes: list[Any] = []
+        visited: set[str] = set()
+
+        def visit(node: Any) -> None:
+            """Depth-first visit: render parent before children."""
+            if node.uuid in visited:
+                return
+            visited.add(node.uuid)
+            sorted_nodes.append(node)
+            # Visit children in the order they appear in nodes_dict
+            for child in node.nodes:
+                visit(child)
+
+        # Start from root nodes (those with View as parent)
+        for root_node in view.nodes:
+            visit(root_node)
+
+        return sorted_nodes
+
     def to_svg(self, view: Any, filepath: Optional[str] = None) -> str:
         """Export view to SVG string and optionally write to file.
 
@@ -71,8 +103,9 @@ class SVGExportService:
         for conn in view.conns:
             self._render_relationship(svg, conn, view.nodes_dict, relationship_service, endpoint_spreads)
 
-        # Render nodes on top
-        for node in view.nodes:
+        # Render nodes on top, respecting containment hierarchy (parents before children)
+        sorted_nodes = self._sort_nodes_by_hierarchy(view)
+        for node in sorted_nodes:
             self._render_node(svg, node)
 
         # Convert to string
@@ -258,35 +291,52 @@ class SVGExportService:
         # Group for node
         g = ET.SubElement(svg, 'g', {'class': 'node'})
 
-        # Get symbol definition
-        symbol_def = ARCHIMATE_SYMBOLS.get(element_type)
-        if not symbol_def:
-            # Fallback to BusinessActor if type not found
-            symbol_def = ARCHIMATE_SYMBOLS['BusinessActor']
+        # Check if this is a container/grouping node (has child nodes)
+        is_container = len(getattr(node, 'nodes', [])) > 0
 
-        # Get color (check for per-element override via fill_color property)
-        color = getattr(node, 'fill_color', None) or get_element_color(element_type, element_id)
+        if is_container:
+            # Render container as a rectangle with dotted border, no fill
+            ET.SubElement(g, 'rect', {
+                'x': str(int(x)),
+                'y': str(int(y)),
+                'width': str(int(w)),
+                'height': str(int(h)),
+                'fill': 'none',
+                'stroke': 'black',
+                'stroke-width': '1',
+                'stroke-dasharray': '5,5',
+            })
+        else:
+            # Render regular node with archimate symbol
+            # Get symbol definition
+            symbol_def = ARCHIMATE_SYMBOLS.get(element_type)
+            if not symbol_def:
+                # Fallback to BusinessActor if type not found
+                symbol_def = ARCHIMATE_SYMBOLS['BusinessActor']
 
-        # Render symbol via <use> element
-        ET.SubElement(g, 'use', {
-            'href': f'#archimate_{symbol_def.element_type}',
-            'x': str(int(x)),
-            'y': str(int(y)),
-            'width': str(int(w)),
-            'height': str(int(h)),
-            'fill': color,
-            'stroke': 'black',
-            'stroke-width': '1',
-        })
+            # Get color (check for per-element override via fill_color property)
+            color = getattr(node, 'fill_color', None) or get_element_color(element_type, element_id)
 
-        # Text with element name centered inside the symbol
+            # Render symbol via <use> element
+            ET.SubElement(g, 'use', {
+                'href': f'#archimate_{symbol_def.element_type}',
+                'x': str(int(x)),
+                'y': str(int(y)),
+                'width': str(int(w)),
+                'height': str(int(h)),
+                'fill': color,
+                'stroke': 'black',
+                'stroke-width': '1',
+            })
+
+        # Text with element name centered inside the symbol/container
         element_name = getattr(node, 'name', getattr(node, 'label', ''))
         if element_name:
             self._render_wrapped_text(
                 g,
                 element_name,
                 x + w / 2,  # center x
-                y + h / 2,  # inside symbol
+                y + h / 2,  # center y
                 w - 2 * self.TEXT_PADDING,  # available width
             )
 

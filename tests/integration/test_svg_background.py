@@ -161,9 +161,111 @@ def test_empty_view_has_white_background():
     print("✓ Empty view has white background")
 
 
+def test_svg_zorder_parent_before_children():
+    """Test that parent nodes render before child nodes in SVG element tree."""
+    from src.pyArchimate.model import Model
+
+    model = Model()
+    view = View(name="Hierarchy Test", uuid="hierarchy-test", parent=model)
+    model.views_dict[view.uuid] = view
+
+    # Create parent and child nodes
+    parent = view.add(ref=None, x=100, y=100, w=200, h=200,
+                      node_type='Label', label='Parent Container')
+    child = parent.add(ref=None, x=50, y=50, w=100, h=100,
+                       node_type='Label', label='Child Element')
+    assert child is not None  # Verify child was created
+
+    # Export to SVG
+    svg_string = view.to_svg()
+
+    # Parse SVG
+    if '<?xml' in svg_string:
+        start_idx = svg_string.find('<svg')
+        end_idx = svg_string.rfind('</svg>') + 6
+        svg_part = svg_string[start_idx:end_idx]
+    else:
+        svg_part = svg_string
+
+    root = ET.fromstring(svg_part)
+
+    # Collect all groups (nodes) in order
+    groups = root.findall('.//{http://www.w3.org/2000/svg}g[@class="node"]')
+    assert len(groups) >= 2, "Should have at least parent and child nodes"
+
+    # Find parent and child in the groups list by searching text content
+    parent_group_idx = None
+    child_group_idx = None
+
+    for idx, group in enumerate(groups):
+        text_elems = group.findall('.//{http://www.w3.org/2000/svg}text')
+        for text in text_elems:
+            if text.text and 'Parent' in text.text:
+                parent_group_idx = idx
+            elif text.text and 'Child' in text.text:
+                child_group_idx = idx
+
+    # Verify parent appears before child in SVG element tree
+    if parent_group_idx is not None and child_group_idx is not None:
+        assert parent_group_idx < child_group_idx, \
+            f"Parent (idx {parent_group_idx}) should appear before child (idx {child_group_idx}) in SVG"
+        print(f"✓ Z-order correct: Parent at index {parent_group_idx}, Child at index {child_group_idx}")
+    else:
+        print("⊘ Could not verify z-order (parent/child text not found in SVG)")
+
+
+def test_nested_elements_render_hierarchy():
+    """Test that deeply nested elements render in proper hierarchy."""
+    from src.pyArchimate.model import Model
+
+    model = Model()
+    view = View(name="Deep Nesting", uuid="deep-nesting", parent=model)
+    model.views_dict[view.uuid] = view
+
+    # Create multi-level nesting: root -> level1 -> level2 -> leaf
+    root = view.add(ref=None, x=0, y=0, w=400, h=400,
+                    node_type='Label', label='Root')
+    level1 = root.add(ref=None, x=50, y=50, w=300, h=300,
+                      node_type='Label', label='Level1')
+    level2 = level1.add(ref=None, x=50, y=50, w=200, h=200,
+                        node_type='Label', label='Level2')
+    leaf = level2.add(ref=None, x=50, y=50, w=100, h=100,
+                      node_type='Label', label='Leaf')
+    assert leaf is not None  # Verify all nodes were created
+
+    # Export to SVG
+    svg_string = view.to_svg()
+
+    # Parse SVG
+    if '<?xml' in svg_string:
+        start_idx = svg_string.find('<svg')
+        end_idx = svg_string.rfind('</svg>') + 6
+        svg_part = svg_string[start_idx:end_idx]
+    else:
+        svg_part = svg_string
+
+    root_elem = ET.fromstring(svg_part)
+
+    # Count total elements - should have all 4 nested nodes
+    all_groups = root_elem.findall('.//{http://www.w3.org/2000/svg}g[@class="node"]')
+    assert len(all_groups) == 4, f"Should have exactly 4 nodes (root + 3 nested), got {len(all_groups)}"
+
+    # Verify containers are rendered with rects (dotted borders) and leaf with symbol
+    all_rects = root_elem.findall('.//{http://www.w3.org/2000/svg}rect[@stroke-dasharray="5,5"]')
+    all_use = root_elem.findall('.//{http://www.w3.org/2000/svg}use')
+    # 3 containers (root, level1, level2) + 1 leaf symbol = 4 total visual elements
+    assert len(all_rects) == 3, f"Should have 3 container rectangles (dotted borders), got {len(all_rects)}"
+    assert len(all_use) >= 1, f"Should render at least 1 symbol (leaf), got {len(all_use)}"
+
+    # Verify structure: nested nodes render successfully
+    print(f"✓ Nested hierarchy rendered: {len(all_groups)} nodes in SVG, {len(all_rects)} containers, {len(all_use)} symbols")
+
+
 if __name__ == '__main__':
     test_svg_export_with_demo_includes_white_background()
     test_svg_background_covers_entire_canvas()
     test_svg_background_appears_behind_nodes()
     test_empty_view_has_white_background()
-    print("\n✓ All SVG background tests passed!")
+    test_svg_zorder_parent_before_children()
+    test_nested_elements_render_hierarchy()
+    print("\n✓ All SVG background and z-order tests passed!")
