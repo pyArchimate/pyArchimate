@@ -91,6 +91,42 @@ class SVGExportService:
 
         return nodes_dict
 
+    def _is_containment_relationship(self, conn: Any, complete_nodes_dict: dict[str, Any]) -> bool:
+        """Check if a connection represents a containment relationship.
+
+        Containment relationships (Composition/Aggregation from container to child)
+        are redundant with the visual containment shown by container boundaries
+        and should be hidden from the SVG output.
+
+        Args:
+            conn: Connection to check
+            complete_nodes_dict: Dictionary of all nodes
+
+        Returns:
+            True if this is a containment relationship, False otherwise
+        """
+        source_uuid = getattr(conn, '_source', None)
+        target_uuid = getattr(conn, '_target', None)
+        rel_type = getattr(conn, 'type', '')
+
+        if not source_uuid or not target_uuid:
+            return False
+
+        # Only Composition and Aggregation can represent containment
+        if not (rel_type in ('CompositionRelationship', 'Composition',
+                            'AggregationRelationship', 'Aggregation')):
+            return False
+
+        # Check if target is a child of source
+        source_node = complete_nodes_dict.get(source_uuid)
+        target_node = complete_nodes_dict.get(target_uuid)
+
+        if not source_node or not target_node:
+            return False
+
+        # If target is in source's children, it's a containment relationship
+        return target_node in getattr(source_node, 'nodes', [])
+
     def to_svg(self, view: Any, filepath: Optional[str] = None) -> str:
         """Export view to SVG string and optionally write to file.
 
@@ -132,6 +168,9 @@ class SVGExportService:
         # Try new rendering with relationship styles, fall back to basic rendering if needed
         relationship_service = RelationshipStyleService()
         for conn in view.conns:
+            # Skip containment relationships (they're already shown visually by container boundaries)
+            if self._is_containment_relationship(conn, complete_nodes_dict):
+                continue
             self._render_relationship(svg, conn, complete_nodes_dict, relationship_service, endpoint_spreads)
 
         # Render nodes on top, respecting containment hierarchy (parents before children)
