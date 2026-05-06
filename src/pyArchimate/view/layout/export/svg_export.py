@@ -448,8 +448,10 @@ class SVGExportService:
         # Group for node
         g = ET.SubElement(parent, "g", {"class": "node"})
 
-        # Check if this is a container/grouping node (has child nodes)
-        is_container = len(getattr(node, "nodes", [])) > 0
+        # Check if this is a visual container node (Grouping type)
+        # Only Grouping elements should render as container borders with dashed outline
+        # Other elements (Facility, etc.) should render as symbols even if they have children
+        is_container = element_type in ("Grouping",) and len(getattr(node, "nodes", [])) > 0
 
         if is_container:
             # Render container as a rectangle with dotted border, no fill
