@@ -498,15 +498,28 @@ class SVGExportService:
                 },
             )
 
-        # Text with element name centered inside the symbol/container
+        # Text with element name positioned based on whether node has children
         element_name = getattr(node, "name", getattr(node, "label", ""))
         if element_name:
+            # Check if this node has children (embedded elements)
+            has_children = len(getattr(node, "nodes", [])) > 0
+
+            if has_children:
+                # For containers with embedded elements, position label at top-left
+                text_x = x + self.TEXT_PADDING
+                text_y = y + self.TEXT_PADDING + 10  # Small offset from top
+            else:
+                # For regular nodes, center the text
+                text_x = x + w / 2
+                text_y = y + h / 2
+
             self._render_wrapped_text(
                 g,
                 element_name,
-                x + w / 2,  # center x
-                y + h / 2,  # center y
+                text_x,
+                text_y,
                 w - 2 * self.TEXT_PADDING,  # available width
+                is_centered=not has_children,  # Only center if no children
             )
 
         return g
@@ -515,35 +528,47 @@ class SVGExportService:
         self,
         parent: ET.Element,
         text: str,
-        center_x: float,
-        center_y: float,
+        text_x: float,
+        text_y: float,
         max_width: float,
+        is_centered: bool = True,
     ) -> None:
         """Render text with automatic word wrapping.
 
         Args:
             parent: Parent SVG element
             text: Text to render
-            center_x: X coordinate of center point
-            center_y: Y coordinate of center point
+            text_x: X coordinate of text position
+            text_y: Y coordinate of text position
             max_width: Maximum width for text
+            is_centered: If True, text is centered at (text_x, text_y); if False, positioned at top-left
         """
         # Word wrap the text
         lines = self._word_wrap_text(text, max_width)
 
         # Calculate vertical positioning
         line_height = 11  # pixels
-        total_height = len(lines) * line_height
-        start_y = center_y - total_height / 2
+        if is_centered:
+            total_height = len(lines) * line_height
+            start_y = text_y - total_height / 2
+            anchor = "middle"
+            x_pos = text_x
+            y_pos = start_y + line_height / 2
+        else:
+            # For top-left aligned text
+            start_y = text_y
+            anchor = "start"
+            x_pos = text_x
+            y_pos = start_y + line_height / 2
 
         # Create text element
         text_elem = ET.SubElement(
             parent,
             "text",
             {
-                "x": str(int(center_x)),
-                "y": str(int(start_y + line_height / 2)),
-                "text-anchor": "middle",
+                "x": str(int(x_pos)),
+                "y": str(int(y_pos)),
+                "text-anchor": anchor,
                 "font-family": "Arial, sans-serif",
                 "font-size": "10",
                 "fill": "black",
@@ -559,7 +584,7 @@ class SVGExportService:
                     text_elem,
                     "tspan",
                     {
-                        "x": str(int(center_x)),
+                        "x": str(int(x_pos)),
                         "dy": str(line_height),
                     },
                 )
