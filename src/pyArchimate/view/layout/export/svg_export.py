@@ -858,8 +858,13 @@ class SVGExportService:
             return [start_point, end_point]
 
         # With bendpoints: Apply routing logic for proper orthogonal paths
-        source_side = self._preferred_boundary_side(source_bounds, (tx, ty), exit_from=True)
-        target_side = self._preferred_boundary_side(target_bounds, (sx, sy), exit_from=True)
+        # Use first bendpoint (not final target) to determine source exit side
+        first_bendpoint = (bendpoints[0].x, bendpoints[0].y) if bendpoints else (tx, ty)
+        source_side = self._preferred_boundary_side(source_bounds, first_bendpoint, exit_from=True)
+
+        # Use last bendpoint (not source) to determine target entry side
+        last_bendpoint = (bendpoints[-1].x, bendpoints[-1].y) if bendpoints else (sx, sy)
+        target_side = self._preferred_boundary_side(target_bounds, last_bendpoint, exit_from=True)
 
         start_point = self._boundary_anchor(source_bounds, source_side, source_spread)
         end_point = self._boundary_anchor(target_bounds, target_side, target_spread)
