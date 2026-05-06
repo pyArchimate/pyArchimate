@@ -178,18 +178,16 @@ class SVGExportService:
             # Determine parent element for this node
             # If node is in another node's children, render it inside that node's group
             parent_elem = svg
-            parent_node = None
             for potential_parent in sorted_nodes:
                 if node != potential_parent and node in getattr(potential_parent, "nodes", []):
                     # Find the SVG group for the parent node
                     parent_uuid = getattr(potential_parent, "uuid", None)
                     if parent_uuid in svg_parents:
                         parent_elem = svg_parents[parent_uuid]
-                    parent_node = potential_parent
                     break
 
             # Render node into the appropriate parent element
-            node_group = self._render_node_into(parent_elem, node, parent_node)
+            node_group = self._render_node_into(parent_elem, node)
             node_uuid = getattr(node, "uuid", None)
             if node_uuid:
                 svg_parents[node_uuid] = node_group
@@ -430,13 +428,12 @@ class SVGExportService:
         """
         self._render_node_into(svg, node)
 
-    def _render_node_into(self, parent: ET.Element, node: Any, parent_node: Any = None) -> ET.Element:
+    def _render_node_into(self, parent: ET.Element, node: Any) -> ET.Element:
         """Render a single node into a specific parent element.
 
         Args:
             parent: Parent SVG element to render into
             node: Node to render
-            parent_node: Parent node object (for determining rendering style)
 
         Returns:
             The SVG group element for this node (for nested children)
@@ -451,16 +448,10 @@ class SVGExportService:
         # Group for node
         g = ET.SubElement(parent, "g", {"class": "node"})
 
-        # Check if this is a visual container node
-        # Grouping elements always render as container borders with dashed outline
-        # Facility elements render as containers if they span >= 80% of parent's width and have children
+        # Check if this is a visual container node (Grouping type)
+        # Only Grouping elements should render as container borders with dashed outline
+        # Other elements (Facility, etc.) should render as symbols even if they have children
         is_container = element_type in ("Grouping",) and len(getattr(node, "nodes", [])) > 0
-
-        # For Facility elements that span most of their parent container, render as rectangle
-        if (element_type == "Facility" and len(getattr(node, "nodes", [])) > 0 and parent_node):
-            parent_width = float(getattr(parent_node, "w", 0))
-            if parent_width > 0 and (w / parent_width) >= 0.75:  # 75% or more of parent width
-                is_container = True
 
         if is_container:
             # Render container as a rectangle with dotted border, no fill
