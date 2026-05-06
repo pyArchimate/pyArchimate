@@ -446,6 +446,7 @@ class SVGExportService:
             color = getattr(node, "fill_color", None) or get_element_color(element_type, element_id)
 
             # Render symbol via <use> element
+            # Use preserveAspectRatio="none" to allow symbols to scale to fit node bounds
             ET.SubElement(
                 g,
                 "use",
@@ -455,6 +456,7 @@ class SVGExportService:
                     "y": str(int(y)),
                     "width": str(int(w)),
                     "height": str(int(h)),
+                    "preserveAspectRatio": "none",
                     "fill": color,
                     "stroke": "black",
                     "stroke-width": "1",
