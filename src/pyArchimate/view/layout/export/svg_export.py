@@ -105,16 +105,15 @@ class SVGExportService:
         Returns:
             True if this is a containment relationship, False otherwise
         """
-        source_uuid = getattr(conn, '_source', None)
-        target_uuid = getattr(conn, '_target', None)
-        rel_type = getattr(conn, 'type', '')
+        source_uuid = getattr(conn, "_source", None)
+        target_uuid = getattr(conn, "_target", None)
+        rel_type = getattr(conn, "type", "")
 
         if not source_uuid or not target_uuid:
             return False
 
         # Only Composition and Aggregation can represent containment
-        if not (rel_type in ('CompositionRelationship', 'Composition',
-                            'AggregationRelationship', 'Aggregation')):
+        if rel_type not in ("CompositionRelationship", "Composition", "AggregationRelationship", "Aggregation"):
             return False
 
         # Check if target is a child of source
@@ -125,7 +124,7 @@ class SVGExportService:
             return False
 
         # If target is in source's children, it's a containment relationship
-        return target_node in getattr(source_node, 'nodes', [])
+        return target_node in getattr(source_node, "nodes", [])
 
     def to_svg(self, view: Any, filepath: Optional[str] = None) -> str:
         """Export view to SVG string and optionally write to file.
@@ -141,16 +140,19 @@ class SVGExportService:
         bounds = self._calculate_bounds(view)
 
         # Create SVG root element
-        svg_width = bounds['max_x'] + self.SVG_MARGIN
-        svg_height = bounds['max_y'] + self.SVG_MARGIN
+        svg_width = bounds["max_x"] + self.SVG_MARGIN
+        svg_height = bounds["max_y"] + self.SVG_MARGIN
 
-        svg = ET.Element('svg', {
-            'xmlns': 'http://www.w3.org/2000/svg',
-            'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-            'width': str(int(svg_width)),
-            'height': str(int(svg_height)),
-            'viewBox': f'0 0 {int(svg_width)} {int(svg_height)}',
-        })
+        svg = ET.Element(
+            "svg",
+            {
+                "xmlns": "http://www.w3.org/2000/svg",
+                "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                "width": str(int(svg_width)),
+                "height": str(int(svg_height)),
+                "viewBox": f"0 0 {int(svg_width)} {int(svg_height)}",
+            },
+        )
 
         # Add defs block with arrowhead marker
         self._add_defs(svg)
@@ -179,11 +181,11 @@ class SVGExportService:
             self._render_node(svg, node)
 
         # Convert to string
-        svg_string = ET.tostring(svg, encoding='unicode')
+        svg_string = ET.tostring(svg, encoding="unicode")
 
         # Write to file if filepath provided
         if filepath:
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
                 f.write(svg_string)
 
@@ -199,33 +201,33 @@ class SVGExportService:
             Dictionary with min_x, min_y, max_x, max_y
         """
         bounds = {
-            'min_x': float('inf'),
-            'min_y': float('inf'),
-            'max_x': 0.0,
-            'max_y': 0.0,
+            "min_x": float("inf"),
+            "min_y": float("inf"),
+            "max_x": 0.0,
+            "max_y": 0.0,
         }
 
-        nodes = getattr(view, 'nodes', [])
+        nodes = getattr(view, "nodes", [])
         if not nodes:
             return bounds
 
         for node in nodes:
-            x = float(getattr(node, 'x', 0))
-            y = float(getattr(node, 'y', 0))
-            w = float(getattr(node, 'w', 120))
-            h = float(getattr(node, 'h', 55))
+            x = float(getattr(node, "x", 0))
+            y = float(getattr(node, "y", 0))
+            w = float(getattr(node, "w", 120))
+            h = float(getattr(node, "h", 55))
 
-            bounds['min_x'] = min(bounds['min_x'], x)
-            bounds['min_y'] = min(bounds['min_y'], y)
-            bounds['max_x'] = max(bounds['max_x'], x + w)
-            bounds['max_y'] = max(bounds['max_y'], y + h)
+            bounds["min_x"] = min(bounds["min_x"], x)
+            bounds["min_y"] = min(bounds["min_y"], y)
+            bounds["max_x"] = max(bounds["max_x"], x + w)
+            bounds["max_y"] = max(bounds["max_y"], y + h)
 
         # Handle empty view
-        if bounds['min_x'] == float('inf'):
-            bounds['min_x'] = 0
-            bounds['min_y'] = 0
-            bounds['max_x'] = 100
-            bounds['max_y'] = 100
+        if bounds["min_x"] == float("inf"):
+            bounds["min_x"] = 0
+            bounds["min_y"] = 0
+            bounds["max_x"] = 100
+            bounds["max_y"] = 100
 
         return bounds
 
@@ -235,97 +237,145 @@ class SVGExportService:
         Args:
             svg: SVG root element
         """
-        defs = ET.SubElement(svg, 'defs')
+        defs = ET.SubElement(svg, "defs")
 
         # Add ArchiMate symbol definitions
         for symbol_def in ARCHIMATE_SYMBOLS.values():
-            symbol = ET.SubElement(defs, 'symbol', {
-                'id': f'archimate_{symbol_def.element_type}',
-                'viewBox': symbol_def.viewBox,
-            })
-            ET.SubElement(symbol, 'path', {
-                'd': symbol_def.svg_path,
-                'fill': symbol_def.default_color,
-                'stroke': 'black',
-                'stroke-width': '1',
-            })
+            symbol = ET.SubElement(
+                defs,
+                "symbol",
+                {
+                    "id": f"archimate_{symbol_def.element_type}",
+                    "viewBox": symbol_def.viewBox,
+                },
+            )
+            ET.SubElement(
+                symbol,
+                "path",
+                {
+                    "d": symbol_def.svg_path,
+                    "fill": symbol_def.default_color,
+                    "stroke": "black",
+                    "stroke-width": "1",
+                },
+            )
 
         # Arrowhead marker (filled triangle) - for connections
-        marker = ET.SubElement(defs, 'marker', {
-            'id': 'arrowhead',
-            'markerWidth': str(self.ARROWHEAD_SIZE),
-            'markerHeight': str(self.ARROWHEAD_SIZE),
-            'refX': str(self.ARROWHEAD_SIZE - 2),
-            'refY': str(self.ARROWHEAD_SIZE // 2),
-            'orient': 'auto',
-        })
+        marker = ET.SubElement(
+            defs,
+            "marker",
+            {
+                "id": "arrowhead",
+                "markerWidth": str(self.ARROWHEAD_SIZE),
+                "markerHeight": str(self.ARROWHEAD_SIZE),
+                "refX": str(self.ARROWHEAD_SIZE - 2),
+                "refY": str(self.ARROWHEAD_SIZE // 2),
+                "orient": "auto",
+            },
+        )
 
         # Triangle polygon for arrowhead
-        ET.SubElement(marker, 'polygon', {
-            'points': f'0 0, {self.ARROWHEAD_SIZE} {self.ARROWHEAD_SIZE // 2}, 0 {self.ARROWHEAD_SIZE}',
-            'fill': 'black',
-        })
+        ET.SubElement(
+            marker,
+            "polygon",
+            {
+                "points": f"0 0, {self.ARROWHEAD_SIZE} {self.ARROWHEAD_SIZE // 2}, 0 {self.ARROWHEAD_SIZE}",
+                "fill": "black",
+            },
+        )
 
         # Relationship markers
         # Filled arrow (for serving, access, etc.)
-        marker_filled = ET.SubElement(defs, 'marker', {
-            'id': 'arrow-filled',
-            'markerWidth': '8',
-            'markerHeight': '8',
-            'refX': '6',
-            'refY': '4',
-            'orient': 'auto',
-        })
-        ET.SubElement(marker_filled, 'polygon', {
-            'points': '0 0, 8 4, 0 8',
-            'fill': 'black',
-        })
+        marker_filled = ET.SubElement(
+            defs,
+            "marker",
+            {
+                "id": "arrow-filled",
+                "markerWidth": "8",
+                "markerHeight": "8",
+                "refX": "6",
+                "refY": "4",
+                "orient": "auto",
+            },
+        )
+        ET.SubElement(
+            marker_filled,
+            "polygon",
+            {
+                "points": "0 0, 8 4, 0 8",
+                "fill": "black",
+            },
+        )
 
         # Hollow arrow (for realization, etc.)
-        marker_hollow = ET.SubElement(defs, 'marker', {
-            'id': 'arrow-hollow',
-            'markerWidth': '8',
-            'markerHeight': '8',
-            'refX': '6',
-            'refY': '4',
-            'orient': 'auto',
-        })
-        ET.SubElement(marker_hollow, 'polygon', {
-            'points': '0 0, 8 4, 0 8',
-            'fill': 'none',
-            'stroke': 'black',
-            'stroke-width': '1',
-        })
+        marker_hollow = ET.SubElement(
+            defs,
+            "marker",
+            {
+                "id": "arrow-hollow",
+                "markerWidth": "8",
+                "markerHeight": "8",
+                "refX": "6",
+                "refY": "4",
+                "orient": "auto",
+            },
+        )
+        ET.SubElement(
+            marker_hollow,
+            "polygon",
+            {
+                "points": "0 0, 8 4, 0 8",
+                "fill": "none",
+                "stroke": "black",
+                "stroke-width": "1",
+            },
+        )
 
         # Diamond filled (for composition)
-        marker_diamond_filled = ET.SubElement(defs, 'marker', {
-            'id': 'diamond-filled',
-            'markerWidth': '8',
-            'markerHeight': '8',
-            'refX': '4',
-            'refY': '4',
-            'orient': 'auto',
-        })
-        ET.SubElement(marker_diamond_filled, 'polygon', {
-            'points': '4 0, 8 4, 4 8, 0 4',
-            'fill': 'black',
-        })
+        marker_diamond_filled = ET.SubElement(
+            defs,
+            "marker",
+            {
+                "id": "diamond-filled",
+                "markerWidth": "8",
+                "markerHeight": "8",
+                "refX": "4",
+                "refY": "4",
+                "orient": "auto",
+            },
+        )
+        ET.SubElement(
+            marker_diamond_filled,
+            "polygon",
+            {
+                "points": "4 0, 8 4, 4 8, 0 4",
+                "fill": "black",
+            },
+        )
 
         # Diamond hollow (for aggregation)
-        marker_diamond_hollow = ET.SubElement(defs, 'marker', {
-            'id': 'diamond-hollow',
-            'markerWidth': '8',
-            'markerHeight': '8',
-            'refX': '4',
-            'refY': '4',
-            'orient': 'auto',
-        })
-        ET.SubElement(marker_diamond_hollow, 'polygon', {
-            'points': '4 0, 8 4, 4 8, 0 4',
-            'fill': 'none',
-            'stroke': 'black',
-            'stroke-width': '1',
-        })
+        marker_diamond_hollow = ET.SubElement(
+            defs,
+            "marker",
+            {
+                "id": "diamond-hollow",
+                "markerWidth": "8",
+                "markerHeight": "8",
+                "refX": "4",
+                "refY": "4",
+                "orient": "auto",
+            },
+        )
+        ET.SubElement(
+            marker_diamond_hollow,
+            "polygon",
+            {
+                "points": "4 0, 8 4, 4 8, 0 4",
+                "fill": "none",
+                "stroke": "black",
+                "stroke-width": "1",
+            },
+        )
 
     def _add_background(self, svg: ET.Element, width: float, height: float) -> None:
         """Add white background rectangle to SVG canvas.
@@ -335,14 +385,18 @@ class SVGExportService:
             width: SVG canvas width
             height: SVG canvas height
         """
-        ET.SubElement(svg, 'rect', {
-            'x': '0',
-            'y': '0',
-            'width': str(int(width)),
-            'height': str(int(height)),
-            'fill': 'white',
-            'stroke': 'none',
-        })
+        ET.SubElement(
+            svg,
+            "rect",
+            {
+                "x": "0",
+                "y": "0",
+                "width": str(int(width)),
+                "height": str(int(height)),
+                "fill": "white",
+                "stroke": "none",
+            },
+        )
 
     def _render_node(self, svg: ET.Element, node: Any) -> None:
         """Render a single node as an ArchiMate symbol with text.
@@ -351,56 +405,64 @@ class SVGExportService:
             svg: SVG root element
             node: Node to render
         """
-        x = float(getattr(node, 'x', 0))
-        y = float(getattr(node, 'y', 0))
-        w = float(getattr(node, 'w', 120))
-        h = float(getattr(node, 'h', 55))
-        element_type = getattr(node, 'type', 'BusinessActor')
-        element_id = getattr(node, 'uuid', None)
+        x = float(getattr(node, "x", 0))
+        y = float(getattr(node, "y", 0))
+        w = float(getattr(node, "w", 120))
+        h = float(getattr(node, "h", 55))
+        element_type = getattr(node, "type", "BusinessActor")
+        element_id = getattr(node, "uuid", None)
 
         # Group for node
-        g = ET.SubElement(svg, 'g', {'class': 'node'})
+        g = ET.SubElement(svg, "g", {"class": "node"})
 
         # Check if this is a container/grouping node (has child nodes)
-        is_container = len(getattr(node, 'nodes', [])) > 0
+        is_container = len(getattr(node, "nodes", [])) > 0
 
         if is_container:
             # Render container as a rectangle with dotted border, no fill
-            ET.SubElement(g, 'rect', {
-                'x': str(int(x)),
-                'y': str(int(y)),
-                'width': str(int(w)),
-                'height': str(int(h)),
-                'fill': 'none',
-                'stroke': 'black',
-                'stroke-width': '1',
-                'stroke-dasharray': '5,5',
-            })
+            ET.SubElement(
+                g,
+                "rect",
+                {
+                    "x": str(int(x)),
+                    "y": str(int(y)),
+                    "width": str(int(w)),
+                    "height": str(int(h)),
+                    "fill": "none",
+                    "stroke": "black",
+                    "stroke-width": "1",
+                    "stroke-dasharray": "5,5",
+                },
+            )
         else:
             # Render regular node with archimate symbol
             # Get symbol definition
             symbol_def = ARCHIMATE_SYMBOLS.get(element_type)
             if not symbol_def:
                 # Fallback to BusinessActor if type not found
-                symbol_def = ARCHIMATE_SYMBOLS['BusinessActor']
+                symbol_def = ARCHIMATE_SYMBOLS["BusinessActor"]
 
             # Get color (check for per-element override via fill_color property)
-            color = getattr(node, 'fill_color', None) or get_element_color(element_type, element_id)
+            color = getattr(node, "fill_color", None) or get_element_color(element_type, element_id)
 
             # Render symbol via <use> element
-            ET.SubElement(g, 'use', {
-                'href': f'#archimate_{symbol_def.element_type}',
-                'x': str(int(x)),
-                'y': str(int(y)),
-                'width': str(int(w)),
-                'height': str(int(h)),
-                'fill': color,
-                'stroke': 'black',
-                'stroke-width': '1',
-            })
+            ET.SubElement(
+                g,
+                "use",
+                {
+                    "href": f"#archimate_{symbol_def.element_type}",
+                    "x": str(int(x)),
+                    "y": str(int(y)),
+                    "width": str(int(w)),
+                    "height": str(int(h)),
+                    "fill": color,
+                    "stroke": "black",
+                    "stroke-width": "1",
+                },
+            )
 
         # Text with element name centered inside the symbol/container
-        element_name = getattr(node, 'name', getattr(node, 'label', ''))
+        element_name = getattr(node, "name", getattr(node, "label", ""))
         if element_name:
             self._render_wrapped_text(
                 g,
@@ -436,24 +498,32 @@ class SVGExportService:
         start_y = center_y - total_height / 2
 
         # Create text element
-        text_elem = ET.SubElement(parent, 'text', {
-            'x': str(int(center_x)),
-            'y': str(int(start_y + line_height / 2)),
-            'text-anchor': 'middle',
-            'font-family': 'Arial, sans-serif',
-            'font-size': '10',
-            'fill': 'black',
-        })
+        text_elem = ET.SubElement(
+            parent,
+            "text",
+            {
+                "x": str(int(center_x)),
+                "y": str(int(start_y + line_height / 2)),
+                "text-anchor": "middle",
+                "font-family": "Arial, sans-serif",
+                "font-size": "10",
+                "fill": "black",
+            },
+        )
 
         # Add lines as tspan elements
         for i, line in enumerate(lines):
             if i == 0:
                 text_elem.text = line
             else:
-                tspan = ET.SubElement(text_elem, 'tspan', {
-                    'x': str(int(center_x)),
-                    'dy': str(line_height),
-                })
+                tspan = ET.SubElement(
+                    text_elem,
+                    "tspan",
+                    {
+                        "x": str(int(center_x)),
+                        "dy": str(line_height),
+                    },
+                )
                 tspan.text = line
 
     def _word_wrap_text(self, text: str, max_width: float) -> list[str]:
@@ -475,16 +545,16 @@ class SVGExportService:
 
         for word in words:
             # Check if adding this word would exceed the limit
-            test_line = ' '.join(current_line + [word])
+            test_line = " ".join(current_line + [word])
             if len(test_line) <= chars_per_line:
                 current_line.append(word)
             else:
                 if current_line:
-                    lines.append(' '.join(current_line))
+                    lines.append(" ".join(current_line))
                 current_line = [word]
 
         if current_line:
-            lines.append(' '.join(current_line))
+            lines.append(" ".join(current_line))
 
         return lines if lines else [text]
 
@@ -514,45 +584,55 @@ class SVGExportService:
         dy = direction_from[1] - ey
 
         # Normalize direction
-        dist = math.sqrt(dx*dx + dy*dy)
+        dist = math.sqrt(dx * dx + dy * dy)
         if dist < 0.1:
             return
 
         dx /= dist
         dy /= dist
 
-        if position == 'end':
+        if position == "end":
             # Arrow pointing in direction of line
             dx = -dx
             dy = -dy
 
         # Create arrow pointing marker (larger size for visibility)
         marker_size = 12
-        if marker_type in ('filled', 'hollow'):
+        if marker_type in ("filled", "hollow"):
             # Triangle arrow: base perpendicular to direction, point along direction
             perp_x = -dy
             perp_y = dx
 
             # Triangle vertices (pointing along dx, dy direction)
             p1 = (ex + dx * marker_size, ey + dy * marker_size)  # Point
-            p2 = (ex - perp_x * marker_size/2 - dx * marker_size/3, ey - perp_y * marker_size/2 - dy * marker_size/3)  # Base corners
-            p3 = (ex + perp_x * marker_size/2 - dx * marker_size/3, ey + perp_y * marker_size/2 - dy * marker_size/3)
+            p2 = (
+                ex - perp_x * marker_size / 2 - dx * marker_size / 3,
+                ey - perp_y * marker_size / 2 - dy * marker_size / 3,
+            )  # Base corners
+            p3 = (
+                ex + perp_x * marker_size / 2 - dx * marker_size / 3,
+                ey + perp_y * marker_size / 2 - dy * marker_size / 3,
+            )
 
-            points_str = f'{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]}'
+            points_str = f"{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]}"
 
-            fill = color if marker_type == 'filled' else 'none'
-            stroke = 'none' if marker_type == 'filled' else color
-            stroke_width = '1' if marker_type == 'filled' else '1.5'
+            fill = color if marker_type == "filled" else "none"
+            stroke = "none" if marker_type == "filled" else color
+            stroke_width = "1" if marker_type == "filled" else "1.5"
 
-            ET.SubElement(svg, 'polygon', {
-                'points': points_str,
-                'fill': fill,
-                'stroke': stroke,
-                'stroke-width': stroke_width,
-                'stroke-linejoin': 'miter',
-            })
+            ET.SubElement(
+                svg,
+                "polygon",
+                {
+                    "points": points_str,
+                    "fill": fill,
+                    "stroke": stroke,
+                    "stroke-width": stroke_width,
+                    "stroke-linejoin": "miter",
+                },
+            )
 
-        elif marker_type == 'diamond':
+        elif marker_type == "diamond":
             # Diamond marker (larger for visibility)
             size = 8
             p1 = (ex + dx * size, ey + dy * size)
@@ -560,19 +640,23 @@ class SVGExportService:
             p3 = (ex - dx * size, ey - dy * size)
             p4 = (ex + dy * size, ey - dx * size)
 
-            points_str = f'{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]} {p4[0]},{p4[1]}'
+            points_str = f"{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]} {p4[0]},{p4[1]}"
 
-            fill = color if marker_type == 'diamond' else 'none'
-            stroke = 'none' if marker_type == 'diamond' else color
-            stroke_width = '1' if marker_type == 'diamond' else '1.5'
+            fill = color if marker_type == "diamond" else "none"
+            stroke = "none" if marker_type == "diamond" else color
+            stroke_width = "1" if marker_type == "diamond" else "1.5"
 
-            ET.SubElement(svg, 'polygon', {
-                'points': points_str,
-                'fill': fill,
-                'stroke': stroke,
-                'stroke-width': stroke_width,
-                'stroke-linejoin': 'miter',
-            })
+            ET.SubElement(
+                svg,
+                "polygon",
+                {
+                    "points": points_str,
+                    "fill": fill,
+                    "stroke": stroke,
+                    "stroke-width": stroke_width,
+                    "stroke-linejoin": "miter",
+                },
+            )
 
     def _render_relationship(
         self,
@@ -580,7 +664,7 @@ class SVGExportService:
         conn: Any,
         nodes_dict: dict[str, Any],
         relationship_service: RelationshipStyleService,
-            endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]],
+        endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]],
     ) -> None:
         """Render a single relationship with ArchiMate styling.
 
@@ -590,8 +674,8 @@ class SVGExportService:
             nodes_dict: Dictionary of nodes by uuid
             relationship_service: Service for relationship styles
         """
-        source_uuid = getattr(conn, '_source', None)
-        target_uuid = getattr(conn, '_target', None)
+        source_uuid = getattr(conn, "_source", None)
+        target_uuid = getattr(conn, "_target", None)
 
         if not source_uuid or not target_uuid:
             return
@@ -603,27 +687,27 @@ class SVGExportService:
             return
 
         # Get bendpoints
-        bendpoints = getattr(conn, 'bendpoints', [])
+        bendpoints = getattr(conn, "bendpoints", [])
 
         # Build polyline points
         points = self._get_clipped_polyline_points(
             source_node,
             target_node,
             bendpoints,
-            endpoint_spreads.get((source_uuid, 'src', id(conn)), (0.0, 0.0)),
-            endpoint_spreads.get((target_uuid, 'tgt', id(conn)), (0.0, 0.0)),
+            endpoint_spreads.get((source_uuid, "src", id(conn)), (0.0, 0.0)),
+            endpoint_spreads.get((target_uuid, "tgt", id(conn)), (0.0, 0.0)),
         )
 
         if len(points) < 2:
             return
 
         # Get relationship type and style
-        rel_type = getattr(conn, 'type', 'Association')
+        rel_type = getattr(conn, "type", "Association")
         relationship_style = relationship_service.get_style(rel_type)
 
         # If no style found, try without "Relationship" suffix
-        if not relationship_style and 'Relationship' in rel_type:
-            relationship_style = relationship_service.get_style(rel_type.replace('Relationship', ''))
+        if not relationship_style and "Relationship" in rel_type:
+            relationship_style = relationship_service.get_style(rel_type.replace("Relationship", ""))
 
         # Fall back to basic connection rendering if no style found
         if not relationship_style:
@@ -631,31 +715,31 @@ class SVGExportService:
             return
 
         # Apply per-relationship overrides if available
-        stroke_color = getattr(conn, 'stroke_color', None) or relationship_style.stroke_color
-        stroke_width = getattr(conn, 'stroke_width', None) or relationship_style.stroke_width
-        stroke_dasharray = getattr(conn, 'stroke_style', None) or relationship_style.stroke_dasharray
+        stroke_color = getattr(conn, "stroke_color", None) or relationship_style.stroke_color
+        stroke_width = getattr(conn, "stroke_width", None) or relationship_style.stroke_width
+        stroke_dasharray = getattr(conn, "stroke_style", None) or relationship_style.stroke_dasharray
 
         # Render polyline with relationship style
-        points_str = ' '.join(f'{int(p[0])},{int(p[1])}' for p in points)
+        points_str = " ".join(f"{int(p[0])},{int(p[1])}" for p in points)
         polyline_attrs = {
-            'points': points_str,
-            'fill': 'none',
-            'stroke': stroke_color,
-            'stroke-width': str(stroke_width),
-            'opacity': '0.8',
+            "points": points_str,
+            "fill": "none",
+            "stroke": stroke_color,
+            "stroke-width": str(stroke_width),
+            "opacity": "0.8",
         }
 
         # Add dash pattern if specified
         if stroke_dasharray:
-            polyline_attrs['stroke-dasharray'] = stroke_dasharray
+            polyline_attrs["stroke-dasharray"] = stroke_dasharray
 
         # Add markers if specified
         if relationship_style.marker_start:
-            polyline_attrs['marker-start'] = relationship_style.marker_start
+            polyline_attrs["marker-start"] = relationship_style.marker_start
         if relationship_style.marker_end:
-            polyline_attrs['marker-end'] = relationship_style.marker_end
+            polyline_attrs["marker-end"] = relationship_style.marker_end
 
-        ET.SubElement(svg, 'polyline', polyline_attrs)
+        ET.SubElement(svg, "polyline", polyline_attrs)
 
         # Render relationship label
         label_text = self._get_short_type_name(rel_type)
@@ -667,7 +751,7 @@ class SVGExportService:
         svg: ET.Element,
         conn: Any,
         nodes_dict: dict[str, Any],
-            endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]],
+        endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]],
     ) -> None:
         """Render a single connection as a polyline with optional label.
 
@@ -676,8 +760,8 @@ class SVGExportService:
             conn: Connection to render
             nodes_dict: Dictionary of nodes by uuid
         """
-        source_uuid = getattr(conn, '_source', None)
-        target_uuid = getattr(conn, '_target', None)
+        source_uuid = getattr(conn, "_source", None)
+        target_uuid = getattr(conn, "_target", None)
 
         if not source_uuid or not target_uuid:
             return
@@ -689,32 +773,36 @@ class SVGExportService:
             return
 
         # Get bendpoints
-        bendpoints = getattr(conn, 'bendpoints', [])
+        bendpoints = getattr(conn, "bendpoints", [])
 
         # Build polyline points
         points = self._get_clipped_polyline_points(
             source_node,
             target_node,
             bendpoints,
-            endpoint_spreads.get((source_uuid, 'src', id(conn)), (0.0, 0.0)),
-            endpoint_spreads.get((target_uuid, 'tgt', id(conn)), (0.0, 0.0)),
+            endpoint_spreads.get((source_uuid, "src", id(conn)), (0.0, 0.0)),
+            endpoint_spreads.get((target_uuid, "tgt", id(conn)), (0.0, 0.0)),
         )
 
         if len(points) < 2:
             return
 
         # Render polyline
-        points_str = ' '.join(f'{int(p[0])},{int(p[1])}' for p in points)
-        ET.SubElement(svg, 'polyline', {
-            'points': points_str,
-            'fill': 'none',
-            'stroke': 'black',
-            'stroke-width': '1',
-            'marker-end': 'url(#arrowhead)',
-        })
+        points_str = " ".join(f"{int(p[0])},{int(p[1])}" for p in points)
+        ET.SubElement(
+            svg,
+            "polyline",
+            {
+                "points": points_str,
+                "fill": "none",
+                "stroke": "black",
+                "stroke-width": "1",
+                "marker-end": "url(#arrowhead)",
+            },
+        )
 
         # Render connection label
-        rel_type = getattr(conn, 'type', 'Relationship')
+        rel_type = getattr(conn, "type", "Relationship")
         label_text = self._get_short_type_name(rel_type)
 
         if label_text and len(points) >= 2:
@@ -725,8 +813,8 @@ class SVGExportService:
         source_node: Any,
         target_node: Any,
         bendpoints: list[Any],
-            source_spread: tuple[float, float] = (0.0, 0.0),
-            target_spread: tuple[float, float] = (0.0, 0.0),
+        source_spread: tuple[float, float] = (0.0, 0.0),
+        target_spread: tuple[float, float] = (0.0, 0.0),
     ) -> list[Tuple[float, float]]:
         """Get polyline points clipped at node boundary edges.
 
@@ -739,10 +827,10 @@ class SVGExportService:
             List of (x, y) tuples representing polyline points
         """
         # Get source and target centers
-        sx = float(getattr(source_node, 'x', 0)) + float(getattr(source_node, 'w', 120)) / 2
-        sy = float(getattr(source_node, 'y', 0)) + float(getattr(source_node, 'h', 55)) / 2
-        tx = float(getattr(target_node, 'x', 0)) + float(getattr(target_node, 'w', 120)) / 2
-        ty = float(getattr(target_node, 'y', 0)) + float(getattr(target_node, 'h', 55)) / 2
+        sx = float(getattr(source_node, "x", 0)) + float(getattr(source_node, "w", 120)) / 2
+        sy = float(getattr(source_node, "y", 0)) + float(getattr(source_node, "h", 55)) / 2
+        tx = float(getattr(target_node, "x", 0)) + float(getattr(target_node, "w", 120)) / 2
+        ty = float(getattr(target_node, "y", 0)) + float(getattr(target_node, "h", 55)) / 2
 
         sx += source_spread[0]
         sy += source_spread[1]
@@ -765,8 +853,8 @@ class SVGExportService:
 
         # Add bendpoints
         for bp in bendpoints:
-            bx = float(getattr(bp, 'x', 0))
-            by = float(getattr(bp, 'y', 0))
+            bx = float(getattr(bp, "x", 0))
+            by = float(getattr(bp, "y", 0))
             full_points.append((bx, by))
 
         full_points.append(end_point)
@@ -776,11 +864,11 @@ class SVGExportService:
             full_points.insert(1, self._boundary_stub(full_points[0], source_side))
 
         # Preserve the chosen target side for the final segment and marker orientation.
-        target_orientation = 'horizontal' if target_side in ('left', 'right') else 'vertical'
+        target_orientation = "horizontal" if target_side in ("left", "right") else "vertical"
         if len(full_points) >= 2:
             full_points[-1] = end_point
 
-        source_orientation = 'horizontal' if source_side in ('top', 'bottom') else 'vertical'
+        source_orientation = "horizontal" if source_side in ("top", "bottom") else "vertical"
 
         full_points = self._orthogonalize_polyline_points(
             full_points,
@@ -791,10 +879,10 @@ class SVGExportService:
         return full_points
 
     def _orthogonalize_polyline_points(
-            self,
-            points: list[Tuple[float, float]],
-            target_orientation: str = 'vertical',
-            source_orientation: str = 'vertical',
+        self,
+        points: list[Tuple[float, float]],
+        target_orientation: str = "vertical",
+        source_orientation: str = "vertical",
     ) -> list[Tuple[float, float]]:
         """Insert corners so each segment is axis-aligned.
 
@@ -812,9 +900,9 @@ class SVGExportService:
                 continue
 
             if idx == len(points) - 2:
-                corner = (prev[0], cur[1]) if target_orientation == 'horizontal' else (cur[0], prev[1])
+                corner = (prev[0], cur[1]) if target_orientation == "horizontal" else (cur[0], prev[1])
             elif idx == 0:
-                corner = (prev[0], cur[1]) if source_orientation == 'horizontal' else (cur[0], prev[1])
+                corner = (prev[0], cur[1]) if source_orientation == "horizontal" else (cur[0], prev[1])
             elif abs(cur[0] - prev[0]) >= abs(cur[1] - prev[1]):
                 corner = (cur[0], prev[1])
             else:
@@ -828,65 +916,65 @@ class SVGExportService:
 
     @staticmethod
     def _boundary_side(
-            bounds: Tuple[float, float, float, float],
-            point: Tuple[float, float],
+        bounds: Tuple[float, float, float, float],
+        point: Tuple[float, float],
     ) -> str | None:
         """Return which rectangle edge a point lies on."""
         x1, y1, x2, y2 = bounds
         px, py = point
         if abs(py - y1) < 0.01:
-            return 'top'
+            return "top"
         if abs(py - y2) < 0.01:
-            return 'bottom'
+            return "bottom"
         if abs(px - x1) < 0.01:
-            return 'left'
+            return "left"
         if abs(px - x2) < 0.01:
-            return 'right'
+            return "right"
         return None
 
     @staticmethod
     def _boundary_stub(
-            point: Tuple[float, float],
-            side: str,
-            length: float = 8.0,
+        point: Tuple[float, float],
+        side: str,
+        length: float = 8.0,
     ) -> Tuple[float, float]:
         """Create a short orthogonal stub away from a boundary edge."""
         x, y = point
-        if side == 'top':
+        if side == "top":
             return x, y - length
-        if side == 'bottom':
+        if side == "bottom":
             return x, y + length
-        if side == 'left':
+        if side == "left":
             return x - length, y
-        if side == 'right':
+        if side == "right":
             return x + length, y
         return point
 
     def _boundary_anchor(
-            self,
-            bounds: Tuple[float, float, float, float],
-            side: str,
-            spread: tuple[float, float],
+        self,
+        bounds: Tuple[float, float, float, float],
+        side: str,
+        spread: tuple[float, float],
     ) -> Tuple[float, float]:
         """Place an anchor on the requested edge, clamped away from corners."""
         x1, y1, x2, y2 = bounds
         margin = self.EDGE_CORNER_MARGIN
-        if side in ('left', 'right'):
+        if side in ("left", "right"):
             axis_value = (y1 + y2) / 2.0 + spread[1]
             y = max(y1 + margin, min(y2 - margin, axis_value))
-            x = x1 if side == 'left' else x2
+            x = x1 if side == "left" else x2
             return x, y
 
         axis_value = (x1 + x2) / 2.0 + spread[0]
         x = max(x1 + margin, min(x2 - margin, axis_value))
-        y = y1 if side == 'top' else y2
+        y = y1 if side == "top" else y2
         return x, y
 
     @staticmethod
     def _preferred_boundary_side(
-            bounds: Tuple[float, float, float, float],
-            other_point: Tuple[float, float],
-            exit_from: bool = True,
+        bounds: Tuple[float, float, float, float],
+        other_point: Tuple[float, float],
+        exit_from: bool = True,
     ) -> str:
         """Pick the edge side that best matches the connection direction."""
         x1, y1, x2, y2 = bounds
@@ -898,31 +986,31 @@ class SVGExportService:
 
         if abs(dx) >= abs(dy):
             if dx >= 0:
-                return 'right' if exit_from else 'left'
-            return 'left' if exit_from else 'right'
+                return "right" if exit_from else "left"
+            return "left" if exit_from else "right"
 
         if dy >= 0:
-            return 'bottom' if exit_from else 'top'
-        return 'top' if exit_from else 'bottom'
+            return "bottom" if exit_from else "top"
+        return "top" if exit_from else "bottom"
 
     @staticmethod
     def _infer_boundary_orientation(
-            bounds: Tuple[float, float, float, float],
-            point: Tuple[float, float],
-            exit_from: bool = False,
+        bounds: Tuple[float, float, float, float],
+        point: Tuple[float, float],
+        exit_from: bool = False,
     ) -> str:
         """Infer whether a boundary point lies on a horizontal or vertical edge."""
         x1, y1, x2, y2 = bounds
         px, py = point
         if abs(px - x1) < 0.01 or abs(px - x2) < 0.01:
-            return 'horizontal'
+            return "horizontal"
         if abs(py - y1) < 0.01 or abs(py - y2) < 0.01:
-            return 'vertical'
-        return 'vertical' if exit_from else 'horizontal'
+            return "vertical"
+        return "vertical" if exit_from else "horizontal"
 
     def _compute_endpoint_spreads(
-            self,
-            view: Any,
+        self,
+        view: Any,
     ) -> dict[tuple[str, str, int], tuple[float, float]]:
         """Compute temporary source/target offsets for repeated connections.
 
@@ -930,57 +1018,59 @@ class SVGExportService:
         kept local to SVG export so the model itself is not mutated.
         """
         endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]] = {}
-        nodes_dict = getattr(view, 'nodes_dict', {})
-        conns = getattr(view, 'conns', [])
+        nodes_dict = getattr(view, "nodes_dict", {})
+        conns = getattr(view, "conns", [])
 
         for node_uuid, node in nodes_dict.items():
-            src_conns = [c for c in conns if getattr(c, '_source', None) == node_uuid]
+            src_conns = [c for c in conns if getattr(c, "_source", None) == node_uuid]
             if len(src_conns) > 1:
                 src_conns_sorted = sorted(
                     src_conns,
                     key=lambda c: float(
-                        getattr(nodes_dict.get(getattr(c, '_target', None)), 'cx', getattr(node, 'cx', 0))),
+                        getattr(nodes_dict.get(getattr(c, "_target", None)), "cx", getattr(node, "cx", 0))
+                    ),
                 )
                 for i, conn in enumerate(src_conns_sorted):
-                    target_node = nodes_dict.get(getattr(conn, '_target', None))
+                    target_node = nodes_dict.get(getattr(conn, "_target", None))
                     if not target_node:
                         continue
-                    dy = float(getattr(target_node, 'cy', 0)) - float(getattr(node, 'cy', 0))
-                    dx = float(getattr(target_node, 'cx', 0)) - float(getattr(node, 'cx', 0))
+                    dy = float(getattr(target_node, "cy", 0)) - float(getattr(node, "cy", 0))
+                    dx = float(getattr(target_node, "cx", 0)) - float(getattr(node, "cx", 0))
                     spread_val = self._distributed_spread(
                         i,
                         len(src_conns_sorted),
-                        float(getattr(node, 'w', 120)) if abs(dy) > abs(dx) else float(getattr(node, 'h', 55)),
+                        float(getattr(node, "w", 120)) if abs(dy) > abs(dx) else float(getattr(node, "h", 55)),
                     )
                     if abs(dy) > abs(dx):
                         spread_x, spread_y = spread_val, 0.0
                     else:
                         spread_x, spread_y = 0.0, spread_val
-                    endpoint_spreads[(node_uuid, 'src', id(conn))] = (spread_x, spread_y)
+                    endpoint_spreads[(node_uuid, "src", id(conn))] = (spread_x, spread_y)
 
-            tgt_conns = [c for c in conns if getattr(c, '_target', None) == node_uuid]
+            tgt_conns = [c for c in conns if getattr(c, "_target", None) == node_uuid]
             if len(tgt_conns) > 1:
                 tgt_conns_sorted = sorted(
                     tgt_conns,
                     key=lambda c: float(
-                        getattr(nodes_dict.get(getattr(c, '_source', None)), 'cx', getattr(node, 'cx', 0))),
+                        getattr(nodes_dict.get(getattr(c, "_source", None)), "cx", getattr(node, "cx", 0))
+                    ),
                 )
                 for i, conn in enumerate(tgt_conns_sorted):
-                    source_node = nodes_dict.get(getattr(conn, '_source', None))
+                    source_node = nodes_dict.get(getattr(conn, "_source", None))
                     if not source_node:
                         continue
-                    dy = float(getattr(node, 'cy', 0)) - float(getattr(source_node, 'cy', 0))
-                    dx = float(getattr(node, 'cx', 0)) - float(getattr(source_node, 'cx', 0))
+                    dy = float(getattr(node, "cy", 0)) - float(getattr(source_node, "cy", 0))
+                    dx = float(getattr(node, "cx", 0)) - float(getattr(source_node, "cx", 0))
                     spread_val = self._distributed_spread(
                         i,
                         len(tgt_conns_sorted),
-                        float(getattr(node, 'w', 120)) if abs(dy) > abs(dx) else float(getattr(node, 'h', 55)),
+                        float(getattr(node, "w", 120)) if abs(dy) > abs(dx) else float(getattr(node, "h", 55)),
                     )
                     if abs(dy) > abs(dx):
                         spread_x, spread_y = spread_val, 0.0
                     else:
                         spread_x, spread_y = 0.0, spread_val
-                    endpoint_spreads[(node_uuid, 'tgt', id(conn))] = (spread_x, spread_y)
+                    endpoint_spreads[(node_uuid, "tgt", id(conn))] = (spread_x, spread_y)
 
         return endpoint_spreads
 
@@ -1010,11 +1100,11 @@ class SVGExportService:
         Returns:
             Tuple of (x, y, x+w, y+h) representing the symbol's boundary
         """
-        x = float(getattr(node, 'x', 0))
-        y = float(getattr(node, 'y', 0))
-        w = float(getattr(node, 'w', 120))
-        h = float(getattr(node, 'h', 55))
-        element_type = getattr(node, 'type', 'BusinessActor')
+        x = float(getattr(node, "x", 0))
+        y = float(getattr(node, "y", 0))
+        w = float(getattr(node, "w", 120))
+        h = float(getattr(node, "h", 55))
+        element_type = getattr(node, "type", "BusinessActor")
 
         # Get symbol definition to use its bounding box
         symbol_def = ARCHIMATE_SYMBOLS.get(element_type)
@@ -1145,7 +1235,7 @@ class SVGExportService:
         mid_y = (p1[1] + p2[1]) / 2
 
         # Create group for label
-        g = ET.SubElement(svg, 'g', {'class': 'connection-label'})
+        g = ET.SubElement(svg, "g", {"class": "connection-label"})
 
         # Background rectangle
         text_width = len(label_text) * 6  # estimate
@@ -1153,24 +1243,32 @@ class SVGExportService:
         bg_x = mid_x - text_width / 2
         bg_y = mid_y - text_height / 2
 
-        ET.SubElement(g, 'rect', {
-            'x': str(int(bg_x)),
-            'y': str(int(bg_y)),
-            'width': str(int(text_width)),
-            'height': str(int(text_height)),
-            'fill': 'white',
-            'stroke': 'none',
-        })
+        ET.SubElement(
+            g,
+            "rect",
+            {
+                "x": str(int(bg_x)),
+                "y": str(int(bg_y)),
+                "width": str(int(text_width)),
+                "height": str(int(text_height)),
+                "fill": "white",
+                "stroke": "none",
+            },
+        )
 
         # Label text
-        text_elem = ET.SubElement(g, 'text', {
-            'x': str(int(mid_x)),
-            'y': str(int(mid_y + text_height / 3)),
-            'text-anchor': 'middle',
-            'font-family': 'Arial, sans-serif',
-            'font-size': '9',
-            'fill': 'black',
-        })
+        text_elem = ET.SubElement(
+            g,
+            "text",
+            {
+                "x": str(int(mid_x)),
+                "y": str(int(mid_y + text_height / 3)),
+                "text-anchor": "middle",
+                "font-family": "Arial, sans-serif",
+                "font-size": "9",
+                "fill": "black",
+            },
+        )
         text_elem.text = label_text
 
     def _find_longest_segment(self, points: list[Tuple[float, float]]) -> Optional[int]:
@@ -1210,6 +1308,6 @@ class SVGExportService:
         Returns:
             Short type name
         """
-        if rel_type.endswith('Relationship'):
-            return rel_type[:-len('Relationship')]
+        if rel_type.endswith("Relationship"):
+            return rel_type[: -len("Relationship")]
         return rel_type
