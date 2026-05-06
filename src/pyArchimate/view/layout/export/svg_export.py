@@ -849,7 +849,7 @@ class SVGExportService:
 
         # Prefer a fixed edge side for each endpoint so anchors stay away from corners.
         source_side = self._preferred_boundary_side(source_bounds, (tx, ty), exit_from=True)
-        target_side = self._preferred_boundary_side(target_bounds, (sx, sy), exit_from=False)
+        target_side = self._preferred_boundary_side(target_bounds, (sx, sy), exit_from=True)
 
         start_point = self._boundary_anchor(source_bounds, source_side, source_spread)
         end_point = self._boundary_anchor(target_bounds, target_side, target_spread)
