@@ -990,14 +990,16 @@ class SVGExportService:
         dx = ox - cx
         dy = oy - cy
 
-        if abs(dx) >= abs(dy):
-            if dx >= 0:
-                return "right" if exit_from else "left"
-            return "left" if exit_from else "right"
+        # Prefer left/right sides (horizontal routing) unless target is far more vertical
+        if abs(dy) > abs(dx) * 1.5:
+            if dy >= 0:
+                return "bottom" if exit_from else "top"
+            return "top" if exit_from else "bottom"
 
-        if dy >= 0:
-            return "bottom" if exit_from else "top"
-        return "top" if exit_from else "bottom"
+        # Default to left/right based on horizontal direction
+        if dx >= 0:
+            return "right" if exit_from else "left"
+        return "left" if exit_from else "right"
 
     @staticmethod
     def _infer_boundary_orientation(
