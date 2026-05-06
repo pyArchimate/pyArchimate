@@ -507,7 +507,7 @@ class SVGExportService:
             if has_children:
                 # For containers with embedded elements, position label at top-left
                 text_x = x + self.TEXT_PADDING
-                text_y = y + self.TEXT_PADDING + 10  # Small offset from top
+                text_y = y + 22  # Offset from top to account for symbol's slanted edges
             else:
                 # For regular nodes, center the text
                 text_x = x + w / 2
