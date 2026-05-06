@@ -734,9 +734,15 @@ class SVGExportService:
             polyline_attrs["stroke-dasharray"] = stroke_dasharray
 
         # Add markers if specified
+        # Composition and Aggregation show start marker (diamond) only
         if relationship_style.marker_start:
             polyline_attrs["marker-start"] = relationship_style.marker_start
-        if relationship_style.marker_end:
+        if relationship_style.marker_end and rel_type not in (
+            "CompositionRelationship",
+            "Composition",
+            "AggregationRelationship",
+            "Aggregation",
+        ):
             polyline_attrs["marker-end"] = relationship_style.marker_end
 
         ET.SubElement(svg, "polyline", polyline_attrs)
