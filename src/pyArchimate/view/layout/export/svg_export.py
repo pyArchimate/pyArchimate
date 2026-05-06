@@ -166,15 +166,6 @@ class SVGExportService:
         # Build complete nodes dictionary including nested nodes (for connection rendering)
         complete_nodes_dict = self._build_complete_nodes_dict(view)
 
-        # Render connections/relationships first (so they appear behind nodes)
-        # Try new rendering with relationship styles, fall back to basic rendering if needed
-        relationship_service = RelationshipStyleService()
-        for conn in view.conns:
-            # Skip containment relationships (they're already shown visually by container boundaries)
-            if self._is_containment_relationship(conn, complete_nodes_dict):
-                continue
-            self._render_relationship(svg, conn, complete_nodes_dict, relationship_service, endpoint_spreads)
-
         # Render nodes on top, respecting containment hierarchy (parents before children)
         sorted_nodes = self._sort_nodes_by_hierarchy(view)
 
@@ -200,6 +191,15 @@ class SVGExportService:
             node_uuid = getattr(node, "uuid", None)
             if node_uuid:
                 svg_parents[node_uuid] = node_group
+
+        # Render connections/relationships last (so they appear on top of nodes)
+        # Try new rendering with relationship styles, fall back to basic rendering if needed
+        relationship_service = RelationshipStyleService()
+        for conn in view.conns:
+            # Skip containment relationships (they're already shown visually by container boundaries)
+            if self._is_containment_relationship(conn, complete_nodes_dict):
+                continue
+            self._render_relationship(svg, conn, complete_nodes_dict, relationship_service, endpoint_spreads)
 
         # Convert to string
         svg_string = ET.tostring(svg, encoding="unicode")
