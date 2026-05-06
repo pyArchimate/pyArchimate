@@ -177,8 +177,29 @@ class SVGExportService:
 
         # Render nodes on top, respecting containment hierarchy (parents before children)
         sorted_nodes = self._sort_nodes_by_hierarchy(view)
+
+        # Build a mapping of node UUID to SVG parent element
+        # This ensures nested nodes are rendered inside their container groups
+        svg_parents: dict[str, ET.Element] = {}
+        svg_parents["root"] = svg
+
         for node in sorted_nodes:
-            self._render_node(svg, node)
+            # Determine parent element for this node
+            # If node is in another node's children, render it inside that node's group
+            parent_elem = svg
+            for potential_parent in sorted_nodes:
+                if node != potential_parent and node in getattr(potential_parent, "nodes", []):
+                    # Find the SVG group for the parent node
+                    parent_uuid = getattr(potential_parent, "uuid", None)
+                    if parent_uuid in svg_parents:
+                        parent_elem = svg_parents[parent_uuid]
+                    break
+
+            # Render node into the appropriate parent element
+            node_group = self._render_node_into(parent_elem, node)
+            node_uuid = getattr(node, "uuid", None)
+            if node_uuid:
+                svg_parents[node_uuid] = node_group
 
         # Convert to string
         svg_string = ET.tostring(svg, encoding="unicode")
@@ -405,6 +426,18 @@ class SVGExportService:
             svg: SVG root element
             node: Node to render
         """
+        self._render_node_into(svg, node)
+
+    def _render_node_into(self, parent: ET.Element, node: Any) -> ET.Element:
+        """Render a single node into a specific parent element.
+
+        Args:
+            parent: Parent SVG element to render into
+            node: Node to render
+
+        Returns:
+            The SVG group element for this node (for nested children)
+        """
         x = float(getattr(node, "x", 0))
         y = float(getattr(node, "y", 0))
         w = float(getattr(node, "w", 120))
@@ -413,7 +446,7 @@ class SVGExportService:
         element_id = getattr(node, "uuid", None)
 
         # Group for node
-        g = ET.SubElement(svg, "g", {"class": "node"})
+        g = ET.SubElement(parent, "g", {"class": "node"})
 
         # Check if this is a container/grouping node (has child nodes)
         is_container = len(getattr(node, "nodes", [])) > 0
@@ -473,6 +506,8 @@ class SVGExportService:
                 y + h / 2,  # center y
                 w - 2 * self.TEXT_PADDING,  # available width
             )
+
+        return g
 
     def _render_wrapped_text(
         self,
