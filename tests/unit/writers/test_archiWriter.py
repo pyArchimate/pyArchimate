@@ -178,3 +178,30 @@ def test_archi_writer_preserves_technology_and_physical_folder(tmp_path):
     xml_str = archi_writer(model, str(target))
     assert target.exists()
     assert 'Rack' in xml_str
+
+
+def test_archi_writer_propagates_target_connections_to_group_ancestors(tmp_path):
+    """Connections into nested nodes should be listed on enclosing groups as well."""
+    model = Model('group-target-connections')
+    src_elem = model.add(ArchiType.ApplicationComponent, 'Source')
+    tgt_elem = model.add(ArchiType.ApplicationService, 'Target')
+    rel = model.add_relationship(ArchiType.Serving, source=src_elem, target=tgt_elem)
+
+    view = cast(View, model.add(ArchiType.View, 'V'))
+    src = view.add(ref=src_elem.uuid, x=0, y=0, w=100, h=50)
+    group = view.add(ref=None, node_type='Container', label='Group', x=200, y=0, w=220, h=140)
+    tgt = group.add(ref=tgt_elem.uuid, x=20, y=20, w=100, h=50)
+    conn = view.add_connection(ref=rel.uuid, source=src, target=tgt)
+
+    target = tmp_path / 'group_target_connections.archimate'
+    xml_str = archi_writer(model, str(target))
+    assert target.exists()
+
+    root = etree.fromstring(xml_str.encode('utf-8'))
+    group_node = root.find(".//child[@name='Group']")
+    assert group_node is not None
+    tgt_node = root.find(f".//child[@id='{tgt.uuid}']")
+    assert tgt_node is not None
+
+    assert conn.uuid in (group_node.get('targetConnections') or '')
+    assert conn.uuid in (tgt_node.get('targetConnections') or '')

@@ -216,6 +216,7 @@ def _write_connection(child: _Element, conn: object, xsi: et.QName) -> None:
 
 
 def _set_node_visual_attrs(child: _Element, node: object) -> None:
+    _opacity = getattr(node, 'opacity', 100)
     font_name = getattr(node, 'font_name', None)
     font_size = getattr(node, 'font_size', None)
     if font_name is not None and font_size is not None:
@@ -230,9 +231,8 @@ def _set_node_visual_attrs(child: _Element, node: object) -> None:
     fill_color = getattr(node, 'fill_color', None)
     if fill_color is not None:
         child.set('fillColor', fill_color.lower())
-    opacity = getattr(node, 'opacity', 100)
-    if str(opacity) != '100':
-        child.set('alpha', str(int(255 * int(opacity) / 100)))
+    if str(_opacity) != '100':
+        child.set('alpha', str(int(255 * int(_opacity) / 100)))
     lc_opacity = getattr(node, 'lc_opacity', 100)
     if str(lc_opacity) != '100':
         et.SubElement(child, 'feature', name='lineAlpha', value=str(int(255 * int(lc_opacity) / 100)))
@@ -289,7 +289,7 @@ def _set_node_cat_content(child: _Element, node: object, xsi: et.QName) -> None:
         child.set('borderType', border_type)
 
 
-def _add_node(parent: object, parent_tag: _Element, node: object, xsi: et.QName) -> None:
+def _add_node(parent: object, parent_tag: _Element, node: object, xsi: et.QName) -> list[str]:
     child = et.SubElement(parent_tag, 'child', {
         str(xsi): 'archimate:DiagramObject',
         'id': getattr(node, 'uuid', ''),
@@ -300,7 +300,7 @@ def _add_node(parent: object, parent_tag: _Element, node: object, xsi: et.QName)
     node_type = getattr(node, 'type', None)
     fill_color = getattr(node, 'fill_color', None)
     if node_type == ArchiType.Grouping and fill_color is None:
-        setattr(node, 'opacity', 0)  # noqa: B010
+        child.set('alpha', '0')
     node_x = getattr(node, 'x', 0)
     node_y = getattr(node, 'y', 0)
     if isinstance(parent, View):
@@ -313,11 +313,13 @@ def _add_node(parent: object, parent_tag: _Element, node: object, xsi: et.QName)
                       width=str(getattr(node, 'w', 120)), height=str(getattr(node, 'h', 55)))
     for conn in getattr(node, 'out_conns', lambda: [])():
         _write_connection(child, conn, xsi)
-    targets = [conn.uuid for conn in getattr(node, 'in_conns', lambda: [])()]
-    if targets:
-        child.set('targetConnections', ' '.join(targets))
+    targets: list[str] = [conn.uuid for conn in getattr(node, 'in_conns', lambda: [])()]
     for sub_n in getattr(node, 'nodes', []):
-        _add_node(node, child, sub_n, xsi)
+        targets.extend(_add_node(node, child, sub_n, xsi))
+    if targets:
+        # Preserve insertion order while avoiding duplicates as the subtree is folded upward.
+        child.set('targetConnections', ' '.join(dict.fromkeys(targets)))
+    return targets
 
 
 def _write_view_element(view_folder: _Element, view: object, xsi: et.QName) -> None:
