@@ -824,6 +824,10 @@ class SVGExportService:
     ) -> list[Tuple[float, float]]:
         """Get polyline points clipped at node boundary edges.
 
+        SVG export renders views as stored in the model without routing:
+        - If bendpoints exist: Use them with routing logic (for auto-layout results)
+        - If no bendpoints: Render simple direct path (model as-is)
+
         Args:
             source_node: Source node
             target_node: Target node
@@ -847,7 +851,13 @@ class SVGExportService:
         source_bounds = self._get_node_bounds(source_node)
         target_bounds = self._get_node_bounds(target_node)
 
-        # Prefer a fixed edge side for each endpoint so anchors stay away from corners.
+        # If no bendpoints: Render simple direct line clipped at boundaries
+        if not bendpoints:
+            start_point = self._clip_point_to_boundary(source_bounds, (sx, sy), (tx, ty))
+            end_point = self._clip_point_to_boundary(target_bounds, (tx, ty), (sx, sy))
+            return [start_point, end_point]
+
+        # With bendpoints: Apply routing logic for proper orthogonal paths
         source_side = self._preferred_boundary_side(source_bounds, (tx, ty), exit_from=True)
         target_side = self._preferred_boundary_side(target_bounds, (sx, sy), exit_from=True)
 
@@ -1013,6 +1023,70 @@ class SVGExportService:
         if abs(py - y1) < 0.01 or abs(py - y2) < 0.01:
             return "vertical"
         return "vertical" if exit_from else "horizontal"
+
+    @staticmethod
+    def _clip_point_to_boundary(
+        bounds: Tuple[float, float, float, float],
+        from_point: Tuple[float, float],
+        to_point: Tuple[float, float],
+    ) -> Tuple[float, float]:
+        """Find the boundary intersection point of a line segment with a rectangle.
+
+        Returns the point where the line from from_point toward to_point exits the rectangle.
+        Uses simple intersection tests with all four edges.
+        """
+        x1, y1, x2, y2 = bounds
+        fx, fy = from_point
+        tx, ty = to_point
+
+        dx = tx - fx
+        dy = ty - fy
+
+        # If from_point is already on or outside boundary, return it
+        if abs(dx) < 0.01 and abs(dy) < 0.01:
+            return from_point
+
+        # Find closest intersection with rectangle edges
+        min_t = 1.0
+        result = to_point
+
+        # Right edge (x = x2)
+        if abs(dx) > 0.01:
+            t = (x2 - fx) / dx
+            if 0 < t < min_t:
+                y = fy + t * dy
+                if y1 <= y <= y2:
+                    min_t = t
+                    result = (x2, y)
+
+        # Left edge (x = x1)
+        if abs(dx) > 0.01:
+            t = (x1 - fx) / dx
+            if 0 < t < min_t:
+                y = fy + t * dy
+                if y1 <= y <= y2:
+                    min_t = t
+                    result = (x1, y)
+
+        # Bottom edge (y = y2)
+        if abs(dy) > 0.01:
+            t = (y2 - fy) / dy
+            if 0 < t < min_t:
+                x = fx + t * dx
+                if x1 <= x <= x2:
+                    min_t = t
+                    result = (x, y2)
+
+        # Top edge (y = y1)
+        if abs(dy) > 0.01:
+            t = (y1 - fy) / dy
+            if 0 < t < min_t:
+                x = fx + t * dx
+                if x1 <= x <= x2:
+                    min_t = t
+                    result = (x, y1)
+
+        return result
 
     def _compute_endpoint_spreads(
         self,
