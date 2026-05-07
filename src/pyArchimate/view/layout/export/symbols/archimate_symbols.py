@@ -41,8 +41,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0f8",
-        icon_path="M 134.25 5 L 144.0 5 L 144.0 20.0 L 134.25 20.0 Z M 131 8.75 L 137.5 8.75 L 137.5 11.0 L 131 11.0 Z M 131 14 L 137.5 14 L 137.5 16.25 L 131 16.25 Z",
-        icon_viewbox="128 3 22 20",
         body_type="rect"
     ),
     "ApplicationEvent": SymbolDefinition(
@@ -51,8 +49,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0f8",
-        icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 130 17 L 134.5 12.5 L 130 8 Z",
-        icon_viewbox="128 5 22 15",
         body_type="rect"
     ),
     "ApplicationFunction": SymbolDefinition(
@@ -61,8 +57,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0f8",
-        icon_path="M 137.5 5 L 145 8 L 145 20 L 137.5 17 L 130 20 L 130 8 Z",
-        icon_viewbox="128 3 22 20",
         body_type="rect"
     ),
     "ApplicationInteraction": SymbolDefinition(
@@ -71,8 +65,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0f8",
-        icon_path="M 138.25 5 C 141.98 5 145 8.36 145 12.5 C 145 16.64 141.98 20 138.25 20 Z M 136.75 5 C 133.02 5 130 8.36 130 12.5 C 130 16.64 133.02 20 136.75 20 Z",
-        icon_viewbox="128 3 22 20",
         body_type="rect"
     ),
     "ApplicationInterface": SymbolDefinition(
@@ -81,8 +73,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0f8",
-        icon_path="M 130 12.5 L 137.5 12.5",
-        icon_viewbox="128 10 15 5",
         body_type="rect"
     ),
     "ApplicationProcess": SymbolDefinition(
@@ -91,8 +81,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0f8",
-        icon_path="M 130 10.7 L 139 10.7 L 139 8 L 145 12.5 L 139 17 L 139 14.3 L 130 14.3 Z",
-        icon_viewbox="128 5 22 15",
         body_type="rect"
     ),
     "ApplicationService": SymbolDefinition(
@@ -101,8 +89,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0f8",
-        icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 134.5 17 C 132.01 17 130 14.99 130 12.5 C 130 10.01 132.01 8 134.5 8 Z",
-        icon_viewbox="128 5 22 15",
         body_type="rect"
     ),
     "Artifact": SymbolDefinition(
@@ -111,8 +97,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        icon_path="M 132 5 L 139.7 5 L 143 8.3 L 143 20 L 132 20 Z M 139.7 5 L 139.7 8.3 L 143 8.3",
-        icon_viewbox="128 3 22 20",
         body_type="rect"
     ),
     "Assessment": SymbolDefinition(
@@ -121,8 +105,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#ffe8d0",
-        icon_path="M 130 20 L 134.8 15.2",
-        icon_viewbox="128 13 12 12",
         body_type="path"
     ),
     "BusinessActor": SymbolDefinition(
@@ -131,8 +113,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        icon_path="M 137.5 9.5 L 137.5 16.25 M 133 11.75 L 142 11.75 M 133 20 L 137.5 16.25 L 142 20",
-        icon_viewbox="128 7 22 18",
         body_type="rect"
     ),
     "BusinessCollaboration": SymbolDefinition(
@@ -149,8 +129,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 130 17 L 134.5 12.5 L 130 8 Z",
-        icon_viewbox="128 5 22 15",
         body_type="rect"
     ),
     "BusinessFunction": SymbolDefinition(
@@ -159,8 +137,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        icon_path="M 137.5 5 L 145 8 L 145 20 L 137.5 17 L 130 20 L 130 8 Z",
-        icon_viewbox="128 3 22 20",
         body_type="rect"
     ),
     "BusinessInteraction": SymbolDefinition(
@@ -169,8 +145,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        icon_path="M 138.25 5 C 141.98 5 145 8.36 145 12.5 C 145 16.64 141.98 20 138.25 20 Z M 136.75 5 C 133.02 5 130 8.36 130 12.5 C 130 16.64 133.02 20 136.75 20 Z",
-        icon_viewbox="128 3 22 20",
         body_type="rect"
     ),
     "BusinessInterface": SymbolDefinition(
@@ -179,8 +153,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        icon_path="M 130 12.5 L 137.5 12.5",
-        icon_viewbox="128 10 15 5",
         body_type="rect"
     ),
     "BusinessObject": SymbolDefinition(
@@ -197,8 +169,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        icon_path="M 130 10.7 L 139 10.7 L 139 8 L 145 12.5 L 139 17 L 139 14.3 L 130 14.3 Z",
-        icon_viewbox="128 5 22 15",
         body_type="rect"
     ),
     "BusinessRole": SymbolDefinition(
@@ -207,8 +177,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        icon_path="M 142 9 L 133 9 C 131.34 9 130 10.57 130 12.5 C 130 14.43 131.34 16 133 16 L 142 16",
-        icon_viewbox="128 7 22 12",
         body_type="rect"
     ),
     "BusinessService": SymbolDefinition(
@@ -217,8 +185,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 134.5 17 C 132.01 17 130 14.99 130 12.5 C 130 10.01 132.01 8 134.5 8 Z",
-        icon_viewbox="128 5 22 15",
         body_type="rect"
     ),
     "CommunicationNetwork": SymbolDefinition(
@@ -227,8 +193,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        icon_path="M 136 9.2 L 142.75 9.2 L 139 15.8 L 132.25 15.8 Z",
-        icon_viewbox="128 5 22 15",
         body_type="rect"
     ),
     "Constraint": SymbolDefinition(
@@ -237,8 +201,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#ffe8d0",
-        icon_path="M 133.75 9 L 145 9 L 141.25 16 L 130 16 Z M 136.75 9 L 133 16",
-        icon_viewbox="128 5 22 15",
         body_type="path"
     ),
     "DataObject": SymbolDefinition(
@@ -263,8 +225,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#ffe8d0",
-        icon_path="M 130 12.5 L 145 12.5 M 137.5 5 L 137.5 20 M 132.18 7.17 L 142.82 17.82 M 132.18 17.82 L 142.82 7.17",
-        icon_viewbox="128 3 22 20",
         body_type="path"
     ),
     "Equipment": SymbolDefinition(
@@ -305,8 +265,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#e8e8d0",
-        icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 130 17 L 134.5 12.5 L 130 8 Z",
-        icon_viewbox="128 5 22 15",
         body_type="rect"
     ),
     "Node": SymbolDefinition(
@@ -315,8 +273,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        icon_path="M 130 8.75 L 133.75 5 L 145 5 L 145 16.25 L 141.25 20 L 130 20 Z M 130 8.75 L 141.25 8.75 L 141.25 20 M 145 5 L 141.25 8.75",
-        icon_viewbox="128 3 22 22",
         body_type="rect"
     ),
     "Outcome": SymbolDefinition(
@@ -325,8 +281,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#ffe8d0",
-        icon_path="M 136 14 L 143.5 6.5 M 136.3 11 L 136 14 L 139 13.7 M 142 5 L 141.25 8.75 L 145 8",
-        icon_viewbox="128 3 22 18",
         body_type="path"
     ),
     "Path": SymbolDefinition(
@@ -335,8 +289,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        icon_path="M 133 15 L 130 12.5 L 133 10 M 142 15 L 145 12.5 L 142 10 M 130 12.5 L 145 12.5",
-        icon_viewbox="128 8 22 12",
         body_type="rect"
     ),
     "Plateau": SymbolDefinition(
@@ -353,8 +305,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#ffe8d0",
-        icon_path="M 130.75 5.75 C 135.21 4.86 139.79 4.86 144.25 5.75 C 145.14 10.21 145.14 14.79 144.25 19.25 C 139.79 20.14 135.21 20.14 130.75 19.25 C 129.86 14.79 129.86 10.21 130.75 5.75 Z M 136.75 15.5 L 136.3 7.25 L 138.7 7.25 L 138.25 15.5 Z M 136.75 16.25 L 138.25 16.25 L 138.25 17.75 L 136.75 17.75 Z",
-        icon_viewbox="128 3 22 20",
         body_type="path"
     ),
     "Requirement": SymbolDefinition(
@@ -363,8 +313,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#ffe8d0",
-        icon_path="M 133.75 9 L 145 9 L 141.25 16 L 130 16 Z",
-        icon_viewbox="128 5 22 15",
         body_type="path"
     ),
     "Stakeholder": SymbolDefinition(
@@ -373,8 +321,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#ffe8d0",
-        icon_path="M 142 9 L 133 9 C 131.34 9 130 10.57 130 12.5 C 130 14.43 131.34 16 133 16 L 142 16",
-        icon_viewbox="128 7 22 12",
         body_type="path"
     ),
     "SystemSoftware": SymbolDefinition(
@@ -391,8 +337,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        icon_path="M 137.5 5 L 145 8 L 145 20 L 137.5 17 L 130 20 L 130 8 Z",
-        icon_viewbox="128 3 22 20",
         body_type="rect"
     ),
     "TechnologyInteraction": SymbolDefinition(
@@ -401,8 +345,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        icon_path="M 138.25 5 C 141.98 5 145 8.36 145 12.5 C 145 16.64 141.98 20 138.25 20 Z M 136.75 5 C 133.02 5 130 8.36 130 12.5 C 130 16.64 133.02 20 136.75 20 Z",
-        icon_viewbox="128 3 22 20",
         body_type="rect"
     ),
     "TechnologyInterface": SymbolDefinition(
@@ -411,8 +353,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        icon_path="M 130 12.5 L 137.5 12.5",
-        icon_viewbox="128 10 15 5",
         body_type="rect"
     ),
     "TechnologyProcess": SymbolDefinition(
@@ -421,8 +361,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        icon_path="M 130 10.7 L 139 10.7 L 139 8 L 145 12.5 L 139 17 L 139 14.3 L 130 14.3 Z",
-        icon_viewbox="128 5 22 15",
         body_type="rect"
     ),
     "TechnologyService": SymbolDefinition(
@@ -431,8 +369,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 134.5 17 C 132.01 17 130 14.99 130 12.5 C 130 10.01 132.01 8 134.5 8 Z",
-        icon_viewbox="128 5 22 15",
         body_type="rect"
     ),
     # ===== ADDITIONAL SYMBOLS WITH PROPER DEFINITIONS =====
@@ -514,8 +450,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 130 17 L 134.5 12.5 L 130 8 Z",
-        icon_viewbox="128 5 22 15",
         body_type="rect"
     ),
     "Value": SymbolDefinition(
