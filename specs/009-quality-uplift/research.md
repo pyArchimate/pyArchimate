@@ -67,6 +67,46 @@ Issues are queried live during implementation. Triage decisions:
 - False positives (lxml dynamic type system, `find()` returning `None`): suppress with `# NOSONAR <justification>`.
 - Security hotspots: verify context, fix or accept with documented rationale.
 
+## Final State (2026-05-07)
+
+### Ruff
+
+**Active rule sets**: `E`, `F`, `W`, `B`, `C`, `I`, `S110`, `A`, `N`  
+**Active ignore**: `["E501"]` — `C901`, `PLC0415`, `N999` removed  
+**Result**: 0 violations across `src/` and `tests/`
+
+| Deferred | Violations | TODO in pyproject.toml |
+|----------|-----------|------------------------|
+| `UP` | 124 | ✓ |
+| `PT` | 163 | ✓ |
+
+### Pyright
+
+**Actual outcome**: All three categories set to `"warning"` (not `"error"`)
+
+**Reason**: Pre-commit hook runs `pyright src/ tests/` — test files have 419 violations that block promotion to `"error"`. Promotion to `"error"` requires a separate cleanup pass over the test suite.
+
+| Category | Level | Reason for not promoting to "error" |
+|----------|-------|--------------------------------------|
+| `reportAttributeAccessIssue` | `warning` | 419 violations in `tests/` |
+| `reportArgumentType` | `warning` | same |
+| `reportOptionalMemberAccess` | `warning` | same |
+
+### Mypy
+
+**Baseline result**: 0 errors (`mypy src/`)
+
+**Deferred flags**:
+
+| Flag | Violations | Decision |
+|------|-----------|----------|
+| `disallow_untyped_defs` | 162 | Deferred; TODO comment in pyproject.toml |
+| `disallow_untyped_calls` | 89 | Deferred; TODO comment in pyproject.toml |
+
+### SonarCloud
+
+**Status**: Skipped — `SONAR_TOKEN` unavailable in dev environment. T007–T011 remain open for a follow-up pass when CI token is accessible.
+
 ## Decisions
 
 | Decision | Rationale | Alternatives Considered |
