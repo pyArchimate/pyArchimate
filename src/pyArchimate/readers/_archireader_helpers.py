@@ -41,16 +41,7 @@ def _parse_node_type(parent: Any, child: Any, xsi: str) -> Any:
     return node, type_n
 
 
-def _parse_node_attributes(node: Any, child: Any, parent: Any) -> None:
-    bounds = child.find('bounds')
-    parent_x = parent.x if isinstance(parent, Node) else 0
-    parent_y = parent.y if isinstance(parent, Node) else 0
-    nx = 0 if bounds.get('x') is None else bounds.get('x')
-    ny = 0 if bounds.get('y') is None else bounds.get('y')
-    node.x = int(nx) + parent_x
-    node.y = int(ny) + parent_y
-    node.w = int(bounds.get('width'))
-    node.h = int(bounds.get('height'))
+def _parse_node_style_attrs(node: Any, child: Any) -> None:
     if child.get('font') is not None:
         font_param = child.get('font').split('|')
         node.font_name = font_param[1]
@@ -69,6 +60,9 @@ def _parse_node_attributes(node: Any, child: Any, parent: Any) -> None:
         node.image_position = int(child.get('imagePosition'))
     if child.get('type') is not None:
         node.image_type = int(child.get('type'))
+
+
+def _parse_node_features(node: Any, child: Any) -> None:
     for ft in child.findall('feature'):
         ft_name = ft.get('name')
         if ft_name == 'lineAlpha':
@@ -81,6 +75,20 @@ def _parse_node_attributes(node: Any, child: Any, parent: Any) -> None:
             node.gradient = ft.get('value')
         elif ft_name == 'imageSource':
             node.image_source = parse_bool(ft.get('value'))
+
+
+def _parse_node_attributes(node: Any, child: Any, parent: Any) -> None:
+    bounds = child.find('bounds')
+    parent_x = parent.x if isinstance(parent, Node) else 0
+    parent_y = parent.y if isinstance(parent, Node) else 0
+    nx = 0 if bounds.get('x') is None else bounds.get('x')
+    ny = 0 if bounds.get('y') is None else bounds.get('y')
+    node.x = int(nx) + parent_x
+    node.y = int(ny) + parent_y
+    node.w = int(bounds.get('width'))
+    node.h = int(bounds.get('height'))
+    _parse_node_style_attrs(node, child)
+    _parse_node_features(node, child)
     node.text_alignment = child.get('textAlignment')
     node.text_position = child.get('textPosition')
 
@@ -182,7 +190,9 @@ def _parse_rel_attributes(elem: Any, e: Any) -> None:
 
 def _process_viewpoint_property(elem: Any, slug: str) -> None:
     """Assign viewpoint to element if it exists in registry, log warning if not found."""
-    from ..viewpoint_registry import get_viewpoint
+    from ..viewpoint_registry import (
+        get_viewpoint,  # noqa: PLC0415  # deferred: avoids circular import at reader load time
+    )
     if get_viewpoint(slug) is not None:
         elem.assign_viewpoint(slug)
     else:
@@ -309,7 +319,9 @@ def get_folders_view(tag: Any, model: Any, xsi: str, folder_path: str = '') -> N
         # Read view-level primary viewpoint from 'viewpoint' XML attribute
         vp_attr = (e.get('viewpoint') or '').strip().lower()
         if vp_attr:
-            from ..viewpoint_registry import get_viewpoint
+            from ..viewpoint_registry import (
+                get_viewpoint,  # noqa: PLC0415  # deferred: avoids circular import at reader load time
+            )
             if get_viewpoint(vp_attr) is not None:
                 elem.set_primary_viewpoint(vp_attr)
             else:

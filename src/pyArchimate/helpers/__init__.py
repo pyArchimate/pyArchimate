@@ -1,3 +1,4 @@
+# ruff: noqa: N999  # legacy module name preserved for API compatibility
 """Helper modules for diagram, property, logging, and parsing utilities."""
 
 from .diagram import get_or_create_connection, get_or_create_node

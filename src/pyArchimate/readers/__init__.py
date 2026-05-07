@@ -1,3 +1,4 @@
+# ruff: noqa: N999  # legacy module name preserved for API compatibility
 import os
 import sys
 

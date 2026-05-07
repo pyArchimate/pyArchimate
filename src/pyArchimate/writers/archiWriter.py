@@ -1,3 +1,4 @@
+# ruff: noqa: N999  # legacy module name preserved for API compatibility
 import os
 import sys
 import zipfile
@@ -7,7 +8,9 @@ from lxml import etree as et
 from lxml.etree import _Element
 
 try:
-    from ..constants import ARCHI_CATEGORY as archi_category
+    from ..constants import (
+        ARCHI_CATEGORY as archi_category,  # noqa: N811  # alias matches public API export and fallback import
+    )
     from ..element import set_id
     from ..enums import ArchiType
     from ..helpers.logging import log
@@ -64,25 +67,7 @@ def _resolve_folder_path(obj_folder: str | None, cat: str) -> str:
     return '/' + cat + obj_folder
 
 
-def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName, model: object = None) -> None:
-    elem_type = getattr(elem, 'type', '')
-    cat = archi_category[elem_type].split('-')[0]
-    if cat == "Junction":
-        cat = "Other"
-    elif cat == "Physical":
-        cat = 'Technology'
-    folder_path = _resolve_folder_path(getattr(elem, 'folder', None), cat)
-    folder = _get_folder(folders, folder_path)
-    xsi_type = elem_type
-    elem_uuid = getattr(elem, 'uuid', '')
-    attrs = {
-        str(xsi): 'archimate:' + xsi_type,
-        'id': elem_uuid
-    }
-    e = et.SubElement(folder, 'element', attrs)
-    parent_uuid = getattr(elem, '_parent_uuid', None)
-    if parent_uuid:
-        e.set('parentId', parent_uuid)
+def _write_element_metadata(e: _Element, elem: object, elem_type: str) -> None:
     name = getattr(elem, 'name', None)
     if name is not None:
         e.set('name', name)
@@ -105,6 +90,26 @@ def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName, mo
     profile_id = getattr(elem, 'profile_id', None)
     if profile_id is not None:
         e.set('profiles', profile_id)
+
+
+def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName) -> None:
+    elem_type = getattr(elem, 'type', '')
+    cat = archi_category[elem_type].split('-')[0]
+    if cat == "Junction":
+        cat = "Other"
+    elif cat == "Physical":
+        cat = 'Technology'
+    folder_path = _resolve_folder_path(getattr(elem, 'folder', None), cat)
+    folder = _get_folder(folders, folder_path)
+    attrs = {
+        str(xsi): 'archimate:' + elem_type,
+        'id': getattr(elem, 'uuid', '')
+    }
+    e = et.SubElement(folder, 'element', attrs)
+    parent_uuid = getattr(elem, '_parent_uuid', None)
+    if parent_uuid:
+        e.set('parentId', parent_uuid)
+    _write_element_metadata(e, elem, elem_type)
 
 
 def _write_relationship(folders: dict[str, _Element], rel: object, xsi: et.QName) -> None:
@@ -340,7 +345,7 @@ def archi_writer(model: Model, file_path: str) -> str:
     folders = _create_folders(root)
 
     for elem in model.elements:
-        _write_element(folders, elem, xsi, model)
+        _write_element(folders, elem, xsi)
     for rel in model.relationships:
         _write_relationship(folders, rel, xsi)
     for view in model.views:

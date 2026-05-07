@@ -29,16 +29,16 @@ OPERATION_ERROR_MESSAGES = {
 
 # Dictionary of valid Archimate relationships
 # This is populated dynamically by loading checker_rules.yml
-ALLOWED_RELATIONSHIPS = {}
+ALLOWED_RELATIONSHIPS: dict[str, dict[str, list[str]]] = {}
 
 # Mapping of ARIS types to Archimate types
-ARIS_TYPE_MAP = {}
+ARIS_TYPE_MAP: dict[str, str] = {}
 
 # Mapping of relationship keys
-RELATIONSHIP_KEYS = {}
+RELATIONSHIP_KEYS: dict[str, str] = {}
 
 # Mapping of Archimate element categories
-ARCHI_CATEGORY = {}
+ARCHI_CATEGORY: dict[str, str] = {}
 
 # Influence strength values
 INFLUENCE_STRENGTH = {
@@ -79,19 +79,25 @@ class ReaderEntry:
 
 def _load_archimate_reader():
     """Load the Archimate XML reader dynamically."""
-    from .readers.archimateReader import archimate_reader
+    from .readers.archimateReader import (
+        archimate_reader,  # noqa: PLC0415  # deferred: readers import from constants, must not be top-level
+    )
     return archimate_reader
 
 
 def _load_archi_reader():
     """Load the Archi project reader dynamically."""
-    from .readers.archiReader import archi_reader
+    from .readers.archiReader import (
+        archi_reader,  # noqa: PLC0415  # deferred: readers import from constants, must not be top-level
+    )
     return archi_reader
 
 
 def _load_aris_reader():
     """Load the ARIS AML reader dynamically."""
-    from .readers.arisAMLreader import aris_reader
+    from .readers.arisAMLreader import (
+        aris_reader,  # noqa: PLC0415  # deferred: readers import from constants, must not be top-level
+    )
     return aris_reader
 
 

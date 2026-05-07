@@ -1,3 +1,4 @@
+# ruff: noqa: N999  # legacy module name preserved for API compatibility
 import os
 import sys
 from collections import defaultdict
@@ -8,8 +9,12 @@ from lxml import etree as et
 from lxml.etree import _Element
 
 try:
-    from ..constants import ARCHI_CATEGORY as archi_category
-    from ..constants import DEFAULT_THEME as default_theme
+    from ..constants import (
+        ARCHI_CATEGORY as archi_category,  # noqa: N811  # alias matches public API export and fallback import
+    )
+    from ..constants import (
+        DEFAULT_THEME as default_theme,  # noqa: N811  # alias matches public API export and fallback import
+    )
     from ..constants import RGBA
     from ..enums import ArchiType
     from ..helpers.logging import log
