@@ -115,12 +115,11 @@ def get_default_rel_type(source_type, target_type):
         raise ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
     rels = ALLOWED_RELATIONSHIPS[source_type][target_type]
     if len(rels) > 0:
+        t: str = rels[0]
         for preferred in ('g', 'r', 's', 'a', 'c', 'o', 'v'):
             if preferred in rels:
                 t = preferred
                 break
-        else:
-            t = rels[0]
         return [k for k, v in RELATIONSHIP_KEYS.items() if v == t][0]
 
 

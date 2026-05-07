@@ -3,9 +3,11 @@
 Writer registry helpers extracted from the legacy module.
 """
 
+from typing import Any, Callable
+
 from ..enums import Writers
 
-_writer_registry = {}
+_writer_registry: dict[Writers, Callable[..., Any]] = {}
 _default_writers_initialized = False
 
 

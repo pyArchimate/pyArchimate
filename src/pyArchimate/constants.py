@@ -29,16 +29,16 @@ OPERATION_ERROR_MESSAGES = {
 
 # Dictionary of valid Archimate relationships
 # This is populated dynamically by loading checker_rules.yml
-ALLOWED_RELATIONSHIPS = {}
+ALLOWED_RELATIONSHIPS: dict[str, dict[str, list[str]]] = {}
 
 # Mapping of ARIS types to Archimate types
-ARIS_TYPE_MAP = {}
+ARIS_TYPE_MAP: dict[str, str] = {}
 
 # Mapping of relationship keys
-RELATIONSHIP_KEYS = {}
+RELATIONSHIP_KEYS: dict[str, str] = {}
 
 # Mapping of Archimate element categories
-ARCHI_CATEGORY = {}
+ARCHI_CATEGORY: dict[str, str] = {}
 
 # Influence strength values
 INFLUENCE_STRENGTH = {
