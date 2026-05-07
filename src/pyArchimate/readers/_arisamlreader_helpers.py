@@ -5,7 +5,7 @@ import sys
 from typing import Any, Optional, cast
 
 try:
-    from ..constants import ARIS_TYPE_MAP as ARIS_type_map
+    from ..constants import ARIS_TYPE_MAP as ARIS_type_map  # noqa: N811  # alias matches public API export name
     from ..enums import ArchiType, TextAlignment
     from ..exceptions import ArchimateConceptTypeError, ArchimateRelationshipError
     from ..helpers.logging import log

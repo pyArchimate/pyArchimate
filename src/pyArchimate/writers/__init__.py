@@ -1,3 +1,4 @@
+# ruff: noqa: N999  # legacy module name preserved for API compatibility
 """
 Writer registry helpers extracted from the legacy module.
 """
