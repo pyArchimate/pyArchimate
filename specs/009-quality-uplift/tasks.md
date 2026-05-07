@@ -29,7 +29,7 @@
 **⚠️ CRITICAL**: No story work begins until this phase is complete.
 
 - [ ] T004 Query SonarCloud API using `SONAR_TOKEN` from `.env` and save the open issue list: `curl -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/issues/search?projectKeys=pyArchimate_pyArchimate&severities=CRITICAL,MAJOR,MINOR&statuses=OPEN,CONFIRMED" > /tmp/sonar_issues.json`
-- [ ] T005 Review `/tmp/sonar_issues.json` and produce a triage table (issue key, rule, severity, file, line) for use in Phase 3
+- [ ] T005 Review `/tmp/sonar_issues.json` and append a `## SonarCloud Triage` section to `specs/009-quality-uplift/research.md` containing a table (issue key, rule, severity, file, line) for use in Phase 3
 - [ ] T006 Run `bash scripts/pre_commit_checks.sh` to confirm baseline suite is green before any changes
 
 **Checkpoint**: Baseline confirmed, SonarCloud triage table ready — story work can now begin.
@@ -42,9 +42,9 @@
 
 **Independent Test**: `pysonar --sonar-token=<SONAR_TOKEN>` scan shows Quality Gate = Passed with zero unresolved issues (excluding `tests/legacy_*`).
 
-- [ ] T007 [US1] Fix or suppress each **CRITICAL** SonarCloud issue identified in T005; add `# NOSONAR <reason>` for confirmed false positives
-- [ ] T008 [US1] Fix or suppress each **MAJOR** SonarCloud issue identified in T005
-- [ ] T009 [P] [US1] Fix or suppress each **MINOR** SonarCloud issue and any security hotspots identified in T005
+- [ ] T007 [US1] Fix or suppress each **CRITICAL** SonarCloud issue from the triage table in `specs/009-quality-uplift/research.md`; add `# NOSONAR <reason>` for confirmed false positives
+- [ ] T008 [US1] Fix or suppress each **MAJOR** SonarCloud issue from the triage table in `specs/009-quality-uplift/research.md`
+- [ ] T009 [US1] Fix or suppress each **MINOR** SonarCloud issue and any security hotspots from the triage table in `specs/009-quality-uplift/research.md`
 - [ ] T010 [US1] Run `bash scripts/pre_commit_checks.sh` to verify no regressions after all fixes
 - [ ] T011 [US1] Commit: `fix(sonar): resolve remaining SonarCloud issues`
 
@@ -75,7 +75,7 @@
 
 - [ ] T019 [US2] Run `ruff check src/ --select N`; fix 6× `N811` (constant imported as non-constant) by renaming import aliases to `UPPER_CASE` in their source files
 - [ ] T020 [US2] Fix 1× `N802` (invalid function name) by renaming the function or adding `# noqa: N802  # <reason>` if renaming would break public API
-- [ ] T021 [US2] Evaluate 11× `N999` (invalid module name — camelCase files): for each, determine if the module can be renamed without breaking imports; rename if safe, otherwise add `# noqa: N999  # legacy module name preserved for API compatibility` to the module's first line
+- [ ] T021 [US2] Evaluate 11× `N999` (invalid module name — camelCase files): for each, determine if the module can be renamed without breaking imports; rename if safe, otherwise add `# ruff: noqa: N999  # legacy module name preserved for API compatibility` as a file-level banner on the module's first line (per-line `# noqa` cannot suppress N999 since the violation is on the filename, not a source line)
 - [ ] T022 [US2] Remove `"N999"` from `[tool.ruff.lint] ignore` in `pyproject.toml`; add `"N"` to `[tool.ruff.lint] select`; run `ruff check src/` to confirm 0 unresolved N violations; commit: `feat(ruff): enable N (naming) rule set; remove N999 global ignore`
 
 ### Batch 4d — Defer `UP` and `PT`
@@ -132,8 +132,8 @@
 
 - [ ] T038 [US4] Run `mypy src/ --disallow-untyped-defs` and count violations; record the count
 - [ ] T039 [US4] If violation count ≤ 20: fix all unannotated function signatures in the affected files, set `disallow_untyped_defs = true` in `pyproject.toml`, run `mypy src/` to confirm clean, commit: `fix(mypy): enable disallow_untyped_defs`; if > 20: add `# TODO(009-quality-uplift): Enable disallow_untyped_defs — <N> violations; deferred as stretch goal` to `pyproject.toml` and commit: `chore(mypy): document disallow_untyped_defs as deferred stretch goal`
-- [ ] T040b [US4] Run `mypy src/ --disallow-untyped-calls` and count violations; record the count
-- [ ] T040c [US4] If violation count ≤ 20: fix all call sites, set `disallow_untyped_calls = true` in `pyproject.toml`, run `mypy src/` to confirm clean, commit: `fix(mypy): enable disallow_untyped_calls`; if > 20: add `# TODO(009-quality-uplift): Enable disallow_untyped_calls — <N> violations; deferred as stretch goal` to `pyproject.toml` and commit: `chore(mypy): document disallow_untyped_calls as deferred stretch goal`
+- [ ] T040 [US4] Run `mypy src/ --disallow-untyped-calls` and count violations; record the count
+- [ ] T041 [US4] If violation count ≤ 20: fix all call sites, set `disallow_untyped_calls = true` in `pyproject.toml`, run `mypy src/` to confirm clean, commit: `fix(mypy): enable disallow_untyped_calls`; if > 20: add `# TODO(009-quality-uplift): Enable disallow_untyped_calls — <N> violations; deferred as stretch goal` to `pyproject.toml` and commit: `chore(mypy): document disallow_untyped_calls as deferred stretch goal`
 
 **Checkpoint**: `mypy src/` passes with 0 baseline errors. `disallow_untyped_defs` and `disallow_untyped_calls` each either enabled or deferred with documented count.
 
@@ -145,10 +145,10 @@
 
 **Independent Test**: `ruff check src/`, `pyright src/`, and `mypy src/` all pass after the audit; `pyproject.toml` contains no uncommented suppression without a justification comment.
 
-- [ ] T040 [US5] Audit `[tool.ruff.lint] ignore` in `pyproject.toml`: confirm `C901` and `PLC0415` are absent (removed in Phase 4) and `N999` is absent (removed in Phase 4); confirm `E501` retains its justification comment: `# line-too-long — formatter handles wrapping; not enforced at lint level`
-- [ ] T041 [US5] Audit `[tool.pyright]` in `pyproject.toml`: confirm `reportAttributeAccessIssue`, `reportArgumentType`, `reportOptionalMemberAccess` are no longer `"none"` (promoted in Phase 5); confirm `reportMissingTypeStubs` retains a justification comment if still present
-- [ ] T042 [US5] Audit `[tool.mypy]` in `pyproject.toml`: confirm `disallow_untyped_calls = false` and `disallow_untyped_defs = false` each have a justification comment (or have been removed per T039/T040c decisions)
-- [ ] T043 [US5] Run `bash scripts/pre_commit_checks.sh` to confirm full suite passes after audit; commit: `chore: annotate or remove obsolete tool exclusions in pyproject.toml`
+- [ ] T042 [US5] Audit `[tool.ruff.lint] ignore` in `pyproject.toml`: confirm `C901` and `PLC0415` are absent (removed in Phase 4) and `N999` is absent (removed in Phase 4); confirm `E501` retains its justification comment: `# line-too-long — formatter handles wrapping; not enforced at lint level`
+- [ ] T043 [US5] Audit `[tool.pyright]` in `pyproject.toml`: confirm `reportAttributeAccessIssue`, `reportArgumentType`, `reportOptionalMemberAccess` are no longer `"none"` (promoted in Phase 5); confirm `reportMissingTypeStubs` retains a justification comment if still present
+- [ ] T044 [US5] Audit `[tool.mypy]` in `pyproject.toml`: confirm `disallow_untyped_calls = false` and `disallow_untyped_defs = false` each have a justification comment (or have been removed per T039/T041 decisions)
+- [ ] T045 [US5] Run `bash scripts/pre_commit_checks.sh` to confirm full suite passes after audit; commit: `chore: annotate or remove obsolete tool exclusions in pyproject.toml`
 
 **Checkpoint**: All suppressions are either gone or carry an explanatory comment. No silent exclusions remain.
 
@@ -158,10 +158,10 @@
 
 **Purpose**: Final verification, documentation update, and feature closure.
 
-- [ ] T044 Run full test suite including integration and BDD: `bash scripts/pre_push_checks.sh`; confirm all pass
-- [ ] T045 [P] Update `specs/009-quality-uplift/checklists/requirements.md` — mark all checklist items complete and add notes on deferred items (UP, PT, disallow_untyped_defs, disallow_untyped_calls) with violation counts
-- [ ] T046 [P] Update `specs/009-quality-uplift/research.md` with final state: actual SonarCloud issue counts fixed, final ruff rule sets active, final pyright/mypy config
-- [ ] T047 Commit: `docs(009): update research and checklist with final quality uplift results`
+- [ ] T046 Run full test suite including integration and BDD: `bash scripts/pre_push_checks.sh`; confirm all pass
+- [ ] T047 [P] Update `specs/009-quality-uplift/checklists/requirements.md` — mark all checklist items complete and add notes on deferred items (UP, PT, disallow_untyped_defs, disallow_untyped_calls) with violation counts
+- [ ] T048 [P] Update `specs/009-quality-uplift/research.md` with final state: actual SonarCloud issue counts fixed, final ruff rule sets active, final pyright/mypy config
+- [ ] T049 Commit: `docs(009): update research and checklist with final quality uplift results`
 
 ---
 
@@ -174,7 +174,7 @@
 - **US1 (Phase 3)**: Depends on Phase 2 (triage table must exist)
 - **US2 (Phase 4)**: Independent of US1; depends on Phase 2 only
 - **US3 (Phase 5)**: Independent of US1/US2; depends on Phase 2 only (T026 can run in parallel with US1/US2)
-- **US4 (Phase 6)**: T034 depends on T026 completion (same line in `_arisamlreader_helpers.py:61`); T040b/T040c follow T039; otherwise independent
+- **US4 (Phase 6)**: T034 depends on T026 completion (same line in `_arisamlreader_helpers.py:61`); T040/T041 follow T039; otherwise independent
 - **US5 (Phase 7)**: Depends on Phase 4 (ruff ignores removed), Phase 5 (pyright categories re-enabled), Phase 6 (mypy flags documented) — must be last story phase
 - **Polish (Phase 8)**: Depends on all story phases
 
@@ -190,7 +190,7 @@
 
 - Batches are sequential within a phase (4a → 4b → 4c → 4d)
 - Tasks marked [P] within a batch can run in parallel
-- Always run the suite check before committing (T010, T025, T032, T037, T043)
+- Always run the suite check before committing (T010, T025, T032, T037, T045)
 
 ### Parallel Opportunities
 
@@ -216,21 +216,21 @@ Task: T036 (archiWriter.py no-any-return)
 |-------------|------|----------|------------|-----------------|
 | FR-001: All SonarCloud issues reviewed | FR | T007, T008, T009 | US1 | SC-001 |
 | FR-002: SonarCloud Quality Gate passes | FR | T010, T011 | US1 | SC-001 |
-| FR-003: No new violations introduced | FR | T010, T025, T032, T037, T043, T044 | All | SC-007 |
+| FR-003: No new violations introduced | FR | T010, T025, T032, T037, T045, T046 | All | SC-007 |
 | FR-004: Each ruff addition committed independently | FR | T013, T015, T018, T022, T025 | US2 | SC-002 |
 | FR-005: Pyright staged warning→error | FR | T027–T032 | US3 | SC-003 |
-| FR-006: Mypy flags committed independently | FR | T037, T039, T040b, T040c | US4 | SC-004 |
-| FR-007: Exclusion removal verified by tool run | FR | T040–T043 | US5 | SC-005 |
-| FR-008: All suppressions have justification | FR | T007–T009, T014, T021, T026, T034, T042 | All | SC-006 |
+| FR-006: Mypy flags committed independently | FR | T037, T039, T040, T041 | US4 | SC-004 |
+| FR-007: Exclusion removal verified by tool run | FR | T042–T045 | US5 | SC-005 |
+| FR-008: All suppressions have justification | FR | T007–T009, T014, T021, T026, T034, T044 | All | SC-006 |
 | FR-009: tests/legacy_* exclusions unchanged | FR | (policy — no task needed) | — | — |
-| FR-010: Existing tests pass after each batch | FR | T006, T010, T025, T032, T037, T043, T044 | All | SC-007 |
+| FR-010: Existing tests pass after each batch | FR | T006, T010, T025, T032, T037, T045, T046 | All | SC-007 |
 | SC-001: SonarCloud Gate → Passed | SC | T011 | US1 | — |
 | SC-002: ≥2 ruff rule sets active | SC | T018, T022 | US2 | — |
 | SC-003: ≥2 pyright categories at "error" | SC | T029, T030, T031 | US3 | — |
-| SC-004: ≥1 mypy flag re-enabled | SC | T037, T039, T040b, T040c | US4 | — |
-| SC-005: ≥1 obsolete exclusion removed | SC | T040, T041 | US5 | — |
-| SC-006: Zero unexplained suppressions | SC | T045 (checklist audit) | All | — |
-| SC-007: Full test suite passes | SC | T044 | All | — |
+| SC-004: ≥1 mypy flag re-enabled | SC | T037, T039, T040, T041 | US4 | — |
+| SC-005: ≥1 obsolete exclusion removed | SC | T042, T043 | US5 | — |
+| SC-006: Zero unexplained suppressions | SC | T047 (checklist audit) | All | — |
+| SC-007: Full test suite passes | SC | T046 | All | — |
 
 ---
 

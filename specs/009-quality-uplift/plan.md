@@ -83,7 +83,7 @@ sonar-project.properties # SonarCloud exclusions (unchanged)
 
 ## Complexity Tracking
 
-No constitution violations requiring justification.
+**TDD deviation (Constitution II)**: This feature modifies only tool configuration (`pyproject.toml`) and repairs pre-existing static-analysis violations in existing code. No new business logic is introduced, so the Red-Green-Refactor cycle does not apply. The existing test suite remains the correctness gate; every task includes a tool-run verification step before commit.
 
 ---
 
