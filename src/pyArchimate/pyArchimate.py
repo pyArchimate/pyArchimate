@@ -1,10 +1,18 @@
+# ruff: noqa: N999  # legacy module name preserved for API compatibility
 """Compatibility shim that re-exports legacy and modular APIs."""
 
 import math  # noqa: F401 - re-exported for legacy callers that do `from pyArchimate import *`
 
 # All imports below are intentional re-exports — this file is a public API shim.
-from .constants import ARCHI_CATEGORY as archi_category  # noqa: F401
-from .constants import DEFAULT_THEME as default_theme  # noqa: F401
+from .constants import (
+    ARCHI_CATEGORY as archi_category,  # noqa: F401,N811  # lowercase alias is the stable public API name
+)
+from .constants import (
+    ARIS_TYPE_MAP as ARIS_type_map,  # noqa: F401,N811  # lowercase alias used by arisAMLreader standalone fallback
+)
+from .constants import (
+    DEFAULT_THEME as default_theme,  # noqa: F401,N811  # lowercase alias is the stable public API name
+)
 from .constants import RGBA as RGBA  # noqa: F401
 from .element import Element as Element  # noqa: F401
 from .element import set_id as set_id

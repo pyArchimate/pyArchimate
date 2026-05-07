@@ -4,7 +4,7 @@ import json
 import os
 import sys
 import zipfile
-from collections import defaultdict
+from collections import defaultdict, deque
 from typing import TYPE_CHECKING, Any, Optional
 
 import lxml.etree as et
@@ -72,7 +72,7 @@ def _strip_props_block(text: str) -> str:
 
 
 def _embed_object(o: Any, remove_props: bool) -> None:
-    from .relationship import Relationship
+    from .relationship import Relationship  # noqa: PLC0415  # circular: model↔relationship init cycle
     if isinstance(o, Relationship):
         if o.name is not None:
             o.prop('Identifier', o.name)
@@ -125,7 +125,7 @@ def _expand_element(o: Any, clean_doc: bool) -> None:
 
 
 def _expand_object(o: Any, clean_doc: bool) -> None:
-    from .relationship import Relationship
+    from .relationship import Relationship  # noqa: PLC0415  # circular: model↔relationship init cycle
     if isinstance(o, Relationship):
         _expand_relationship(o, clean_doc)
     else:
@@ -321,7 +321,7 @@ class Model:
         :return:                        Relationship class object
         :rtype: Relationship
         """
-        from .relationship import Relationship
+        from .relationship import Relationship  # noqa: PLC0415  # circular: model↔relationship init cycle
         r = Relationship(rel_type, source, target, uuid, name, access_type, influence_strength, desc,
                          is_directed, profile,
                          parent=self)
@@ -491,7 +491,10 @@ class Model:
         :return:  XML data structure as string
         :rtype: str
         """
-        from .writers import _detect_writer_from_extension, _resolve_writer
+        from .writers import (  # noqa: PLC0415  # circular: writers import model types at module level
+            _detect_writer_from_extension,
+            _resolve_writer,
+        )
 
         if writer is None:
             writer = _detect_writer_from_extension(file_path)
@@ -903,27 +906,16 @@ class Model:
         """
         invalids = []
 
-        for id, c in self.conns_dict.items():
+        for conn_id, c in self.conns_dict.items():
             if self.check_connection(c):
-                invalids.append(id)
+                invalids.append(conn_id)
         return invalids
 
-    def check_connection(self, c):
-        """
-        Method to check the validity of a single connection
-
-        :param c:   Connection object
-        :type c:    Connection
-        :return:    True if the connection is valid
-        :rtype:     boolean
-        """
-
+    def _check_connection_refs(self, c: Any) -> bool:
         _ok = True
-        # check connections with unknown references
         if c._ref not in self.rels_dict:
             log.error(f'Orphan connection {c.uuid} to unknown relationship {c.ref}')
             _ok = False
-        # check existence of the source & target nodes
         if c._source not in self.nodes_dict:
             log.error(f'Connection {c.uuid} has orphan source node {c._source}')
             _ok = False
@@ -936,7 +928,10 @@ class Model:
         if c.concept._target not in self.elems_dict:
             log.error(f'Connection {c.uuid} has orphan target node concept {c.concept._target}')
             _ok = False
-        # Check source / target are nodes, not views
+        return _ok
+
+    def _check_connection_endpoints(self, c: Any) -> bool:
+        _ok = True
         if isinstance(c.target, View):
             log.error(f'Connection {c.uuid} has a view {c.target.name} as source node')
             _ok = False
@@ -953,8 +948,18 @@ class Model:
                 log.error(f'Connection {c.uuid} has a reference to its target Element which is not '
                           'the reference of the relationship target Element')
             _ok = False
-
         return _ok
+
+    def check_connection(self, c: Any) -> bool:
+        """
+        Method to check the validity of a single connection
+
+        :param c:   Connection object
+        :type c:    Connection
+        :return:    True if the connection is valid
+        :rtype:     boolean
+        """
+        return self._check_connection_refs(c) and self._check_connection_endpoints(c)
 
     def check_invalid_nodes(self):
         """
@@ -963,13 +968,13 @@ class Model:
         :rtype: list(Node)
         """
         invalids = []
-        for id, n in self.nodes_dict.items():
+        for node_id, n in self.nodes_dict.items():
             if n.ref not in self.elems_dict and n.cat == 'Element':
-                invalids.append(id)
+                invalids.append(node_id)
                 try:
                     log.error(f'Orphan node "{n.name}" with id {n.uuid} refers to unknown {n.ref}')
                 except ARCHIMATE_EXCEPTION_GROUP:
-                    log.error(f'Orphan node with id {id}')
+                    log.error(f'Orphan node with id {node_id}')
         return invalids
 
     def default_theme(self, theme=DEFAULT_THEME):
@@ -990,7 +995,9 @@ class Model:
         :return: list of Viewpoint objects
         :rtype: list[Viewpoint]
         """
-        from .viewpoint_registry import STANDARD_VIEWPOINTS
+        from .viewpoint_registry import (
+            STANDARD_VIEWPOINTS,  # noqa: PLC0415  # deferred: avoids init-time circular import via view
+        )
         return list(STANDARD_VIEWPOINTS)
 
     def get_elements_by_viewpoint(self, viewpoint_id: str) -> list[Any]:
@@ -1002,7 +1009,9 @@ class Model:
         :rtype: list[Element]
         :raises ValueError: if viewpoint_id is not a recognised slug
         """
-        from .viewpoint_registry import validate_viewpoint_slug
+        from .viewpoint_registry import (
+            validate_viewpoint_slug,  # noqa: PLC0415  # deferred: avoids init-time circular import via view
+        )
         validate_viewpoint_slug(viewpoint_id)
         uuids = self._viewpoint_elements.get(viewpoint_id, set())
         return [self.elems_dict[uid] for uid in uuids if uid in self.elems_dict]
@@ -1016,7 +1025,9 @@ class Model:
         :rtype: list[View]
         :raises ValueError: if viewpoint_id is not a recognised slug
         """
-        from .viewpoint_registry import validate_viewpoint_slug
+        from .viewpoint_registry import (
+            validate_viewpoint_slug,  # noqa: PLC0415  # deferred: avoids init-time circular import via view
+        )
         validate_viewpoint_slug(viewpoint_id)
         return [v for uid, v in self.views_dict.items()
                 if self._viewpoint_views.get(uid) == viewpoint_id]
@@ -1136,7 +1147,6 @@ class Model:
         :param elem_uuid: Element UUID
         :return: List of descendant Elements (excludes the element itself)
         """
-        from collections import deque
         result: list[Element] = []
         visited: set[str] = set()
         queue: deque[str] = deque([elem_uuid])

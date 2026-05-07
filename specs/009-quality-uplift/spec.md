@@ -30,7 +30,7 @@ A developer opening the SonarCloud dashboard for pyArchimate sees a residual set
 
 ### User Story 2 - Enable Additional Ruff Lint Rules (Priority: P1)
 
-A developer running `ruff check` on the codebase wants the linter to enforce a wider set of rules beyond the current baseline (`E`, `F`, `W`, `B`, `C`, `I`, `S110`). Incrementally enabling additional rule sets (e.g., `N` for naming, `UP` for pyupgrade, `A` for shadowing builtins, `ANN` for annotations, `PT` for pytest style) catches latent issues before they become harder to fix and aligns the codebase with modern Python idioms.
+A developer running `ruff check` on the codebase wants the linter to enforce a wider set of rules beyond the current baseline (`E`, `F`, `W`, `B`, `C`, `I`, `S110`). The four targeted rule sets are `UP` (pyupgrade), `N` (naming conventions), `A` (shadowing builtins), and `PT` (pytest style). Each is attempted incrementally; if a rule set surfaces more than 20 violations it is deferred to a follow-up feature with a documented TODO rather than abandoned.
 
 **Why this priority**: Ruff runs on every save and in CI; expanding the rule set has immediate payoff and is the lowest-friction quality lever available.
 
@@ -79,6 +79,8 @@ A developer running `mypy` observes that despite `strict = true` in `pyproject.t
 
 ### User Story 5 - Remove Obsolete Exclusions from pyproject.toml (Priority: P3)
 
+> **Scope note**: This story is a final audit pass that verifies the `pyproject.toml` outcomes of US2 (ruff), US3 (pyright), and US4 (mypy). It does not re-execute those changes — it confirms they landed correctly and that every remaining suppression carries a justification comment.
+
 A developer reviewing `pyproject.toml` notices several lint/type-check ignores and exclusions that were added as workarounds during earlier development phases (e.g., `C901`, `N999`, `PLC0415` in ruff; suppressed pyright categories). Each exclusion is audited: if the underlying issue is now resolved, the exclusion is removed; if still needed, a comment is added explaining why it remains.
 
 **Why this priority**: Obsolete suppressions silently hide future regressions. Removing them ensures the tool chain enforces the rules it appears to enforce.
@@ -121,9 +123,9 @@ A developer reviewing `pyproject.toml` notices several lint/type-check ignores a
 ### Measurable Outcomes
 
 - **SC-001**: SonarCloud Quality Gate transitions to "Passed" with zero unresolved issues in the active codebase (excluding legacy test directories).
-- **SC-002**: The number of active ruff lint rules increases by at least two additional rule sets beyond the current baseline, with `ruff check` passing on the full codebase.
-- **SC-003**: At least two currently-disabled pyright type-checking categories are re-enabled and `pyright` passes with no errors.
-- **SC-004**: At least one currently-disabled mypy strictness flag is re-enabled and `mypy src/` passes with no errors.
+- **SC-002**: All four required ruff rule sets (`UP`, `N`, `A`, `PT`) are either active with `ruff check` passing, or deferred with a documented TODO; at least two are active at feature completion.
+- **SC-003**: At least two currently-suppressed pyright categories are re-enabled: first confirmed passing at `"warning"` level, then promoted to `"error"` level with `pyright` passing.
+- **SC-004**: At least one currently-disabled mypy strictness flag (`disallow_untyped_defs`, `disallow_untyped_calls`) is re-enabled and `mypy src/` passes with no errors; if both flags produce more than 20 violations when probed, each is deferred with a documented violation-count TODO in `pyproject.toml` and SC-004 is considered conditionally met (mirroring the ruff deferral policy in FR-004).
 - **SC-005**: At least one obsolete `pyproject.toml` exclusion is removed and the relevant tool continues to pass.
 - **SC-006**: Every suppression comment added as part of this work includes a justification (zero unexplained suppressions introduced).
 - **SC-007**: The full test suite (unit, integration, BDD) continues to pass at the conclusion of the feature.

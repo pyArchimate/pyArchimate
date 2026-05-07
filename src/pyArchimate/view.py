@@ -1039,7 +1039,9 @@ class View:
         :type viewpoint_id: str
         :raises ValueError: if viewpoint_id is not a recognised slug
         """
-        from .viewpoint_registry import validate_viewpoint_slug
+        from .viewpoint_registry import (
+            validate_viewpoint_slug,  # noqa: PLC0415  # deferred: avoids circular import at module load time
+        )
         validate_viewpoint_slug(viewpoint_id)
         self._primary_viewpoint = viewpoint_id
         if self.model is not None:

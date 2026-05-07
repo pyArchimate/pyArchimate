@@ -48,7 +48,7 @@ testing = [  # runtime tooling required to exercise the test suite
 lint = [
     "types-requests>=2.32.4.20250913,<3.0.0",
     "types-pyyaml>=6.0.12.20250915,<7.0.0",
-    "mypy>=1.19.1,<2.0.0",
+    "mypy>=2.0.0,<3.0.0",
     "pyright>=1.1.407,<2.0.0",
     "ruff>=0.14.10,<1.0.0",
     "pymarkdownlnt>=0.9.35",
@@ -78,10 +78,10 @@ typeCheckingMode = "basic"
 reportMissingImports = true
 reportUnusedVariable = "error"
 reportUnusedImport = "none" # ruff handles this
-reportAttributeAccessIssue = "none"
-reportArgumentType = "none"
-reportOptionalMemberAccess = "none"
-reportMissingTypeStubs = "none"
+reportAttributeAccessIssue = "warning"
+reportArgumentType = "warning"
+reportOptionalMemberAccess = "warning"
+reportMissingTypeStubs = "none"  # lxml-stubs and types-setuptools installed; Pillow has no bundled stubs
 reportUnknownMemberType = false
 extraPaths = ["src", "scripts"]
 exclude = [
@@ -98,8 +98,8 @@ show_error_codes = true
 ignore_missing_imports = false
 allow_redefinition = false
 check_untyped_defs = true
-disallow_untyped_calls = false
-disallow_untyped_defs = false
+disallow_untyped_calls = false  # TODO(009-quality-uplift): Enable — 89 violations; deferred as stretch goal
+disallow_untyped_defs = false  # TODO(009-quality-uplift): Enable — 162 violations; deferred as stretch goal
 disallow_incomplete_defs = true
 disallow_untyped_decorators = true
 warn_unused_ignores = true
@@ -116,12 +116,17 @@ line-length = 120
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "B", "C", "I", "S110"]
+select = [
+    "E", "F", "W", "B", "C", "I", "S110", "A", "N",
+    # TODO(009-quality-uplift): Enable UP rule set — 124 violations exceed the 20-violation cap;
+    # most are auto-fixable (ruff --fix) but UP042/UP032 need semantic review
+    # "UP",
+    # TODO(009-quality-uplift): Enable PT rule set — 163 violations exceed cap;
+    # primarily PT009 (unittest assertions) in legacy tests
+    # "PT",
+]
 ignore = [
-    "E501",    # line too long — handled by formatter
-    "C901",    # complexity — legacy monolithic functions
-    "N999",    # module names — project uses camelCase for some files
-    "PLC0415", # top-level imports — project uses local imports for dynamic loading
+    "E501",  # line too long — handled by formatter
 ]
 exclude = [
     "**/node_modules",
@@ -139,7 +144,7 @@ exclude = [
 check-typed-exception = true
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101"]  # ignore assertions in tests
+"tests/**" = ["S101", "N999"]  # S101: assertions OK in tests; N999: test files mirror camelCase reader/writer names
 
 [tool.ruff.format]
 quote-style = "double"

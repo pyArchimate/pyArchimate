@@ -1,3 +1,4 @@
+# ruff: noqa: N999  # legacy module name preserved for API compatibility
 """
 File reader for native Archimate Tool .archimate file format
 """
@@ -21,7 +22,7 @@ __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
-def _rebuild_hierarchy_from_parentId(model, root):
+def _rebuild_hierarchy_from_parent_id(model, root):
     """Rebuild parent-child hierarchy from parentId attributes in XML.
 
     This is called after all elements have been loaded to establish
@@ -100,4 +101,4 @@ def archi_reader(model, root, merge_flg=False):
         get_folders_view(f, model, xsi)
 
     # Rebuild hierarchy from parentId attributes after all elements are loaded
-    _rebuild_hierarchy_from_parentId(model, root)
+    _rebuild_hierarchy_from_parent_id(model, root)

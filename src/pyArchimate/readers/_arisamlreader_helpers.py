@@ -5,7 +5,7 @@ import sys
 from typing import Any, Optional, cast
 
 try:
-    from ..constants import ARIS_TYPE_MAP as ARIS_type_map
+    from ..constants import ARIS_TYPE_MAP as ARIS_type_map  # noqa: N811  # alias matches public API export name
     from ..enums import ArchiType, TextAlignment
     from ..exceptions import ArchimateConceptTypeError, ArchimateRelationshipError
     from ..helpers.logging import log
@@ -58,7 +58,9 @@ def get_text_size(text: str, points: int, font: str) -> tuple[float, float]:
         ctypes.windll.gdi32.DeleteObject(hfont)  # type: ignore[attr-defined]
         return size.cx, size.cy
     else:
-        from PIL import ImageFont
+        from PIL import (
+            ImageFont,  # noqa: PLC0415  # optional dependency: PIL only available at call time on non-Windows
+        )
         for path in _FONT_SEARCH_PATHS:
             try:
                 fnt = ImageFont.truetype(path, points)

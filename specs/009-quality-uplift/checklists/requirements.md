@@ -34,3 +34,14 @@
 - Spec references the SonarCloud API URL in the References section for traceability
 - Story 4 (mypy strict flags) is marked as a stretch goal — partial enablement is acceptable
 - Ready to proceed to `/speckit-plan`
+
+## Deferred Items (recorded 2026-05-07)
+
+| Item | Violations | Reason Deferred |
+|------|-----------|-----------------|
+| `UP` (pyupgrade) ruff rule set | 124 | Exceeds 20-violation cap; UP042/UP032 need semantic review |
+| `PT` (pytest style) ruff rule set | 163 | Primarily PT009 unittest assertions in legacy tests |
+| mypy `disallow_untyped_defs` | 162 | Exceeds 20-violation cap; tracked as stretch goal |
+| mypy `disallow_untyped_calls` | 89 | Exceeds 20-violation cap; tracked as stretch goal |
+| pyright "error" promotion | 419 test violations | Pre-commit runs `pyright src/ tests/`; test cleanup needed first |
+| SonarCloud remediation (T004–T011) | unknown | `SONAR_TOKEN` unavailable in dev environment |
