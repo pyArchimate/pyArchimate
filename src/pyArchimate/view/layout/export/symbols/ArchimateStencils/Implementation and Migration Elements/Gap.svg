@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="85.0388000000" height="46.7722000000">
+  <title><![CDATA[Gap]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M0.0000,0.0000 L85.0387,0.0000 L85.0387,27.6382 C42.5197,8.5043 42.5197,46.7722 0.0000,27.6382 L0.0000,0.0000 Z" style="fill-rule: evenodd; fill: #e0ffe0; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1007">
+      <path d="  M0.0000,0.0000 L85.0387,0.0000 L85.0387,27.6382 C42.5197,8.5043 42.5197,46.7722 0.0000,27.6382 L0.0000,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M0.0000,0.0000 L85.0387,0.0000 L85.0387,27.6382 C42.5197,8.5043 42.5197,46.7722 0.0000,27.6382 L0.0000,0.0000 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1008">
+      <path d="  M81.2123,4.8052 C81.2123,6.2370 80.0700,7.3980 78.6608,7.3980 C77.2523,7.3980 76.1100,6.2370 76.1100,4.8052 C76.1100,3.3735 77.2523,2.2125 78.6608,2.2125 C80.0700,2.2125 81.2123,3.3735 81.2123,4.8052 Z" style="stroke-width: 0.4215; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M81.2123,4.8052 C81.2123,6.2370 80.0700,7.3980 78.6608,7.3980 C77.2523,7.3980 76.1100,6.2370 76.1100,4.8052 C76.1100,3.3735 77.2523,2.2125 78.6608,2.2125 C80.0700,2.2125 81.2123,3.3735 81.2123,4.8052 Z" style="stroke-width: 0.4215; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1009">
+      <path d="  M74.4090,3.9412 L82.9133,3.9412 Z" style="stroke-width: 0.4215; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M74.4090,3.9412 L82.9133,3.9412" style="stroke-width: 0.4215; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1010">
+      <path d="  M74.4090,5.6692 L82.9133,5.6692 Z" style="stroke-width: 0.4215; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M74.4090,5.6692 L82.9133,5.6692" style="stroke-width: 0.4215; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <text xmlns="http://www.w3.org/2000/svg" x="10.3776" y="8.5905">
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+Gap</tspan>
+    </text>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="34.0163000000" height="25.5120000000">
+  <title><![CDATA[Device 2]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M3.1890,0.0000 L30.8273,0.0000 C32.5883,0.0000 34.0163,1.4280 34.0163,3.1890 L34.0163,15.9450 C34.0163,17.7060 32.5883,19.1340 30.8273,19.1340 L3.1890,19.1340 C1.4280,19.1340 0.0000,17.7060 0.0000,15.9450 L0.0000,3.1890 C0.0000,1.4280 1.4280,0.0000 3.1890,0.0000 Z" style="fill-rule: evenodd; fill: #afffaf; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1010">
+      <path d="  M3.1890,0.0000 L30.8273,0.0000 C32.5883,0.0000 34.0163,1.4280 34.0163,3.1890 L34.0163,15.9450 C34.0163,17.7060 32.5883,19.1340 30.8273,19.1340 L3.1890,19.1340 C1.4280,19.1340 0.0000,17.7060 0.0000,15.9450 L0.0000,3.1890 C0.0000,1.4280 1.4280,0.0000 3.1890,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M3.1890,0.0000 L30.8273,0.0000 C32.5883,0.0000 34.0163,1.4280 34.0163,3.1890 L34.0163,15.9450 C34.0163,17.7060 32.5883,19.1340 30.8273,19.1340 L3.1890,19.1340 C1.4280,19.1340 0.0000,17.7060 0.0000,15.9450 L0.0000,3.1890 C0.0000,1.4280 1.4280,0.0000 3.1890,0.0000 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <path xmlns="http://www.w3.org/2000/svg" d="  M6.3780,19.1340 L0.0000,25.5120 L34.0163,25.5120 L27.6383,19.1340 Z" style="fill-rule: evenodd; fill: #afffaf; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1011">
+      <path d="  M6.3780,19.1340 L0.0000,25.5120 L34.0163,25.5120 L27.6383,19.1340 Z" style="stroke-width: 0.6375; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M6.3780,19.1340 L0.0000,25.5120 L34.0163,25.5120 L27.6383,19.1340" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

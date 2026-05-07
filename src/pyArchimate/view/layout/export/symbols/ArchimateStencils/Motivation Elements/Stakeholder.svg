@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="85.0395000000" height="34.0155000000">
+  <title><![CDATA[Stakeholder]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M4.2517,0.0000 L80.7870,0.0000 L85.0395,4.2518 L85.0395,29.7638 L80.7870,34.0155 L4.2517,34.0155 L0.0000,29.7638 L0.0000,4.2518 L4.2517,0.0000 Z" style="fill-rule: evenodd; fill: #ccccff; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1000">
+      <path d="  M4.2517,0.0000 L80.7870,0.0000 L85.0395,4.2518 L85.0395,29.7638 L80.7870,34.0155 L4.2517,34.0155 L0.0000,29.7638 L0.0000,4.2518 L4.2517,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M4.2517,0.0000 L80.7870,0.0000 L85.0395,4.2518 L85.0395,29.7638 L80.7870,34.0155 L4.2517,34.0155 L0.0000,29.7638 L0.0000,4.2518 L4.2517,0.0000 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1001">
+      <path d="  M81.6150,2.1953 L75.7500,2.1953 C75.0555,2.1953 74.4930,3.1238 74.4930,4.2690 C74.4930,5.4150 75.0555,6.3435 75.7500,6.3435 L81.6150,6.3435 Z" style="stroke-width: 0.4657; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M81.6150,2.1953 L75.7500,2.1953 C75.0555,2.1953 74.4930,3.1238 74.4930,4.2690 C74.4930,5.4150 75.0555,6.3435 75.7500,6.3435 L81.6150,6.3435" style="stroke-width: 0.4657; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1002">
+      <path d="  M82.8712,4.2690 C82.8712,5.4150 82.3087,6.3435 81.6150,6.3435 C80.9205,6.3435 80.3580,5.4150 80.3580,4.2690 C80.3580,3.1238 80.9205,2.1953 81.6150,2.1953 C82.3087,2.1953 82.8712,3.1238 82.8712,4.2690 Z" style="stroke-width: 0.4657; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M82.8712,4.2690 C82.8712,5.4150 82.3087,6.3435 81.6150,6.3435 C80.9205,6.3435 80.3580,5.4150 80.3580,4.2690 C80.3580,3.1238 80.9205,2.1953 81.6150,2.1953 C82.3087,2.1953 82.8712,3.1238 82.8712,4.2690 Z" style="stroke-width: 0.4657; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <text xmlns="http://www.w3.org/2000/svg" x="4.0000" y="17.0078">
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+Stakeholder</tspan>
+    </text>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

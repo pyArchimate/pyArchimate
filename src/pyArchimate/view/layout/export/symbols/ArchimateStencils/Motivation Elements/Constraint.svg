@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="85.0395000000" height="34.0162000000">
+  <title><![CDATA[Constraint]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M4.2517,0.0000 L80.7870,0.0000 L85.0395,4.2518 L85.0395,29.7637 L80.7870,34.0162 L4.2517,34.0162 L0.0000,29.7637 L0.0000,4.2518 L4.2517,0.0000 Z" style="fill-rule: evenodd; fill: #ccccff; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1031">
+      <path d="  M4.2517,0.0000 L80.7870,0.0000 L85.0395,4.2518 L85.0395,29.7637 L80.7870,34.0162 L4.2517,34.0162 L0.0000,29.7637 L0.0000,4.2518 L4.2517,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M4.2517,0.0000 L80.7870,0.0000 L85.0395,4.2518 L85.0395,29.7637 L80.7870,34.0162 L4.2517,34.0162 L0.0000,29.7637 L0.0000,4.2518 L4.2517,0.0000 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1032">
+      <path d="  M74.6310,6.2962 L81.2865,6.2962 L82.7655,2.4307 L76.1100,2.4307 L74.6310,6.2962 Z" style="stroke-width: 0.3097; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M74.6310,6.2962 L81.2865,6.2962 L82.7655,2.4307 L76.1100,2.4307 L74.6310,6.2962 Z" style="stroke-width: 0.3097; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1033">
+      <path d="  M77.5890,2.4307 L76.1100,6.2962 Z" style="stroke-width: 0.3097; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M77.5890,2.4307 L76.1100,6.2962" style="stroke-width: 0.3097; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <text xmlns="http://www.w3.org/2000/svg" x="4.0000" y="17.0081">
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+Constraint</tspan>
+    </text>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

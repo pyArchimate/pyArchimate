@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="85.0395000000" height="34.0162000000">
+  <title><![CDATA[Principle]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M4.2518,0.0000 L80.7870,0.0000 L85.0395,4.2525 L85.0395,29.7638 L80.7870,34.0162 L4.2518,34.0162 L0.0000,29.7638 L0.0000,4.2525 L4.2518,0.0000 Z" style="fill-rule: evenodd; fill: #ccccff; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1026">
+      <path d="  M4.2518,0.0000 L80.7870,0.0000 L85.0395,4.2525 L85.0395,29.7638 L80.7870,34.0162 L4.2518,34.0162 L0.0000,29.7638 L0.0000,4.2525 L4.2518,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M4.2518,0.0000 L80.7870,0.0000 L85.0395,4.2525 L85.0395,29.7638 L80.7870,34.0162 L4.2518,34.0162 L0.0000,29.7638 L0.0000,4.2525 L4.2518,0.0000 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1027">
+      <path d="  M75.9998,2.6708 C76.5855,2.0895 81.8588,2.0895 82.4445,2.6708 C83.0303,3.2520 83.0303,8.4840 82.4445,9.0653 C81.8588,9.6465 76.5855,9.6465 75.9998,9.0653 C75.4140,8.4840 75.4140,3.2520 75.9998,2.6708 Z" style="stroke-width: 0.4267; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M75.9998,2.6708 C76.5855,2.0895 81.8588,2.0895 82.4445,2.6708 C83.0303,3.2520 83.0303,8.4840 82.4445,9.0653 C81.8588,9.6465 76.5855,9.6465 75.9998,9.0653 C75.4140,8.4840 75.4140,3.2520 75.9998,2.6708 Z" style="stroke-width: 0.4267; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <path xmlns="http://www.w3.org/2000/svg" d="  M79.1220,6.4620 L78.9570,4.4340 L78.9570,3.5858 L79.6253,3.5858 L79.6253,4.4340 L79.4693,6.4620 L79.1220,6.4620 Z" style="fill-rule: evenodd; fill: #000000; "/>
+    <path xmlns="http://www.w3.org/2000/svg" d="  M78.9810,8.1098 L78.9810,7.5750 L79.6013,7.5750 L79.6013,8.1098 L78.9810,8.1098 Z" style="fill-rule: evenodd; fill: #000000; "/>
+    <text xmlns="http://www.w3.org/2000/svg" x="4.0000" y="17.0081">
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+Principle</tspan>
+    </text>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="72.2835000000" height="29.7637000000">
+  <title><![CDATA[Application interface]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M0.0000,0.0000 L72.2835,0.0000 L72.2835,29.7637 L0.0000,29.7637 L0.0000,0.0000 Z" style="fill-rule: evenodd; fill: #afffff; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1015">
+      <path d="  M0.0000,0.0000 L72.2835,0.0000 L72.2835,29.7637 L0.0000,29.7637 L0.0000,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M0.0000,0.0000 L72.2835,0.0000 L72.2835,29.7637 L0.0000,29.7637 L0.0000,0.0000 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1016">
+      <path d="  M61.6185,6.4665 L57.4012,6.4665 Z" style="stroke-width: 0.4312; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M61.6185,6.4665 L57.4012,6.4665" style="stroke-width: 0.4312; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1017">
+      <path d="  M70.0515,6.4740 C70.0515,8.7375 68.1637,10.5720 65.8350,10.5720 C63.5062,10.5720 61.6185,8.7375 61.6185,6.4740 C61.6185,4.2105 63.5062,2.3760 65.8350,2.3760 C68.1637,2.3760 70.0515,4.2105 70.0515,6.4740 Z" style="stroke-width: 0.4312; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M70.0515,6.4740 C70.0515,8.7375 68.1637,10.5720 65.8350,10.5720 C63.5062,10.5720 61.6185,8.7375 61.6185,6.4740 C61.6185,4.2105 63.5062,2.3760 65.8350,2.3760 C68.1637,2.3760 70.0515,4.2105 70.0515,6.4740 Z" style="stroke-width: 0.4312; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <text xmlns="http://www.w3.org/2000/svg" x="4.0000" y="14.8819">
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+Application interface</tspan>
+    </text>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

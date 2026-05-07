@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="85.0388000000" height="34.0155000000">
+  <title><![CDATA[Implementation event]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M5.3145,0.0000 L79.7243,0.0000 C82.6598,0.0000 85.0388,2.3790 85.0388,5.3145 L85.0388,28.7003 C85.0388,31.6358 82.6598,34.0155 79.7243,34.0155 L5.3145,34.0155 C2.3790,34.0155 0.0000,31.6358 0.0000,28.7003 L0.0000,5.3145 C0.0000,2.3790 2.3790,0.0000 5.3145,0.0000 Z" style="fill-rule: evenodd; fill: #ffe0e0; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1001">
+      <path d="  M5.3145,0.0000 L79.7243,0.0000 C82.6598,0.0000 85.0388,2.3790 85.0388,5.3145 L85.0388,28.7003 C85.0388,31.6358 82.6598,34.0155 79.7243,34.0155 L5.3145,34.0155 C2.3790,34.0155 0.0000,31.6358 0.0000,28.7003 L0.0000,5.3145 C0.0000,2.3790 2.3790,0.0000 5.3145,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M5.3145,0.0000 L79.7243,0.0000 C82.6598,0.0000 85.0388,2.3790 85.0388,5.3145 L85.0388,28.7003 C85.0388,31.6358 82.6598,34.0155 79.7243,34.0155 L5.3145,34.0155 C2.3790,34.0155 0.0000,31.6358 0.0000,28.7003 L0.0000,5.3145 C0.0000,2.3790 2.3790,0.0000 5.3145,0.0000 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1002">
+      <path d="  M74.7818,7.4078 C74.7818,7.4078 77.2643,7.4078 77.2643,4.8278 C77.2643,2.2478 74.7818,2.2478 74.7818,2.2478 L80.3678,2.2478 C80.3678,2.2478 82.8510,2.2478 82.8510,4.8278 C82.8510,7.4078 80.3678,7.4078 80.3678,7.4078 L74.7818,7.4078 Z" style="stroke-width: 0.4642; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M74.7818,7.4078 C74.7818,7.4078 77.2643,7.4078 77.2643,4.8278 C77.2643,2.2478 74.7818,2.2478 74.7818,2.2478 L80.3678,2.2478 C80.3678,2.2478 82.8510,2.2478 82.8510,4.8278 C82.8510,7.4078 80.3678,7.4078 80.3678,7.4078 L74.7818,7.4078 Z" style="stroke-width: 0.4642; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <text xmlns="http://www.w3.org/2000/svg" x="4.0000" y="17.0078">
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+Implementation event</tspan>
+    </text>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

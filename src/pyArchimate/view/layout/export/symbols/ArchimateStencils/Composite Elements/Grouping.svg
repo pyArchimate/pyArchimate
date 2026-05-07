@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="85.0387000000" height="46.7715000000">
+  <title><![CDATA[Grouping]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M63.7792,12.7560 L63.7792,0.0000 L0.0000,0.0000 L0.0000,12.7560 L85.0387,12.7560 L85.0387,46.7715 L0.0000,46.7715 L0.0000,12.7560" style="stroke-width: 0.6375; stroke: #404040; stroke-dasharray: 1.9125, 1.2750, 1.9125, 1.2750; stroke-linecap: butt; stroke-linejoin: miter; fill: none; "/>
+    <text xmlns="http://www.w3.org/2000/svg" x="5.5495" y="6.3779">
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+Grouping</tspan>
+    </text>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

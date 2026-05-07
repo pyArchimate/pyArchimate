@@ -14,6 +14,7 @@ from .symbols.archimate_relationships import (
 )
 from .symbols.archimate_symbols import ARCHIMATE_SYMBOLS
 from .symbols.color_palette import get_element_color
+from .symbols.stencil_icons import STENCIL_ICONS
 
 
 class SVGExportService:
@@ -635,11 +636,28 @@ class SVGExportService:
             )
 
         # 3. Icon (top-right, fixed size, translated line-art)
-        if symbol_def.icon_path and symbol_def.icon_viewbox:
+        # Try stencil icons first, then fall back to symbol definition icons
+        icon_path: Optional[str] = None
+        icon_viewbox: Optional[str] = None
+
+        if element_type in STENCIL_ICONS:
+            stencil = STENCIL_ICONS.get(element_type)
+            if stencil:
+                icon_path = str(stencil.get("path", ""))
+                # Generate viewbox from width and height
+                w_val = stencil.get("width", 0)
+                h_val = stencil.get("height", 0)
+                if isinstance(w_val, (int, float)) and isinstance(h_val, (int, float)):
+                    icon_viewbox = f"0 0 {w_val:.1f} {h_val:.1f}"
+        elif symbol_def.icon_path and symbol_def.icon_viewbox:
+            icon_path = symbol_def.icon_path
+            icon_viewbox = symbol_def.icon_viewbox
+
+        if icon_path and icon_viewbox:
             ICON_MARGIN = 4
             icon_ox = x + w - 20 - ICON_MARGIN  # 4px from right edge, 20px wide
             icon_oy = y + ICON_MARGIN  # 4px from top
-            translated = self._translate_icon(symbol_def.icon_path, symbol_def.icon_viewbox, icon_ox, icon_oy)
+            translated = self._translate_icon(icon_path, icon_viewbox, icon_ox, icon_oy)
             ET.SubElement(
                 g,
                 "path",

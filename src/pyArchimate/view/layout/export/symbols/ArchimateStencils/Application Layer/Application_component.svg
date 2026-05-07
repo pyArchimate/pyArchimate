@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="72.2835000000" height="29.7637000000">
+  <title><![CDATA[Application component]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M0.0000,0.0000 L72.2835,0.0000 L72.2835,29.7638 L0.0000,29.7638 L0.0000,0.0000 Z" style="fill-rule: evenodd; fill: #afffff; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1000">
+      <path d="  M0.0000,0.0000 L72.2835,0.0000 L72.2835,29.7638 L0.0000,29.7638 L0.0000,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M0.0000,0.0000 L72.2835,0.0000 L72.2835,29.7638 L0.0000,29.7638 L0.0000,0.0000 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1001">
+      <path d="  M63.1538,3.1778 L63.1538,2.2493 L70.1018,2.2493 L70.1018,8.4413 L63.1538,8.4413 L63.1538,7.2030 Z" style="stroke-width: 0.4027; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M63.1538,3.1778 L63.1538,2.2493 L70.1018,2.2493 L70.1018,8.4413 L63.1538,8.4413 L63.1538,7.2030" style="stroke-width: 0.4027; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1002">
+      <path d="  M61.7648,3.1778 L64.5435,3.1778 L64.5435,4.7265 L61.7648,4.7265 L61.7648,3.1778 Z" style="stroke-width: 0.4027; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M61.7648,3.1778 L64.5435,3.1778 L64.5435,4.7265 L61.7648,4.7265 L61.7648,3.1778 Z" style="stroke-width: 0.4027; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1003">
+      <path d="  M61.7648,5.6550 L64.5435,5.6550 L64.5435,7.2030 L61.7648,7.2030 L61.7648,5.6550 Z" style="stroke-width: 0.4027; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M61.7648,5.6550 L64.5435,5.6550 L64.5435,7.2030 L61.7648,7.2030 L61.7648,5.6550 Z" style="stroke-width: 0.4027; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1004">
+      <path d="  M63.1538,4.7265 L63.1538,5.6550 Z" style="stroke-width: 0.4027; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M63.1538,4.7265 L63.1538,5.6550" style="stroke-width: 0.4027; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <text xmlns="http://www.w3.org/2000/svg" x="4.0000" y="14.8819">
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+Application</tspan>
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+component</tspan>
+    </text>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

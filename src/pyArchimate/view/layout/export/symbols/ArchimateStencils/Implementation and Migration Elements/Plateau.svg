@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="85.0388000000" height="34.0162000000">
+  <title><![CDATA[Plateau]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M0.0000,6.3780 L6.3780,0.0000 L85.0387,0.0000 L85.0387,27.6383 L78.6607,34.0163 L0.0000,34.0163 L0.0000,6.3780 Z" style="fill-rule: evenodd; fill: #e0ffe0; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1005">
+      <path d="  M0.0000,6.3780 L6.3780,0.0000 L85.0387,0.0000 L85.0387,27.6383 L78.6607,34.0163 L0.0000,34.0163 L0.0000,6.3780 Z" style="stroke-width: 0.6375; stroke-linecap: round; stroke-linejoin: round; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M0.0000,6.3780 L6.3780,0.0000 L85.0387,0.0000 L85.0387,27.6383 L78.6607,34.0163 L0.0000,34.0163 L0.0000,6.3780 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1006">
+      <path d="  M0.0000,6.3780 L78.6607,6.3780 L78.6607,34.0162 Z M78.6607,6.3780 L85.0387,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: round; stroke-linejoin: round; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M0.0000,6.3780 L78.6607,6.3780 L78.6607,34.0162 M78.6607,6.3780 L85.0387,0.0000" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <path xmlns="http://www.w3.org/2000/svg" d="  M69.9982,8.5395 L76.5465,8.5395 L76.5465,9.5295 L69.9982,9.5295 L69.9982,8.5395 Z" style="fill-rule: evenodd; fill: #000000; "/>
+    <path xmlns="http://www.w3.org/2000/svg" d="  M69.1132,10.6717 L75.6615,10.6717 L75.6615,11.6617 L69.1132,11.6617 L69.1132,10.6717 Z" style="fill-rule: evenodd; fill: #000000; "/>
+    <path xmlns="http://www.w3.org/2000/svg" d="  M68.0520,12.8197 L74.5995,12.8197 L74.5995,13.8097 L68.0520,13.8097 L68.0520,12.8197 Z" style="fill-rule: evenodd; fill: #000000; "/>
+    <text xmlns="http://www.w3.org/2000/svg" x="4.0000" y="17.0081">
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+Plateau</tspan>
+    </text>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

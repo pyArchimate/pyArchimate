@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="72.2835000000" height="29.7637000000">
+  <title><![CDATA[Business role]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M0.0000,0.0000 L72.2835,0.0000 L72.2835,29.7637 L0.0000,29.7637 L0.0000,0.0000 Z" style="fill-rule: evenodd; fill: #ffffaf; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1005">
+      <path d="  M0.0000,0.0000 L72.2835,0.0000 L72.2835,29.7637 L0.0000,29.7637 L0.0000,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M0.0000,0.0000 L72.2835,0.0000 L72.2835,29.7637 L0.0000,29.7637 L0.0000,0.0000 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1006">
+      <path d="  M68.8590,2.1945 L62.9940,2.1945 C62.3003,2.1945 61.7370,3.1230 61.7370,4.2690 C61.7370,5.4142 62.3003,6.3427 62.9940,6.3427 L68.8590,6.3427 Z" style="stroke-width: 0.4657; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M68.8590,2.1945 L62.9940,2.1945 C62.3003,2.1945 61.7370,3.1230 61.7370,4.2690 C61.7370,5.4142 62.3003,6.3427 62.9940,6.3427 L68.8590,6.3427" style="stroke-width: 0.4657; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1007">
+      <path d="  M70.1153,4.2690 C70.1153,5.4142 69.5528,6.3427 68.8590,6.3427 C68.1645,6.3427 67.6020,5.4142 67.6020,4.2690 C67.6020,3.1230 68.1645,2.1945 68.8590,2.1945 C69.5528,2.1945 70.1153,3.1230 70.1153,4.2690 Z" style="stroke-width: 0.4657; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M70.1153,4.2690 C70.1153,5.4142 69.5528,6.3427 68.8590,6.3427 C68.1645,6.3427 67.6020,5.4142 67.6020,4.2690 C67.6020,3.1230 68.1645,2.1945 68.8590,2.1945 C69.5528,2.1945 70.1153,3.1230 70.1153,4.2690 Z" style="stroke-width: 0.4657; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <text xmlns="http://www.w3.org/2000/svg" x="4.0000" y="14.8819">
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+Business</tspan>
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+role</tspan>
+    </text>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

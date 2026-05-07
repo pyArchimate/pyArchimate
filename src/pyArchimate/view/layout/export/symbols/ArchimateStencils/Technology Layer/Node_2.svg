@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="38.2672000000" height="25.5120000000">
+  <title><![CDATA[Node 2]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M0.0000,6.3780 L6.3780,0.0000 L38.2672,0.0000 L38.2672,19.1340 L31.8900,25.5120 L0.0000,25.5120 L0.0000,6.3780 Z" style="fill-rule: evenodd; fill: #afffaf; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1004">
+      <path d="  M0.0000,6.3780 L6.3780,0.0000 L38.2672,0.0000 L38.2672,19.1340 L31.8900,25.5120 L0.0000,25.5120 L0.0000,6.3780 Z" style="stroke-width: 0.6375; stroke-linecap: round; stroke-linejoin: round; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M0.0000,6.3780 L6.3780,0.0000 L38.2672,0.0000 L38.2672,19.1340 L31.8900,25.5120 L0.0000,25.5120 L0.0000,6.3780 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1005">
+      <path d="  M0.0000,6.3780 L31.8900,6.3780 L31.8900,25.5120 Z M31.8900,6.3780 L38.2672,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: round; stroke-linejoin: round; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M0.0000,6.3780 L31.8900,6.3780 L31.8900,25.5120 M31.8900,6.3780 L38.2672,0.0000" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

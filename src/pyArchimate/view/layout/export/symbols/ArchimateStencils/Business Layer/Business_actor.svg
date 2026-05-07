@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="72.2835000000" height="29.7637000000">
+  <title><![CDATA[Business actor]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M0.0000,0.0000 L72.2835,0.0000 L72.2835,29.7637 L0.0000,29.7637 L0.0000,0.0000 Z" style="fill-rule: evenodd; fill: #ffffaf; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1000">
+      <path d="  M0.0000,0.0000 L72.2835,0.0000 L72.2835,29.7637 L0.0000,29.7637 L0.0000,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M0.0000,0.0000 L72.2835,0.0000 L72.2835,29.7637 L0.0000,29.7637 L0.0000,0.0000 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <path xmlns="http://www.w3.org/2000/svg" d="  M67.3455,6.0405 C67.5638,6.0968 67.4505,6.1020 67.6883,6.0405 L67.6883,6.4942 L70.0890,6.4942 L70.0890,6.6458 L67.6883,6.6458 L67.6883,8.0070 L70.0890,10.4280 L69.9173,10.5795 L67.5173,8.1585 L65.1165,10.5795 L64.9455,10.4280 L67.3455,8.0070 L67.3455,6.6458 L64.9455,6.6458 L64.9455,6.4942 L67.3455,6.4942 L67.3455,6.0405 Z" style="fill-rule: evenodd; fill: #000000; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1001">
+      <path d="  M67.3455,6.0405 C67.5638,6.0968 67.4505,6.1020 67.6883,6.0405 L67.6883,6.4942 L70.0890,6.4942 L70.0890,6.6458 L67.6883,6.6458 L67.6883,8.0070 L70.0890,10.4280 L69.9173,10.5795 L67.5173,8.1585 L65.1165,10.5795 L64.9455,10.4280 L67.3455,8.0070 L67.3455,6.6458 L64.9455,6.6458 L64.9455,6.4942 L67.3455,6.4942 L67.3455,6.0405 Z" style="stroke-width: 0.4515; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M67.3455,6.0405 C67.5638,6.0968 67.4505,6.1020 67.6883,6.0405 L67.6883,6.4942 L70.0890,6.4942 L70.0890,6.6458 L67.6883,6.6458 L67.6883,8.0070 L70.0890,10.4280 L69.9173,10.5795 L67.5173,8.1585 L65.1165,10.5795 L64.9455,10.4280 L67.3455,8.0070 L67.3455,6.6458 L64.9455,6.6458 L64.9455,6.4942 L67.3455,6.4942 L67.3455,6.0405 Z" style="stroke-width: 0.4515; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1002">
+      <path d="  M69.5363,3.9690 C69.5363,4.9523 68.6273,5.7488 67.5060,5.7488 C66.3855,5.7488 65.4765,4.9523 65.4765,3.9690 C65.4765,2.9865 66.3855,2.1900 67.5060,2.1900 C68.6273,2.1900 69.5363,2.9865 69.5363,3.9690 Z" style="stroke-width: 0.4515; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M69.5363,3.9690 C69.5363,4.9523 68.6273,5.7488 67.5060,5.7488 C66.3855,5.7488 65.4765,4.9523 65.4765,3.9690 C65.4765,2.9865 66.3855,2.1900 67.5060,2.1900 C68.6273,2.1900 69.5363,2.9865 69.5363,3.9690 Z" style="stroke-width: 0.4515; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <text xmlns="http://www.w3.org/2000/svg" x="4.0000" y="14.8819">
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+Business</tspan>
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+actor</tspan>
+    </text>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>

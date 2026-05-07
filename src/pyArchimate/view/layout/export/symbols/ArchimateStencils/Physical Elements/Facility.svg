@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="72.2835000000" height="29.7637000000">
+  <title><![CDATA[Facility]]></title>
+  <g transform=" scale(1.000000) ">
+    <path xmlns="http://www.w3.org/2000/svg" d="  M0.0000,6.3780 L6.3780,0.0000 L72.2835,0.0000 L72.2835,23.3858 L65.9055,29.7638 L0.0000,29.7638 L0.0000,6.3780 Z" style="fill-rule: evenodd; fill: #afffaf; "/>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1000">
+      <path d="  M0.0000,6.3780 L6.3780,0.0000 L72.2835,0.0000 L72.2835,23.3858 L65.9055,29.7638 L0.0000,29.7638 L0.0000,6.3780 Z" style="stroke-width: 0.6375; stroke-linecap: round; stroke-linejoin: round; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M0.0000,6.3780 L6.3780,0.0000 L72.2835,0.0000 L72.2835,23.3858 L65.9055,29.7638 L0.0000,29.7638 L0.0000,6.3780 Z" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1001">
+      <path d="  M0.0000,6.3780 L65.9055,6.3780 L65.9055,29.7638 Z M65.9055,6.3780 L72.2835,0.0000 Z" style="stroke-width: 0.6375; stroke-linecap: round; stroke-linejoin: round; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M0.0000,6.3780 L65.9055,6.3780 L65.9055,29.7638 M65.9055,6.3780 L72.2835,0.0000" style="stroke-width: 0.6375; stroke: #000000; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <g xmlns="http://www.w3.org/2000/svg" id="Layer1002">
+      <path d="  M55.3050,12.7620 L55.3050,8.5358 L55.9073,8.5358 L56.5095,8.5358 L56.5095,11.2883 C56.5095,12.8018 56.5118,14.0408 56.5148,14.0408 C56.5170,14.0408 57.0525,13.7063 57.7043,13.2983 C58.3553,12.8903 58.8983,12.5520 58.9103,12.5468 C58.9298,12.5385 58.9328,12.6375 58.9328,13.2975 C58.9328,13.7153 58.9365,14.0573 58.9410,14.0573 C58.9478,14.0573 61.1138,12.7058 61.2915,12.5910 L61.3403,12.5595 L61.3440,13.3148 L61.3485,14.0700 L62.4473,13.3815 C63.0510,13.0020 63.5948,12.6615 63.6548,12.6240 L63.7643,12.5558 L63.7643,14.7720 L63.7643,16.9890 L59.5343,16.9890 L55.3050,16.9890 L55.3050,12.7620 Z" style="stroke-width: 0.3990; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+      <path d="  M55.3050,12.7620 L55.3050,8.5358 L55.9073,8.5358 L56.5095,8.5358 L56.5095,11.2883 C56.5095,12.8018 56.5118,14.0408 56.5148,14.0408 C56.5170,14.0408 57.0525,13.7063 57.7043,13.2983 C58.3553,12.8903 58.8983,12.5520 58.9103,12.5468 C58.9298,12.5385 58.9328,12.6375 58.9328,13.2975 C58.9328,13.7153 58.9365,14.0573 58.9410,14.0573 C58.9478,14.0573 61.1138,12.7058 61.2915,12.5910 L61.3403,12.5595 L61.3440,13.3148 L61.3485,14.0700 L62.4473,13.3815 C63.0510,13.0020 63.5948,12.6615 63.6548,12.6240 L63.7643,12.5558 L63.7643,14.7720 L63.7643,16.9890 L59.5343,16.9890 L55.3050,16.9890 L55.3050,12.7620 Z" style="stroke-width: 0.3990; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+    </g>
+    <text xmlns="http://www.w3.org/2000/svg" x="4.0000" y="14.8819">
+      <tspan font-family="Arial" font-size="8.0000" fill="#000000" fill-opacity="1.0000" stroke-opacity="1.0000">
+Facility</tspan>
+    </text>
+    <!--converted by libvisio2svg-->
+  </g>
+</svg>
