@@ -1,0 +1,13 @@
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" version="1.1" width="36.0000000000"
+     height="36.0000000000">
+    <title><![CDATA[Composition Arrow]]></title>
+    <g transform=" scale(1.000000) ">
+        <g xmlns="http://www.w3.org/2000/svg" id="Layer1000">
+            <path d="  M-0.1417,5.5276 L9.0709,0.5669 L18.2835,5.5276 L9.0709,10.4882 L-0.1417,5.5276 Z"
+                  style="stroke-width: 0.7200; stroke-linecap: round; stroke-linejoin: round; fill-rule: evenodd; fill: #000000; "/>
+            <path d="  M-0.1417,5.5276 L9.0709,0.5669 L18.2835,5.5276 L9.0709,10.4882 L-0.1417,5.5276 Z"
+                  style="stroke-width: 0.7200; stroke: #000000; stroke-dasharray: none; stroke-linecap: round; stroke-linejoin: round; fill: none; "/>
+        </g>
+        <!--converted by libvisio2svg-->
+    </g>
+</svg>
