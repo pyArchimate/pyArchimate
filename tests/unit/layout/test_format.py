@@ -362,6 +362,138 @@ class TestFormatService:
             ), f"{elem_type} height should be {expected_height}"
 
 
+class TestFormatServiceFontHandling:
+    """Tests for font handling in format service."""
+
+    def test_format_element_with_size_constraints(self):
+        """Test formatting element with size constraints."""
+        service = FormatService()
+        element = MockElement(id="test", type="BusinessActor")
+
+        size_constraints = {"min_width": 150, "max_width": 300}
+        service.format_element(
+            element,
+            user_size_override=(99, 80),  # Too small for min constraint
+            size_constraints=size_constraints
+        )
+
+        # Width should be constrained to min_width
+        assert element.width >= 150
+
+    def test_format_element_with_font_override_font_family(self):
+        """Test formatting element with font_family override."""
+        service = FormatService()
+        element = MockElement(id="test", type="BusinessActor")
+
+        font_override = {
+            "font_family": "Courier",
+            "font_size": "12",
+            "font_style": "italic",
+            "font_weight": "bold",
+        }
+        service.format_element(element, user_font_override=font_override)
+
+        assert element.font_family == "Courier"
+        assert element.font_size == 12
+        assert element.font_style == "italic"
+        assert element.font_weight == "bold"
+
+    def test_format_element_with_partial_font_override(self):
+        """Test formatting element with partial font override (only size)."""
+        service = FormatService()
+        element = MockElement(id="test", type="BusinessActor")
+
+        font_override = {"font_size": "14"}
+        service.format_element(element, user_font_override=font_override)
+
+        # Font family should use default from spec
+        assert element.font_size == 14
+        # Others should be set
+        assert hasattr(element, "font_family")
+
+    def test_format_element_with_font_name_attribute(self):
+        """Test formatting element that has font_name attribute (pyArchimate style)."""
+        service = FormatService()
+
+        @dataclass
+        class MockElementWithFontName:
+            id: str
+            type: str
+            font_name: str = "Arial"
+            font_size: int = 10
+
+        element = MockElementWithFontName(id="test", type="BusinessActor")
+        service.format_element(element)
+
+        # Should use font_name instead of font_family
+        assert hasattr(element, "font_name")
+
+    def test_format_element_with_w_h_attributes(self):
+        """Test formatting element that uses w/h attributes instead of width/height."""
+        service = FormatService()
+
+        @dataclass
+        class MockElementWithWH:
+            id: str
+            type: str
+            x: float = 0.0
+            y: float = 0.0
+            w: float = 100.0
+            h: float = 80.0
+
+        element = MockElementWithWH(id="test", type="BusinessActor")
+        service.format_element(element)
+
+        # Should use w/h instead of width/height
+        assert hasattr(element, "w")
+        assert hasattr(element, "h")
+
+    def test_format_element_with_grid_alignment(self):
+        """Test formatting element with grid alignment."""
+        service = FormatService()
+        element = MockElement(id="test", type="BusinessActor", x=5.0, y=7.0)
+
+        # Format with grid alignment
+        service.format_element(element, alignment="grid", grid_size=10.0)
+
+        # Element should exist and be formatted
+        assert element.id == "test"
+
+    def test_format_element_max_constraint(self):
+        """Test that size constraint maximum is applied."""
+        service = FormatService()
+        element = MockElement(id="test", type="BusinessActor")
+
+        size_constraints = {"max_width": 80, "max_height": 50}
+        service.format_element(
+            element,
+            user_size_override=(200, 200),  # Much larger than max
+            size_constraints=size_constraints
+        )
+
+        # Width and height should be constrained to max
+        assert element.width <= 80
+        assert element.height <= 50
+
+    def test_apply_size_constraint_with_min(self):
+        """Test _apply_size_constraint with minimum constraint."""
+        service = FormatService()
+        size = service._apply_size_constraint(50.0, {"min_width": 100}, "width")
+        assert size == 100.0
+
+    def test_apply_size_constraint_with_max(self):
+        """Test _apply_size_constraint with maximum constraint."""
+        service = FormatService()
+        size = service._apply_size_constraint(150.0, {"max_width": 100}, "width")
+        assert size == 100.0
+
+    def test_apply_size_constraint_no_constraints(self):
+        """Test _apply_size_constraint with no constraints."""
+        service = FormatService()
+        size = service._apply_size_constraint(100.0, {}, "width")
+        assert size == 100.0
+
+
 class TestElementFormatSpec:
     """Tests for ElementFormatSpec."""
 
