@@ -92,7 +92,7 @@ def _write_element_metadata(e: _Element, elem: object, elem_type: str) -> None:
         e.set('profiles', profile_id)
 
 
-def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName, model: object = None) -> None:
+def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName) -> None:
     elem_type = getattr(elem, 'type', '')
     cat = archi_category[elem_type].split('-')[0]
     if cat == "Junction":
@@ -345,7 +345,7 @@ def archi_writer(model: Model, file_path: str) -> str:
     folders = _create_folders(root)
 
     for elem in model.elements:
-        _write_element(folders, elem, xsi, model)
+        _write_element(folders, elem, xsi)
     for rel in model.relationships:
         _write_relationship(folders, rel, xsi)
     for view in model.views:
