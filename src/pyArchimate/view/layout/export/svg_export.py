@@ -200,11 +200,6 @@ class SVGExportService:
                 continue
             self._render_relationship(svg, conn, complete_nodes_dict, relationship_service, endpoint_spreads)
 
-        # Render nodes on top, respecting containment hierarchy (parents before children)
-        sorted_nodes = self._sort_nodes_by_hierarchy(view)
-        for node in sorted_nodes:
-            self._render_node(svg, node)
-
         # Convert to string
         svg_string = ET.tostring(svg, encoding="unicode")
 
@@ -508,8 +503,11 @@ class SVGExportService:
         # Group for node
         g = ET.SubElement(parent, "g", {"class": "node"})
 
-        # ── Grouping: dashed, transparent, label top-left ────────────
-        if element_type == "Grouping":
+        # Check if this is a container (has child nodes)
+        has_children = len(getattr(node, "nodes", [])) > 0
+
+        # ── Container nodes: dashed, transparent border ────────────
+        if has_children and element_type != "Group":
             ET.SubElement(
                 g,
                 "rect",
@@ -521,7 +519,7 @@ class SVGExportService:
                     "fill": "none",
                     "stroke": "black",
                     "stroke-width": "1",
-                    "stroke-dasharray": "5,3",
+                    "stroke-dasharray": "5,5",
                 },
             )
             self._render_topleft_text(g, node, x, y, w)
