@@ -260,7 +260,7 @@ class SVGExportService:
         """
         defs = ET.SubElement(svg, "defs")
 
-        # Add ArchiMate symbol definitions
+        # Add ArchiMate body symbol definitions
         for symbol_def in ARCHIMATE_SYMBOLS.values():
             symbol = ET.SubElement(
                 defs,
@@ -280,6 +280,28 @@ class SVGExportService:
                     "stroke-width": "1",
                 },
             )
+
+        # Add icon symbol definitions for elements with separate icons
+        for symbol_def in ARCHIMATE_SYMBOLS.values():
+            if symbol_def.icon_path and symbol_def.icon_viewbox:
+                icon_sym = ET.SubElement(
+                    defs,
+                    "symbol",
+                    {
+                        "id": f"archimate_{symbol_def.element_type}_icon",
+                        "viewBox": symbol_def.icon_viewbox,
+                    },
+                )
+                ET.SubElement(
+                    icon_sym,
+                    "path",
+                    {
+                        "d": symbol_def.icon_path,
+                        "fill": "none",
+                        "stroke": "black",
+                        "stroke-width": "1",
+                    },
+                )
 
         # Arrowhead marker (filled triangle) - for connections
         marker = ET.SubElement(
@@ -480,8 +502,8 @@ class SVGExportService:
             # Get color (check for per-element override via fill_color property)
             color = getattr(node, "fill_color", None) or get_element_color(element_type, element_id)
 
-            # Render symbol via <use> element
-            # Use preserveAspectRatio="none" to allow symbols to scale to fit node bounds
+            # Render body symbol via <use> element
+            # Use preserveAspectRatio="none" to allow body to scale freely to fit node bounds
             ET.SubElement(
                 g,
                 "use",
@@ -497,6 +519,25 @@ class SVGExportService:
                     "stroke-width": "1",
                 },
             )
+
+            # Render fixed-size icon at top-right corner if available
+            if symbol_def.icon_path and symbol_def.icon_viewbox:
+                ICON_SIZE = 20  # Fixed icon size in pixels
+                ICON_MARGIN = 4  # Margin from right and top edges
+                icon_x = x + w - ICON_SIZE - ICON_MARGIN
+                icon_y = y + ICON_MARGIN
+                ET.SubElement(
+                    g,
+                    "use",
+                    {
+                        "href": f"#archimate_{symbol_def.element_type}_icon",
+                        "x": str(int(icon_x)),
+                        "y": str(int(icon_y)),
+                        "width": str(ICON_SIZE),
+                        "height": str(ICON_SIZE),
+                        "preserveAspectRatio": "xMidYMid meet",
+                    },
+                )
 
         # Text with element name positioned based on whether node has children
         element_name = getattr(node, "name", getattr(node, "label", ""))
