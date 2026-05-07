@@ -195,19 +195,15 @@ class SVGExportService:
         # Try new rendering with relationship styles, fall back to basic rendering if needed
         relationship_service = RelationshipStyleService()
         for conn in view.conns:
-<<<<<<< HEAD
             # Skip containment relationships (they're already shown visually by container boundaries)
             if self._is_containment_relationship(conn, complete_nodes_dict):
                 continue
             self._render_relationship(svg, conn, complete_nodes_dict, relationship_service, endpoint_spreads)
-=======
-            self._render_relationship(svg, conn, view.nodes_dict, relationship_service, endpoint_spreads)
 
         # Render nodes on top, respecting containment hierarchy (parents before children)
         sorted_nodes = self._sort_nodes_by_hierarchy(view)
         for node in sorted_nodes:
             self._render_node(svg, node)
->>>>>>> 971429c (fix: SVG z-order and container rendering for nested view elements)
 
         # Convert to string
         svg_string = ET.tostring(svg, encoding="unicode")
@@ -512,7 +508,6 @@ class SVGExportService:
         # Group for node
         g = ET.SubElement(parent, "g", {"class": "node"})
 
-<<<<<<< HEAD
         # ── Grouping: dashed, transparent, label top-left ────────────
         if element_type == "Grouping":
             ET.SubElement(
@@ -572,55 +567,6 @@ class SVGExportService:
                     "fill": color,
                     "stroke": "none",
                 },
-=======
-        # Check if this is a container/grouping node (has child nodes)
-        is_container = len(getattr(node, 'nodes', [])) > 0
-
-        if is_container:
-            # Render container as a rectangle with dotted border, no fill
-            ET.SubElement(g, 'rect', {
-                'x': str(int(x)),
-                'y': str(int(y)),
-                'width': str(int(w)),
-                'height': str(int(h)),
-                'fill': 'none',
-                'stroke': 'black',
-                'stroke-width': '1',
-                'stroke-dasharray': '5,5',
-            })
-        else:
-            # Render regular node with archimate symbol
-            # Get symbol definition
-            symbol_def = ARCHIMATE_SYMBOLS.get(element_type)
-            if not symbol_def:
-                # Fallback to BusinessActor if type not found
-                symbol_def = ARCHIMATE_SYMBOLS['BusinessActor']
-
-            # Get color (check for per-element override via fill_color property)
-            color = getattr(node, 'fill_color', None) or get_element_color(element_type, element_id)
-
-            # Render symbol via <use> element
-            ET.SubElement(g, 'use', {
-                'href': f'#archimate_{symbol_def.element_type}',
-                'x': str(int(x)),
-                'y': str(int(y)),
-                'width': str(int(w)),
-                'height': str(int(h)),
-                'fill': color,
-                'stroke': 'black',
-                'stroke-width': '1',
-            })
-
-        # Text with element name centered inside the symbol/container
-        element_name = getattr(node, 'name', getattr(node, 'label', ''))
-        if element_name:
-            self._render_wrapped_text(
-                g,
-                element_name,
-                x + w / 2,  # center x
-                y + h / 2,  # center y
-                w - 2 * self.TEXT_PADDING,  # available width
->>>>>>> 971429c (fix: SVG z-order and container rendering for nested view elements)
             )
             # 2. Border
             ET.SubElement(
