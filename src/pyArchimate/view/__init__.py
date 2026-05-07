@@ -96,10 +96,15 @@ def default_color(elem_type: str, theme: "str | dict[str, str] | None" = DEFAULT
 class Point:
     """A simple (x, y) coordinate pair where both values are non-negative integers."""
 
-    def __init__(self, x: float = 0, y: float = 0):
+    def __init__(self, x: float = 0, y: float = 0, startX: int | None = None, startY: int | None = None,
+                 endX: int | None = None, endY: int | None = None):
         self._x = max(0, int(x))
         self._y = max(0, int(y))
         self.idx: int = 0
+        self.startX = startX
+        self.startY = startY
+        self.endX = endX
+        self.endY = endY
 
     @property
     def x(self):

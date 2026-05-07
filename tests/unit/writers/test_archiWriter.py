@@ -181,7 +181,7 @@ def test_archi_writer_preserves_technology_and_physical_folder(tmp_path):
 
 
 def test_archi_writer_propagates_target_connections_to_group_ancestors(tmp_path):
-    """Connections into nested nodes should be listed on enclosing groups as well."""
+    """Connections into nested nodes should only be listed on the direct target, not on parent groups."""
     model = Model('group-target-connections')
     src_elem = model.add(ArchiType.ApplicationComponent, 'Source')
     tgt_elem = model.add(ArchiType.ApplicationService, 'Target')
@@ -203,5 +203,5 @@ def test_archi_writer_propagates_target_connections_to_group_ancestors(tmp_path)
     tgt_node = root.find(f".//child[@id='{tgt.uuid}']")
     assert tgt_node is not None
 
-    assert conn.uuid in (group_node.get('targetConnections') or '')
+    assert conn.uuid not in (group_node.get('targetConnections') or '')
     assert conn.uuid in (tgt_node.get('targetConnections') or '')

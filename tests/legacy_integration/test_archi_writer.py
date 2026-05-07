@@ -1,6 +1,6 @@
 
 from pathlib import Path
-
+import shutil
 import pytest
 
 from src.pyArchimate.pyArchimate import Model, Writers
@@ -8,16 +8,25 @@ from src.pyArchimate.pyArchimate import Model, Writers
 
 def test_archi_writer(tmp_path: Path):
     fixtures_dir = Path(__file__).parent.with_name("fixtures")
-    archimate_file = fixtures_dir / "myModel.archimate"
+    archimate_file = fixtures_dir / "test1.archimate"
     if not archimate_file.exists():
-        pytest.skip("myModel.archimate fixture is not present")
+        pytest.skip("test1.archimate fixture is not present")
 
     output_archimate = tmp_path / "out.archimate"
     output_xml = tmp_path / "out.xml"
+    svg = tmp_path / "view.svg"
+    x_dir = "/Users/xavier/PycharmProjects/pyArchimate/temp"
 
     model = Model("fixture")
     model.read(str(archimate_file))
     model.write(str(output_archimate), writer=Writers.archi)
     model.write(str(output_xml), writer=Writers.archimate)
+    v = model.get_or_create_view("View", create_view=True)
+    v.to_svg(str(svg))
+    shutil.copy(str(svg), str(x_dir))
+    shutil.copy(str(output_archimate), str(x_dir))
+    shutil.copy(str(output_xml), str(x_dir))
+
     assert output_archimate.exists()
     assert output_xml.exists()
+    assert svg.exists()

@@ -208,11 +208,24 @@ def _write_connection(child: _Element, conn: object, xsi: et.QName) -> None:
     target_x = int(getattr(conn_target, 'x', conn_target.cx))
     target_y = int(getattr(conn_target, 'y', conn_target.cy))
     for bp in getattr(conn, 'bendpoints', []):
-        et.SubElement(c, 'bendpoint',
-                      startX=str(int(bp.x - source_x)),
-                      startY=str(int(bp.y - source_y)),
-                      endX=str(int(bp.x - target_x)),
-                      endY=str(int(bp.y - target_y)))
+        bendpoint_attrs = {}
+        if hasattr(bp, 'startX') and bp.startX is not None:
+            bendpoint_attrs['startX'] = str(bp.startX)
+        else:
+            bendpoint_attrs['startX'] = str(int(bp.x - source_x))
+        if hasattr(bp, 'startY') and bp.startY is not None:
+            bendpoint_attrs['startY'] = str(bp.startY)
+        else:
+            bendpoint_attrs['startY'] = str(int(bp.y - source_y))
+        if hasattr(bp, 'endX') and bp.endX is not None:
+            bendpoint_attrs['endX'] = str(bp.endX)
+        else:
+            bendpoint_attrs['endX'] = str(int(bp.x - target_x))
+        if hasattr(bp, 'endY') and bp.endY is not None:
+            bendpoint_attrs['endY'] = str(bp.endY)
+        else:
+            bendpoint_attrs['endY'] = str(int(bp.y - target_y))
+        et.SubElement(c, 'bendpoint', bendpoint_attrs)
 
 
 def _set_node_visual_attrs(child: _Element, node: object) -> None:
@@ -315,9 +328,9 @@ def _add_node(parent: object, parent_tag: _Element, node: object, xsi: et.QName)
         _write_connection(child, conn, xsi)
     targets: list[str] = [conn.uuid for conn in getattr(node, 'in_conns', lambda: [])()]
     for sub_n in getattr(node, 'nodes', []):
-        targets.extend(_add_node(node, child, sub_n, xsi))
+        _add_node(node, child, sub_n, xsi)
     if targets:
-        # Preserve insertion order while avoiding duplicates as the subtree is folded upward.
+        # Preserve insertion order while avoiding duplicates
         child.set('targetConnections', ' '.join(dict.fromkeys(targets)))
     return targets
 
