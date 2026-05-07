@@ -58,7 +58,9 @@ def get_text_size(text: str, points: int, font: str) -> tuple[float, float]:
         ctypes.windll.gdi32.DeleteObject(hfont)  # type: ignore[attr-defined]
         return size.cx, size.cy
     else:
-        from PIL import ImageFont
+        from PIL import (
+            ImageFont,  # noqa: PLC0415  # optional dependency: PIL only available at call time on non-Windows
+        )
         for path in _FONT_SEARCH_PATHS:
             try:
                 fnt = ImageFont.truetype(path, points)

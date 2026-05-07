@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 from typing import Any, Optional
 
@@ -29,7 +30,6 @@ def _normalize_color_on_import(color_str: Optional[str]) -> Optional[str]:
     if not color_str:
         return None
     if color_str.startswith('#'):
-        import re
         if re.match(r'^#[0-9a-f]{6}$', color_str):
             return color_str
         log.warning(f"Invalid hex color format on import: {color_str}")
@@ -37,6 +37,26 @@ def _normalize_color_on_import(color_str: Optional[str]) -> Optional[str]:
     if color_str in NAMED_COLORS:
         return NAMED_COLORS[color_str].lower()
     log.warning(f"Unknown color on import: {color_str}")
+    return None
+
+
+def _parse_style_property_value(key: str, val: str) -> Any:
+    """Parse a single visual style property value; returns parsed value or None on failure."""
+    try:
+        if key in ('fillColor', 'lineColor'):
+            return _normalize_color_on_import(val) or None
+        if key == 'lineWidth':
+            width_val = float(val)
+            if width_val >= 0:
+                return width_val
+            log.warning(f"Invalid lineWidth on import (negative): {val}")
+        elif key == 'transparency':
+            alpha_val = float(val)
+            if 0.0 <= alpha_val <= 1.0:
+                return alpha_val
+            log.warning(f"Invalid transparency on import (out of range): {val}")
+    except (ValueError, TypeError) as e:
+        log.warning(f"Failed to parse visual style property {key}={val}: {e}")
     return None
 
 
@@ -54,25 +74,9 @@ def _extract_visual_style_properties(elem_xml: Any, ns: str) -> dict[str, Any]:
         val = (val_elem.text or '').strip()
         if not val:
             continue
-        try:
-            if key == 'fillColor' or key == 'lineColor':
-                normalized = _normalize_color_on_import(val)
-                if normalized:
-                    style[key] = normalized
-            elif key == 'lineWidth':
-                width_val = float(val)
-                if width_val >= 0:
-                    style[key] = width_val
-                else:
-                    log.warning(f"Invalid lineWidth on import (negative): {val}")
-            elif key == 'transparency':
-                alpha_val = float(val)
-                if 0.0 <= alpha_val <= 1.0:
-                    style[key] = alpha_val
-                else:
-                    log.warning(f"Invalid transparency on import (out of range): {val}")
-        except (ValueError, TypeError) as e:
-            log.warning(f"Failed to parse visual style property {key}={val}: {e}")
+        parsed = _parse_style_property_value(key, val)
+        if parsed is not None:
+            style[key] = parsed
     return style
 
 
@@ -130,7 +134,9 @@ def _read_props(obj: Any, xml_elem: Any, ns: str, pdef_merge_map: dict[str, str]
 
 
 def _assign_viewpoint(obj: Any, slug: str, method: str = 'assign_viewpoint') -> None:
-    from ..viewpoint_registry import get_viewpoint
+    from ..viewpoint_registry import (
+        get_viewpoint,  # noqa: PLC0415  # deferred: avoids circular import at reader load time
+    )
     if not slug:
         return
     if get_viewpoint(slug) is not None:
@@ -378,6 +384,25 @@ def _read_organizations(model, root, ns):
         _walk_orgs(item, ns, model)
 
 
+def _apply_visual_styles(model: Any, visual_style_map: dict[str, Any]) -> None:
+    _setters = {
+        'fillColor': 'set_fill_color',
+        'lineColor': 'set_line_color',
+        'lineWidth': 'set_line_width',
+        'transparency': 'set_transparency',
+    }
+    for elem_uuid, style in visual_style_map.items():
+        if elem_uuid not in model.elems_dict:
+            continue
+        elem = model.elems_dict[elem_uuid]
+        for key, setter_name in _setters.items():
+            if key in style:
+                try:
+                    getattr(elem, setter_name)(style[key])
+                except (ValueError, TypeError) as e:
+                    log.warning(f"Failed to apply {key} to {elem_uuid}: {e}")
+
+
 def archimate_reader(model, root, merge_flg=False):
     """
     Merge / initialize the model from XML Archi tool data
@@ -409,26 +434,4 @@ def archimate_reader(model, root, merge_flg=False):
     _read_views(model, root, ns, xsi, pdef_merge_map, merge_flg)
     _read_organizations(model, root, ns)
     _build_hierarchy_from_parents(model, parent_map)
-    for elem_uuid, style in visual_style_map.items():
-        if elem_uuid in model.elems_dict:
-            elem = model.elems_dict[elem_uuid]
-            if 'fillColor' in style:
-                try:
-                    elem.set_fill_color(style['fillColor'])
-                except (ValueError, TypeError) as e:
-                    log.warning(f"Failed to apply fillColor to {elem_uuid}: {e}")
-            if 'lineColor' in style:
-                try:
-                    elem.set_line_color(style['lineColor'])
-                except (ValueError, TypeError) as e:
-                    log.warning(f"Failed to apply lineColor to {elem_uuid}: {e}")
-            if 'lineWidth' in style:
-                try:
-                    elem.set_line_width(style['lineWidth'])
-                except (ValueError, TypeError) as e:
-                    log.warning(f"Failed to apply lineWidth to {elem_uuid}: {e}")
-            if 'transparency' in style:
-                try:
-                    elem.set_transparency(style['transparency'])
-                except (ValueError, TypeError) as e:
-                    log.warning(f"Failed to apply transparency to {elem_uuid}: {e}")
+    _apply_visual_styles(model, visual_style_map)

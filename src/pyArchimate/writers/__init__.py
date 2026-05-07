@@ -19,9 +19,11 @@ def _ensure_default_writers():
     if _default_writers_initialized:
         return
     # Import lazily to avoid circular imports during Model module load
-    from .archimateWriter import archimate_writer
-    from .archiWriter import archi_writer
-    from .csvWriter import csv_writer
+    from .archimateWriter import (
+        archimate_writer,  # noqa: PLC0415  # circular: writers import model types at module level
+    )
+    from .archiWriter import archi_writer  # noqa: PLC0415  # circular: writers import model types at module level
+    from .csvWriter import csv_writer  # noqa: PLC0415  # circular: writers import model types at module level
 
     register_writer(Writers.archimate, archimate_writer)
     register_writer(Writers.archi, archi_writer)

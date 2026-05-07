@@ -118,10 +118,8 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "W", "B", "C", "I", "S110"]
 ignore = [
-    "E501",    # line too long — handled by formatter
-    "C901",    # complexity — legacy monolithic functions
-    "N999",    # module names — project uses camelCase for some files
-    "PLC0415", # top-level imports — project uses local imports for dynamic loading
+    "E501",  # line too long — handled by formatter
+    "N999",  # module names — project uses camelCase for some files
 ]
 exclude = [
     "**/node_modules",

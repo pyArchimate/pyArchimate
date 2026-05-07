@@ -1,10 +1,12 @@
 """Relationship module - extracted from the legacy monolith."""
 
 from typing import TYPE_CHECKING, Any, Optional, cast
+from uuid import UUID, uuid4
 
 from .constants import ALLOWED_RELATIONSHIPS, ARCHI_CATEGORY, RELATIONSHIP_KEYS
 from .enums import ArchiType
 from .exceptions import ArchimateConceptTypeError, ArchimateRelationshipError
+from .logger import log
 
 if TYPE_CHECKING:
     from .element import Element
@@ -20,8 +22,6 @@ def _is_valid_uuid(uuid_to_test, version=4):
     :return: True if uuid_to_test is a valid UUID, otherwise `False`.
     :rtype: bool
     """
-    from uuid import UUID
-
     try:
         uuid_obj = UUID(uuid_to_test, version=version)
     except ValueError:
@@ -37,8 +37,6 @@ def set_id(uuid=None):
     :return: a formatted identifier
     :rtype: str
     """
-    from uuid import uuid4
-
     _id = str(uuid4()) if (uuid is None) else uuid
     if _is_valid_uuid(_id):
         _id = _id.replace('-', '')
@@ -50,7 +48,6 @@ def set_id(uuid=None):
 def _report(exc: Exception, raise_flg: bool) -> None:
     if raise_flg:
         raise exc
-    from .logger import log
     log.error(exc)
 
 
@@ -95,7 +92,7 @@ def _resolve_and_validate_ref(ref: Any, elems_dict: dict[str, Any], rels_dict: d
     if isinstance(ref, str):
         uid: str = ref
     else:
-        from .element import Element
+        from .element import Element  # noqa: PLC0415  # circular: element↔relationship init cycle
         if not (isinstance(ref, Element) or isinstance(ref, Relationship) or hasattr(ref, "uuid")):
             raise ValueError(f"'{arg_name}' argument is not an instance of 'Element or Relationship' class.")
         uid = cast(str, ref.uuid)
@@ -251,7 +248,7 @@ class Relationship:
         if isinstance(src, str):
             self._source = src
         elif not isinstance(src, type(None)):
-            from .element import Element
+            from .element import Element  # noqa: PLC0415  # circular: element↔relationship init cycle
             if not isinstance(src, Element):
                 raise ArchimateConceptTypeError("'source' argument is not an instance of 'Element' class.")
             else:
@@ -285,7 +282,7 @@ class Relationship:
         if isinstance(dst, str):
             self._target = dst
         elif not isinstance(dst, type(None)):
-            from .element import Element
+            from .element import Element  # noqa: PLC0415  # circular: element↔relationship init cycle
             if not isinstance(dst, Element):
                 raise ArchimateConceptTypeError("'target' argument is not an instance of 'Element' class.")
             else:

@@ -2,10 +2,12 @@
 
 import re
 from typing import TYPE_CHECKING, Any, Optional, cast
+from uuid import UUID, uuid4
 
-from .constants import ARCHI_CATEGORY, NAMED_COLORS
+from .constants import ARCHI_CATEGORY, JUNCTION_TYPES, NAMED_COLORS
 from .enums import ArchiType
 from .exceptions import ArchimateConceptTypeError
+from .viewpoint_registry import validate_viewpoint_slug
 
 if TYPE_CHECKING:
     from .model import Model
@@ -28,8 +30,6 @@ def _is_valid_uuid(uuid_to_test, version=4):
     False
 
     """
-    from uuid import UUID
-
     try:
         uuid_obj = UUID(uuid_to_test, version=version)
     except ValueError:
@@ -47,8 +47,6 @@ def set_id(uuid: Optional[str] = None) -> str:
     :rtype: str
 
     """
-    from uuid import uuid4
-
     _id = str(uuid4()) if (uuid is None) else uuid
     if _is_valid_uuid(_id):
         _id = _id.replace('-', '')
@@ -169,6 +167,26 @@ class Element:
         self._parent_uuid: Optional[str] = None
         self._visual_style: dict[str, Any] = {}
 
+    def _delete_view_refs(self, _id: str) -> None:
+        for n in self.parent.nodes_dict.copy().values():
+            if n.ref == _id:
+                n.delete()
+                del n
+        for r in self.parent.rels_dict.copy().values():
+            if r.source.uuid == _id or r.target.uuid == _id:
+                r.delete()
+                del r
+
+    def _orphan_children(self, _id: str) -> None:
+        for child_uuid in self.parent._element_children.get(_id, set()).copy():
+            child = self.parent.elems_dict.get(child_uuid)
+            if child:
+                child._parent_uuid = None
+            if child_uuid in self.parent._element_hierarchy:
+                del self.parent._element_hierarchy[child_uuid]
+        if _id in self.parent._element_children:
+            del self.parent._element_children[_id]
+
     def delete(self) -> None:
         """
         Delete the current element from the parent model
@@ -180,32 +198,13 @@ class Element:
         Children are orphaned rather than cascaded (Phase 2 behavior).
         """
         _id = self.uuid
+        self._delete_view_refs(_id)
 
-        # remove nodes used in views referring to this element
-        for n in self.parent.nodes_dict.copy().values():
-            if n.ref == _id:
-                n.delete()
-                del n
-
-        # remove relationships from ot to this element
-        for r in self.parent.rels_dict.copy().values():
-            if r.source.uuid == _id or r.target.uuid == _id:
-                r.delete()
-                del r
-
-        # P3 Phase 2: Clean up stale viewpoint references (bonus fix)
+        # P3 Phase 2: Clean up stale viewpoint references
         for vp_id in self._viewpoints:
             self.parent._viewpoint_elements.get(vp_id, set()).discard(_id)
 
-        # P3 Phase 2: Orphan children instead of cascading
-        for child_uuid in self.parent._element_children.get(_id, set()).copy():
-            child = self.parent.elems_dict.get(child_uuid)
-            if child:
-                child._parent_uuid = None
-            if child_uuid in self.parent._element_hierarchy:
-                del self.parent._element_hierarchy[child_uuid]
-        if _id in self.parent._element_children:
-            del self.parent._element_children[_id]
+        self._orphan_children(_id)
 
         # P3 Phase 2: Remove self from parent's children
         if self._parent_uuid is not None:
@@ -213,7 +212,6 @@ class Element:
             if _id in self.parent._element_hierarchy:
                 del self.parent._element_hierarchy[_id]
 
-        # remove this element's id from parent's dictionaries
         if _id in self.parent.elems_dict:
             del self.parent.elems_dict[_id]
 
@@ -472,7 +470,6 @@ class Element:
         :type viewpoint_id: str
         :raises ValueError: if viewpoint_id is not a recognised slug
         """
-        from .viewpoint_registry import validate_viewpoint_slug
         validate_viewpoint_slug(viewpoint_id)
         if viewpoint_id not in self._viewpoints:
             self._viewpoints.append(viewpoint_id)
@@ -636,7 +633,6 @@ class Element:
             self.junction_type = None
             return
         junction_type_lower = str(junction_type).lower().strip()
-        from .constants import JUNCTION_TYPES
         if junction_type_lower not in JUNCTION_TYPES:
             raise ValueError(f"Invalid junction type: {junction_type}. Must be one of {JUNCTION_TYPES}")
         self.junction_type = junction_type_lower
