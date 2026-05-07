@@ -130,6 +130,21 @@ A developer reviewing `pyproject.toml` notices several lint/type-check ignores a
 - **SC-006**: Every suppression comment added as part of this work includes a justification (zero unexplained suppressions introduced).
 - **SC-007**: The full test suite (unit, integration, BDD) continues to pass at the conclusion of the feature.
 
+## Remaining Work (Deferred Items)
+
+The following items were scoped and probed during this feature but exceed the 20-violation cap policy or require deeper refactoring. They MUST be resolved before this feature is considered complete.
+
+| Item | Location | Violations | Blocker |
+|------|----------|-----------|---------|
+| Enable ruff `UP` (pyupgrade) rule set | `pyproject.toml:121` | 124 | UP042/UP032 need semantic review; most others auto-fixable |
+| Enable ruff `PT` (pytest style) rule set | `pyproject.toml:124` | 163 | Primarily PT009 unittest assertions in legacy tests |
+| Enable mypy `disallow_untyped_calls` | `pyproject.toml:101` | 89 | Requires annotating callee functions or adding justified `# type: ignore` |
+| Enable mypy `disallow_untyped_defs` | `pyproject.toml:102` | 162 | Requires adding return-type and parameter annotations to unannotated functions |
+
+**Acceptance**: Feature is complete only when all four `# TODO(009-quality-uplift)` markers are removed from `pyproject.toml` and the corresponding tools pass.
+
+---
+
 ## Assumptions
 
 - The SonarCloud project key is `pyArchimate_pyArchimate`; open issues are queried via the API at the URL in the References section above. The existing CI/CD pipeline triggers a scan on push to the feature branch (consistent with feature `002`).
