@@ -43,7 +43,10 @@ class TestSymbolDefinitions:
             assert isinstance(symbol.bounding_box, tuple)
             assert len(symbol.bounding_box) == 4
             assert isinstance(symbol.default_color, str)
-            assert symbol.default_color.startswith("#")
+            # Color can be hex code starting with # or special value "none" for transparent
+            assert symbol.default_color.startswith("#") or symbol.default_color == "none"
+            # Body type should be one of: rect, rect_header, path
+            assert symbol.body_type in ("rect", "rect_header", "path")
 
     def test_business_layer_symbols_present(self):
         """Verify core Business layer symbols are defined."""
@@ -127,8 +130,11 @@ class TestSymbolDefinitions:
         """Verify all symbol colors are valid HEX codes."""
         for symbol in ARCHIMATE_SYMBOLS.values():
             color = symbol.default_color
-            assert color.startswith("#")
-            assert len(color) == 7
+            # Special case: "Grouping" has "none" as its color (transparent)
+            if color == "none":
+                continue
+            assert color.startswith("#"), f"{symbol.element_type} color '{color}' doesn't start with #"
+            assert len(color) == 7, f"{symbol.element_type} color '{color}' is not 7 chars"
             # Verify it's a valid hex code
             int(color[1:], 16)
 
@@ -176,10 +182,13 @@ class TestColorPalette:
         assert len(ARCHIMATE_PALETTE) >= 30
 
     def test_palette_colors_are_valid_hex(self):
-        """Verify all palette colors are valid HEX codes."""
+        """Verify all palette colors are valid HEX codes or special values."""
         for _element_type, color in ARCHIMATE_PALETTE.items():
-            assert color.startswith("#")
-            assert len(color) == 7
+            # Special case: "Grouping" has "none" as its color (transparent)
+            if color == "none":
+                continue
+            assert color.startswith("#"), f"Color '{color}' doesn't start with #"
+            assert len(color) == 7, f"Color '{color}' is not 7 chars"
             # Verify it's a valid hex code
             int(color[1:], 16)
 
@@ -187,9 +196,9 @@ class TestColorPalette:
         """Test ColorPalette.get_color() method."""
         palette = ColorPalette()
 
-        # Test valid element type
+        # Test valid element type (BusinessActor is Business layer = #fffbdb)
         color = palette.get_color("BusinessActor")
-        assert color == "#FFD700"
+        assert color == "#fffbdb"
 
         # Test invalid element type falls back to gray
         color = palette.get_color("InvalidType")
@@ -211,9 +220,9 @@ class TestColorPalette:
         # Clear override
         palette.clear_override(element_id)
 
-        # Verify standard color is used again
+        # Verify standard color is used again (BusinessActor is Business layer = #fffbdb)
         color = palette.get_color("BusinessActor", element_id)
-        assert color == "#FFD700"
+        assert color == "#fffbdb"
 
     def test_color_palette_validate_color(self):
         """Test color validation."""
@@ -236,7 +245,7 @@ class TestColorPalette:
         """Test default palette singleton."""
         color1 = get_element_color("BusinessActor")
         color2 = default_palette.get_color("BusinessActor")
-        assert color1 == color2 == "#FFD700"
+        assert color1 == color2 == "#fffbdb"
 
     def test_get_element_color_with_override(self):
         """Test convenience function with override."""
@@ -270,6 +279,9 @@ class TestColorPalette:
         # Just verify that ones in palette are valid
         for element_type, color in ARCHIMATE_PALETTE.items():
             if element_type in ARCHIMATE_SYMBOLS:
+                # Color can be hex code starting with # or special value "none" for transparent
+                if color == "none":
+                    continue
                 assert color.startswith("#") and len(color) == 7
 
 
@@ -277,16 +289,16 @@ class TestColorLayering:
     """Test color organization by ArchiMate layer."""
 
     def test_business_layer_uses_gold_orange_tones(self):
-        """Verify Business layer uses warm color tones."""
+        """Verify Business layer uses Archi's standard cream/pale-yellow color."""
         business_colors = [
-            ARCHIMATE_PALETTE["BusinessActor"],      # Gold
-            ARCHIMATE_PALETTE["BusinessRole"],       # Darker gold
-            ARCHIMATE_PALETTE["BusinessService"],    # Light gold
-            ARCHIMATE_PALETTE["BusinessProcess"],    # Moccasin
+            ARCHIMATE_PALETTE["BusinessActor"],
+            ARCHIMATE_PALETTE["BusinessRole"],
+            ARCHIMATE_PALETTE["BusinessService"],
+            ARCHIMATE_PALETTE["BusinessProcess"],
         ]
-        # All should start with #FF (high red component)
+        # All Business layer elements use Archi's standard #fffbdb (cream/pale-yellow)
         for color in business_colors:
-            assert color.startswith("#FF")
+            assert color == "#fffbdb", f"Business layer color should be #fffbdb, got {color}"
 
     def test_application_layer_uses_blue_tones(self):
         """Verify Application layer uses blue color tones."""

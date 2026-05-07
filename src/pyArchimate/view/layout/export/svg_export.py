@@ -253,55 +253,12 @@ class SVGExportService:
         return bounds
 
     def _add_defs(self, svg: ET.Element) -> None:
-        """Add SVG definitions (markers, patterns, etc.).
+        """Add SVG definitions (markers only - no symbol definitions).
 
         Args:
             svg: SVG root element
         """
         defs = ET.SubElement(svg, "defs")
-
-        # Add ArchiMate body symbol definitions
-        for symbol_def in ARCHIMATE_SYMBOLS.values():
-            symbol = ET.SubElement(
-                defs,
-                "symbol",
-                {
-                    "id": f"archimate_{symbol_def.element_type}",
-                    "viewBox": symbol_def.viewBox,
-                },
-            )
-            ET.SubElement(
-                symbol,
-                "path",
-                {
-                    "d": symbol_def.svg_path,
-                    "fill": symbol_def.default_color,
-                    "stroke": "black",
-                    "stroke-width": "1",
-                },
-            )
-
-        # Add icon symbol definitions for elements with separate icons
-        for symbol_def in ARCHIMATE_SYMBOLS.values():
-            if symbol_def.icon_path and symbol_def.icon_viewbox:
-                icon_sym = ET.SubElement(
-                    defs,
-                    "symbol",
-                    {
-                        "id": f"archimate_{symbol_def.element_type}_icon",
-                        "viewBox": symbol_def.icon_viewbox,
-                    },
-                )
-                ET.SubElement(
-                    icon_sym,
-                    "path",
-                    {
-                        "d": symbol_def.icon_path,
-                        "fill": "none",
-                        "stroke": "black",
-                        "stroke-width": "1",
-                    },
-                )
 
         # Arrowhead marker (filled triangle) - for connections
         marker = ET.SubElement(
@@ -441,6 +398,77 @@ class SVGExportService:
             },
         )
 
+    def _scale_path(self, svg_path: str, x: float, y: float, w: float, h: float) -> str:
+        """Scale SVG path from 150×75 reference frame to element bounds.
+
+        Transforms path coordinates from the 150×75 reference space to (x, y, w, h):
+        - x_new = x + x_ref * (w / 150.0)
+        - y_new = y + y_ref * (h / 75.0)
+
+        Args:
+            svg_path: SVG path data
+            x, y: Element position
+            w, h: Element dimensions
+
+        Returns:
+            Scaled SVG path
+        """
+        return self._apply_path_transform(svg_path, x, y, w / 150.0, h / 75.0)
+
+    def _translate_icon(
+        self, icon_path: str, icon_viewbox: str, icon_ox: float, icon_oy: float
+    ) -> str:
+        """Translate icon path from reference origin to canvas position.
+
+        Args:
+            icon_path: SVG path data
+            icon_viewbox: Icon viewBox (e.g., "128 5 22 15")
+            icon_ox, icon_oy: Canvas position for icon
+
+        Returns:
+            Translated SVG path
+        """
+        # Parse viewBox to get origin offset
+        parts = icon_viewbox.split()
+        min_x = float(parts[0])
+        min_y = float(parts[1])
+        # Calculate translation to move from reference origin to canvas position
+        tx = icon_ox - min_x
+        ty = icon_oy - min_y
+        return self._apply_path_transform(icon_path, tx, ty, 1.0, 1.0)
+
+    def _apply_path_transform(
+        self, svg_path: str, tx: float, ty: float, sx: float, sy: float
+    ) -> str:
+        """Apply transformation (translate + scale) to SVG path.
+
+        Args:
+            svg_path: SVG path data
+            tx, ty: Translation offset
+            sx, sy: Scale factors
+
+        Returns:
+            Transformed path
+        """
+        import re
+
+        def transform_number(match: Any) -> str:
+            """Transform a single coordinate."""
+            x_str = match.group(1)
+            y_str = match.group(2)
+            x = float(x_str)
+            y = float(y_str)
+            x_new = tx + x * sx
+            y_new = ty + y * sy
+            # Format with minimal decimal places
+            x_fmt = f"{x_new:.1f}".rstrip('0').rstrip('.')
+            y_fmt = f"{y_new:.1f}".rstrip('0').rstrip('.')
+            return f"{x_fmt} {y_fmt}"
+
+        # Match coordinate pairs: "x y" (with optional decimal points)
+        result = re.sub(r'(-?\d+\.?\d*)\s+(-?\d+\.?\d*)', transform_number, svg_path)
+        return result
+
     def _render_node(self, svg: ET.Element, node: Any) -> None:
         """Render a single node as an ArchiMate symbol with text.
 
@@ -451,7 +479,13 @@ class SVGExportService:
         self._render_node_into(svg, node)
 
     def _render_node_into(self, parent: ET.Element, node: Any) -> ET.Element:
-        """Render a single node into a specific parent element.
+        """Render a single node as flat inline SVG with stacked layers.
+
+        Renders each element as:
+        1. Filled shape (rect or path)
+        2. Stroked border
+        3. Icon (fixed-size line-art) if available
+        4. Text label
 
         Args:
             parent: Parent SVG element to render into
@@ -470,13 +504,8 @@ class SVGExportService:
         # Group for node
         g = ET.SubElement(parent, "g", {"class": "node"})
 
-        # Check if this is a visual container node (Grouping type)
-        # Only Grouping elements should render as container borders with dashed outline
-        # Other elements (Facility, etc.) should render as symbols even if they have children
-        is_container = element_type in ("Grouping",) and len(getattr(node, "nodes", [])) > 0
-
-        if is_container:
-            # Render container as a rectangle with dotted border, no fill
+        # ── Grouping: dashed, transparent, label top-left ────────────
+        if element_type == "Grouping":
             ET.SubElement(
                 g,
                 "rect",
@@ -488,82 +517,160 @@ class SVGExportService:
                     "fill": "none",
                     "stroke": "black",
                     "stroke-width": "1",
-                    "stroke-dasharray": "5,5",
+                    "stroke-dasharray": "5,3",
                 },
             )
-        else:
-            # Render regular node with archimate symbol
-            # Get symbol definition
-            symbol_def = ARCHIMATE_SYMBOLS.get(element_type)
-            if not symbol_def:
-                # Fallback to BusinessActor if type not found
-                symbol_def = ARCHIMATE_SYMBOLS["BusinessActor"]
+            self._render_topleft_text(g, node, x, y, w)
+            return g
 
-            # Get color (check for per-element override via fill_color property)
-            color = getattr(node, "fill_color", None) or get_element_color(element_type, element_id)
-
-            # Render body symbol via <use> element
-            # Use preserveAspectRatio="none" to allow body to scale freely to fit node bounds
+        # ── Group: solid grey, no icon, label top-left ───────────────
+        if element_type == "Group":
+            color = getattr(node, "fill_color", None) or "#d9d9d9"
             ET.SubElement(
                 g,
-                "use",
+                "rect",
                 {
-                    "href": f"#archimate_{symbol_def.element_type}",
                     "x": str(int(x)),
                     "y": str(int(y)),
                     "width": str(int(w)),
                     "height": str(int(h)),
-                    "preserveAspectRatio": "none",
                     "fill": color,
                     "stroke": "black",
                     "stroke-width": "1",
                 },
             )
+            self._render_topleft_text(g, node, x, y, w)
+            return g
 
-            # Render fixed-size icon at top-right corner if available
-            if symbol_def.icon_path and symbol_def.icon_viewbox:
-                ICON_SIZE = 20  # Fixed icon size in pixels
-                ICON_MARGIN = 4  # Margin from right and top edges
-                icon_x = x + w - ICON_SIZE - ICON_MARGIN
-                icon_y = y + ICON_MARGIN
-                ET.SubElement(
-                    g,
-                    "use",
-                    {
-                        "href": f"#archimate_{symbol_def.element_type}_icon",
-                        "x": str(int(icon_x)),
-                        "y": str(int(icon_y)),
-                        "width": str(ICON_SIZE),
-                        "height": str(ICON_SIZE),
-                        "preserveAspectRatio": "xMidYMid meet",
-                    },
-                )
+        # ── Regular element ──────────────────────────────────────────
+        symbol_def = ARCHIMATE_SYMBOLS.get(element_type)
+        if not symbol_def:
+            symbol_def = ARCHIMATE_SYMBOLS["BusinessActor"]
 
-        # Text with element name positioned based on whether node has children
-        element_name = getattr(node, "name", getattr(node, "label", ""))
-        if element_name:
-            # Check if this node has children (embedded elements)
-            has_children = len(getattr(node, "nodes", [])) > 0
+        color = getattr(node, "fill_color", None) or get_element_color(element_type, element_id)
+        body_type = symbol_def.body_type
 
-            if has_children:
-                # For containers with embedded elements, position label at top-left
-                text_x = x + self.TEXT_PADDING
-                text_y = y + 35  # Offset from top to account for symbol's slanted edges and text height
-            else:
-                # For regular nodes, center the text
-                text_x = x + w / 2
-                text_y = y + h / 2
-
-            self._render_wrapped_text(
+        if body_type == "rect":
+            # 1. Filled body
+            ET.SubElement(
                 g,
-                element_name,
-                text_x,
-                text_y,
-                w - 2 * self.TEXT_PADDING,  # available width
-                is_centered=not has_children,  # Only center if no children
+                "rect",
+                {
+                    "x": str(int(x)),
+                    "y": str(int(y)),
+                    "width": str(int(w)),
+                    "height": str(int(h)),
+                    "fill": color,
+                    "stroke": "none",
+                },
+            )
+            # 2. Border
+            ET.SubElement(
+                g,
+                "rect",
+                {
+                    "x": str(int(x)),
+                    "y": str(int(y)),
+                    "width": str(int(w)),
+                    "height": str(int(h)),
+                    "fill": "none",
+                    "stroke": "black",
+                    "stroke-width": "1",
+                },
             )
 
+        elif body_type == "rect_header":
+            # Header stripe at 20% from top (y=15 in 75-unit reference frame)
+            header_y = y + h * (15.0 / 75.0)
+            # 1. Filled body
+            ET.SubElement(
+                g,
+                "rect",
+                {
+                    "x": str(int(x)),
+                    "y": str(int(y)),
+                    "width": str(int(w)),
+                    "height": str(int(h)),
+                    "fill": color,
+                    "stroke": "none",
+                },
+            )
+            # 2. Border
+            ET.SubElement(
+                g,
+                "rect",
+                {
+                    "x": str(int(x)),
+                    "y": str(int(y)),
+                    "width": str(int(w)),
+                    "height": str(int(h)),
+                    "fill": "none",
+                    "stroke": "black",
+                    "stroke-width": "1",
+                },
+            )
+            # 3. Header line
+            ET.SubElement(
+                g,
+                "line",
+                {
+                    "x1": str(int(x)),
+                    "y1": f"{header_y:.1f}",
+                    "x2": str(int(x + w)),
+                    "y2": f"{header_y:.1f}",
+                    "stroke": "black",
+                    "stroke-width": "1",
+                },
+            )
+
+        else:  # "path"
+            scaled_body = self._scale_path(symbol_def.svg_path, x, y, w, h)
+            # 1. Filled shape
+            ET.SubElement(g, "path", {"d": scaled_body, "fill": color, "stroke": "none"})
+            # 2. Stroked border
+            ET.SubElement(
+                g,
+                "path",
+                {"d": scaled_body, "fill": "none", "stroke": "black", "stroke-width": "1"},
+            )
+
+        # 3. Icon (top-right, fixed size, translated line-art)
+        if symbol_def.icon_path and symbol_def.icon_viewbox:
+            ICON_MARGIN = 4
+            icon_ox = x + w - 20 - ICON_MARGIN  # 4px from right edge, 20px wide
+            icon_oy = y + ICON_MARGIN  # 4px from top
+            translated = self._translate_icon(symbol_def.icon_path, symbol_def.icon_viewbox, icon_ox, icon_oy)
+            ET.SubElement(
+                g,
+                "path",
+                {"d": translated, "fill": "none", "stroke": "black", "stroke-width": "1"},
+            )
+
+        # 4. Text
+        has_children = len(getattr(node, "nodes", [])) > 0
+        element_name = getattr(node, "name", getattr(node, "label", ""))
+        if element_name:
+            if has_children:
+                self._render_topleft_text(g, node, x, y, w)
+            else:
+                self._render_wrapped_text(
+                    g, element_name, x + w / 2, y + h / 2, w - 8, is_centered=True
+                )
+
         return g
+
+    def _render_topleft_text(self, parent: ET.Element, node: Any, x: float, y: float, w: float) -> None:
+        """Render text label at top-left for Grouping/Group elements.
+
+        Args:
+            parent: Parent SVG element
+            node: Node with name/label
+            x, y: Element position
+            w: Element width
+        """
+        name = getattr(node, "name", getattr(node, "label", ""))
+        if name:
+            self._render_wrapped_text(parent, name, x + 5, y + 14, w - 10, is_centered=False)
 
     def _render_wrapped_text(
         self,

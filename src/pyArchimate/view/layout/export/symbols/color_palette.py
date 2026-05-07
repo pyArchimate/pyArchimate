@@ -6,74 +6,97 @@ type to its standard color code. Supports per-element color overrides via elemen
 
 from typing import Optional
 
-# ArchiMate 3.x Standard Color Palette
-# Colors extracted directly from symbol definitions for consistency
+# ArchiMate 3.x Standard Color Palette (Archi tool layer-based colors)
+_BUSINESS     = "#fffbdb"
+_APPLICATION  = "#daf0f8"
+_TECHNOLOGY   = "#daf0e0"
+_MOTIVATION   = "#ffe8d0"
+_IMPL_MIGR    = "#e8e8d0"
+_STRATEGY     = "#f5dbfb"
+_GROUP        = "#d9d9d9"
+
 ARCHIMATE_PALETTE = {
     # ===== BUSINESS LAYER =====
-    "BusinessActor": "#FFD700",
-    "BusinessCollaboration": "#FFE4B5",
-    "BusinessEvent": "#FFD180",
-    "BusinessFunction": "#FFE4B5",
-    "BusinessInteraction": "#FFD180",
-    "BusinessInterface": "#FFDB58",
-    "BusinessObject": "#FFAB91",
-    "BusinessProcess": "#FFE4B5",
-    "BusinessRole": "#FFC700",
-    "BusinessService": "#FFDB58",
-    "Contract": "#FF9800",
-    "Location": "#FF6F00",
-    "Product": "#FF7043",
+    "BusinessActor": _BUSINESS,
+    "BusinessCollaboration": _BUSINESS,
+    "BusinessEvent": _BUSINESS,
+    "BusinessFunction": _BUSINESS,
+    "BusinessInteraction": _BUSINESS,
+    "BusinessInterface": _BUSINESS,
+    "BusinessObject": _BUSINESS,
+    "BusinessProcess": _BUSINESS,
+    "BusinessRole": _BUSINESS,
+    "BusinessService": _BUSINESS,
+    "Contract": _BUSINESS,
+    "Location": _BUSINESS,
+    "Product": _BUSINESS,
+    "Representation": _BUSINESS,
 
     # ===== APPLICATION LAYER =====
-    "ApplicationCollaboration": "#B3E5FC",
-    "ApplicationComponent": "#87CEEB",
-    "ApplicationEvent": "#81D4FA",
-    "ApplicationFunction": "#29B6F6",
-    "ApplicationInteraction": "#039BE5",
-    "ApplicationInterface": "#4FC3F7",
-    "ApplicationProcess": "#81D4FA",
-    "ApplicationService": "#81D4FA",
-    "DataObject": "#0288D1",
+    "ApplicationCollaboration": _APPLICATION,
+    "ApplicationComponent": _APPLICATION,
+    "ApplicationEvent": _APPLICATION,
+    "ApplicationFunction": _APPLICATION,
+    "ApplicationInteraction": _APPLICATION,
+    "ApplicationInterface": _APPLICATION,
+    "ApplicationProcess": _APPLICATION,
+    "ApplicationService": _APPLICATION,
+    "DataObject": _APPLICATION,
 
     # ===== TECHNOLOGY LAYER =====
-    "Artifact": "#2E7D32",
-    "CommunicationNetwork": "#388E3C",
-    "Device": "#7CFC00",
-    "Equipment": "#1B5E20",
-    "Facility": "#76FF03",
-    "Node": "#90EE90",
-    "Path": "#45A049",
-    "SystemSoftware": "#76FF03",
-    "TechnologyFunction": "#66BB6A",
-    "TechnologyInteraction": "#039BE5",
-    "TechnologyInterface": "#4CAF50",
-    "TechnologyProcess": "#66BB6A",
-    "TechnologyService": "#66BB6A",
+    "Artifact": _TECHNOLOGY,
+    "CommunicationNetwork": _TECHNOLOGY,
+    "Device": _TECHNOLOGY,
+    "Equipment": _TECHNOLOGY,
+    "Facility": _TECHNOLOGY,
+    "Node": _TECHNOLOGY,
+    "Path": _TECHNOLOGY,
+    "SystemSoftware": _TECHNOLOGY,
+    "TechnologyCollaboration": _TECHNOLOGY,
+    "TechnologyFunction": _TECHNOLOGY,
+    "TechnologyInteraction": _TECHNOLOGY,
+    "TechnologyInterface": _TECHNOLOGY,
+    "TechnologyProcess": _TECHNOLOGY,
+    "TechnologyEvent": _TECHNOLOGY,
+    "TechnologyService": _TECHNOLOGY,
+    "DistributionNetwork": _TECHNOLOGY,
+    "Material": _TECHNOLOGY,
 
     # ===== MOTIVATION LAYER =====
-    "Assessment": "#FF5252",
-    "Constraint": "#AD1457",
-    "Driver": "#FF7043",
-    "Goal": "#FF1744",
-    "Outcome": "#D32F2F",
-    "Principle": "#C62828",
-    "Requirement": "#B71C1C",
-    "Stakeholder": "#E64A19",
+    "Assessment": _MOTIVATION,
+    "Constraint": _MOTIVATION,
+    "Driver": _MOTIVATION,
+    "Goal": _MOTIVATION,
+    "Outcome": _MOTIVATION,
+    "Principle": _MOTIVATION,
+    "Requirement": _MOTIVATION,
+    "Stakeholder": _MOTIVATION,
+    "Meaning": _MOTIVATION,
+    "Value": _MOTIVATION,
 
-    # ===== IMPLEMENTATION LAYER =====
-    "DeliverableComponent": "#8E24AA",
-    "ImplementationComponent": "#9C27B0",
-    "ImplementationEvent": "#7B1FA2",
-    "Plateau": "#6A1B9A",
+    # ===== STRATEGY LAYER =====
+    "Resource": _STRATEGY,
+    "Capability": _STRATEGY,
+    "ValueStream": _STRATEGY,
+    "CourseOfAction": _STRATEGY,
 
-    # ===== OTHER =====
-    "Gap": "#424242",
-    "Grouping": "#616161",
+    # ===== IMPLEMENTATION & MIGRATION =====
+    "Deliverable": _IMPL_MIGR,
+    "DeliverableComponent": _IMPL_MIGR,
+    "ImplementationComponent": _IMPL_MIGR,
+    "ImplementationEvent": _IMPL_MIGR,
+    "Plateau": _IMPL_MIGR,
+    "Gap": _IMPL_MIGR,
+    "WorkPackage": _IMPL_MIGR,
+
+    # ===== VISUAL GROUPING =====
+    "Group": _GROUP,
+    "Grouping": "none",  # Transparent (fill="none")
 
     # ===== JUNCTION TYPES =====
-    "AndJunction": "#455A64",
-    "OrJunction": "#546E7A",
-    "XorJunction": "#607D8B",
+    "AndJunction": "#000000",
+    "OrJunction": "#000000",
+    "XorJunction": "#000000",
 }
 
 

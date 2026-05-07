@@ -22,6 +22,7 @@ class SymbolDefinition(NamedTuple):
     default_color: str  # HEX RGB color code
     icon_path: str | None = None  # Small icon in top-right corner (optional)
     icon_viewbox: str | None = None  # ViewBox for the icon area (optional)
+    body_type: str = "rect"  # "rect" | "rect_header" | "path"
 
 
 # Symbol Registry: Comprehensive mapping of all ArchiMate element types
@@ -31,365 +32,563 @@ ARCHIMATE_SYMBOLS = {
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#B3E5FC"
+        default_color="#daf0f8",
+        body_type="rect"
     ),
     "ApplicationComponent": SymbolDefinition(
         element_type="ApplicationComponent",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#87CEEB",
+        default_color="#daf0f8",
         icon_path="M 134.25 5 L 144.0 5 L 144.0 20.0 L 134.25 20.0 Z M 131 8.75 L 137.5 8.75 L 137.5 11.0 L 131 11.0 Z M 131 14 L 137.5 14 L 137.5 16.25 L 131 16.25 Z",
-        icon_viewbox="128 3 22 20"
+        icon_viewbox="128 3 22 20",
+        body_type="rect"
     ),
     "ApplicationEvent": SymbolDefinition(
         element_type="ApplicationEvent",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#81D4FA",
+        default_color="#daf0f8",
         icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 130 17 L 134.5 12.5 L 130 8 Z",
-        icon_viewbox="128 5 22 15"
+        icon_viewbox="128 5 22 15",
+        body_type="rect"
     ),
     "ApplicationFunction": SymbolDefinition(
         element_type="ApplicationFunction",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#29B6F6",
+        default_color="#daf0f8",
         icon_path="M 137.5 5 L 145 8 L 145 20 L 137.5 17 L 130 20 L 130 8 Z",
-        icon_viewbox="128 3 22 20"
+        icon_viewbox="128 3 22 20",
+        body_type="rect"
     ),
     "ApplicationInteraction": SymbolDefinition(
         element_type="ApplicationInteraction",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#039BE5",
+        default_color="#daf0f8",
         icon_path="M 138.25 5 C 141.98 5 145 8.36 145 12.5 C 145 16.64 141.98 20 138.25 20 Z M 136.75 5 C 133.02 5 130 8.36 130 12.5 C 130 16.64 133.02 20 136.75 20 Z",
-        icon_viewbox="128 3 22 20"
+        icon_viewbox="128 3 22 20",
+        body_type="rect"
     ),
     "ApplicationInterface": SymbolDefinition(
         element_type="ApplicationInterface",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#4FC3F7",
+        default_color="#daf0f8",
         icon_path="M 130 12.5 L 137.5 12.5",
-        icon_viewbox="128 10 15 5"
+        icon_viewbox="128 10 15 5",
+        body_type="rect"
     ),
     "ApplicationProcess": SymbolDefinition(
         element_type="ApplicationProcess",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#81D4FA",
+        default_color="#daf0f8",
         icon_path="M 130 10.7 L 139 10.7 L 139 8 L 145 12.5 L 139 17 L 139 14.3 L 130 14.3 Z",
-        icon_viewbox="128 5 22 15"
+        icon_viewbox="128 5 22 15",
+        body_type="rect"
     ),
     "ApplicationService": SymbolDefinition(
         element_type="ApplicationService",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#81D4FA",
+        default_color="#daf0f8",
         icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 134.5 17 C 132.01 17 130 14.99 130 12.5 C 130 10.01 132.01 8 134.5 8 Z",
-        icon_viewbox="128 5 22 15"
+        icon_viewbox="128 5 22 15",
+        body_type="rect"
     ),
     "Artifact": SymbolDefinition(
         element_type="Artifact",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#2E7D32",
+        default_color="#daf0e0",
         icon_path="M 132 5 L 139.7 5 L 143 8.3 L 143 20 L 132 20 Z M 139.7 5 L 139.7 8.3 L 143 8.3",
-        icon_viewbox="128 3 22 20"
+        icon_viewbox="128 3 22 20",
+        body_type="rect"
     ),
     "Assessment": SymbolDefinition(
         element_type="Assessment",
         svg_path="M 0 10 L 10 0 L 140 0 L 150 10 L 150 65 L 140 75 L 10 75 L 0 65 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FF5252",
+        default_color="#ffe8d0",
         icon_path="M 130 20 L 134.8 15.2",
-        icon_viewbox="128 13 12 12"
+        icon_viewbox="128 13 12 12",
+        body_type="path"
     ),
     "BusinessActor": SymbolDefinition(
         element_type="BusinessActor",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FFD700",
+        default_color="#fffbdb",
         icon_path="M 137.5 9.5 L 137.5 16.25 M 133 11.75 L 142 11.75 M 133 20 L 137.5 16.25 L 142 20",
-        icon_viewbox="128 7 22 18"
+        icon_viewbox="128 7 22 18",
+        body_type="rect"
     ),
     "BusinessCollaboration": SymbolDefinition(
         element_type="BusinessCollaboration",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FFE4B5"
+        default_color="#fffbdb",
+        body_type="rect"
     ),
     "BusinessEvent": SymbolDefinition(
         element_type="BusinessEvent",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FFD180",
+        default_color="#fffbdb",
         icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 130 17 L 134.5 12.5 L 130 8 Z",
-        icon_viewbox="128 5 22 15"
+        icon_viewbox="128 5 22 15",
+        body_type="rect"
     ),
     "BusinessFunction": SymbolDefinition(
         element_type="BusinessFunction",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FFE4B5",
+        default_color="#fffbdb",
         icon_path="M 137.5 5 L 145 8 L 145 20 L 137.5 17 L 130 20 L 130 8 Z",
-        icon_viewbox="128 3 22 20"
+        icon_viewbox="128 3 22 20",
+        body_type="rect"
     ),
     "BusinessInteraction": SymbolDefinition(
         element_type="BusinessInteraction",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FFD180",
+        default_color="#fffbdb",
         icon_path="M 138.25 5 C 141.98 5 145 8.36 145 12.5 C 145 16.64 141.98 20 138.25 20 Z M 136.75 5 C 133.02 5 130 8.36 130 12.5 C 130 16.64 133.02 20 136.75 20 Z",
-        icon_viewbox="128 3 22 20"
+        icon_viewbox="128 3 22 20",
+        body_type="rect"
     ),
     "BusinessInterface": SymbolDefinition(
         element_type="BusinessInterface",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FFDB58",
+        default_color="#fffbdb",
         icon_path="M 130 12.5 L 137.5 12.5",
-        icon_viewbox="128 10 15 5"
+        icon_viewbox="128 10 15 5",
+        body_type="rect"
     ),
     "BusinessObject": SymbolDefinition(
         element_type="BusinessObject",
         svg_path="M 0 15 L 150 15 M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FFAB91"
+        default_color="#fffbdb",
+        body_type="rect_header"
     ),
     "BusinessProcess": SymbolDefinition(
         element_type="BusinessProcess",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FFE4B5",
+        default_color="#fffbdb",
         icon_path="M 130 10.7 L 139 10.7 L 139 8 L 145 12.5 L 139 17 L 139 14.3 L 130 14.3 Z",
-        icon_viewbox="128 5 22 15"
+        icon_viewbox="128 5 22 15",
+        body_type="rect"
     ),
     "BusinessRole": SymbolDefinition(
         element_type="BusinessRole",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FFC700",
+        default_color="#fffbdb",
         icon_path="M 142 9 L 133 9 C 131.34 9 130 10.57 130 12.5 C 130 14.43 131.34 16 133 16 L 142 16",
-        icon_viewbox="128 7 22 12"
+        icon_viewbox="128 7 22 12",
+        body_type="rect"
     ),
     "BusinessService": SymbolDefinition(
         element_type="BusinessService",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FFDB58",
+        default_color="#fffbdb",
         icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 134.5 17 C 132.01 17 130 14.99 130 12.5 C 130 10.01 132.01 8 134.5 8 Z",
-        icon_viewbox="128 5 22 15"
+        icon_viewbox="128 5 22 15",
+        body_type="rect"
     ),
     "CommunicationNetwork": SymbolDefinition(
         element_type="CommunicationNetwork",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#388E3C",
+        default_color="#daf0e0",
         icon_path="M 136 9.2 L 142.75 9.2 L 139 15.8 L 132.25 15.8 Z",
-        icon_viewbox="128 5 22 15"
+        icon_viewbox="128 5 22 15",
+        body_type="rect"
     ),
     "Constraint": SymbolDefinition(
         element_type="Constraint",
         svg_path="M 0 10 L 10 0 L 140 0 L 150 10 L 150 65 L 140 75 L 10 75 L 0 65 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#AD1457",
+        default_color="#ffe8d0",
         icon_path="M 133.75 9 L 145 9 L 141.25 16 L 130 16 Z M 136.75 9 L 133 16",
-        icon_viewbox="128 5 22 15"
+        icon_viewbox="128 5 22 15",
+        body_type="path"
     ),
     "DataObject": SymbolDefinition(
         element_type="DataObject",
         svg_path="M 0 15 L 150 15 M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#0288D1"
+        default_color="#daf0f8",
+        body_type="rect_header"
     ),
     "Device": SymbolDefinition(
         element_type="Device",
         svg_path="M 0 10 L 10 0 L 150 0 L 150 65 L 140 75 L 0 75 Z M 0 10 L 140 10 L 140 75 M 150 0 L 140 10 M 121.5 28.2 L 120 30 L 135 30 L 133.5 28.2 M 120 15 L 135.0 15 L 135.0 28.2 L 120 28.2 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#7CFC00"
+        default_color="#daf0e0",
+        body_type="path"
     ),
     "Driver": SymbolDefinition(
         element_type="Driver",
         svg_path="M 0 10 L 10 0 L 140 0 L 150 10 L 150 65 L 140 75 L 10 75 L 0 65 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FF7043",
+        default_color="#ffe8d0",
         icon_path="M 130 12.5 L 145 12.5 M 137.5 5 L 137.5 20 M 132.18 7.17 L 142.82 17.82 M 132.18 17.82 L 142.82 7.17",
-        icon_viewbox="128 3 22 20"
+        icon_viewbox="128 3 22 20",
+        body_type="path"
     ),
     "Equipment": SymbolDefinition(
         element_type="Equipment",
         svg_path="M 0 10 L 10 0 L 150 0 L 150 65 L 140 75 L 0 75 Z M 0 10 L 140 10 L 140 75 M 150 0 L 140 10 M 130.8 20.7 C 131.7 20.7 132.75 20.1 132.75 18.9 C 132.75 17.7 131.7 17.1 130.95 17.1 C 129.6 17.1 128.85 18 128.85 18.9 C 128.85 19.95 129.75 20.7 130.8 20.7 Z M 130.2 22.8 L 130.05 21.75 L 129.15 21.45 L 128.4 22.2 L 127.5 21.3 L 128.1 20.4 L 127.8 19.65 L 126.75 19.65 L 126.75 18.3 L 127.8 18.15 L 128.1 17.4 L 127.5 16.65 L 128.4 15.75 L 129.3 16.35 L 130.05 16.05 L 130.2 15 L 131.55 15 L 131.7 16.05 L 132.45 16.35 L 133.35 15.75 L 134.25 16.65 L 133.65 17.4 L 133.95 18.15 L 135 18.3 L 135 19.65 L 133.95 19.65 L 133.65 20.4 L 134.25 21.15 L 133.35 22.05 L 132.45 21.45 L 131.7 21.75 L 131.55 22.8 L 130.2 22.8 Z M 125.4 27.15 C 126.6 27.15 127.8 26.25 127.8 25.05 C 127.8 23.85 126.75 22.65 125.25 22.65 C 124.05 22.65 122.85 23.7 122.85 25.05 C 122.85 26.1 124.05 27.3 125.4 27.15 Z M 123.15 29.7 L 123.3 28.35 L 122.4 27.75 L 121.2 28.2 L 120.3 26.85 L 121.35 26.1 L 121.2 25.05 L 120 24.45 L 120.45 22.95 L 121.8 23.1 L 122.4 22.2 L 121.95 21 L 123.3 20.25 L 124.2 21.3 L 125.4 21.15 L 125.85 19.95 L 127.5 20.4 L 127.35 21.75 L 128.25 22.35 L 129.45 21.75 L 130.35 23.1 L 129.3 24 L 129.45 25.05 L 130.65 25.5 L 130.2 27 L 128.85 26.85 L 128.25 27.75 L 128.85 26.85 L 128.25 27.75 L 128.85 28.95 L 127.35 29.7 L 126.45 28.65 L 125.4 28.8 L 124.8 30 L 123.15 29.7 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#1B5E20"
+        default_color="#daf0e0",
+        body_type="path"
     ),
     "Facility": SymbolDefinition(
         element_type="Facility",
         svg_path="M 0 10 L 10 0 L 150 0 L 150 65 L 140 75 L 0 75 Z M 0 10 L 140 10 L 140 75 M 150 0 L 140 10 M 120 30 L 120 15 L 121.95 15 L 121.95 25.5 L 126.3 23.25 L 126.3 25.5 L 130.65 23.25 L 130.65 25.5 L 135 23.25 L 135 30 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#76FF03"
+        default_color="#daf0e0",
+        body_type="path"
     ),
     "Gap": SymbolDefinition(
         element_type="Gap",
         svg_path="M 0 0 L 150 0 L 150 51 C 140.13 46.97 126.61 44.7 112.5 44.7 C 98.39 44.7 84.87 46.97 75 51 C 65.13 55.03 51.61 57.3 37.5 57.3 C 23.39 57.3 9.87 55.03 0 51 Z M 130 10.85 L 145 10.85 M 130 14.15 L 145 14.15",
         viewBox="-0.5 -0.5 151 61",
         bounding_box=(-0.5, -0.5, 151.0, 61.0),
-        default_color="#424242"
+        default_color="#e8e8d0",
+        body_type="path"
     ),
     "Goal": SymbolDefinition(
         element_type="Goal",
         svg_path="M 0 10 L 10 0 L 140 0 L 150 10 L 150 65 L 140 75 L 10 75 L 0 65 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#FF1744"
+        default_color="#ffe8d0",
+        body_type="path"
     ),
     "ImplementationEvent": SymbolDefinition(
         element_type="ImplementationEvent",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#7B1FA2",
+        default_color="#e8e8d0",
         icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 130 17 L 134.5 12.5 L 130 8 Z",
-        icon_viewbox="128 5 22 15"
+        icon_viewbox="128 5 22 15",
+        body_type="rect"
     ),
     "Node": SymbolDefinition(
         element_type="Node",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#90EE90",
+        default_color="#daf0e0",
         icon_path="M 130 8.75 L 133.75 5 L 145 5 L 145 16.25 L 141.25 20 L 130 20 Z M 130 8.75 L 141.25 8.75 L 141.25 20 M 145 5 L 141.25 8.75",
-        icon_viewbox="128 3 22 22"
+        icon_viewbox="128 3 22 22",
+        body_type="rect"
     ),
     "Outcome": SymbolDefinition(
         element_type="Outcome",
         svg_path="M 0 10 L 10 0 L 140 0 L 150 10 L 150 65 L 140 75 L 10 75 L 0 65 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#D32F2F",
+        default_color="#ffe8d0",
         icon_path="M 136 14 L 143.5 6.5 M 136.3 11 L 136 14 L 139 13.7 M 142 5 L 141.25 8.75 L 145 8",
-        icon_viewbox="128 3 22 18"
+        icon_viewbox="128 3 22 18",
+        body_type="path"
     ),
     "Path": SymbolDefinition(
         element_type="Path",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#45A049",
+        default_color="#daf0e0",
         icon_path="M 133 15 L 130 12.5 L 133 10 M 142 15 L 145 12.5 L 142 10 M 130 12.5 L 145 12.5",
-        icon_viewbox="128 8 22 12"
+        icon_viewbox="128 8 22 12",
+        body_type="rect"
     ),
     "Plateau": SymbolDefinition(
         element_type="Plateau",
         svg_path="M 0 10 L 10 0 L 150 0 L 150 65 L 140 75 L 0 75 Z M 0 10 L 140 10 L 140 75 M 150 0 L 140 10 M 126 15 L 135.0 15 L 135.0 18.0 L 126 18.0 Z M 123 21 L 132.0 21 L 132.0 24.0 L 123 24.0 Z M 120 27 L 129.0 27 L 129.0 30.0 L 120 30.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#6A1B9A"
+        default_color="#e8e8d0",
+        body_type="path"
     ),
     "Principle": SymbolDefinition(
         element_type="Principle",
         svg_path="M 0 10 L 10 0 L 140 0 L 150 10 L 150 65 L 140 75 L 10 75 L 0 65 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#C62828",
+        default_color="#ffe8d0",
         icon_path="M 130.75 5.75 C 135.21 4.86 139.79 4.86 144.25 5.75 C 145.14 10.21 145.14 14.79 144.25 19.25 C 139.79 20.14 135.21 20.14 130.75 19.25 C 129.86 14.79 129.86 10.21 130.75 5.75 Z M 136.75 15.5 L 136.3 7.25 L 138.7 7.25 L 138.25 15.5 Z M 136.75 16.25 L 138.25 16.25 L 138.25 17.75 L 136.75 17.75 Z",
-        icon_viewbox="128 3 22 20"
+        icon_viewbox="128 3 22 20",
+        body_type="path"
     ),
     "Requirement": SymbolDefinition(
         element_type="Requirement",
         svg_path="M 0 10 L 10 0 L 140 0 L 150 10 L 150 65 L 140 75 L 10 75 L 0 65 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#B71C1C",
+        default_color="#ffe8d0",
         icon_path="M 133.75 9 L 145 9 L 141.25 16 L 130 16 Z",
-        icon_viewbox="128 5 22 15"
+        icon_viewbox="128 5 22 15",
+        body_type="path"
     ),
     "Stakeholder": SymbolDefinition(
         element_type="Stakeholder",
         svg_path="M 0 10 L 10 0 L 140 0 L 150 10 L 150 65 L 140 75 L 10 75 L 0 65 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#E64A19",
+        default_color="#ffe8d0",
         icon_path="M 142 9 L 133 9 C 131.34 9 130 10.57 130 12.5 C 130 14.43 131.34 16 133 16 L 142 16",
-        icon_viewbox="128 7 22 12"
+        icon_viewbox="128 7 22 12",
+        body_type="path"
     ),
     "SystemSoftware": SymbolDefinition(
         element_type="SystemSoftware",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#76FF03"
+        default_color="#daf0e0",
+        body_type="rect"
     ),
     "TechnologyFunction": SymbolDefinition(
         element_type="TechnologyFunction",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#66BB6A",
+        default_color="#daf0e0",
         icon_path="M 137.5 5 L 145 8 L 145 20 L 137.5 17 L 130 20 L 130 8 Z",
-        icon_viewbox="128 3 22 20"
+        icon_viewbox="128 3 22 20",
+        body_type="rect"
     ),
     "TechnologyInteraction": SymbolDefinition(
         element_type="TechnologyInteraction",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#039BE5",
+        default_color="#daf0e0",
         icon_path="M 138.25 5 C 141.98 5 145 8.36 145 12.5 C 145 16.64 141.98 20 138.25 20 Z M 136.75 5 C 133.02 5 130 8.36 130 12.5 C 130 16.64 133.02 20 136.75 20 Z",
-        icon_viewbox="128 3 22 20"
+        icon_viewbox="128 3 22 20",
+        body_type="rect"
     ),
     "TechnologyInterface": SymbolDefinition(
         element_type="TechnologyInterface",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#4CAF50",
+        default_color="#daf0e0",
         icon_path="M 130 12.5 L 137.5 12.5",
-        icon_viewbox="128 10 15 5"
+        icon_viewbox="128 10 15 5",
+        body_type="rect"
     ),
     "TechnologyProcess": SymbolDefinition(
         element_type="TechnologyProcess",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#66BB6A",
+        default_color="#daf0e0",
         icon_path="M 130 10.7 L 139 10.7 L 139 8 L 145 12.5 L 139 17 L 139 14.3 L 130 14.3 Z",
-        icon_viewbox="128 5 22 15"
+        icon_viewbox="128 5 22 15",
+        body_type="rect"
     ),
     "TechnologyService": SymbolDefinition(
         element_type="TechnologyService",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#66BB6A",
+        default_color="#daf0e0",
         icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 134.5 17 C 132.01 17 130 14.99 130 12.5 C 130 10.01 132.01 8 134.5 8 Z",
-        icon_viewbox="128 5 22 15"
+        icon_viewbox="128 5 22 15",
+        body_type="rect"
+    ),
+    # ===== MISSING ELEMENTS - Added to complete the palette =====
+    "Capability": SymbolDefinition(
+        element_type="Capability",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#f5dbfb",
+        body_type="rect"
+    ),
+    "Contract": SymbolDefinition(
+        element_type="Contract",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#fffbdb",
+        body_type="rect"
+    ),
+    "CourseOfAction": SymbolDefinition(
+        element_type="CourseOfAction",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#f5dbfb",
+        body_type="rect"
+    ),
+    "Deliverable": SymbolDefinition(
+        element_type="Deliverable",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#e8e8d0",
+        body_type="rect"
+    ),
+    "DeliverableComponent": SymbolDefinition(
+        element_type="DeliverableComponent",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#e8e8d0",
+        body_type="rect"
+    ),
+    "DistributionNetwork": SymbolDefinition(
+        element_type="DistributionNetwork",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#daf0e0",
+        body_type="rect"
+    ),
+    "Group": SymbolDefinition(
+        element_type="Group",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#d9d9d9",
+        body_type="rect"
+    ),
+    "Grouping": SymbolDefinition(
+        element_type="Grouping",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="none",
+        body_type="rect"
+    ),
+    "Location": SymbolDefinition(
+        element_type="Location",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#fffbdb",
+        body_type="rect"
+    ),
+    "Material": SymbolDefinition(
+        element_type="Material",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#daf0e0",
+        body_type="rect"
+    ),
+    "Meaning": SymbolDefinition(
+        element_type="Meaning",
+        svg_path="M 0 10 L 10 0 L 140 0 L 150 10 L 150 65 L 140 75 L 10 75 L 0 65 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#ffe8d0",
+        body_type="path"
+    ),
+    "Product": SymbolDefinition(
+        element_type="Product",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#fffbdb",
+        body_type="rect"
+    ),
+    "Representation": SymbolDefinition(
+        element_type="Representation",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#fffbdb",
+        body_type="rect"
+    ),
+    "Resource": SymbolDefinition(
+        element_type="Resource",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#f5dbfb",
+        body_type="rect"
+    ),
+    "TechnologyCollaboration": SymbolDefinition(
+        element_type="TechnologyCollaboration",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#daf0e0",
+        body_type="rect"
+    ),
+    "TechnologyEvent": SymbolDefinition(
+        element_type="TechnologyEvent",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#daf0e0",
+        icon_path="M 140.5 8 C 142.99 8 145 10.01 145 12.5 C 145 14.99 142.99 17 140.5 17 L 130 17 L 134.5 12.5 L 130 8 Z",
+        icon_viewbox="128 5 22 15",
+        body_type="rect"
+    ),
+    "Value": SymbolDefinition(
+        element_type="Value",
+        svg_path="M 0 10 L 10 0 L 140 0 L 150 10 L 150 65 L 140 75 L 10 75 L 0 65 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#ffe8d0",
+        body_type="path"
+    ),
+    "ValueStream": SymbolDefinition(
+        element_type="ValueStream",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#f5dbfb",
+        body_type="rect"
+    ),
+    "WorkPackage": SymbolDefinition(
+        element_type="WorkPackage",
+        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
+        viewBox="-0.5 -0.5 151 76",
+        bounding_box=(-0.5, -0.5, 151.0, 76.0),
+        default_color="#e8e8d0",
+        body_type="rect"
     ),
 }
 
