@@ -116,7 +116,7 @@ line-length = 120
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "B", "C", "I", "S110"]
+select = ["E", "F", "W", "B", "C", "I", "S110", "A"]
 ignore = [
     "E501",  # line too long — handled by formatter
     "N999",  # module names — project uses camelCase for some files

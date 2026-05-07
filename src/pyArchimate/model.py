@@ -906,9 +906,9 @@ class Model:
         """
         invalids = []
 
-        for id, c in self.conns_dict.items():
+        for conn_id, c in self.conns_dict.items():
             if self.check_connection(c):
-                invalids.append(id)
+                invalids.append(conn_id)
         return invalids
 
     def _check_connection_refs(self, c: Any) -> bool:
@@ -968,13 +968,13 @@ class Model:
         :rtype: list(Node)
         """
         invalids = []
-        for id, n in self.nodes_dict.items():
+        for node_id, n in self.nodes_dict.items():
             if n.ref not in self.elems_dict and n.cat == 'Element':
-                invalids.append(id)
+                invalids.append(node_id)
                 try:
                     log.error(f'Orphan node "{n.name}" with id {n.uuid} refers to unknown {n.ref}')
                 except ARCHIMATE_EXCEPTION_GROUP:
-                    log.error(f'Orphan node with id {id}')
+                    log.error(f'Orphan node with id {node_id}')
         return invalids
 
     def default_theme(self, theme=DEFAULT_THEME):

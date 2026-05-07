@@ -226,7 +226,7 @@ class Element:
         return self._uuid
 
     @property
-    def type(self) -> Optional[str]:
+    def type(self) -> Optional[str]:  # noqa: A003  # 'type' is the canonical ArchiMate attribute name; renaming would break public API
         """
         Get the Archimate concept type of this element
 
@@ -235,7 +235,7 @@ class Element:
         """
         return self._type
 
-    @type.setter
+    @type.setter  # noqa: A003  # 'type' is the canonical ArchiMate attribute name; renaming would break public API
     def type(self, value):
         """
         Convert this element to a new Archimate concept type

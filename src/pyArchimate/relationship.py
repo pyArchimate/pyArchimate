@@ -289,7 +289,7 @@ class Relationship:
                 self._target = dst.uuid
 
     @property
-    def type(self):
+    def type(self):  # noqa: A003  # 'type' is the canonical ArchiMate attribute name; renaming would break public API
         """
         Get the Archimate type of the relationship
 
@@ -298,7 +298,7 @@ class Relationship:
         """
         return self._type
 
-    @type.setter
+    @type.setter  # noqa: A003  # 'type' is the canonical ArchiMate attribute name; renaming would break public API
     def type(self, new_type):
         """
         Set a new type for the relationship
