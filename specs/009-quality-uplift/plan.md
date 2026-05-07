@@ -1,41 +1,39 @@
-# Implementation Plan: Incremental Code Quality Uplift
+# Implementation Plan: Incremental Code Quality Uplift (009)
 
-**Branch**: `009-quality-uplift` | **Date**: 2026-05-03 | **Spec**: [spec.md](./spec.md)  
-**Input**: Feature specification from `specs/009-quality-uplift/spec.md`
+**Branch**: `009-quality-uplift` | **Date**: 2026-05-07 | **Spec**: [spec.md](spec.md)  
+**Input**: Feature specification from `/specs/009-quality-uplift/spec.md`
 
 ## Summary
 
-Remediate all remaining SonarCloud issues, incrementally enable four ruff rule sets (`N`, `A`, `UP`, `PT`), re-enable suppressed pyright categories, strengthen mypy strict compliance, and remove obsolete `pyproject.toml` exclusions. Work is executed tool-by-tool in small, independently-passing commits.
+Resolve all four deferred `# TODO(009-quality-uplift)` items in `pyproject.toml`: enable the ruff `UP` and `PT` rule sets, and re-enable `disallow_untyped_defs` and `disallow_untyped_calls` in mypy. Approach: auto-fix where possible, mechanical fixes for test-style rules, add type annotations to all unannotated src functions (which resolves both mypy flags in sequence). SonarCloud remediation and ruff `N`/`A` rules already completed in prior commits.
 
 ## Technical Context
 
-**Language/Version**: Python 3.12 (target; min 3.10)  
-**Primary Dependencies**: lxml, oyaml, pillow, ruff, pyright, mypy  
-**Storage**: File I/O only (no database)  
+**Language/Version**: Python 3.10+ (requires-python), ruff targets py312  
+**Primary Dependencies**: ruff 0.11+, mypy 2.0+, pyright, pytest, behave  
+**Storage**: N/A — file I/O only  
 **Testing**: pytest (unit/integration), behave (BDD)  
-**Target Platform**: Linux (dev container / CI)  
-**Project Type**: Library (`src/pyArchimate/`)  
-**Performance Goals**: N/A (tooling change only)  
-**Constraints**: Every commit must leave the full pre-commit suite green; no new violations introduced  
-**Scale/Scope**: ~28 source files, ~10 test modules
+**Target Platform**: Linux/macOS developer workstations + CI  
+**Project Type**: Library  
+**Performance Goals**: N/A — quality tooling only  
+**Constraints**: `requires-python = ">=3.10,<4.0"` limits use of Python 3.11+ builtins (StrEnum); ruff target-version = py312 is for lint purposes, not minimum runtime  
+**Scale/Scope**: 28 source files; ~162 untyped functions; 126 UP violations; 163 PT violations
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design.*
+| Principle | Status | Notes |
+|-----------|--------|-------|
+| I. Code Quality | PASS | This feature directly improves code quality |
+| II. Testing Standards | PASS | All existing tests must continue to pass; PT fixes improve test quality |
+| III. User Experience Consistency | N/A | Developer tooling feature |
+| IV. Performance Requirements | N/A | No runtime changes |
+| V. Security Practices | PASS | No sensitive data changes |
+| VI. State Management | N/A | No state transitions |
+| VII. System Integrity & Accuracy | PASS | Type annotations improve accuracy guarantees |
+| VIII. Durability & Interoperability | PASS | No API changes; type annotations aid integration |
+| IX. Cross-Platform Consistency | PASS | Tool config changes are platform-neutral |
 
-| Principle | Assessment | Notes |
-|-----------|------------|-------|
-| I. Code Quality | ✅ Pass | Feature directly improves quality metrics |
-| II. Testing Standards | ✅ Pass | All existing tests must remain green; no tests removed |
-| III. UX Consistency | ✅ N/A | Library — no user-facing interface changes |
-| IV. Performance | ✅ Pass | No runtime code changes in this feature |
-| V. Security | ✅ Pass | Sonar security hotspot fixes are included |
-| VI. State Management | ✅ N/A | No state transitions affected |
-| VII. System Integrity | ✅ Pass | Fixes must not alter observable behaviour |
-| VIII. Durability | ✅ Pass | pyproject.toml changes are forward-compatible |
-| IX. Cross-Platform | ✅ Pass | Tool config changes apply to all platforms |
-
-No violations. Proceed to Phase 0.
+**Gate result**: PASS — no violations.
 
 ## Project Structure
 
@@ -44,192 +42,121 @@ No violations. Proceed to Phase 0.
 ```text
 specs/009-quality-uplift/
 ├── plan.md              # This file
-├── research.md          # Phase 0 output
-├── data-model.md        # Phase 1 output (N/A — no new entities)
-├── quickstart.md        # Phase 1 output
-└── tasks.md             # Phase 2 output (/speckit-tasks)
+├── research.md          # Phase 0 output (tool audit results)
+├── tasks.md             # Phase 2 output (/speckit-tasks)
+└── spec.md              # Feature specification
 ```
 
-### Source Code (repository root)
+### Source Code (affected files)
 
 ```text
-src/pyArchimate/          # Core library (~28 .py files)
-├── model.py
-├── element.py
-├── relationship.py
-├── view.py
-├── readers/
-│   ├── archimateReader.py
-│   ├── archiReader.py
-│   ├── _arisamlreader_helpers.py   # PIL import issue
-│   └── ...
-└── writers/
-    ├── archimateWriter.py           # no-any-return issues
-    ├── archiWriter.py               # no-any-return issues
-    └── ...
+pyproject.toml                          # ruff/mypy config changes
+
+src/pyArchimate/
+├── enums.py                            # UP042 noqa (StrEnum), UP045 auto-fix
+├── view.py                             # 54 untyped-defs, 46 UP045 auto-fix
+├── model.py                            # 34 untyped-defs, 22 UP045 auto-fix
+├── relationship.py                     # 25 untyped-defs, UP045 auto-fix
+├── element.py                          # 14 untyped-defs, 28 UP045 auto-fix
+├── constants.py                        # 7 untyped-defs, UP045/UP035 auto-fix
+├── helpers/properties.py               # 4 untyped-defs
+├── writers/__init__.py                 # 4 untyped-defs
+├── logger.py                           # 3 untyped-defs
+├── readers/archimateReader.py          # 12 untyped-defs, UP045 auto-fix
+├── readers/archiReader.py              # 3 untyped-defs
+├── readers/_arisamlreader_helpers.py   # 9 UP045 auto-fix
+└── ...                                 # remaining readers/writers
 
 tests/
+├── legacy_integration/
+│   └── test_pyArchimate_legacy.py      # per-file-ignore PT009 (102 violations)
 ├── unit/
-├── integration/
-├── legacy_unit/         # Excluded from static analysis
-├── legacy_integration/  # Excluded from static analysis
-└── features/            # BDD
-
-pyproject.toml           # Tool config changes land here
-sonar-project.properties # SonarCloud exclusions (unchanged)
+│   ├── test_model.py                   # PT011/PT018 fixes
+│   ├── test_view.py                    # PT011/PT018 fixes
+│   ├── test_element.py                 # PT011/PT018 fixes
+│   ├── test_relationship.py            # PT011/PT018 fixes
+│   └── ...                             # remaining PT fixes
+└── ...
 ```
 
-**Structure Decision**: Single-project library layout. No new files needed beyond config edits and targeted source fixes.
+**Structure Decision**: Existing project structure; no new directories or files created.
 
 ## Complexity Tracking
 
-**TDD deviation (Constitution II)**: This feature modifies only tool configuration (`pyproject.toml`) and repairs pre-existing static-analysis violations in existing code. No new business logic is introduced, so the Red-Green-Refactor cycle does not apply. The existing test suite remains the correctness gate; every task includes a tool-run verification step before commit.
+No constitution violations requiring justification.
 
----
+## Implementation Phases
 
-## Phase 0: Research
+### Phase A — Ruff UP Rule Set (auto-fix + 2 manual decisions)
 
-*Resolved unknowns captured in [research.md](./research.md).*
+**Violations**: 126 total (121 auto-fixable, 5 manual)
 
----
+| Rule | Count | Fix Strategy |
+|------|-------|-------------|
+| UP045 | 95 | `ruff --fix` — `Optional[X]` → `X \| None` |
+| UP037 | 14 | `ruff --fix` — remove quotes from annotations |
+| UP024 | 5 | `ruff --fix` — `os.error` → `OSError` |
+| UP042 | 4 | **Ignore** — `StrEnum` requires Python 3.11+; project supports 3.10+. Add `UP042` to global ruff `ignore` list. |
+| UP015 | 3 | `ruff --fix` — remove redundant open modes |
+| UP035 | 3 | `ruff --fix` — update deprecated imports |
+| UP030 | 1 | **Manual** — fix format literal |
+| UP032 | 1 | `ruff --fix` |
 
-## Phase 1: Design
+**Steps**:
+1. Add `"UP042"` to `tool.ruff.lint.ignore` with comment `# StrEnum requires Python 3.11+; project supports 3.10+`
+2. Run `ruff check --fix --select UP` (fixes 121)
+3. Manually fix UP030 (1 format literal)
+4. Uncomment `"UP"` in `tool.ruff.lint.select`
+5. Verify `ruff check` passes with UP enabled
 
-### Tool-by-Tool Implementation Plan
+### Phase B — Ruff PT Rule Set (per-file-ignore + mechanical fixes)
 
-Work proceeds in the following order to minimize interference between changes:
+**Violations**: 163 total → 61 after legacy exclusion → 10 after auto-fix + manual
 
-#### Batch 1 — SonarCloud Remediation (User Story 1)
+| Rule | Count | Location | Fix Strategy |
+|------|-------|----------|-------------|
+| PT009 | 102 | `tests/legacy_integration/` only | per-file-ignore (unittest-style tests preserved by policy) |
+| PT011 | 35 | unit tests | Add `match=` param to `pytest.raises()` or `# noqa: PT011` with justification per case |
+| PT018 | 16 | unit tests + src | Split `assert a and b` → `assert a\nassert b` |
+| PT001 | 9 | unit tests | `ruff --fix` — remove fixture parentheses |
+| PT006 | 1 | unit tests | Manual — fix parametrize name format |
 
-1. Query the SonarCloud API (URL in spec References) with the project SONAR_TOKEN from `.env` to retrieve all open CRITICAL/MAJOR/MINOR issues.
-2. Triage each issue:
-   - **Bug / Code Smell**: Fix inline.
-   - **False positive (e.g., lxml dynamic types)**: Add `# NOSONAR <reason>` comment.
-   - **Security hotspot**: Verify, fix or accept with justification.
-3. Run `scripts/pre_commit_checks.sh` to verify no regressions.
-4. Commit: `fix(sonar): resolve remaining SonarCloud issues`
+**Steps**:
+1. Add `per-file-ignores` entry: `"tests/legacy_integration/*.py" = ["PT009"]`
+2. Run `ruff check --fix --select PT` (fixes PT001 x9)
+3. Fix PT018 (16): mechanically split compound assertions
+4. Fix PT011 (35): add `match=` where regex is clear; use `# noqa: PT011  # broad raise is intentional` where not
+5. Fix PT006 (1): manual parametrize fix
+6. Uncomment `"PT"` in `tool.ruff.lint.select`
+7. Verify `ruff check` passes with PT enabled
 
-#### Batch 2 — Remove Obsolete Ruff Ignores + Enable C901 (User Story 5 + Story 2 prerequisite)
+### Phase C — Mypy `disallow_untyped_defs` (add type annotations)
 
-Current ruff ignore list: `["E501", "C901", "N999", "PLC0415"]`
+**Violations**: 162 across 13 source files (view.py 54, model.py 34, relationship.py 25, element.py 14, archimateReader.py 12, constants.py 7, writers/__init__.py 4, helpers/properties.py 4, logger.py 3, archiReader.py 3, others ~2)
 
-**C901 (complexity)**: 6 violations remain in src. Each function is evaluated:
-- If complexity is addressable (extract helper), fix it.
-- Remove `"C901"` from the ignore list once clean.
-- Commit: `fix(ruff): resolve remaining C901 complexity violations`
+**Strategy**: Add return-type and parameter-type annotations to all 162 unannotated functions. Work file-by-file, largest first. Use `Any` sparingly with justification; prefer concrete types or `object`.
 
-**PLC0415 (non-top-level import)**: Audit dynamic import usage. If the pattern is truly needed, replace the global ignore with a `# noqa: PLC0415  # dynamic import required for <reason>` at the call site. Remove from ignore list.
-- Commit: `fix(ruff): replace PLC0415 global ignore with targeted suppressions`
+**Steps**:
+1. Enable `disallow_untyped_defs = true` in pyproject.toml (temporarily comment out `false`)
+2. File-by-file: run `mypy src/pyArchimate/<file>.py` after each batch of annotations
+3. Order: view.py → model.py → relationship.py → element.py → archimateReader.py → constants.py → writers/__init__.py → helpers/properties.py → logger.py → remaining files
+4. Remove `disallow_untyped_defs = false` line and `# TODO(009-quality-uplift)` comment
+5. Verify `mypy src/` passes
 
-#### Batch 3 — Enable Ruff Rule Set `A` (User Story 2)
+### Phase D — Mypy `disallow_untyped_calls` (resolves after Phase C)
 
-Current violations: **6** (within 20-violation cap)
-- `A001`: 2 × builtin variable shadowing
-- `A003`: 4 × builtin attribute shadowing
+**Violations**: 89 — all calling our own unannotated functions (confirmed by sampling). Once Phase C adds annotations to those functions, these violations disappear.
 
-Fix each violation (rename the variable/attribute). Add `A` to `[tool.ruff.lint] select`.
-- Commit: `feat(ruff): enable A (builtin-shadowing) rule set`
+**Steps**:
+1. After Phase C, re-run `mypy src/ --disallow-untyped-calls` to confirm remaining count
+2. If 0 (expected): remove `disallow_untyped_calls = false` and TODO comment
+3. If residual violations remain: add `# type: ignore[no-untyped-call]  # <justification>` per call site
+4. Verify `mypy src/` passes with both flags enabled
 
-#### Batch 4 — Enable Ruff Rule Set `N` (User Story 2)
+### Phase E — Verification
 
-Current violations: **18** (within 20-violation cap)
-- `N999` (invalid module name): 11 hits — these are the `camelCase` module files already documented in the existing `N999` ignore. Evaluate whether to rename or suppress per-file.
-  - If files can be renamed without breaking imports: rename + update all import sites.
-  - If renaming breaks external API: add `# noqa: N999` to each affected module's top line and document why.
-  - Remove `"N999"` from the global ignore list in either case (replaced by targeted suppressions or eliminated).
-- `N811` (constant imported as non-constant): 6 hits — rename the import aliases.
-- `N802` (invalid function name): 1 hit — rename or suppress with justification.
-- Add `N` to `[tool.ruff.lint] select`.
-- Commit: `feat(ruff): enable N (naming) rule set`
-
-#### Batch 5 — Enable Ruff Rule Set `UP` (User Story 2) — Likely Deferred
-
-Current violations: **124** — exceeds 20-violation cap.  
-Most are auto-fixable (`ruff check --fix`); however, 5 involve `UP042` (replace-str-enum) and 1 involves `UP030`/`UP032` that require semantic review.
-
-Decision per clarification Q3: defer with documented TODO.
-- Add to `pyproject.toml`:
-  ```toml
-  # TODO(009-quality-uplift): Enable UP rule set once 124 violations are resolved
-  # "UP",
-  ```
-- Commit: `chore(ruff): document UP rule set as deferred (124 violations > 20 cap)`
-
-#### Batch 6 — Enable Ruff Rule Set `PT` (User Story 2) — Deferred
-
-Current violations: **163** — far exceeds 20-violation cap.  
-Primarily `PT009` (unittest assertions in pytest, 102 hits) — requires converting all `self.assert*` calls to bare `assert` which touches legacy test files.
-
-Decision: defer with documented TODO.
-- Add to `pyproject.toml`:
-  ```toml
-  # TODO(009-quality-uplift): Enable PT rule set once 163 violations resolved
-  # Primarily PT009 (unittest assertions) in legacy tests
-  # "PT",
-  ```
-- Commit: `chore(ruff): document PT rule set as deferred (163 violations > 20 cap)`
-
-#### Batch 7 — Fix Pyright PIL Import Error (Prerequisite for pyright work)
-
-The only pyright error in the baseline is in `_arisamlreader_helpers.py:61`: `Import "PIL" could not be resolved`. Pillow is a declared runtime dependency. Fix by:
-- Adding `"PIL"` stubs via `types-pillow` if available, or adding a `# type: ignore[import-untyped]  # Pillow has no bundled stubs` comment.
-- Verify `pyright src/` passes with 0 errors.
-- Commit: `fix(pyright): suppress unresolvable PIL import`
-
-#### Batch 8 — Re-enable Suppressed Pyright Categories (User Story 3)
-
-After the PIL fix, probe each suppressed category:
-
-| Category | Baseline warnings (with "warning") | Action |
-|----------|------------------------------------|--------|
-| `reportAttributeAccessIssue` | 3 | Fix or suppress each, then promote to `"error"` |
-| `reportArgumentType` | 0 | Promote directly to `"error"` |
-| `reportOptionalMemberAccess` | 0 | Promote directly to `"error"` |
-| `reportMissingTypeStubs` | (inherited from PIL issue) | Promote to `"warning"` after PIL fixed |
-
-Steps for `reportAttributeAccessIssue`:
-1. Set to `"warning"`, run `pyright`, fix or justify each warning.
-2. Set to `"error"`, run `pyright`, confirm clean.
-3. Commit: `fix(pyright): re-enable reportAttributeAccessIssue at error level`
-
-Steps for `reportArgumentType` and `reportOptionalMemberAccess` (already 0 violations):
-1. Set both to `"error"`.
-2. Run `pyright`, confirm clean.
-3. Commit: `fix(pyright): re-enable reportArgumentType and reportOptionalMemberAccess`
-
-#### Batch 9 — Fix Mypy Errors (User Story 4)
-
-Current mypy errors (10 in 5 files):
-- **lxml stubs**: `lxml-stubs` is already in the `lint` dependency group. Ensure it is installed: `pip install lxml-stubs`. This should resolve the lxml import-untyped errors.
-- **PIL stubs**: Same fix as Batch 7. Add `types-pillow` or suppress.
-- **setuptools stubs**: `types-setuptools` is in the `lint` dependency group. Ensure installed.
-- **`no-any-return`** in `archimateWriter.py:390` and `archiWriter.py:372`: Add explicit return-type annotations or cast the return value.
-
-Steps:
-1. Install missing stubs: `pip install lxml-stubs types-setuptools types-pillow` (or add to pyproject dependencies if not already).
-2. Fix the two `no-any-return` errors with proper casts.
-3. Run `mypy src/`, confirm 0 errors.
-4. Commit: `fix(mypy): resolve all baseline type errors`
-
-Then evaluate the two disabled flags:
-- **`disallow_untyped_defs = false`**: Run `mypy src/ --disallow-untyped-defs` and count errors. If > 20, defer; if ≤ 20, fix and enable.
-- **`disallow_untyped_calls = false`**: Same probe. 
-
-#### Batch 10 — Remove Remaining Obsolete pyproject.toml Exclusions (User Story 5)
-
-After the above batches, audit:
-- `"E501"` — line-too-long: intentionally kept (formatter handles it). Retain with comment.
-- `"C901"` — removed in Batch 2 (or retained with updated comment if deferred).
-- `"N999"` — removed in Batch 4 (replaced by targeted suppressions).
-- `"PLC0415"` — removed in Batch 2 (replaced by targeted suppressions).
-- pyright `reportAttributeAccessIssue/reportArgumentType/reportOptionalMemberAccess`: removed in Batch 8.
-
-Final `pyproject.toml` audit commit: `chore: remove obsolete tool exclusions from pyproject.toml`
-
-### Interface Contracts
-
-This feature makes no changes to the public API of pyArchimate. No contracts document is needed.
-
-### Agent Context Update
-
-Update CLAUDE.md to reference this plan.
+1. `ruff check` — must pass (UP + PT + N + A + all existing rules)
+2. `pyright` — must pass (no regressions from type annotation changes)
+3. `mypy src/` — must pass with `disallow_untyped_defs = true` and `disallow_untyped_calls = true`
+4. `pytest tests/` — full test suite must pass
+5. Confirm zero `# TODO(009-quality-uplift)` markers remain in `pyproject.toml`
