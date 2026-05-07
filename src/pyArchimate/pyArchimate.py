@@ -8,6 +8,9 @@ from .constants import (
     ARCHI_CATEGORY as archi_category,  # noqa: F401,N811  # lowercase alias is the stable public API name
 )
 from .constants import (
+    ARIS_TYPE_MAP as ARIS_type_map,  # noqa: F401,N811  # lowercase alias used by arisAMLreader standalone fallback
+)
+from .constants import (
     DEFAULT_THEME as default_theme,  # noqa: F401,N811  # lowercase alias is the stable public API name
 )
 from .constants import RGBA as RGBA  # noqa: F401
