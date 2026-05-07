@@ -253,16 +253,129 @@ class SVGExportService:
         return bounds
 
     def _add_defs(self, svg: ET.Element) -> None:
-        """Add SVG definitions.
-
-        Arrowheads are now rendered inline as polygon elements rather than SVG markers.
-        This method is currently minimal but kept for future extensibility.
+        """Add SVG definitions (markers only - no symbol definitions).
 
         Args:
             svg: SVG root element
         """
-        # Create defs element in case it's needed for future use
-        ET.SubElement(svg, "defs")
+        defs = ET.SubElement(svg, "defs")
+
+        # Arrowhead marker (filled triangle) - for connections
+        marker = ET.SubElement(
+            defs,
+            "marker",
+            {
+                "id": "arrowhead",
+                "markerWidth": str(self.ARROWHEAD_SIZE),
+                "markerHeight": str(self.ARROWHEAD_SIZE),
+                "refX": str(self.ARROWHEAD_SIZE - 2),
+                "refY": str(self.ARROWHEAD_SIZE // 2),
+                "orient": "auto",
+            },
+        )
+
+        # Triangle polygon for arrowhead
+        ET.SubElement(
+            marker,
+            "polygon",
+            {
+                "points": f"0 0, {self.ARROWHEAD_SIZE} {self.ARROWHEAD_SIZE // 2}, 0 {self.ARROWHEAD_SIZE}",
+                "fill": "black",
+            },
+        )
+
+        # Relationship markers
+        # Filled arrow (for serving, access, etc.)
+        marker_filled = ET.SubElement(
+            defs,
+            "marker",
+            {
+                "id": "arrow-filled",
+                "markerWidth": "8",
+                "markerHeight": "8",
+                "refX": "6",
+                "refY": "4",
+                "orient": "auto",
+            },
+        )
+        ET.SubElement(
+            marker_filled,
+            "polygon",
+            {
+                "points": "0 0, 8 4, 0 8",
+                "fill": "black",
+            },
+        )
+
+        # Hollow arrow (for realization, etc.)
+        marker_hollow = ET.SubElement(
+            defs,
+            "marker",
+            {
+                "id": "arrow-hollow",
+                "markerWidth": "8",
+                "markerHeight": "8",
+                "refX": "6",
+                "refY": "4",
+                "orient": "auto",
+            },
+        )
+        ET.SubElement(
+            marker_hollow,
+            "polygon",
+            {
+                "points": "0 0, 8 4, 0 8",
+                "fill": "none",
+                "stroke": "black",
+                "stroke-width": "1",
+            },
+        )
+
+        # Diamond filled (for composition)
+        marker_diamond_filled = ET.SubElement(
+            defs,
+            "marker",
+            {
+                "id": "diamond-filled",
+                "markerWidth": "8",
+                "markerHeight": "8",
+                "refX": "4",
+                "refY": "4",
+                "orient": "auto",
+            },
+        )
+        ET.SubElement(
+            marker_diamond_filled,
+            "polygon",
+            {
+                "points": "4 0, 8 4, 4 8, 0 4",
+                "fill": "black",
+            },
+        )
+
+        # Diamond hollow (for aggregation)
+        marker_diamond_hollow = ET.SubElement(
+            defs,
+            "marker",
+            {
+                "id": "diamond-hollow",
+                "markerWidth": "8",
+                "markerHeight": "8",
+                "refX": "4",
+                "refY": "4",
+                "orient": "auto",
+            },
+        )
+        ET.SubElement(
+            marker_diamond_hollow,
+            "polygon",
+            {
+                "points": "4 0, 8 4, 4 8, 0 4",
+                "fill": "none",
+                "stroke": "black",
+                "stroke-width": "1",
+            },
+        )
 
     def _add_background(self, svg: ET.Element, width: float, height: float) -> None:
         """Add white background rectangle to SVG canvas.
@@ -757,45 +870,6 @@ class SVGExportService:
                 },
             )
 
-    def _calculate_arrowhead_points(
-        self,
-        endpoint: tuple[float, float],
-        direction_from: tuple[float, float],
-        arrow_size: float = 8.0,
-    ) -> str:
-        """Calculate polygon points for a filled triangle arrowhead.
-
-        Args:
-            endpoint: (x, y) position where arrowhead tip should be
-            direction_from: (x, y) of the point before endpoint (for direction)
-            arrow_size: Size of the arrowhead
-
-        Returns:
-            SVG polygon points string (e.g., "x1,y1 x2,y2 x3,y3")
-        """
-        ex, ey = endpoint
-        dx = direction_from[0] - ex
-        dy = direction_from[1] - ey
-
-        # Normalize direction
-        dist = math.sqrt(dx * dx + dy * dy)
-        if dist < 0.1:
-            return f"{ex},{ey} {ex},{ey} {ex},{ey}"
-
-        dx /= dist
-        dy /= dist
-
-        # Create triangle pointing in direction of line
-        perp_x = -dy
-        perp_y = dx
-
-        # Triangle vertices (pointing along dx, dy direction)
-        p1 = (ex + dx * arrow_size, ey + dy * arrow_size)  # Tip
-        p2 = (ex - perp_x * arrow_size / 2, ey - perp_y * arrow_size / 2)  # Base corner 1
-        p3 = (ex + perp_x * arrow_size / 2, ey + perp_y * arrow_size / 2)  # Base corner 2
-
-        return f"{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]}"
-
     def _render_relationship(
         self,
         svg: ET.Element,
@@ -871,39 +945,19 @@ class SVGExportService:
         if stroke_dasharray:
             polyline_attrs["stroke-dasharray"] = stroke_dasharray
 
-        ET.SubElement(svg, "polyline", polyline_attrs)
-
-        # Render inline arrowhead polygons at the end of the line
-        # (instead of using SVG markers)
-        if len(points) >= 2 and relationship_style.marker_end and rel_type not in (
+        # Add markers if specified
+        # Composition and Aggregation show start marker (diamond) only
+        if relationship_style.marker_start:
+            polyline_attrs["marker-start"] = relationship_style.marker_start
+        if relationship_style.marker_end and rel_type not in (
             "CompositionRelationship",
             "Composition",
             "AggregationRelationship",
             "Aggregation",
         ):
-            # Calculate arrowhead at the end of the polyline
-            arrow_points = self._calculate_arrowhead_points(points[-1], points[-2], arrow_size=8.0)
+            polyline_attrs["marker-end"] = relationship_style.marker_end
 
-            # Determine arrowhead fill based on marker_end style
-            is_hollow = "hollow" in relationship_style.marker_end.lower()
-
-            # Build arrowhead polygon attributes
-            arrowhead_attrs = {
-                "points": arrow_points,
-                "fill": "none" if is_hollow else stroke_color,
-                "stroke": "none" if not is_hollow else stroke_color,
-            }
-
-            # Apply stroke properties if hollow
-            if is_hollow:
-                arrowhead_attrs["stroke-width"] = str(stroke_width)
-                arrowhead_attrs["stroke-linejoin"] = "miter"
-
-            # Apply dash pattern if specified (to match relationship line)
-            if stroke_dasharray:
-                arrowhead_attrs["stroke-dasharray"] = stroke_dasharray
-
-            ET.SubElement(svg, "polygon", arrowhead_attrs)
+        ET.SubElement(svg, "polyline", polyline_attrs)
 
         # Render relationship label
         label_text = self._get_short_type_name(rel_type)
@@ -961,21 +1015,9 @@ class SVGExportService:
                 "fill": "none",
                 "stroke": "black",
                 "stroke-width": "1",
+                "marker-end": "url(#arrowhead)",
             },
         )
-
-        # Render inline arrowhead at the end of the polyline
-        if len(points) >= 2:
-            arrow_points = self._calculate_arrowhead_points(points[-1], points[-2], arrow_size=8.0)
-            ET.SubElement(
-                svg,
-                "polygon",
-                {
-                    "points": arrow_points,
-                    "fill": "black",
-                    "stroke": "none",
-                },
-            )
 
         # Render connection label
         rel_type = getattr(conn, "type", "Relationship")

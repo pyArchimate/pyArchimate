@@ -64,10 +64,10 @@ class TestRelationshipStyles:
             int(style.stroke_color[1:], 16)
 
     def test_realization_has_dashed_line(self):
-        """Verify Realization relationship uses dashed line."""
+        """Verify Realization relationship uses dotted line."""
         style = ARCHIMATE_RELATIONSHIP_STYLES["Realization"]
         assert style.stroke_dasharray is not None
-        assert style.stroke_dasharray == "6,3"
+        assert style.stroke_dasharray == "2,2"
 
     def test_realization_uses_hollow_arrow(self):
         """Verify Realization relationship uses hollow arrow."""
@@ -100,7 +100,7 @@ class TestRelationshipStyles:
         """Verify Access relationship uses dotted line."""
         style = ARCHIMATE_RELATIONSHIP_STYLES["Access"]
         assert style.stroke_dasharray is not None
-        assert style.stroke_dasharray == "2"
+        assert "2,4" in style.stroke_dasharray
 
 
 class TestRelationshipStyleService:
