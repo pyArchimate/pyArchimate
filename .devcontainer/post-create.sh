@@ -54,6 +54,11 @@ echo -e "\n🤖 Installing Specify CLI..."
 run_command "uv tool install specify-cli --from git+https://github.com/github/spec-kit.git"
 echo "✅ Done"
 
+# Installing PlantUML
+echo -e "\n🌱 Installing PlantUML..."
+run_command "sudo apt-get install -y plantuml"
+run_command "sudo curl -L https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar -o /usr/share/plantuml/plantuml.jar"
+echo "✅ Done"
 
 # Installing GitHub CLI
 echo -e "\n🐙 Installing GitHub CLI..."
