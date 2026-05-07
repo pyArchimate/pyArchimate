@@ -435,15 +435,7 @@ ARCHIMATE_SYMBOLS = {
         icon_viewbox="128 5 22 15",
         body_type="rect"
     ),
-    # ===== MISSING ELEMENTS - Added to complete the palette =====
-    "Capability": SymbolDefinition(
-        element_type="Capability",
-        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
-        viewBox="-0.5 -0.5 151 76",
-        bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#f5dbfb",
-        body_type="rect"
-    ),
+    # ===== ADDITIONAL SYMBOLS WITH PROPER DEFINITIONS =====
     "Contract": SymbolDefinition(
         element_type="Contract",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
@@ -452,36 +444,12 @@ ARCHIMATE_SYMBOLS = {
         default_color="#fffbdb",
         body_type="rect"
     ),
-    "CourseOfAction": SymbolDefinition(
-        element_type="CourseOfAction",
-        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
-        viewBox="-0.5 -0.5 151 76",
-        bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#f5dbfb",
-        body_type="rect"
-    ),
     "Deliverable": SymbolDefinition(
         element_type="Deliverable",
         svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#e8e8d0",
-        body_type="rect"
-    ),
-    "DeliverableComponent": SymbolDefinition(
-        element_type="DeliverableComponent",
-        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
-        viewBox="-0.5 -0.5 151 76",
-        bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#e8e8d0",
-        body_type="rect"
-    ),
-    "DistributionNetwork": SymbolDefinition(
-        element_type="DistributionNetwork",
-        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
-        viewBox="-0.5 -0.5 151 76",
-        bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#daf0e0",
         body_type="rect"
     ),
     "Group": SymbolDefinition(
@@ -508,14 +476,6 @@ ARCHIMATE_SYMBOLS = {
         default_color="#fffbdb",
         body_type="rect"
     ),
-    "Material": SymbolDefinition(
-        element_type="Material",
-        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
-        viewBox="-0.5 -0.5 151 76",
-        bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#daf0e0",
-        body_type="rect"
-    ),
     "Meaning": SymbolDefinition(
         element_type="Meaning",
         svg_path="M 0 10 L 10 0 L 140 0 L 150 10 L 150 65 L 140 75 L 10 75 L 0 65 Z",
@@ -538,14 +498,6 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        body_type="rect"
-    ),
-    "Resource": SymbolDefinition(
-        element_type="Resource",
-        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
-        viewBox="-0.5 -0.5 151 76",
-        bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#f5dbfb",
         body_type="rect"
     ),
     "TechnologyCollaboration": SymbolDefinition(
@@ -573,14 +525,6 @@ ARCHIMATE_SYMBOLS = {
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#ffe8d0",
         body_type="path"
-    ),
-    "ValueStream": SymbolDefinition(
-        element_type="ValueStream",
-        svg_path="M 0 0 L 150.0 0 L 150.0 75.0 L 0 75.0 Z",
-        viewBox="-0.5 -0.5 151 76",
-        bounding_box=(-0.5, -0.5, 151.0, 76.0),
-        default_color="#f5dbfb",
-        body_type="rect"
     ),
     "WorkPackage": SymbolDefinition(
         element_type="WorkPackage",
