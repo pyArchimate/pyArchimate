@@ -80,9 +80,8 @@ poetry self add poetry-plugin-export
 Then regenerate:
 
 ```bash
-poetry export --without-hashes -f requirements.txt -o requirements.txt
-poetry export --without-hashes -f requirements.txt --only docs -o docs/requirements.txt
-git add requirements.txt docs/requirements.txt
+poetry export --without-hashes -f requirements.txt --with docs -o requirements.txt
+git add requirements.txt
 git diff --cached --quiet || git commit -m "chore: regenerate requirements files"
 ```
 
