@@ -144,11 +144,11 @@ def default_color(elem_type: str, theme: Any = DEFAULT_THEME) -> str:
     :return: #Hex color str
     """
     default_colors = {'strategy': '#F5DEAA', 'business': "#FFFFB5", 'application': "#B5FFFF", 'technology': "#C9E7B7",
-                      'physical': "#C9E7B7", 'migration': "#FFE0E0", 'motivation': "#CCCCFF",
-                      'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
+                      'physical': "#C9E7B7", 'migration': "#FFE0E0", 'implementation & migration': "#FFE0E0",
+                      'motivation': "#CCCCFF", 'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
     aris_colors = {'strategy': '#D38300', 'business': "#F5C800", 'application': "#00A0FF", 'technology': "#6BA50E",
-                   'physical': "#6BA50E", 'migration': "#FFE0E0", 'motivation': "#F099FF",
-                   'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
+                   'physical': "#6BA50E", 'migration': "#FFE0E0", 'implementation & migration': "#FFE0E0",
+                   'motivation': "#F099FF", 'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
     if elem_type in ARCHI_CATEGORY:
         cat = ARCHI_CATEGORY[elem_type].lower()
 

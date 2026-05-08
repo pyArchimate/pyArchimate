@@ -39,7 +39,8 @@ def _create_folders(root: _Element) -> dict[str, _Element]:
         "/Strategy": f_strategy, "/Business": f_business, "/Application": f_application,
         "/Technology": f_technology, "/Motivation": f_motivation,
         "/Implementation & Migration": f_implementation, "/Other": f_other,
-        "/Physical": f_technology, "/Relations": f_relations, "/Views": f_views,
+        "/Physical": f_technology, "/Technology & Physical": f_technology,
+        "/Relations": f_relations, "/Views": f_views,
         "/Junction": f_other
     }
 
