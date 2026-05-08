@@ -1,3 +1,24 @@
+## v1.7.0 (2026-05-08)
+
+### Feat
+
+- **009**: incremental code quality uplift — ruff A+N, pyright warnings, mypy 2.0, sonar fixes
+- **009**: incremental code quality uplift — ruff A+N, pyright warnings, mypy 2.0, sonar fixes
+- **ruff**: enable N (naming) rule set; remove N999 global ignore; document UP and PT as deferred
+- **ruff**: enable A (builtin-shadowing) rule set
+
+### Fix
+
+- **writer**: handle conn-on-conn, missing color category, and folder mapping gaps
+- **reader**: handle forward relationship refs, Line connections, and conn-on-conn endpoints
+- **devcontainer**: restore PlantUML binary install lost in rebase conflict
+- **mypy**: upgrade to 2.0.0 and fix var-annotated errors
+- **sonar**: remove unused model parameter from _write_element (S1172)
+- **pyright**: re-enable reportAttributeAccessIssue, reportArgumentType, reportOptionalMemberAccess at warning level
+- **ruff**: resolve C901 complexity violations and replace PLC0415 global ignore with targeted suppressions
+- **009**: address speckit-analyze findings in spec, plan, and tasks
+- **009**: address speckit-analyze findings in spec and tasks
+
 ## v1.6.0 (2026-05-04)
 
 ### Feat
