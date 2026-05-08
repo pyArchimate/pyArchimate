@@ -340,25 +340,35 @@ def _get_xml_text(elem, tag, ns):
 
 def _read_view_connection(view, c, ns, merge_flg):
     # Skip view-only lines (xsi:type="Line") — no backing model relationship.
-    if c.get('relationshipRef') is None:
+    rel_ref = c.get('relationshipRef')
+    if not rel_ref:
+        log.debug(f"Skipping connection {c.get('identifier')}: no relationshipRef")
         return
+    source_id = c.get('source')
+    target_id = c.get('target')
     _uuid_c = None if merge_flg else c.get('identifier')
-    _c = view.add_connection(
-        ref=c.get('relationshipRef'),
-        source=c.get('source'),
-        target=c.get('target'),
-        uuid=_uuid_c,
-    )
-    _apply_conn_style(_c, c.find(ns + 'style'), ns)
-    for bp in c.findall(ns + 'bendpoint'):
-        _c.add_bendpoint(Point(bp.get('x'), bp.get('y')))
+    try:
+        _c = view.add_connection(
+            ref=rel_ref,
+            source=source_id,
+            target=target_id,
+            uuid=_uuid_c,
+        )
+        _apply_conn_style(_c, c.find(ns + 'style'), ns)
+        for bp in c.findall(ns + 'bendpoint'):
+            _c.add_bendpoint(Point(bp.get('x'), bp.get('y')))
+    except (ValueError, KeyError) as e:
+        log.debug(f"Skipping connection {c.get('identifier')}: {e}")
 
 
 def _read_views(model, root, ns, xsi, pdef_merge_map, merge_flg):
     views_xml = root.find(ns + 'views')
     if views_xml is None:
         return
-    for v in views_xml.find(ns + 'diagrams').findall(ns + 'view'):
+    diagrams_xml = views_xml.find(ns + 'diagrams')
+    views = diagrams_xml.findall(ns + 'view') if diagrams_xml is not None else []
+
+    for v in views:
         _uuid = v.get('identifier')
         if merge_flg and _uuid in model.views_dict:
             model.views_dict[_uuid].delete()
@@ -372,6 +382,10 @@ def _read_views(model, root, ns, xsi, pdef_merge_map, merge_flg):
         _assign_viewpoint(_v, (v.get('viewpoint') or '').strip().lower(), 'set_primary_viewpoint')
         for n in v.findall(ns + 'node'):
             _add_node(_v, n, ns, xsi, model, merge_flg)
+
+    for v in views:
+        _uuid = v.get('identifier')
+        _v = model.views_dict[_uuid]
         for c in v.findall(ns + 'connection'):
             _read_view_connection(_v, c, ns, merge_flg)
 

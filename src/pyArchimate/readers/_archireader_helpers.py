@@ -24,8 +24,12 @@ def _parse_node_type(parent: Any, child: Any, xsi: str) -> Any:
     type_n = child.get(xsi + 'type').split(':')[1]
     if type_n == 'DiagramObject':
         node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'))
-        if node is not None and node.concept.prop('label') is not None:
-            node.label_expression = str(node.concept.prop('label'))
+        if node is not None:
+            try:
+                if node.concept.prop('label') is not None:
+                    node.label_expression = str(node.concept.prop('label'))
+            except Exception as e:
+                log.debug(f"Failed to set label expression for node {getattr(node, 'uuid', None)}: {e}")
     elif type_n == 'Group':
         node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'),
                           node_type='Container', label=child.get('name'))
@@ -134,7 +138,7 @@ def _resolve_bp_coords(bp: Any, source_node: Any, target_node: Any) -> tuple[int
 def _parse_connection(sc: Any, parent: View) -> None:
     ref = sc.get('archimateRelationship')
     if ref not in parent.model.rels_dict:
-        log.warning(f'Unknown connection ref {ref}')
+        log.debug(f'Unknown connection ref {ref}')
         return
     try:
         conn = parent.add_connection(ref=ref, source=sc.get('source'),
@@ -175,8 +179,7 @@ def _resolve_rel_endpoints(e: Any, model: Any) -> tuple[Any, Any] | None:
     src_id, dst_id = e.get('source'), e.get('target')
     if (src_id not in model.elems_dict and src_id not in model.rels_dict) \
             or (dst_id not in model.elems_dict and dst_id not in model.rels_dict):
-        log.warning(f"Invalid {src_id} or {dst_id}")
-        return None
+        return None  # Will retry in next pass
     src = model.elems_dict[src_id] if src_id in model.elems_dict else model.rels_dict[src_id]
     dst = model.elems_dict[dst_id] if dst_id in model.elems_dict else model.rels_dict[dst_id]
     return src, dst
@@ -301,7 +304,9 @@ def get_folders_elem(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_pat
         get_folders_elem(f, model, xsi, merge_flg, folder)
 
 
-def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path: str = '') -> None:
+def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path: str = '', unresolved: list[Any] | None = None) -> None:  # noqa: C901
+    if unresolved is None:
+        unresolved = []
     folder = folder_path + '/' + tag.get('name')
     for e in tag.findall('element'):
         type_e = e.get(xsi + 'type').split(':')[1]
@@ -310,6 +315,7 @@ def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path
         type_e = type_e[:-len("Relationship")]
         endpoints = _resolve_rel_endpoints(e, model)
         if endpoints is None:
+            unresolved.append((e, type_e, folder))
             continue
         src, dst = endpoints
         if merge_flg and e.get('id') in model.rels_dict:
@@ -320,7 +326,32 @@ def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path
         elem.folder = folder
         _parse_rel_attributes(elem, e)
     for f in tag.findall('folder'):
-        get_folders_rel(f, model, xsi, merge_flg, folder)
+        get_folders_rel(f, model, xsi, merge_flg, folder, unresolved)
+
+    if folder_path == '':
+        max_retries = len(unresolved) + 1
+        for _retry_count in range(max_retries):
+            still_unresolved = []
+            for e, type_e, folder in unresolved:
+                endpoints = _resolve_rel_endpoints(e, model)
+                if endpoints is not None:
+                    src, dst = endpoints
+                    if merge_flg and e.get('id') in model.rels_dict:
+                        elem = model.rels_dict[e.get('id')]
+                    else:
+                        elem = model.add_relationship(rel_type=type_e, name=e.get('name'), uuid=e.get('id'),
+                                                      source=src, target=dst, profile=e.get('profiles'))
+                    elem.folder = folder
+                    _parse_rel_attributes(elem, e)
+                else:
+                    still_unresolved.append((e, type_e, folder))
+
+            if not still_unresolved:
+                break
+            unresolved = still_unresolved
+
+        for e, _type_e, _folder in still_unresolved:
+            log.debug(f"Unable to resolve relationship {e.get('id')}: endpoints not found")
 
 
 def get_folders_view(tag: Any, model: Any, xsi: str, folder_path: str = '') -> None:

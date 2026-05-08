@@ -127,6 +127,7 @@ select = [
 ]
 ignore = [
     "E501",  # line too long — handled by formatter
+    "N999",  # pyArchimate is intentional CamelCase module name
 ]
 exclude = [
     "**/node_modules",

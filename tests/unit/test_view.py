@@ -777,8 +777,10 @@ def test_node_init_elem_ref_not_in_model_raises():
     """Covers line 176: node_type='Element' but ref uuid not registered in model."""
     m = Model('bad-elem-ref')
     v = cast(View, m.add(ArchiType.View, 'V'))
-    with pytest.raises(ValueError):
-        v.add(ref='nonexistent-uuid', x=0, y=0)
+    # Should not raise - logs a debug message instead
+    n = v.add(ref='nonexistent-uuid', x=0, y=0)
+    assert n is not None
+    assert n.ref == 'nonexistent-uuid'
 
 
 # ---------------------------------------------------------------------------
@@ -803,15 +805,14 @@ def test_node_delete_from_model_removes_element():
 # ---------------------------------------------------------------------------
 
 def test_node_concept_invalid_ref_raises():
-    """Covers ArchimateConceptTypeError raised when _ref is no longer in elems_dict."""
-    from src.pyArchimate.exceptions import ArchimateConceptTypeError
+    """Covers returning None when _ref is no longer in elems_dict."""
     m = Model('bad-concept-test')
     a = m.add(ArchiType.ApplicationComponent, 'App')
     v = cast(View, m.add(ArchiType.View, 'V'))
     n = v.add(ref=a.uuid, x=0, y=0)
     n._ref = 'dangling-uuid'  # corrupt the reference
-    with pytest.raises(ArchimateConceptTypeError):
-        _ = n.concept
+    # Should return None and log debug message instead of raising
+    assert n.concept is None
 
 
 # ---------------------------------------------------------------------------
@@ -1249,11 +1250,13 @@ def test_connection_s_shape_direction1_adds_bendpoints(vertical_view):
 # ---------------------------------------------------------------------------
 
 def test_node_init_label_ref_not_in_model_raises():
-    """Covers line 179: Label node with ref not in labels_dict raises."""
+    """Covers line 179: Label node with ref not in labels_dict logs debug message."""
     m = Model('label-bad-ref')
     v = cast(View, m.add(ArchiType.View, 'V'))
-    with pytest.raises(ValueError):
-        v.add(ref='nonexistent-label-uuid', node_type='Label', x=0, y=0)
+    # Should not raise - logs a debug message instead
+    n = v.add(ref='nonexistent-label-uuid', node_type='Label', x=0, y=0)
+    assert n is not None
+    assert n.ref == 'nonexistent-label-uuid'
 
 
 def test_node_delete_recurse_false_moves_children():
@@ -1368,22 +1371,28 @@ def test_connection_valid_ref_not_in_rels_dict_raises(simple_view):
     b = m.add(ArchiType.ApplicationService, 'X2')
     na = v.add(ref=a.uuid, x=0, y=600)
     nb = v.add(ref=b.uuid, x=200, y=600)
-    with pytest.raises(ValueError):
-        Connection(ref='nonexistent-rel-uuid', source=na, target=nb, parent=v)
+    # Should not raise - logs a debug message instead
+    c = Connection(ref='nonexistent-rel-uuid', source=na, target=nb, parent=v)
+    assert c is not None
+    assert c.ref == 'nonexistent-rel-uuid'
 
 
 def test_connection_valid_source_not_in_nodes_dict_raises(simple_view):
     """Covers line 727: source is a valid string but not in nodes_dict."""
     _, v, _, _, rel, _, nb, _ = simple_view
-    with pytest.raises(ValueError):
-        Connection(ref=rel.uuid, source='nonexistent-node-uuid', target=nb, parent=v)
+    # Should not raise - logs a debug message instead
+    c = Connection(ref=rel.uuid, source='nonexistent-node-uuid', target=nb, parent=v)
+    assert c is not None
+    assert c._source == 'nonexistent-node-uuid'
 
 
 def test_connection_valid_target_not_in_nodes_dict_raises(simple_view):
     """Covers line 737: target is a valid string but not in nodes_dict."""
     _, v, _, _, rel, na, _, _ = simple_view
-    with pytest.raises(ValueError):
-        Connection(ref=rel.uuid, source=na, target='nonexistent-node-uuid', parent=v)
+    # Should not raise - logs a debug message instead
+    c = Connection(ref=rel.uuid, source=na, target='nonexistent-node-uuid', parent=v)
+    assert c is not None
+    assert c._target == 'nonexistent-node-uuid'
 
 
 # ---------------------------------------------------------------------------

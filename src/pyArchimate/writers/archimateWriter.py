@@ -318,7 +318,9 @@ def _write_conn_style(c_elem: _Element, c: Any) -> None:
 
 def _write_connections(view_elem: _Element, _v: object, xsi: et.QName) -> None:
     for c in _v.conns:  # type: ignore[attr-defined]
-        assert c.source is not None and c.target is not None
+        if c.source is None or c.target is None:
+            log.debug(f"Skipping connection {c.uuid}: missing source or target node")
+            continue
         if _is_node_embedded(c.source, c.target) or _is_node_embedded(c.target, c.source):
             continue
         c_elem = et.SubElement(view_elem, 'connection', attrib={
