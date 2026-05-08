@@ -220,6 +220,7 @@ def _process_one_relationship(model, r, ns, xsi, pdef_merge_map, merge_flg):
         rel.name = name
         rel.desc = desc
     else:
+        # influenceStrength may be an XML attribute (old files) or a property (new export)
         rel = model.add_relationship(
             source=r.get('source'),
             target=r.get('target'),
@@ -233,6 +234,10 @@ def _process_one_relationship(model, r, ns, xsi, pdef_merge_map, merge_flg):
         if r.get('isDirected') == 'true':
             rel.is_directed = True
         _read_props(rel, r, ns, pdef_merge_map, model)
+        # Promote influenceStrength from generic props to dedicated attribute
+        # (written as a property in the OpenGroup format by the writer)
+        if rel.influence_strength is None and 'influenceStrength' in rel.props:
+            rel.influence_strength = str(rel.props.pop('influenceStrength'))
 
 
 def _read_relationships(model, root, ns, xsi, pdef_merge_map, merge_flg):

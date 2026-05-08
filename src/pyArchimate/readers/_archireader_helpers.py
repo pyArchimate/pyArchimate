@@ -104,15 +104,30 @@ def get_node(tag: Any, parent: Any, xsi: str) -> None:
 
 
 def _resolve_bp_coords(bp: Any, source_node: Any, target_node: Any) -> tuple[int, int]:
-    x, y = 0, 0
-    if bp.get('startX') is not None:
-        x = int(bp.get('startX')) + source_node.cx
-    if bp.get('startY') is not None:
-        y = int(bp.get('startY')) + source_node.cy
-    if bp.get('endX') is not None:
+    # In Archi's format startX/startY are offsets from the SOURCE centre;
+    # endX/endY are offsets from the TARGET centre.  Both encode the same
+    # physical point for round-trip stability when nodes move.
+    # When an attribute is absent the implied offset is 0, i.e. the bendpoint
+    # sits at the node centre on that axis.
+    # Priority: endX/endY take precedence over startX/startY when both present.
+    has_start_x = bp.get('startX') is not None
+    has_start_y = bp.get('startY') is not None
+    has_end_x   = bp.get('endX') is not None
+    has_end_y   = bp.get('endY') is not None
+
+    if has_end_x:
         x = int(bp.get('endX')) + target_node.cx
-    if bp.get('endY') is not None:
+    elif has_start_x:
+        x = int(bp.get('startX')) + source_node.cx
+    else:
+        x = int(source_node.cx)  # offset = 0 → at source centre
+
+    if has_end_y:
         y = int(bp.get('endY')) + target_node.cy
+    elif has_start_y:
+        y = int(bp.get('startY')) + source_node.cy
+    else:
+        y = int(source_node.cy)  # offset = 0 → at source centre
     return x, y
 
 
@@ -121,8 +136,12 @@ def _parse_connection(sc: Any, parent: View) -> None:
     if ref not in parent.model.rels_dict:
         log.warning(f'Unknown connection ref {ref}')
         return
-    conn = parent.add_connection(ref=ref, source=sc.get('source'),
-                                 target=sc.get('target'), uuid=sc.get('id'))
+    try:
+        conn = parent.add_connection(ref=ref, source=sc.get('source'),
+                                     target=sc.get('target'), uuid=sc.get('id'))
+    except (ValueError, KeyError) as exc:
+        log.warning(f'Skipping connection {sc.get("id")}: {exc}')
+        return
     if sc.get('fontColor') is not None:
         conn.font_color = sc.get('fontColor')
     if sc.get('lineColor') is not None:
@@ -130,18 +149,19 @@ def _parse_connection(sc: Any, parent: View) -> None:
     if sc.get('lineWidth') is not None:
         conn.line_width = int(sc.get('lineWidth'))
     conn.text_position = sc.get('textPosition')
-    source_node = (parent.model.nodes_dict[sc.get('source')]
-                   if sc.get('source') in parent.model.nodes_dict
-                   else parent.model.conns_dict[sc.get('source')])
-    target_node = (parent.model.nodes_dict[sc.get('target')]
-                   if sc.get('target') in parent.model.nodes_dict
-                   else parent.model.conns_dict[sc.get('target')])
+    source_id = sc.get('source')
+    target_id = sc.get('target')
+    source_node = (parent.model.nodes_dict.get(source_id)
+                   or parent.model.conns_dict.get(source_id))
+    target_node = (parent.model.nodes_dict.get(target_id)
+                   or parent.model.conns_dict.get(target_id))
     ft = sc.find('feature')
     if ft is not None and ft.get('name') == 'nameVisible':
         conn.show_label = parse_bool(ft.get('value'))
-    for bp in sc.findall('bendpoint'):
-        _x, _y = _resolve_bp_coords(bp, source_node, target_node)
-        conn.add_bendpoint(Point(_x, _y))
+    if source_node and target_node:
+        for bp in sc.findall('bendpoint'):
+            _x, _y = _resolve_bp_coords(bp, source_node, target_node)
+            conn.add_bendpoint(Point(_x, _y))
 
 
 def get_connection(tag: Any, parent: View) -> None:

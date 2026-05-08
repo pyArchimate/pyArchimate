@@ -81,7 +81,7 @@ def _write_elem_viewpoints(elem: _Element, e: Any, model: Model) -> None:
         pv.text = slug
 
 
-def _write_elem_visual_style(elem: _Element, e: Any) -> None:
+def _write_elem_visual_style(elem: _Element, e: Any, model: Model) -> None:
     visual_style = getattr(e, '_visual_style', {})
     if not visual_style:
         return
@@ -90,18 +90,23 @@ def _write_elem_visual_style(elem: _Element, e: Any) -> None:
         pp = et.SubElement(elem, 'properties')
     for key in ['fillColor', 'lineColor', 'lineWidth', 'transparency']:
         if key in visual_style:
-            p = et.SubElement(pp, 'property', key=key)
+            prop_id = _get_prop_def_id(model, key)
+            p = et.SubElement(pp, 'property', propertyDefinitionRef=prop_id)
             pv = et.SubElement(p, 'value')
             pv.text = str(visual_style[key])
 
 
-def _write_elem_junction_type(elem: _Element, e: Any) -> None:
+def _write_elem_junction_type(elem: _Element, e: Any, model: Model) -> None:
+    # Junction semantics are encoded in the element's xsi:type (OrJunction /
+    # AndJunction) written by _write_elements, so a redundant junctionType
+    # property is only written when the type is the plain 'Junction' fallback.
     junction_type = getattr(e, 'junction_type', None)
-    if junction_type:
+    if junction_type and getattr(e, 'type', None) == 'Junction':
         pp = elem.find('properties')
         if pp is None:
             pp = et.SubElement(elem, 'properties')
-        p = et.SubElement(pp, 'property', key='junctionType')
+        prop_id = _get_prop_def_id(model, 'junctionType')
+        p = et.SubElement(pp, 'property', propertyDefinitionRef=prop_id)
         pv = et.SubElement(p, 'value')
         pv.text = junction_type
 
@@ -117,7 +122,16 @@ def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
         if e.folder is None:
             e.folder = '/' + cat
 
-        elem_attrs = {'identifier': e.uuid, str(xsi): e.type}
+        # For Junction elements, map junction_type to the concrete xsi:type
+        elem_xsi_type = e.type
+        if e.type == 'Junction':
+            junction_type = getattr(e, 'junction_type', None)
+            if junction_type == 'or':
+                elem_xsi_type = 'OrJunction'
+            else:
+                elem_xsi_type = 'AndJunction'
+
+        elem_attrs = {'identifier': e.uuid, str(xsi): elem_xsi_type}
         # Add parentId if element has a parent
         parent_uuid = getattr(e, '_parent_uuid', None)
         if parent_uuid:
@@ -126,8 +140,8 @@ def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
         _write_elem_name_doc(elem, e)
         if e.props:
             _write_properties(elem, e.props, model)
-        _write_elem_visual_style(elem, e)
-        _write_elem_junction_type(elem, e)
+        _write_elem_visual_style(elem, e, model)
+        _write_elem_junction_type(elem, e, model)
         _write_elem_viewpoints(elem, e, model)
 
 
@@ -136,8 +150,6 @@ def _write_rel_attrs(elem: _Element, e: Any, model: Model) -> None:
         elem.set('accessType', e.access_type)
     if e.is_directed is not None and e.type == ArchiType.Association:
         elem.set('isDirected', "true")
-    if e.influence_strength is not None and e.type == ArchiType.Influence:
-        elem.set('influenceStrength', e.influence_strength)
     if e.name is not None:
         e_name = et.SubElement(elem, 'name')
         e_name.text = e.name
@@ -146,6 +158,14 @@ def _write_rel_attrs(elem: _Element, e: Any, model: Model) -> None:
         e_desc.text = e.desc
     if e.props:
         _write_properties(elem, e.props, model)
+    if e.influence_strength is not None and e.type == ArchiType.Influence:
+        pp = elem.find('properties')
+        if pp is None:
+            pp = et.SubElement(elem, 'properties')
+        prop_id = _get_prop_def_id(model, 'influenceStrength')
+        p = et.SubElement(pp, 'property', propertyDefinitionRef=prop_id)
+        pv = et.SubElement(p, 'value')
+        pv.text = e.influence_strength
 
 
 def _write_relationships(root: _Element, model: Model, xsi: et.QName) -> None:

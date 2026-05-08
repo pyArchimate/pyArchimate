@@ -81,6 +81,7 @@ def _write_element_metadata(e: _Element, elem: object, elem_type: str) -> None:
     if elem_type == 'Junction':
         junction_type = getattr(elem, 'junction_type', None)
         if junction_type is not None:
+            e.set('type', junction_type)
             et.SubElement(e, 'property', key='junctionType', value=junction_type)
     visual_style = getattr(elem, '_visual_style', {})
     for key in ['fillColor', 'lineColor', 'lineWidth', 'transparency']:
@@ -141,7 +142,7 @@ def _write_relationship(folders: dict[str, _Element], rel: object, xsi: et.QName
         r.set("directed", str(is_directed).lower())
     influence_strength = getattr(rel, 'influence_strength', None)
     if influence_strength is not None:
-        r.set("influenceStrength", influence_strength)
+        r.set("strength", influence_strength)
     desc = getattr(rel, 'desc', None)
     if desc is not None:
         doc = et.SubElement(r, 'documentation')

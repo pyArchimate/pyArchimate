@@ -126,10 +126,12 @@ def test_resolve_bp_coords_end_xy():
 
 
 def test_resolve_bp_coords_no_attrs():
+    # Absent attributes mean offset=0 from the source centre, so the bendpoint
+    # lands exactly at the source node centre (cx=50, cy=100).
     bp = etree.Element("bendpoint")
     x, y = _resolve_bp_coords(bp, _N(), _N())
-    assert x == 0
-    assert y == 0
+    assert x == 50
+    assert y == 100
 
 
 # =============================================================================
