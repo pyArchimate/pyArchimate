@@ -2,7 +2,7 @@
 import os
 import re
 import sys
-from typing import Any, Optional
+from typing import Any
 
 try:
     from ..constants import NAMED_COLORS, RGBA
@@ -19,7 +19,7 @@ __mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
-def _normalize_color_on_import(color_str: Optional[str]) -> Optional[str]:
+def _normalize_color_on_import(color_str: str | None) -> str | None:
     """
     Normalize color from import to hex format.
     Accepts hex (#RRGGBB) or named colors.
@@ -81,7 +81,7 @@ def _extract_visual_style_properties(elem_xml: Any, ns: str) -> dict[str, Any]:
     return style
 
 
-def _build_hierarchy_from_parents(model: Any, parent_map: dict[str, Optional[str]]) -> None:
+def _build_hierarchy_from_parents(model: Any, parent_map: dict[str, str | None]) -> None:
     """
     Build parent-child hierarchy after all elements are loaded.
     parent_map: dict of {child_uuid: parent_uuid}

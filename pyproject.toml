@@ -120,7 +120,7 @@ select = [
     "E", "F", "W", "B", "C", "I", "S110", "A", "N",
     # TODO(009-quality-uplift): Enable UP rule set — 124 violations exceed the 20-violation cap;
     # most are auto-fixable (ruff --fix) but UP042/UP032 need semantic review
-    # "UP",
+    "UP",
     # TODO(009-quality-uplift): Enable PT rule set — 163 violations exceed cap;
     # primarily PT009 (unittest assertions) in legacy tests
     # "PT",
@@ -128,6 +128,7 @@ select = [
 ignore = [
     "E501",  # line too long — handled by formatter
     "N999",  # pyArchimate is intentional CamelCase module name
+    "UP042", "UP032"  # need semantic review
 ]
 exclude = [
     "**/node_modules",

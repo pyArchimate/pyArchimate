@@ -393,7 +393,7 @@ def archi_writer(model: Model, file_path: str) -> str:
                 # Write plain XML for .xml format
                 with open(file_path, 'wb') as fd:
                     fd.write(xml_str)
-        except IOError:
+        except OSError:
             log.error(f'{__mod__}.write: Cannot write to file "{file_path}')
 
     return xml_str.decode()

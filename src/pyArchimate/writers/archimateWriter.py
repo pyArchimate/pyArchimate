@@ -2,7 +2,8 @@
 import os
 import sys
 from collections import defaultdict
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 from typing import cast as _cast
 
 from lxml import etree as et
@@ -366,7 +367,7 @@ def _write_views(root: _Element, model: Model, xsi: et.QName) -> None:
         _write_connections(view_elem, _v, xsi)
 
 
-def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
+def archimate_writer(model: Model, file_path: str | None = None) -> str:
     """
     Method to generate an Archimate XML Open Exchange File format structure as a string object
 
@@ -416,7 +417,7 @@ def archimate_writer(model: Model, file_path: Optional[str] = None) -> str:
         try:
             with open(file_path, 'wb') as fd:
                 fd.write(xml_str)
-        except IOError:
+        except OSError:
             log.error(f'{__mod__}.write: Cannot write to file "{file_path}')
 
     return xml_str.decode()

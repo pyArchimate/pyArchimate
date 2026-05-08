@@ -8,8 +8,9 @@ No external pyArchimate imports - this is a Layer 1 base module.
 """
 
 import os
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 import oyaml as yaml  # type: ignore[import-untyped]
 
@@ -134,7 +135,7 @@ def _initialize_archimate_metadata():
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
         checker_rules_path = os.path.join(__location__, "checker_rules.yml")
 
-        with open(checker_rules_path, "r") as fd:
+        with open(checker_rules_path) as fd:
             data = yaml.load(fd, Loader=yaml.Loader)
 
         # Populate the global dictionaries
@@ -175,7 +176,7 @@ class RGBA:
     @property
     def color(self):
         """Return #RRGGBB hex string."""
-        return '#{0:02x}{1:02x}{2:02x}'.format(self.r, self.g, self.b).upper()
+        return '#{:02x}{:02x}{:02x}'.format(self.r, self.g, self.b).upper()
 
     @color.setter
     def color(self, color_string):

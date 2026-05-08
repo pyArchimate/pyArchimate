@@ -166,8 +166,8 @@ class Relationship:
             if not hasattr(parent, "rels_dict"):
                 raise ValueError('Relationship class parent should be a class Model instance!')
 
-        self.parent: "Model" = cast("Model", parent)
-        self.model: "Model" = cast("Model", parent)
+        self.parent: Model = cast("Model", parent)
+        self.model: Model = cast("Model", parent)
         self._source = _resolve_and_validate_ref(source, self.parent.elems_dict, self.parent.rels_dict, 'source')
         self._target = _resolve_and_validate_ref(target, self.parent.elems_dict, self.parent.rels_dict, 'target')
 
@@ -176,7 +176,7 @@ class Relationship:
         self.name = name
         self.desc = desc
         self._properties = {}
-        self.folder: Optional[str] = None
+        self.folder: str | None = None
         self._profile = profile
         self._access_type = access_type
         self._influence_strength = influence_strength
