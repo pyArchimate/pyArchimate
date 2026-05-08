@@ -258,7 +258,16 @@ def _apply_orthogonal_routing(view: Any) -> None:
     if not conns:
         return
 
-    nodes_dict = getattr(view, 'nodes_dict', {})
+    def _collect_all_nodes(node_dict: dict[str, Any]) -> dict[str, Any]:
+        result = {}
+        for uuid, node in node_dict.items():
+            result[uuid] = node
+            child_dict = getattr(node, 'nodes_dict', {})
+            if child_dict:
+                result.update(_collect_all_nodes(child_dict))
+        return result
+
+    nodes_dict: dict[Any, Any] = _collect_all_nodes(getattr(view, 'nodes_dict', {}))
     if not nodes_dict:
         return
 
@@ -524,32 +533,22 @@ def _apply_orthogonal_routing(view: Any) -> None:
 
         if abs(dy) < 5:
             # ---- Same row or nearly horizontal ----
-            if dx > 0:
-                mid_x = (source_anchor[0] + target_anchor[0]) / 2.0
-            else:
-                mid_x = (source_anchor[0] + target_anchor[0]) / 2.0
-            conn.add_bendpoint(Point(int(round(source_anchor[0])), int(round(source_anchor[1]))))
+            mid_x = (source_anchor[0] + target_anchor[0]) / 2.0
             conn.add_bendpoint(Point(int(round(mid_x)), int(round(source_anchor[1]))))
             conn.add_bendpoint(Point(int(round(mid_x)), int(round(target_anchor[1]))))
-            conn.add_bendpoint(Point(int(round(target_anchor[0])), int(round(target_anchor[1]))))
 
         elif abs(dx) < 1 and tgt_dy == 0 and src_dy == 0:
-            # ---- Same column, single — straight vertical ----
-            conn.add_bendpoint(Point(int(round(source_anchor[0])), int(round(source_anchor[1]))))
-            conn.add_bendpoint(Point(int(round(target_anchor[0])), int(round(target_anchor[1]))))
+            # ---- Same column — SVG handles straight vertical with no bendpoints ----
+            pass
 
         elif src_row >= 0 and tgt_row >= 0 and abs(src_row - tgt_row) == 1:
             # ---- Adjacent rows: S-shape through the row gap ----
-            # Use tgt_dy to spread connections converging on the same target;
-            # src_dy would cancel with tgt_dy for symmetric connections.
             if going_down:
                 gap_y = _nearest_row_gap_below(sy, sh_half) + tgt_dy
             else:
                 gap_y = _nearest_row_gap_above(sy, sh_half) + tgt_dy
-            conn.add_bendpoint(Point(int(round(source_anchor[0])), int(round(source_anchor[1]))))
             conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y))))
             conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y))))
-            conn.add_bendpoint(Point(int(round(target_anchor[0])), int(round(target_anchor[1]))))
 
         else:
             # ---- Multi-row: two row-gaps bridged by a column gap ----
@@ -561,18 +560,14 @@ def _apply_orthogonal_routing(view: Any) -> None:
                 gap_y2 = _nearest_row_gap_below(ty, th_half) + tgt_dy
 
             if abs(gap_y1 - gap_y2) < 5:
-                conn.add_bendpoint(Point(int(round(source_anchor[0])), int(round(source_anchor[1]))))
                 conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y1))))
                 conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y1))))
-                conn.add_bendpoint(Point(int(round(target_anchor[0])), int(round(target_anchor[1]))))
             else:
                 col_gap_x = _nearest_col_gap((sx + tx) / 2.0)
-                conn.add_bendpoint(Point(int(round(source_anchor[0])), int(round(source_anchor[1]))))
                 conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y1))))
                 conn.add_bendpoint(Point(int(round(col_gap_x)), int(round(gap_y1))))
                 conn.add_bendpoint(Point(int(round(col_gap_x)), int(round(gap_y2))))
                 conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y2))))
-                conn.add_bendpoint(Point(int(round(target_anchor[0])), int(round(target_anchor[1]))))
 
 
 __all__ = [

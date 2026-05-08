@@ -117,7 +117,10 @@ def test_layout_result_attributes() -> None:
 
 
 def test_orthogonal_routing_places_same_row_source_anchor_on_edge() -> None:
-    """Same-row routed connections should start at the source edge, not the center."""
+    """Same-row connections get mid-point bendpoints between the two nodes.
+
+    Boundary anchors are computed by SVG export, not stored in bendpoints.
+    """
     model = Model("routing-test")
     view = model.add(ArchiType.View, "V")
 
@@ -131,13 +134,17 @@ def test_orthogonal_routing_places_same_row_source_anchor_on_edge() -> None:
     _apply_orthogonal_routing(view)
 
     bendpoints = conn.get_all_bendpoints()
-    assert len(bendpoints) >= 2
-    assert bendpoints[0].x == source_node.x + source_node.w
-    assert bendpoints[-1].x == target_node.x
+    assert len(bendpoints) == 2
+    mid_x = (source_node.x + source_node.w + target_node.x) / 2
+    assert bendpoints[0].x == int(round(mid_x))
+    assert bendpoints[1].x == int(round(mid_x))
 
 
 def test_orthogonal_routing_places_vertical_target_anchor_on_edge() -> None:
-    """Vertical routing should end at the target edge, not the center."""
+    """Vertical same-column connections need no bendpoints — SVG routes as straight line.
+
+    Boundary anchors are computed by SVG export, not stored in bendpoints.
+    """
     model = Model("routing-target-test")
     view = model.add(ArchiType.View, "V")
 
@@ -151,5 +158,4 @@ def test_orthogonal_routing_places_vertical_target_anchor_on_edge() -> None:
     _apply_orthogonal_routing(view)
 
     bendpoints = conn.get_all_bendpoints()
-    assert len(bendpoints) >= 2
-    assert bendpoints[-1].y == target_node.y
+    assert len(bendpoints) == 0

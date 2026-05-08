@@ -1317,7 +1317,16 @@ class SVGExportService:
         kept local to SVG export so the model itself is not mutated.
         """
         endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]] = {}
-        nodes_dict = getattr(view, "nodes_dict", {})
+        def _collect_all_nodes(node_dict: dict[str, Any]) -> dict[str, Any]:
+            result = {}
+            for uuid, node in node_dict.items():
+                result[uuid] = node
+                child_dict = getattr(node, "nodes_dict", {})
+                if child_dict:
+                    result.update(_collect_all_nodes(child_dict))
+            return result
+
+        nodes_dict: dict[Any, Any] = _collect_all_nodes(getattr(view, "nodes_dict", {}))
         conns = getattr(view, "conns", [])
 
         for node_uuid, node in nodes_dict.items():
