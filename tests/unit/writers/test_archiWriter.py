@@ -115,7 +115,14 @@ def test_archi_writer_connection_font_color(tmp_path):
 
 
 def test_archi_writer_connection_bendpoint_offsets_use_node_origin(tmp_path):
-    """Bendpoint offsets are written relative to the node top-left for Archi import."""
+    """Bendpoint offsets are written relative to the node CENTRE (Archi format spec).
+
+    Source: x=10, y=10, w=100, h=50  → cx=60, cy=35
+    Target: x=210, y=10, w=100, h=50 → cx=260, cy=35
+    Bendpoint absolute: (110, 50)
+    startX = 110 - 60 = 50,  startY = 50 - 35 = 15
+    endX   = 110 - 260 = -150, endY = 50 - 35 = 15
+    """
     model = Model('conn-bp-origin')
     a = model.add(ArchiType.ApplicationComponent, 'A')
     b = model.add(ArchiType.ApplicationService, 'B')
@@ -127,10 +134,10 @@ def test_archi_writer_connection_bendpoint_offsets_use_node_origin(tmp_path):
     conn.add_bendpoint(Point(110, 50))
     target = tmp_path / 'conn_bp_origin.archimate'
     xml_str = archi_writer(model, str(target))
-    assert 'startX="100"' in xml_str
-    assert 'startY="40"' in xml_str
-    assert 'endX="-100"' in xml_str
-    assert 'endY="40"' in xml_str
+    assert 'startX="50"' in xml_str
+    assert 'startY="15"' in xml_str
+    assert 'endX="-150"' in xml_str
+    assert 'endY="15"' in xml_str
 
 
 def test_archi_writer_node_icon_color_and_gradient(tmp_path):

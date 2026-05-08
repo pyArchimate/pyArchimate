@@ -203,29 +203,12 @@ def _write_connection(child: _Element, conn: object, xsi: et.QName) -> None:  # 
     text_position = getattr(conn, 'text_position', None)
     if text_position is not None:
         c.set('textPosition', text_position)
-    source_x = int(getattr(conn_source, 'x', conn_source.cx))
-    source_y = int(getattr(conn_source, 'y', conn_source.cy))
-    target_x = int(getattr(conn_target, 'x', conn_target.cx))
-    target_y = int(getattr(conn_target, 'y', conn_target.cy))
     for bp in getattr(conn, 'bendpoints', []):
-        bendpoint_attrs = {}
-        if hasattr(bp, 'startX') and bp.startX is not None:
-            bendpoint_attrs['startX'] = str(bp.startX)
-        else:
-            bendpoint_attrs['startX'] = str(int(bp.x - source_x))
-        if hasattr(bp, 'startY') and bp.startY is not None:
-            bendpoint_attrs['startY'] = str(bp.startY)
-        else:
-            bendpoint_attrs['startY'] = str(int(bp.y - source_y))
-        if hasattr(bp, 'endX') and bp.endX is not None:
-            bendpoint_attrs['endX'] = str(bp.endX)
-        else:
-            bendpoint_attrs['endX'] = str(int(bp.x - target_x))
-        if hasattr(bp, 'endY') and bp.endY is not None:
-            bendpoint_attrs['endY'] = str(bp.endY)
-        else:
-            bendpoint_attrs['endY'] = str(int(bp.y - target_y))
-        et.SubElement(c, 'bendpoint', bendpoint_attrs)
+        et.SubElement(c, 'bendpoint',
+                      startX=str(int(bp.x - conn_source.cx)),
+                      startY=str(int(bp.y - conn_source.cy)),
+                      endX=str(int(bp.x - conn_target.cx)),
+                      endY=str(int(bp.y - conn_target.cy)))
 
 
 def _set_node_visual_attrs(child: _Element, node: object) -> None:
