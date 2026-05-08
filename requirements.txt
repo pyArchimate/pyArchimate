@@ -4,3 +4,4 @@ pillow
 requests
 pytest
 sphinx-rtd-theme
+myst_parser
