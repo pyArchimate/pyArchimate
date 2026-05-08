@@ -176,7 +176,7 @@ class RGBA:
     @property
     def color(self):
         """Return #RRGGBB hex string."""
-        return '#{:02x}{:02x}{:02x}'.format(self.r, self.g, self.b).upper()
+        return f'#{self.r:02x}{self.g:02x}{self.b:02x}'.upper()
 
     @color.setter
     def color(self, color_string):
