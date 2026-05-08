@@ -71,6 +71,14 @@ poetry run scripts/pre_push_checks.sh
 
 ### 8. Regenerate requirements files
 
+`poetry export` requires the export plugin (one-time install):
+
+```bash
+poetry self add poetry-plugin-export
+```
+
+Then regenerate:
+
 ```bash
 poetry export --without-hashes -f requirements.txt -o requirements.txt
 poetry export --without-hashes -f requirements.txt --only docs -o docs/requirements.txt

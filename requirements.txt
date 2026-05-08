@@ -1,6 +1,9 @@
-lxml
-oyaml
-pillow
-requests
-pytest
-sphinx-rtd-theme
+certifi==2026.4.22 ; python_version >= "3.10" and python_version < "3.15"
+charset-normalizer==3.4.7 ; python_version >= "3.10" and python_version < "3.15"
+idna==3.13 ; python_version >= "3.10" and python_version < "3.15"
+lxml==6.1.0 ; python_version >= "3.10" and python_version < "3.15"
+oyaml==1.0 ; python_version >= "3.10" and python_version < "3.15"
+pillow==12.2.0 ; python_version >= "3.10" and python_version < "3.15"
+pyyaml==6.0.3 ; python_version >= "3.10" and python_version < "3.15"
+requests==2.33.1 ; python_version >= "3.10" and python_version < "3.15"
+urllib3==2.7.0 ; python_version >= "3.10" and python_version < "3.15"
