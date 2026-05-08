@@ -275,32 +275,36 @@ def step_strength_stored(context, strength):
 
 @then("the influenceStrength field is written to the relationship")
 def step_influencestrength_written(context):
-    """Verify influenceStrength attribute is written to relationship element."""
+    """Verify the strength attribute is written to the relationship element.
+
+    The native .archimate format uses 'strength' (Archi's schema attribute name).
+    """
     root = _parse_xml_from_file(context.export_path)
     found = False
     for elem in root.iter():
-        # Look for elements with InfluenceRelationship type
         xsi_type = elem.get(_XSI_TYPE_ATTR)
         if xsi_type and 'Influence' in xsi_type:
-            # Check if it has influenceStrength attribute
-            if elem.get('influenceStrength') is not None:
+            if elem.get('strength') is not None:
                 found = True
                 break
-    assert found, "influenceStrength attribute should be written to relationship"
+    assert found, "strength attribute should be written to InfluenceRelationship"
 
 
 @then('the strength value "{strength}" is preserved in the XML')
 def step_strength_preserved_in_xml(context, strength):
-    """Verify the strength value is preserved in XML."""
+    """Verify the strength value is preserved in XML.
+
+    Native .archimate format stores it as the 'strength' XML attribute.
+    """
     root = _parse_xml_from_file(context.export_path)
     found = False
     for elem in root.iter():
         xsi_type = elem.get(_XSI_TYPE_ATTR)
         if xsi_type and 'Influence' in xsi_type:
-            if elem.get('influenceStrength') == strength:
+            if elem.get('strength') == strength:
                 found = True
                 break
-    assert found, f"Strength value '{strength}' should be preserved in XML"
+    assert found, f"Strength value '{strength}' should be preserved in XML as 'strength' attribute"
 
 
 @then("the relationship is parsed successfully")
@@ -362,31 +366,31 @@ def step_strength_value_preserved(context):
 
 @then('the exported file uses "influenceStrength" (canonical field)')
 def step_canonical_field_used(context):
-    """Verify canonical influenceStrength attribute is used in export."""
+    """Verify the canonical strength attribute is used in export.
+
+    The native .archimate format uses 'strength' (Archi's schema attribute);
+    the legacy 'modifier' attribute must not appear.
+    """
     root = _parse_xml_from_file(context.export_path)
     found = False
     for elem in root.iter():
-        if elem.get('influenceStrength') is not None:
+        if elem.get('strength') is not None:
             found = True
             break
-    assert found, "Exported file should use canonical 'influenceStrength' attribute"
+    assert found, "Exported file should use 'strength' attribute (not legacy 'modifier')"
 
 
 @then("the file is compatible with modern tools")
 def step_file_compatible(context):
-    """Verify the exported file is compatible with modern tools."""
+    """Verify the exported file is compatible with modern tools.
+
+    Native format: 'strength' attribute on the element; no legacy 'modifier'.
+    """
     root = _parse_xml_from_file(context.export_path)
-    # Check that it uses influenceStrength (not modifier)
-    has_influencestrength = False
-    has_modifier = False
-    for prop in root.iter():
-        if 'property' in prop.tag.lower():
-            key = prop.get('key')
-            if key == 'influenceStrength':
-                has_influencestrength = True
-            elif key == 'modifier':
-                has_modifier = True
-    assert has_influencestrength or not has_modifier, "Should use canonical field"
+    has_strength = any(elem.get('strength') is not None for elem in root.iter())
+    has_modifier = any(elem.get('modifier') is not None for elem in root.iter())
+    assert has_strength or not has_modifier, \
+        "Should use 'strength' attribute and must not use legacy 'modifier'"
 
 
 @then("both relationships preserve their strength values correctly")
