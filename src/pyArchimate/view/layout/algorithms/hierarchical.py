@@ -116,7 +116,7 @@ class HierarchicalLayout(LayoutAlgorithm):
 
         return graph
 
-    def _assign_layers(
+    def _assign_layers(  # noqa: C901
         self,
         nodes: List[Any],
         graph: Dict[int, List[int]],

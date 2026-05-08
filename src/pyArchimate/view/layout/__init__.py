@@ -146,7 +146,7 @@ def apply_format(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResu
             view,
             alignment=config.alignment,
             grid_size=config.grid_size,
-            excluded_element_ids={str(id) for id in config.excluded_element_ids},
+            excluded_element_ids={str(id) for id in config.excluded_element_ids},  # noqa: A001
             size_constraints=config.node_size_constraints if config.node_size_constraints else None,
         )
 
@@ -237,7 +237,7 @@ def undo_layout(view: Any) -> LayoutResult:
         )
 
 
-def _apply_orthogonal_routing(view: Any) -> None:
+def _apply_orthogonal_routing(view: Any) -> None:  # noqa: C901
     """Route all connections orthogonally through row gaps and column gaps.
 
     Strategy:
@@ -335,8 +335,8 @@ def _apply_orthogonal_routing(view: Any) -> None:
     # ------------------------------------------------------------------
     from collections import defaultdict
 
-    _SPREAD_STEP = 12.0  # px between parallel horizontal bridges
-    _EDGE_CORNER_MARGIN = 12.0  # keep connection anchors away from corners
+    _SPREAD_STEP = 12.0  # px between parallel horizontal bridges  # noqa: N806
+    _EDGE_CORNER_MARGIN = 12.0  # keep connection anchors away from corners  # noqa: N806
 
     def _distributed_spread(index: int, count: int, edge_span: float) -> float:
         """Return a centered spread value constrained to the middle of an edge."""

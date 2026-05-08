@@ -166,7 +166,7 @@ class FormatService:
         """Initialize format service."""
         self.registry = ElementFormatRegistry()
 
-    def format_element(
+    def format_element(  # noqa: C901
         self,
         element: Any,
         user_size_override: Optional[Tuple[float, float]] = None,

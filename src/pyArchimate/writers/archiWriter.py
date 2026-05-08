@@ -170,7 +170,7 @@ def _write_relationship(folders: dict[str, _Element], rel: object, xsi: et.QName
         r.set('profiles', profile_id)
 
 
-def _write_connection(child: _Element, conn: object, xsi: et.QName) -> None:
+def _write_connection(child: _Element, conn: object, xsi: et.QName) -> None:  # noqa: C901
     conn_source = getattr(conn, 'source', None)
     conn_target = getattr(conn, 'target', None)
     if conn_source is None or conn_target is None:

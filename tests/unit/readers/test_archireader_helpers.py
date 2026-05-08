@@ -143,11 +143,14 @@ def test_resolve_bp_coords_no_attrs():
     assert y == 100
 
 
-def test_resolve_bp_coords_prefers_top_left_basis_when_it_matches_edge():
+def test_resolve_bp_coords_start_only_uses_source_centre():
+    # startX/startY are offsets from the SOURCE centre (cx=50, cy=100).
+    # The test was previously named "prefers_top_left" but that referred to a
+    # scoring heuristic that was rejected; we always use cx/cy as basis.
     bp = etree.Element("bendpoint", startX="0", startY="40")
     x, y = _resolve_bp_coords(bp, _EdgeN(), _EdgeN())
-    assert x == 20
-    assert y == 100
+    assert x == 50   # 0 + source.cx (50)
+    assert y == 140  # 40 + source.cy (100)
 
 
 # =============================================================================

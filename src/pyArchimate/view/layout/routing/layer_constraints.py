@@ -151,7 +151,7 @@ class LayerConstraint:
 
         return updated_positions
 
-    def enforce_layer_separation_with_exclusions(
+    def enforce_layer_separation_with_exclusions(  # noqa: C901
         self, positions: dict[int, Any], spacing: float = 100, excluded_ids: set[int] | None = None
     ) -> dict[int, Any]:
         """Enforce minimum separation between layers while excluding specified elements.

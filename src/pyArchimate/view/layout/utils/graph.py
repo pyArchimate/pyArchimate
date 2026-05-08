@@ -90,13 +90,13 @@ def detect_crossings(
     Returns:
         True if lines intersect, False otherwise
     """
-    def ccw(A: Tuple[float, float], B: Tuple[float, float], C: Tuple[float, float]) -> bool:
-        return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
+    def ccw(pt_a: Tuple[float, float], pt_b: Tuple[float, float], pt_c: Tuple[float, float]) -> bool:
+        return (pt_c[1] - pt_a[1]) * (pt_b[0] - pt_a[0]) > (pt_b[1] - pt_a[1]) * (pt_c[0] - pt_a[0])
 
-    A, B = line1
-    C, D = line2
+    pt_a, pt_b = line1
+    pt_c, pt_d = line2
 
-    return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
+    return ccw(pt_a, pt_c, pt_d) != ccw(pt_b, pt_c, pt_d) and ccw(pt_a, pt_b, pt_c) != ccw(pt_a, pt_b, pt_d)
 
 
 def count_crossings(

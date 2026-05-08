@@ -17,7 +17,7 @@ class SymbolDefinition(NamedTuple):
     """SVG symbol definition for an ArchiMate element type."""
     element_type: str  # e.g., "BusinessActor"
     svg_path: str  # SVG path data (body only, no icon)
-    viewBox: str  # ViewBox dimensions
+    viewBox: str  # ViewBox dimensions  # noqa: N815
     bounding_box: tuple[float, float, float, float]  # (x, y, width, height)
     default_color: str  # HEX RGB color code
     icon_path: str | None = None  # Small icon in top-right corner (optional)

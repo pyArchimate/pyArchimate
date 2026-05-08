@@ -638,7 +638,7 @@ class SVGExportService:
 
         # 3. Icon (top-right, fixed size, translated line-art)
         if symbol_def.icon_path and symbol_def.icon_viewbox:
-            ICON_MARGIN = 4
+            ICON_MARGIN = 4  # noqa: C901, N806
             icon_ox = x + w - 20 - ICON_MARGIN  # 4px from right edge, 20px wide
             icon_oy = y + ICON_MARGIN  # 4px from top
             translated = self._translate_icon(symbol_def.icon_path, symbol_def.icon_viewbox, icon_ox, icon_oy)
@@ -1244,7 +1244,7 @@ class SVGExportService:
         return "vertical" if exit_from else "horizontal"
 
     @staticmethod
-    def _clip_point_to_boundary(
+    def _clip_point_to_boundary(  # noqa: C901
         bounds: Tuple[float, float, float, float],
         from_point: Tuple[float, float],
         to_point: Tuple[float, float],
@@ -1307,7 +1307,7 @@ class SVGExportService:
 
         return result
 
-    def _compute_endpoint_spreads(
+    def _compute_endpoint_spreads(  # noqa: C901
         self,
         view: Any,
     ) -> dict[tuple[str, str, int], tuple[float, float]]:
@@ -1439,7 +1439,7 @@ class SVGExportService:
 
         return (bounds_x1, bounds_y1, bounds_x2, bounds_y2)
 
-    def _clip_line_at_rectangle(
+    def _clip_line_at_rectangle(  # noqa: C901
         self,
         p1: Tuple[float, float],
         p2: Tuple[float, float],

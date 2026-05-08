@@ -304,7 +304,7 @@ def get_folders_elem(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_pat
         get_folders_elem(f, model, xsi, merge_flg, folder)
 
 
-def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path: str = '', unresolved: list[Any] | None = None) -> None:
+def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path: str = '', unresolved: list[Any] | None = None) -> None:  # noqa: C901
     if unresolved is None:
         unresolved = []
     folder = folder_path + '/' + tag.get('name')

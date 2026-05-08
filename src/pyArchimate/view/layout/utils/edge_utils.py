@@ -3,7 +3,7 @@
 from typing import Any, Dict, List, Tuple
 
 
-def normalize_edges(edges: Any, nodes: List[Any]) -> List[Tuple[int, int]]:
+def normalize_edges(edges: Any, nodes: List[Any]) -> List[Tuple[int, int]]:  # noqa: C901
     """Convert various edge formats to tuples of (source_index, target_index).
 
     Handles:

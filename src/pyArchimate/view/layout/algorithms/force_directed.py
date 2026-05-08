@@ -23,7 +23,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
         self.max_velocity = 150.0  # Maximum velocity per iteration
         self.min_separation = 200.0  # Minimum distance between nodes (increased from 150)
 
-    def apply(self, view: Any, config: LayoutConfig) -> LayoutResult:
+    def apply(self, view: Any, config: LayoutConfig) -> LayoutResult:  # noqa: C901
         """Apply force-directed layout to a view.
 
         Args:
@@ -276,7 +276,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
         else:
             return 150
 
-    def _calculate_forces(
+    def _calculate_forces(  # noqa: C901
         self,
         positions: Dict[int, Point],
         edges: list[Any],

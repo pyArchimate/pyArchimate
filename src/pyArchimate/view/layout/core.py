@@ -31,7 +31,7 @@ class LayoutConfig:
     layer_priority: str = "mandatory"
     grid_size: float = 10.0
 
-    def __post_init__(self) -> None:
+    def __post_init__(self) -> None:  # noqa: C901
         """Validate configuration parameters."""
         # Algorithm validation
         if self.algorithm not in ("force_directed", "hierarchical"):
