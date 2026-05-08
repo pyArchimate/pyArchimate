@@ -265,7 +265,9 @@ def _add_node(parent: _Element, n: Node, xsi: et.QName) -> None:
         _add_node(n_elem, sub_n, xsi)
 
 
-def _is_node_embedded(n1: Node, n2: Node) -> bool:
+def _is_node_embedded(n1: Any, n2: Any) -> bool:
+    if not (hasattr(n1, 'x') and hasattr(n2, 'x')):
+        return False
     return bool((n1.x < n2.x < n1.x + n1.w) and (n1.y < n2.y < n1.y + n1.h))
 
 

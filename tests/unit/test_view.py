@@ -1514,3 +1514,102 @@ def test_view_primary_viewpoint_invalid(sample_model):
 def test_view_primary_viewpoint_default_is_none(sample_model):
     view = cast(View, sample_model.add(ArchiType.View, 'Test View'))
     assert view.primary_viewpoint is None
+
+
+# ---------------------------------------------------------------------------
+# Coverage for conn-on-conn source/target property paths (view.py:824-826, 843-845)
+# ---------------------------------------------------------------------------
+
+def _build_conn_on_conn_model():
+    """Build a model with a connection that sources/targets another connection."""
+    from lxml import etree as _et
+
+    from src.pyArchimate.readers.archimateReader import archimate_reader
+
+    xml = """\
+<?xml version='1.0'?>
+<model xmlns='http://www.opengroup.org/xsd/archimate/3.0/'
+       xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+  <name>conn-on-conn</name>
+  <elements>
+    <element identifier='e1' xsi:type='BusinessActor'><name>A</name></element>
+    <element identifier='e2' xsi:type='BusinessRole'><name>B</name></element>
+    <element identifier='e3' xsi:type='BusinessService'><name>C</name></element>
+  </elements>
+  <relationships>
+    <relationship identifier='rel1' xsi:type='Association' source='e1' target='e2'/>
+    <relationship identifier='rel2' xsi:type='Association' source='e1' target='e3'/>
+    <relationship identifier='rel-on-rel' xsi:type='Association'
+                  source='e1' target='rel1'/>
+  </relationships>
+  <views>
+    <diagrams>
+      <view identifier='v1' xsi:type='Diagram'><name>V</name>
+        <node identifier='n1' elementRef='e1' xsi:type='Element' x='0' y='0' w='100' h='60'/>
+        <node identifier='n2' elementRef='e2' xsi:type='Element' x='200' y='0' w='100' h='60'/>
+        <node identifier='n3' elementRef='e3' xsi:type='Element' x='400' y='0' w='100' h='60'/>
+        <connection identifier='c1' relationshipRef='rel1' xsi:type='Relationship'
+                    source='n1' target='n2'/>
+        <connection identifier='c2' relationshipRef='rel2' xsi:type='Relationship'
+                    source='n1' target='n3'/>
+        <connection identifier='c-on-c' relationshipRef='rel-on-rel' xsi:type='Relationship'
+                    source='n1' target='c1'/>
+      </view>
+    </diagrams>
+  </views>
+</model>
+"""
+    m = Model("coc")
+    root = _et.fromstring(xml.encode())
+    archimate_reader(m, root)
+    return m
+
+
+def test_connection_source_returns_connection_when_source_is_conn():
+    """Connection.source returns a Connection object when _source is in conns_dict."""
+    m = _build_conn_on_conn_model()
+    c_on_c = m.conns_dict.get("c-on-c")
+    assert c_on_c is not None
+    # source is n1 (a node) — normal path; target is c1 (a connection)
+    src = c_on_c.source
+    assert src is not None  # resolves from nodes_dict
+
+
+def test_connection_target_returns_connection_when_target_is_conn():
+    """Connection.target returns Connection object when _target is in conns_dict."""
+    m = _build_conn_on_conn_model()
+    c_on_c = m.conns_dict.get("c-on-c")
+    assert c_on_c is not None
+    tgt = c_on_c.target
+    assert tgt is not None  # resolves from conns_dict (conn-on-conn path)
+    assert tgt.uuid == "c1"
+
+
+def test_connection_source_returns_connection_from_conns_dict():
+    """Connection.source resolves from conns_dict when _source is a connection ID (view.py:824-826)."""
+    m = _build_conn_on_conn_model()
+    c_on_c = m.conns_dict.get("c-on-c")
+    assert c_on_c is not None
+    # Force _source to a connection ID (simulate conn-on-conn where source is also a conn)
+    c_on_c._source = "c1"
+    src = c_on_c.source
+    assert src is not None
+    assert src.uuid == "c1"  # resolved from conns_dict
+
+
+def test_connection_source_returns_none_for_orphan():
+    """Connection.source returns None when _source is neither node nor conn (view.py:826)."""
+    m = _build_conn_on_conn_model()
+    c_on_c = m.conns_dict.get("c-on-c")
+    assert c_on_c is not None
+    c_on_c._source = "nonexistent-uuid"
+    assert c_on_c.source is None
+
+
+def test_connection_target_returns_none_for_orphan():
+    """Connection.target returns None when _target is neither node nor conn (view.py:845)."""
+    m = _build_conn_on_conn_model()
+    c_on_c = m.conns_dict.get("c-on-c")
+    assert c_on_c is not None
+    c_on_c._target = "nonexistent-uuid"
+    assert c_on_c.target is None

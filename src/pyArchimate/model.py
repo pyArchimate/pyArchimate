@@ -144,11 +144,11 @@ def default_color(elem_type: str, theme: Any = DEFAULT_THEME) -> str:
     :return: #Hex color str
     """
     default_colors = {'strategy': '#F5DEAA', 'business': "#FFFFB5", 'application': "#B5FFFF", 'technology': "#C9E7B7",
-                      'physical': "#C9E7B7", 'migration': "#FFE0E0", 'motivation': "#CCCCFF",
-                      'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
+                      'physical': "#C9E7B7", 'migration': "#FFE0E0", 'implementation & migration': "#FFE0E0",
+                      'motivation': "#CCCCFF", 'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
     aris_colors = {'strategy': '#D38300', 'business': "#F5C800", 'application': "#00A0FF", 'technology': "#6BA50E",
-                   'physical': "#6BA50E", 'migration': "#FFE0E0", 'motivation': "#F099FF",
-                   'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
+                   'physical': "#6BA50E", 'migration': "#FFE0E0", 'implementation & migration': "#FFE0E0",
+                   'motivation': "#F099FF", 'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
     if elem_type in ARCHI_CATEGORY:
         cat = ARCHI_CATEGORY[elem_type].lower()
 
@@ -916,16 +916,16 @@ class Model:
         if c._ref not in self.rels_dict:
             log.error(f'Orphan connection {c.uuid} to unknown relationship {c.ref}')
             _ok = False
-        if c._source not in self.nodes_dict:
+        if c._source not in self.nodes_dict and c._source not in self.conns_dict:
             log.error(f'Connection {c.uuid} has orphan source node {c._source}')
             _ok = False
-        if c.concept._source not in self.elems_dict:
+        if c.concept._source not in self.elems_dict and c.concept._source not in self.rels_dict:
             log.error(f'Connection {c.uuid} has orphan source node concept {c.concept._source}')
             _ok = False
-        if c._target not in self.nodes_dict:
+        if c._target not in self.nodes_dict and c._target not in self.conns_dict:
             log.error(f'Connection {c.uuid} has orphan target node {c._target}')
             _ok = False
-        if c.concept._target not in self.elems_dict:
+        if c.concept._target not in self.elems_dict and c.concept._target not in self.rels_dict:
             log.error(f'Connection {c.uuid} has orphan target node concept {c.concept._target}')
             _ok = False
         return _ok

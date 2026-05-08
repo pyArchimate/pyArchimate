@@ -8,6 +8,7 @@ from src.pyArchimate.pyArchimate import Model
 from src.pyArchimate.readers.archimateReader import (
     _apply_junction_type_props,
     _apply_viewpoint_props,
+    _apply_visual_styles,
     _build_hierarchy_from_parents,
     _extract_visual_style_properties,
     _normalize_color_on_import,
@@ -859,3 +860,123 @@ def test_visual_style_application_warnings_real():
         assert any("Failed to apply lineColor" in msg for msg in warning_calls)
         assert any("Failed to apply lineWidth" in msg for msg in warning_calls)
         assert any("Failed to apply transparency" in msg for msg in warning_calls)
+
+
+# ---------------------------------------------------------------------------
+# Coverage for new paths: forward relationship refs, Line connections, visual
+# style map skip for unknown element UUIDs
+# ---------------------------------------------------------------------------
+
+def _make_model_with_elem():
+    """Return a model with two elements for relationship tests."""
+    m = Model("cov-test")
+    e1 = m.add(ArchiType.BusinessActor, "Actor")
+    e2 = m.add(ArchiType.BusinessRole, "Role")
+    return m, e1, e2
+
+
+XML_FORWARD_REL = """\
+<?xml version='1.0'?>
+<model xmlns='http://www.opengroup.org/xsd/archimate/3.0/'
+       xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+  <name>forward-ref</name>
+  <elements>
+    <element identifier='e-src' xsi:type='BusinessActor'><name>Src</name></element>
+    <element identifier='e-tgt' xsi:type='BusinessRole'><name>Tgt</name></element>
+  </elements>
+  <relationships>
+    <relationship identifier='rel-a' xsi:type='Association'
+                  source='e-src' target='rel-b'/>
+    <relationship identifier='rel-b' xsi:type='Realization'
+                  source='e-src' target='e-tgt'/>
+  </relationships>
+  <views><diagrams/></views>
+</model>
+"""
+
+
+def test_forward_relationship_ref_resolved_after_multipass():
+    """Reader resolves rel-on-rel forward reference via multi-pass retry."""
+    m = Model("fwd")
+    m.read_string = None  # not needed; build via archimate_reader directly
+    from lxml import etree as _et
+    root = _et.fromstring(XML_FORWARD_REL.encode())
+    archimate_reader(m, root)
+    assert "rel-a" in m.rels_dict
+    assert "rel-b" in m.rels_dict
+    assert m.rels_dict["rel-a"]._target == "rel-b"
+
+
+XML_UNRESOLVABLE_REL = """\
+<?xml version='1.0'?>
+<model xmlns='http://www.opengroup.org/xsd/archimate/3.0/'
+       xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+  <name>bad-ref</name>
+  <elements>
+    <element identifier='e-src' xsi:type='BusinessActor'><name>Src</name></element>
+  </elements>
+  <relationships>
+    <relationship identifier='rel-bad' xsi:type='Association'
+                  source='e-src' target='no-such-element'/>
+  </relationships>
+  <views><diagrams/></views>
+</model>
+"""
+
+
+def test_genuinely_unresolvable_relationship_raises():
+    """Multi-pass reader surfaces ValueError for genuinely missing target."""
+    from lxml import etree as _et
+    m = Model("bad")
+    root = _et.fromstring(XML_UNRESOLVABLE_REL.encode())
+    with pytest.raises(ValueError, match="Invalid target reference"):
+        archimate_reader(m, root)
+
+
+XML_LINE_CONNECTION = """\
+<?xml version='1.0'?>
+<model xmlns='http://www.opengroup.org/xsd/archimate/3.0/'
+       xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+  <name>line-conn</name>
+  <elements>
+    <element identifier='e1' xsi:type='BusinessActor'><name>A</name></element>
+    <element identifier='e2' xsi:type='BusinessRole'><name>B</name></element>
+  </elements>
+  <relationships>
+    <relationship identifier='rel1' xsi:type='Association' source='e1' target='e2'/>
+  </relationships>
+  <views>
+    <diagrams>
+      <view identifier='v1' xsi:type='Diagram'>
+        <name>View</name>
+        <node identifier='n1' elementRef='e1' xsi:type='Element' x='0' y='0' w='100' h='60'/>
+        <node identifier='n2' elementRef='e2' xsi:type='Element' x='200' y='0' w='100' h='60'/>
+        <connection identifier='c1' relationshipRef='rel1' xsi:type='Relationship'
+                    source='n1' target='n2'/>
+        <connection identifier='c-line' xsi:type='Line'
+                    source='n1' target='n2'/>
+      </view>
+    </diagrams>
+  </views>
+</model>
+"""
+
+
+def test_line_connection_skipped_no_crash():
+    """Line connections (no relationshipRef) are silently skipped."""
+    from lxml import etree as _et
+    m = Model("line")
+    root = _et.fromstring(XML_LINE_CONNECTION.encode())
+    archimate_reader(m, root)
+    # Only rel-backed connection should be present; Line is skipped
+    assert "c1" in m.conns_dict
+    assert "c-line" not in m.conns_dict
+
+
+def test_apply_visual_styles_skips_unknown_uuid():
+    """_apply_visual_styles silently skips UUIDs absent from elems_dict (line 417)."""
+    m = Model("vstest")
+    # style map references a UUID that was never added as an element
+    style_map = {"no-such-uuid": {"fillColor": "#FF0000"}}
+    # Must not raise; unknown UUID is silently skipped
+    _apply_visual_styles(m, style_map)
