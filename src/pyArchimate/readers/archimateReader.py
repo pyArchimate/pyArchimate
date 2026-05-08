@@ -252,7 +252,6 @@ def _read_relationships(model, root, ns, xsi, pdef_merge_map, merge_flg):
         if len(deferred) == len(remaining):
             # No progress — genuine unresolvable references; surface the first error.
             _process_one_relationship(model, deferred[0], ns, xsi, pdef_merge_map, merge_flg)
-            break
         remaining = deferred
 
 
