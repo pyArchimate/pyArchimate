@@ -69,19 +69,28 @@ git commit -m "docs: regenerate diagrams, AI.md, and Sphinx docs pre-release"
 poetry run scripts/pre_push_checks.sh
 ```
 
-### 8. Bump version and update changelog
+### 8. Regenerate requirements files
+
+```bash
+poetry export --without-hashes -f requirements.txt -o requirements.txt
+poetry export --without-hashes -f requirements.txt --only docs -o docs/requirements.txt
+git add requirements.txt docs/requirements.txt
+git diff --cached --quiet || git commit -m "chore: regenerate requirements files"
+```
+
+### 9. Bump version and update changelog
 
 ```bash
 poetry run cz bump        # bumps [project] version, updates CHANGELOG.md, creates a git tag
 ```
 
-### 9. Push master and the new tag
+### 10. Push master and the new tag
 
 ```bash
 git push origin master --tags
 ```
 
-### 10. Merge master back into develop
+### 11. Merge master back into develop
 
 ```bash
 git checkout develop
@@ -93,5 +102,5 @@ git push origin develop
 ## build the package and publish to PyPI
 
 These steps are automated by the `Release` GitHub Actions workflow (`.github/workflows/release.yml`).
-Pushing a version tag (step 9 above) triggers the workflow, which builds the sdist/wheel and
+Pushing a version tag (step 10 above) triggers the workflow, which builds the sdist/wheel and
 publishes to PyPI via OIDC trusted publishing — no API token required.
