@@ -822,7 +822,7 @@ class Connection:
         if self._source in self.model.nodes_dict:
             return cast(Node, self.model.nodes_dict[self._source])
         elif self._source in self.model.conns_dict:
-            return cast(Node, self.model.rels_dict[self._source])
+            return cast(Node, self.model.conns_dict[self._source])
         return None
 
     @source.setter
@@ -841,7 +841,7 @@ class Connection:
         if self._target in self.model.nodes_dict:
             return cast(Node, self.model.nodes_dict[self._target])
         elif self._target in self.model.conns_dict:
-            return cast(Node, self.model.rels_dict[self._target])
+            return cast(Node, self.model.conns_dict[self._target])
         return None
 
     @target.setter

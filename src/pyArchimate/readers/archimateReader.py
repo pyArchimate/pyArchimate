@@ -211,32 +211,49 @@ def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
     return parent_map, visual_style_map
 
 
+def _process_one_relationship(model, r, ns, xsi, pdef_merge_map, merge_flg):
+    _uuid = r.get('identifier')
+    name = None if r.find(ns + 'name') is None else r.find(ns + 'name').text
+    desc = None if r.find(ns + 'documentation') is None else r.find(ns + 'documentation').text
+    if merge_flg and _uuid in model.rels_dict:
+        rel = model.rels_dict[_uuid]
+        rel.name = name
+        rel.desc = desc
+    else:
+        rel = model.add_relationship(
+            source=r.get('source'),
+            target=r.get('target'),
+            rel_type=r.get(xsi + 'type'),
+            uuid=r.get('identifier'),
+            name=name,
+            desc=desc,
+            access_type=r.get('accessType'),
+            influence_strength=r.get('influenceStrength') or r.get('modifier'),
+        )
+        if r.get('isDirected') == 'true':
+            rel.is_directed = True
+        _read_props(rel, r, ns, pdef_merge_map, model)
+
+
 def _read_relationships(model, root, ns, xsi, pdef_merge_map, merge_flg):
     rels_xml = root.find(ns + 'relationships')
     if rels_xml is None:
         return
-    for r in rels_xml.findall(ns + 'relationship'):
-        _uuid = r.get('identifier')
-        name = None if r.find(ns + 'name') is None else r.find(ns + 'name').text
-        desc = None if r.find(ns + 'documentation') is None else r.find(ns + 'documentation').text
-        if merge_flg and _uuid in model.rels_dict:
-            rel = model.rels_dict[_uuid]
-            rel.name = name
-            rel.desc = desc
-        else:
-            rel = model.add_relationship(
-                source=r.get('source'),
-                target=r.get('target'),
-                rel_type=r.get(xsi + 'type'),
-                uuid=r.get('identifier'),
-                name=name,
-                desc=desc,
-                access_type=r.get('accessType'),
-                influence_strength=r.get('influenceStrength') or r.get('modifier'),
-            )
-            if r.get('isDirected') == 'true':
-                rel.is_directed = True
-            _read_props(rel, r, ns, pdef_merge_map, model)
+    # Multi-pass to handle forward references (relationship targeting another relationship
+    # defined later in the XML — valid ArchiMate but breaks single-pass ordering).
+    remaining = list(rels_xml.findall(ns + 'relationship'))
+    while remaining:
+        deferred = []
+        for r in remaining:
+            try:
+                _process_one_relationship(model, r, ns, xsi, pdef_merge_map, merge_flg)
+            except ValueError:
+                deferred.append(r)
+        if len(deferred) == len(remaining):
+            # No progress — genuine unresolvable references; surface the first error.
+            _process_one_relationship(model, deferred[0], ns, xsi, pdef_merge_map, merge_flg)
+            break
+        remaining = deferred
 
 
 def _apply_node_style(node, style_xml, ns):
@@ -318,6 +335,9 @@ def _get_xml_text(elem, tag, ns):
 
 
 def _read_view_connection(view, c, ns, merge_flg):
+    # Skip view-only lines (xsi:type="Line") — no backing model relationship.
+    if c.get('relationshipRef') is None:
+        return
     _uuid_c = None if merge_flg else c.get('identifier')
     _c = view.add_connection(
         ref=c.get('relationshipRef'),

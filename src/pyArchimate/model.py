@@ -916,16 +916,16 @@ class Model:
         if c._ref not in self.rels_dict:
             log.error(f'Orphan connection {c.uuid} to unknown relationship {c.ref}')
             _ok = False
-        if c._source not in self.nodes_dict:
+        if c._source not in self.nodes_dict and c._source not in self.conns_dict:
             log.error(f'Connection {c.uuid} has orphan source node {c._source}')
             _ok = False
-        if c.concept._source not in self.elems_dict:
+        if c.concept._source not in self.elems_dict and c.concept._source not in self.rels_dict:
             log.error(f'Connection {c.uuid} has orphan source node concept {c.concept._source}')
             _ok = False
-        if c._target not in self.nodes_dict:
+        if c._target not in self.nodes_dict and c._target not in self.conns_dict:
             log.error(f'Connection {c.uuid} has orphan target node {c._target}')
             _ok = False
-        if c.concept._target not in self.elems_dict:
+        if c.concept._target not in self.elems_dict and c.concept._target not in self.rels_dict:
             log.error(f'Connection {c.uuid} has orphan target node concept {c.concept._target}')
             _ok = False
         return _ok
