@@ -8,7 +8,7 @@ Person(automation, "Automation / Integrations", "Runs scripts, CI jobs, or tool 
 
 System_Boundary(pyArchimateBoundary, "pyArchimate") {
   Container(pyArchimateLib, "pyArchimate Core", "Python", "Modularized library managing models and elements.")
-  Container(viewMod, "View Module", "view.py", "View, Node, Connection, Profile, Point — visual diagramming structures.")
+  Container(viewMod, "View Module", "view/ package", "View, Node, Connection, Profile, Point — visual diagramming structures; layout/ subpackage provides SVG export and auto-layout.")
   Container(cli, "pyArchimate CLI", "Python", "Exposes commands and automation entry points for scripts and CI.")
   Container(readers, "Reader Drivers", "Python modules", "Adapters for Archi (.archimate), Archimate (XML), and ARIS (AML).")
   Container(writers, "Writer Drivers", "Python modules", "Adapters for exporting to Archimate XML, Archi, and CSV.")

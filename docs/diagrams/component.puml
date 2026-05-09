@@ -4,6 +4,7 @@ title pyArchimate Component Diagram
 package "pyArchimate" {
   component "Model Module" as ModelMod
   component "View Module" as ViewMod
+  component "View Layout Engine" as LayoutEngine
   component "Reader Registry" as ReaderRegistry
   component "Writer Registry" as WriterRegistry
   component "Helper Utilities" as Helpers
@@ -16,6 +17,7 @@ component "lxml, oyaml, stdlib" as Dependencies
 
 CLI --> ModelMod : uses API to build models
 ModelMod --> ViewMod : owns views and nodes
+ViewMod --> LayoutEngine : delegates SVG export and auto-layout
 ModelMod --> ReaderRegistry : loads format adapters
 ModelMod --> WriterRegistry : feeds models for serialization
 ModelMod --> Helpers : delegates validation

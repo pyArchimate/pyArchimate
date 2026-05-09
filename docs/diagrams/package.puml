@@ -10,13 +10,43 @@ package "pyArchimate" {
     class Model
   }
 
-  class "view.py" as ViewMod {
-    class View
-    class Node
-    class Connection
-    class Profile
-    class Point
-    class Position
+  package "view" as ViewMod {
+    class "__init__.py" as ViewInit {
+      class View
+      class Node
+      class Connection
+      class Profile
+      class Point
+      class Position
+    }
+    package "layout" as LayoutPkg {
+      class "core.py" as LayoutCore
+      package "algorithms" {
+        class "force_directed.py"
+        class "hierarchical.py"
+      }
+      package "export" {
+        class "svg_export.py"
+        package "symbols" {
+          class "archimate_symbols.py"
+          class "archimate_relationships.py"
+          class "color_palette.py"
+        }
+      }
+      package "format" {
+        class "element_format.py"
+      }
+      package "routing" {
+        class "orthogonal.py"
+        class "label_placement.py"
+        class "layer_constraints.py"
+      }
+      package "utils" {
+        class "geometry.py"
+        class "graph.py"
+        class "edge_utils.py"
+      }
+    }
   }
 
   class "element.py" as ElementMod {
@@ -61,7 +91,7 @@ package "pyArchimate" {
 }
 
 Facade --> ModelMod : exports
-Facade --> ViewMod : exports
+Facade --> ViewInit : exports
 Facade --> ElementMod : exports
 Facade --> RelationshipMod : exports
 Facade --> Enums : exports
@@ -69,8 +99,8 @@ Facade --> Exceptions : exports
 Facade --> Constants : exports
 Facade --> helpers : exports
 
-ModelMod ..> ViewMod : references
-ViewMod ..> ModelMod : references
+ModelMod ..> ViewInit : references
+ViewInit ..> ModelMod : references
 ModelMod --> readers : uses
 ModelMod --> writers : uses
 ModelMod --> ViewpointRegistry : uses
@@ -83,13 +113,15 @@ ArchimateReader --> ArchiReaderHelpers : uses
 ArisAMLReader --> ArisAMLHelpers : uses
 
 ModelMod --> Constants : uses
-ViewMod --> Constants : uses
+ViewInit --> Constants : uses
 ElementMod --> Constants : uses
 RelationshipMod --> Constants : uses
 ViewpointMod --> Constants : uses
 
 ElementMod --> Enums : uses
 RelationshipMod --> Enums : uses
-ViewMod --> Enums : uses
+ViewInit --> Enums : uses
+
+ViewInit --> LayoutPkg : delegates SVG export
 
 @enduml

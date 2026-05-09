@@ -140,6 +140,7 @@ class View {
   + remove_prop(key)
   + remove_folder()
   + delete()
+  + to_svg(filepath) : str
 }
 
 class Node {
@@ -189,13 +190,6 @@ class Node {
 class Connection {
   uuid: str
   ref: str
-  name: str
-  type: str
-  concept: Relationship
-  source, target: Node
-  access_type: str
-  influence_strength: str
-  is_directed: bool
   line_color: Optional[str]
   font_color: Optional[str]
   font_name: str
@@ -205,6 +199,13 @@ class Connection {
   show_label: bool
   --
   {readonly} bendpoints: list[Point]
+  {readonly} name: str (from concept)
+  {readonly} type: str (from concept)
+  {readonly} concept: Relationship
+  {readonly} source, target: Node
+  {readonly} access_type: str (from concept)
+  {readonly} influence_strength: str (from concept)
+  {readonly} is_directed: bool (from concept)
   --
   + add_bendpoint(*bendpoints)
   + set_bendpoint(bp, index)
@@ -221,6 +222,10 @@ class Point {
   x: int
   y: int
   idx: int
+  start_x: Optional[int]
+  start_y: Optional[int]
+  end_x: Optional[int]
+  end_y: Optional[int]
 }
 
 class Position {

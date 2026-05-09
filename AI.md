@@ -218,6 +218,23 @@ Visual representation of a relationship between nodes.
 - `conn.l_shape()` / `conn.s_shape()` — route as L or S shape with auto-placed bendpoints
 - `conn.add_bendpoint(Point)` / `conn.remove_all_bendpoints()` — manual waypoint control
 
+### View Auto-Layout
+
+- `apply_layout(view, config)` — automatically position all elements in a view using the configured algorithm; returns `LayoutResult`
+- `apply_format(view, config)` — standardize element sizes (120×55), fonts (Segoe UI 9pt), and optional grid alignment without repositioning; returns `LayoutResult`
+- `undo_layout(view)` — revert the last layout/format operation (stub; full transaction rollback planned); returns `LayoutResult`
+- Import from `pyArchimate.view.layout`
+- Algorithms: `"force_directed"` (default, physics simulation) or `"hierarchical"` (ArchiMate-layer-aware top-down)
+- Applies orthogonal connection routing automatically after layout
+- Enforces ArchiMate layer ordering: Business → Application → Technology
+
+### SVG Export
+
+- `view.to_svg(filepath=None)` — render a view to a self-contained SVG string; optionally write to file
+- Renders element symbols, colours, connection arrowheads, and nested containers
+- Applies ArchiMate colour palette by element layer
+- No external tools required; suitable for CI pipelines and automated reporting
+
 ---
 
 ## Typical Use Cases
@@ -257,9 +274,9 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 ## Limitations (Important Context)
 
 - No built-in graphical editor (code-first only)
-- Layout automation is limited (auto-resize and connection routing helpers exist; no constraint-based layout engine)
+- Layout automation available but no GUI-based constraint editor; algorithmic layout via `apply_layout()` (force-directed or hierarchical)
 - Requires understanding of ArchiMate concepts
-- Visualization typically handled by external tools (e.g., Archi)
+- SVG export available via `view.to_svg()`; full interactive editing still requires external tools (e.g., Archi)
 - Not fully conformant to the complete ArchiMate 3.x specification (see Non-Conformances below; major gaps closed in v1.3.0)
 
 ---
@@ -273,6 +290,14 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `Writers.archimate` | Archi tool `.archimate` XML (default) |
 | `Writers.archi` | OpenGroup ArchiMate Exchange XML |
 | `Writers.csv` | CSV spreadsheet |
+
+### Readers (enum)
+
+| Value | Format |
+|---|---|
+| `Readers.archi` | Archi native `.archimate` XML (default) |
+| `Readers.archimate` | OpenGroup ArchiMate Exchange XML |
+| `Readers.aris` | **Deprecated** — ARIS AML format; will be removed in a future version |
 
 ### Model (API)
 
@@ -370,6 +395,7 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `get_or_create_connection(rel, source, target, ...)` | Return existing connection or create one if requested |
 | `set_primary_viewpoint(viewpoint_id)` | Set canonical ArchiMate 3.x viewpoint slug for this view |
 | `primary_viewpoint` | Current primary viewpoint slug or `None` |
+| `to_svg(filepath)` | Export view to SVG string; optionally write to file if `filepath` given |
 | `prop(key, value)` | Get or set a view-level property |
 | `remove_prop(key)` | Delete a property by key |
 | `remove_folder()` | Remove this view's folder assignment |
@@ -385,6 +411,8 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `nodes` | Child nodes |
 | `resize(max_in_row, ...)` | Auto-expand to fit children |
 | `distribute_connections()` | Spread connection endpoints evenly along edges |
+| `move(new_parent)` | Reparent node to a different Node or View within the same diagram |
+| `delete(recurse, delete_from_model)` | Delete node and its connections; optionally cascade to children or remove backing element |
 | `out_conns(rel_type)` | Outgoing connections, optionally filtered by type |
 | `in_conns(rel_type)` | Incoming connections, optionally filtered by type |
 | `fill_color` | Fill colour as `#RRGGBB` |
@@ -399,6 +427,7 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `l_shape()` | Route as L-shape with one auto bendpoint |
 | `s_shape()` | Route as S-shape with two auto bendpoints |
 | `add_bendpoint(Point)` | Append a waypoint to the connection path |
+| `set_bendpoint(bp, index)` | Replace waypoint at index |
 | `remove_all_bendpoints()` | Clear all waypoints |
 | `get_all_bendpoints()` | Return list of all waypoints |
 | `get_bendpoint(index)` | Return waypoint at index |
@@ -418,6 +447,43 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `log_set_level(level)` | Set logging verbosity (standard `logging` levels) |
 | `log_to_file(path)` | Redirect log output to a file |
 | `log_to_stderr()` | Redirect log output to stderr |
+
+### Layout Functions (`pyArchimate.view.layout`)
+
+| Function | Description |
+|---|---|
+| `apply_layout(view, config)` | Auto-position elements using the configured algorithm; returns `LayoutResult` |
+| `apply_format(view, config)` | Standardize element sizes/fonts without repositioning; returns `LayoutResult` |
+| `undo_layout(view)` | Revert the last layout/format operation; returns `LayoutResult` |
+
+### LayoutConfig (dataclass)
+
+All fields are optional; defaults shown below.
+
+| Field | Default | Description |
+|---|---|---|
+| `algorithm` | `"force_directed"` | `"force_directed"` or `"hierarchical"` |
+| `spacing` | `50.0` | Minimum pixels between elements |
+| `margin` | `20.0` | Pixels around canvas edges |
+| `alignment` | `"free"` | `"free"` or `"grid"` (snap to grid) |
+| `grid_size` | `10.0` | Grid spacing in pixels when `alignment="grid"` |
+| `routing_style` | `"orthogonal"` | `"orthogonal"` (0°/90°) or `"mixed_45"` (±45°) |
+| `layer_priority` | `"mandatory"` | `"mandatory"` (enforce ArchiMate layers) or `"soft"` |
+| `excluded_element_ids` | `[]` | Element IDs excluded from repositioning |
+| `node_size_constraints` | `{}` | Dict with `min_width`, `max_width`, `min_height`, `max_height` |
+
+### LayoutResult (dataclass)
+
+| Field | Type | Description |
+|---|---|---|
+| `success` | `bool` | `True` if layout completed without error |
+| `view_id` | `str` | UUID of the laid-out view |
+| `algorithm_used` | `str` | Algorithm name or `"format"` / `"undo"` |
+| `elements_processed` | `int` | Number of nodes repositioned or formatted |
+| `connections_processed` | `int` | Number of connections routed |
+| `layout_time_ms` | `float` | Wall-clock time for the operation |
+| `quality_metrics` | `dict` | Algorithm-specific metrics (crossing count, variance, etc.) |
+| `error_message` | `str \| None` | Error description if `success=False` |
 
 ---
 

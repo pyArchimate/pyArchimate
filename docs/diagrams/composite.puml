@@ -13,6 +13,10 @@ object Model {
   - _viewpoint_views : dict[str, str] {view UUID → primary viewpoint slug}
   - _element_hierarchy : dict[str, Optional[str]] {child UUID → parent UUID}
   - _element_children : dict[str, set[str]] {parent UUID → child UUIDs}
+  - _images_dict : dict[str, bytes] {filename → image bytes}
+  - _image_files : list[str] {image filenames from archive}
+  - orgs : defaultdict(list) {folder organization}
+  - pdefs : dict {property definitions}
 }
 
 object Element {
@@ -86,6 +90,10 @@ object Node {
   - border_type : Optional[str]
   - icon_color : Optional[str]
   - gradient : Optional[str]
+  - image_path : Optional[str]
+  - image_position : Optional[int]
+  - image_type : Optional[int]
+  - image_source : bool
   - nodes_dict : dict[str, Node] {nested children}
   - _view : View
   - parent : Node | View
@@ -94,9 +102,6 @@ object Node {
 object Connection {
   - _uuid : str
   - _ref : str {Relationship id}
-  - name : str
-  - _type : str
-  - concept : Relationship
   - _source : str {Node id}
   - _target : str {Node id}
   - bendpoints : list[Point]
@@ -107,6 +112,12 @@ object Connection {
   - line_width : float
   - text_position : str
   - show_label : bool
+  ~ name : str {property via concept}
+  ~ type : str {property via concept}
+  ~ concept : Relationship {property via _ref lookup}
+  ~ access_type : Optional[str] {property via concept}
+  ~ influence_strength : Optional[str] {property via concept}
+  ~ is_directed : Optional[bool] {property via concept}
 }
 
 object Point {

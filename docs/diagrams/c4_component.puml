@@ -6,7 +6,7 @@ LAYOUT_WITH_LEGEND()
 Container(pyArchimateLib, "pyArchimate library", "Python", "Handles creation/serialization of models")
 
 Component(modelMod, "Model Module", "model.py", "Core class (Model) for elements, relationships, and model-level operations")
-Component(viewMod, "View Module", "view.py", "Visual structures (View, Node, Connection) for diagramming")
+Component(viewMod, "View Module", "view/ package", "Visual structures (View, Node, Connection) for diagramming; includes layout/export subpackage for SVG export")
 Component(readerRegistry, "Reader Registry", "constants.py", "Dispatches Archi/Archimate/ARIS readers via MODEL_READER_REGISTRY")
 Component(writerRegistry, "Writer Registry", "writers/", "Routes model exports for Archimate, Archi, CSV via WRITER_REGISTRY")
 Component(logging, "Logging Subsystem", "logger.py", "Standardized logging across core and IO layers")
