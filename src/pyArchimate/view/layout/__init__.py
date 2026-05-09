@@ -351,6 +351,43 @@ def _build_row_col_structure(
     return rows, cols, row_gaps, col_gaps
 
 
+def _spread_connections_for_side(
+    node_uuid: str,
+    node: Any,
+    matched_conns: list[Any],
+    other_attr: str,
+    spread_key: str,
+    nodes_dict: dict[str, Any],
+    endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]],
+) -> None:
+    if len(matched_conns) <= 1:
+        return
+    sorted_conns = sorted(
+        matched_conns,
+        key=lambda c, _node=node: float(nodes_dict.get(getattr(c, other_attr, None) or "", _node).cx),  # type: ignore[misc,union-attr]
+    )
+    for i, conn in enumerate(sorted_conns):
+        other_node = nodes_dict.get(getattr(conn, other_attr, None) or "")
+        if not other_node:
+            continue
+        if spread_key == "src":
+            dy = float(other_node.cy) - float(node.cy)
+            dx = float(other_node.cx) - float(node.cx)
+        else:
+            dy = float(node.cy) - float(other_node.cy)
+            dx = float(node.cx) - float(other_node.cx)
+        spread_val = _distributed_spread(
+            i,
+            len(sorted_conns),
+            float(getattr(node, "w", 120)) if abs(dy) > abs(dx) else float(getattr(node, "h", 55)),
+        )
+        if abs(dy) > abs(dx):
+            spread_x, spread_y = spread_val, 0.0
+        else:
+            spread_x, spread_y = 0.0, spread_val
+        endpoint_spreads[(node_uuid, spread_key, id(conn))] = (spread_x, spread_y)
+
+
 def _compute_ortho_endpoint_spreads(
     conns: list[Any],
     nodes_dict: dict[str, Any],
@@ -358,48 +395,9 @@ def _compute_ortho_endpoint_spreads(
     endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]] = {}
     for node_uuid, node in nodes_dict.items():
         src_conns = [c for c in conns if getattr(c, "_source", None) == node_uuid]
-        if len(src_conns) > 1:
-            src_conns_sorted = sorted(
-                src_conns,
-                key=lambda c, _node=node: float(nodes_dict.get(getattr(c, "_target", None) or "", _node).cx),  # type: ignore[misc,union-attr]
-            )
-            for i, conn in enumerate(src_conns_sorted):
-                target_node = nodes_dict.get(getattr(conn, "_target", None) or "")
-                if target_node:
-                    dy = float(target_node.cy) - float(node.cy)
-                    dx = float(target_node.cx) - float(node.cx)
-                    spread_val = _distributed_spread(
-                        i,
-                        len(src_conns_sorted),
-                        float(getattr(node, "w", 120)) if abs(dy) > abs(dx) else float(getattr(node, "h", 55)),
-                    )
-                    if abs(dy) > abs(dx):
-                        spread_x, spread_y = spread_val, 0.0
-                    else:
-                        spread_x, spread_y = 0.0, spread_val
-                    endpoint_spreads[(node_uuid, "src", id(conn))] = (spread_x, spread_y)
-
+        _spread_connections_for_side(node_uuid, node, src_conns, "_target", "src", nodes_dict, endpoint_spreads)
         tgt_conns = [c for c in conns if getattr(c, "_target", None) == node_uuid]
-        if len(tgt_conns) > 1:
-            tgt_conns_sorted = sorted(
-                tgt_conns,
-                key=lambda c, _node=node: float(nodes_dict.get(getattr(c, "_source", None) or "", _node).cx),  # type: ignore[misc,union-attr]
-            )
-            for i, conn in enumerate(tgt_conns_sorted):
-                source_node = nodes_dict.get(getattr(conn, "_source", None) or "")
-                if source_node:
-                    dy = float(node.cy) - float(source_node.cy)
-                    dx = float(node.cx) - float(source_node.cx)
-                    spread_val = _distributed_spread(
-                        i,
-                        len(tgt_conns_sorted),
-                        float(getattr(node, "w", 120)) if abs(dy) > abs(dx) else float(getattr(node, "h", 55)),
-                    )
-                    if abs(dy) > abs(dx):
-                        spread_x, spread_y = spread_val, 0.0
-                    else:
-                        spread_x, spread_y = 0.0, spread_val
-                    endpoint_spreads[(node_uuid, "tgt", id(conn))] = (spread_x, spread_y)
+        _spread_connections_for_side(node_uuid, node, tgt_conns, "_source", "tgt", nodes_dict, endpoint_spreads)
     return endpoint_spreads
 
 
@@ -421,35 +419,114 @@ def _assign_group_offsets(
         offsets[id(conn)] = (i - (n - 1) / 2.0) * _ORTHO_SPREAD_STEP
 
 
+def _build_direction_groups(
+    conns: list[Any],
+    nodes_dict: dict[str, Any],
+    direction: str,
+) -> tuple[dict[str, list[Any]], dict[str, list[Any]]]:
+    from collections import defaultdict
+    tgt_groups: dict[str, list[Any]] = defaultdict(list)
+    src_groups: dict[str, list[Any]] = defaultdict(list)
+    for conn in conns:
+        s = nodes_dict.get(getattr(conn, "_source", None) or "")
+        t = nodes_dict.get(getattr(conn, "_target", None) or "")
+        if not s or not t or abs(t.cy - s.cy) < 5:
+            continue
+        going = "down" if t.cy > s.cy else "up"
+        if going != direction:
+            continue
+        tgt_groups[conn._target].append(conn)
+        src_groups[conn._source].append(conn)
+    return tgt_groups, src_groups
+
+
 def _compute_ortho_gap_spreads(
     conns: list[Any],
     nodes_dict: dict[str, Any],
 ) -> tuple[dict[int, float], dict[int, float]]:
-    from collections import defaultdict
-
     tgt_offsets: dict[int, float] = {}
     src_offsets: dict[int, float] = {}
-
     for direction in ("down", "up"):
-        tgt_groups: dict[str, list[Any]] = defaultdict(list)
-        src_groups_dir: dict[str, list[Any]] = defaultdict(list)
-        for conn in conns:
-            s = nodes_dict.get(getattr(conn, "_source", None) or "")
-            t = nodes_dict.get(getattr(conn, "_target", None) or "")
-            if not s or not t or abs(t.cy - s.cy) < 5:
-                continue
-            going = "down" if t.cy > s.cy else "up"
-            if going != direction:
-                continue
-            tgt_groups[conn._target].append(conn)
-            src_groups_dir[conn._source].append(conn)
-
+        tgt_groups, src_groups = _build_direction_groups(conns, nodes_dict, direction)
         for group in tgt_groups.values():
             _assign_group_offsets(group, "_source", nodes_dict, tgt_offsets)
-        for group in src_groups_dir.values():
+        for group in src_groups.values():
             _assign_group_offsets(group, "_target", nodes_dict, src_offsets)
-
     return tgt_offsets, src_offsets
+
+
+def _route_multi_row(
+    conn: Any,
+    sx: float,
+    sy: float,
+    tx: float,
+    ty: float,
+    sh_half: float,
+    th_half: float,
+    src_spread_x: float,
+    tgt_spread_x: float,
+    row_gaps: list[float],
+    col_gaps: list[float],
+    tgt_dy: float,
+    src_dy: float,
+    going_down: bool,
+) -> None:
+    if going_down:
+        gap_y1 = _nearest_row_gap_below(sy, sh_half, row_gaps) + src_dy
+        gap_y2 = _nearest_row_gap_above(ty, th_half, row_gaps) + tgt_dy
+    else:
+        gap_y1 = _nearest_row_gap_above(sy, sh_half, row_gaps) + src_dy
+        gap_y2 = _nearest_row_gap_below(ty, th_half, row_gaps) + tgt_dy
+    if abs(gap_y1 - gap_y2) < 5:
+        conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y1))))
+        conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y1))))
+    else:
+        col_gap_x = _nearest_col_gap((sx + tx) / 2.0, col_gaps)
+        conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y1))))
+        conn.add_bendpoint(Point(int(round(col_gap_x)), int(round(gap_y1))))
+        conn.add_bendpoint(Point(int(round(col_gap_x)), int(round(gap_y2))))
+        conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y2))))
+
+
+def _place_bendpoints(
+    conn: Any,
+    sx: float,
+    sy: float,
+    tx: float,
+    ty: float,
+    sh_half: float,
+    th_half: float,
+    source_anchor: tuple[float, float],
+    target_anchor: tuple[float, float],
+    src_spread_x: float,
+    tgt_spread_x: float,
+    rows: list[tuple[float, float]],
+    row_gaps: list[float],
+    col_gaps: list[float],
+    tgt_dy: float,
+    src_dy: float,
+) -> None:
+    dx, dy = tx - sx, ty - sy
+    if abs(dx) < 1 and abs(dy) < 1:
+        return
+    going_down = dy > 0
+    src_row = _row_of(sy, rows)
+    tgt_row = _row_of(ty, rows)
+    if abs(dy) < 5:
+        mid_x = (source_anchor[0] + target_anchor[0]) / 2.0
+        conn.add_bendpoint(Point(int(round(mid_x)), int(round(source_anchor[1]))))
+        conn.add_bendpoint(Point(int(round(mid_x)), int(round(target_anchor[1]))))
+    elif abs(dx) < 1 and tgt_dy == 0 and src_dy == 0:
+        return
+    elif src_row >= 0 and tgt_row >= 0 and abs(src_row - tgt_row) == 1:
+        if going_down:
+            gap_y = _nearest_row_gap_below(sy, sh_half, row_gaps) + tgt_dy
+        else:
+            gap_y = _nearest_row_gap_above(sy, sh_half, row_gaps) + tgt_dy
+        conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y))))
+        conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y))))
+    else:
+        _route_multi_row(conn, sx, sy, tx, ty, sh_half, th_half, src_spread_x, tgt_spread_x, row_gaps, col_gaps, tgt_dy, src_dy, going_down)
 
 
 def _route_single_connection(
@@ -495,45 +572,16 @@ def _route_single_connection(
     source_anchor = _boundary_anchor(source_bounds, source_side, (src_spread_x, src_spread_y))
     target_anchor = _boundary_anchor(target_bounds, target_side, (tgt_spread_x, tgt_spread_y))
 
-    dx, dy = tx - sx, ty - sy
-    if abs(dx) < 1 and abs(dy) < 1:
-        return
-
-    src_row = _row_of(sy, rows)
-    tgt_row = _row_of(ty, rows)
-    going_down = dy > 0
     tgt_dy = tgt_offsets.get(id(conn), 0.0)
     src_dy = src_offsets.get(id(conn), 0.0)
 
-    if abs(dy) < 5:
-        mid_x = (source_anchor[0] + target_anchor[0]) / 2.0
-        conn.add_bendpoint(Point(int(round(mid_x)), int(round(source_anchor[1]))))
-        conn.add_bendpoint(Point(int(round(mid_x)), int(round(target_anchor[1]))))
-    elif abs(dx) < 1 and tgt_dy == 0 and src_dy == 0:
-        pass
-    elif src_row >= 0 and tgt_row >= 0 and abs(src_row - tgt_row) == 1:
-        if going_down:
-            gap_y = _nearest_row_gap_below(sy, sh_half, row_gaps) + tgt_dy
-        else:
-            gap_y = _nearest_row_gap_above(sy, sh_half, row_gaps) + tgt_dy
-        conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y))))
-        conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y))))
-    else:
-        if going_down:
-            gap_y1 = _nearest_row_gap_below(sy, sh_half, row_gaps) + src_dy
-            gap_y2 = _nearest_row_gap_above(ty, th_half, row_gaps) + tgt_dy
-        else:
-            gap_y1 = _nearest_row_gap_above(sy, sh_half, row_gaps) + src_dy
-            gap_y2 = _nearest_row_gap_below(ty, th_half, row_gaps) + tgt_dy
-        if abs(gap_y1 - gap_y2) < 5:
-            conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y1))))
-            conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y1))))
-        else:
-            col_gap_x = _nearest_col_gap((sx + tx) / 2.0, col_gaps)
-            conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y1))))
-            conn.add_bendpoint(Point(int(round(col_gap_x)), int(round(gap_y1))))
-            conn.add_bendpoint(Point(int(round(col_gap_x)), int(round(gap_y2))))
-            conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y2))))
+    _place_bendpoints(
+        conn, sx, sy, tx, ty, sh_half, th_half,
+        source_anchor, target_anchor,
+        src_spread_x, tgt_spread_x,
+        rows, row_gaps, col_gaps,
+        tgt_dy, src_dy,
+    )
 
 
 def _apply_orthogonal_routing(view: Any) -> None:

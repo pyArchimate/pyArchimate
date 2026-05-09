@@ -141,6 +141,20 @@ class HierarchicalLayout(LayoutAlgorithm):
                     candidates.append(node_id)
         return candidates
 
+    def _build_layer_constraint(self, nodes: List[Any]) -> "LayerConstraint":
+        layer_constraint = LayerConstraint()
+        for i, node in enumerate(nodes):
+            element_type = getattr(node, "type", "unknown")
+            archimate_layer = ArchiMateLayer.from_archimate_type(element_type)
+            layer_constraint.assign_layer(i, archimate_layer)
+        return layer_constraint
+
+    def _force_one_assignment(self, nodes: List[Any], assigned: set[int]) -> List[int]:
+        for node_id in range(len(nodes)):
+            if node_id not in assigned:
+                return [node_id]
+        return []
+
     def _assign_layers(
         self,
         nodes: List[Any],
@@ -157,18 +171,7 @@ class HierarchicalLayout(LayoutAlgorithm):
         Returns:
             Layers as list of lists of node indices
         """
-        # Create layer constraint
-        layer_constraint = LayerConstraint()
-        for i, node in enumerate(nodes):
-            element_type = getattr(node, "type", "unknown")
-            archimate_layer = ArchiMateLayer.from_archimate_type(element_type)
-            layer_constraint.assign_layer(i, archimate_layer)
-
-        # Use topological sort with layer constraints
-        in_degree = dict.fromkeys(range(len(nodes)), 0)
-        for source in graph:
-            for target in graph[source]:
-                in_degree[target] = in_degree.get(target, 0) + 1
+        layer_constraint = self._build_layer_constraint(nodes)
 
         layers: List[List[int]] = []
         assigned: set[int] = set()
@@ -178,13 +181,8 @@ class HierarchicalLayout(LayoutAlgorithm):
             layer_nodes = self._collect_layer_candidates(
                 nodes, assigned, graph, current_layer, layer_constraint
             )
-
             if not layer_nodes:
-                for node_id in range(len(nodes)):
-                    if node_id not in assigned:
-                        layer_nodes.append(node_id)
-                        break
-
+                layer_nodes = self._force_one_assignment(nodes, assigned)
             if layer_nodes:
                 layers.append(layer_nodes)
                 assigned.update(layer_nodes)

@@ -35,6 +35,18 @@ def _normalize_dict_edge(edge: dict[str, Any], uuid_to_index: dict[str, int]) ->
     return source_idx, target_idx
 
 
+def _normalize_single_edge(
+    edge: Any, uuid_to_index: dict[str, int]
+) -> tuple[int | None, int | None]:
+    if isinstance(edge, tuple) and len(edge) == 2:
+        return _normalize_tuple_edge(edge)
+    if hasattr(edge, "_source") and hasattr(edge, "_target"):
+        return _normalize_connection_edge(edge, uuid_to_index)
+    if isinstance(edge, dict):
+        return _normalize_dict_edge(edge, uuid_to_index)
+    return None, None
+
+
 def normalize_edges(edges: Any, nodes: List[Any]) -> List[Tuple[int, int]]:
     """Convert various edge formats to tuples of (source_index, target_index).
 
@@ -61,20 +73,9 @@ def normalize_edges(edges: Any, nodes: List[Any]) -> List[Tuple[int, int]]:
             node_uuid_to_index[node_uuid] = i
 
     normalized = []
-
     for edge in edges:
-        source_idx = None
-        target_idx = None
-
-        if isinstance(edge, tuple) and len(edge) == 2:
-            source_idx, target_idx = _normalize_tuple_edge(edge)
-        elif hasattr(edge, '_source') and hasattr(edge, '_target'):
-            source_idx, target_idx = _normalize_connection_edge(edge, node_uuid_to_index)
-        elif isinstance(edge, dict):
-            source_idx, target_idx = _normalize_dict_edge(edge, node_uuid_to_index)
-
+        source_idx, target_idx = _normalize_single_edge(edge, node_uuid_to_index)
         if source_idx is not None and target_idx is not None:
             if 0 <= source_idx < len(nodes) and 0 <= target_idx < len(nodes):
                 normalized.append((source_idx, target_idx))
-
     return normalized

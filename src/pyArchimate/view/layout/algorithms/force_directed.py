@@ -195,6 +195,24 @@ class ForceDirectedLayout(LayoutAlgorithm):
                 node.x = int(round(positions[i].x))
                 node.y = int(round(positions[i].y))
 
+    def _scan_all_pairs(
+        self,
+        positions: Dict[int, Point],
+        node_ids: list[int],
+        node_dims: dict[int, tuple[int, int]],
+        excluded_ids: set[int],
+    ) -> bool:
+        any_adjusted = False
+        for i in range(len(node_ids)):
+            for j in range(i + 1, len(node_ids)):
+                ni = node_ids[i]
+                nj = node_ids[j]
+                if ni in excluded_ids or nj in excluded_ids:
+                    continue
+                if self._adjust_pair_positions(positions, ni, nj, node_dims):
+                    any_adjusted = True
+        return any_adjusted
+
     def _resolve_overlaps(
         self, positions: Dict[int, Point], nodes: List[Any], excluded_ids: set[int] | None = None
     ) -> Dict[int, Point]:
@@ -221,22 +239,8 @@ class ForceDirectedLayout(LayoutAlgorithm):
         # Iteratively push overlapping nodes apart
         max_iterations = 20
         for _ in range(max_iterations):
-            any_adjusted = False
-
             node_ids = list(positions.keys())
-            for i in range(len(node_ids)):
-                for j in range(i + 1, len(node_ids)):
-                    ni = node_ids[i]
-                    nj = node_ids[j]
-
-                    # Skip excluded nodes
-                    if ni in excluded_ids or nj in excluded_ids:
-                        continue
-
-                    if self._adjust_pair_positions(positions, ni, nj, node_dims):
-                        any_adjusted = True
-
-            if not any_adjusted:
+            if not self._scan_all_pairs(positions, node_ids, node_dims, excluded_ids):
                 break
 
         return positions
