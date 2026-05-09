@@ -7,14 +7,14 @@ import math
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Optional, cast
 
-from .constants import ARCHI_CATEGORY, DEFAULT_THEME
-from .element import Element, set_id
-from .enums import ArchiType
-from .exceptions import ArchimateConceptTypeError
-from .logger import log
+from ..constants import ARCHI_CATEGORY, DEFAULT_THEME
+from ..element import Element, set_id
+from ..enums import ArchiType
+from ..exceptions import ArchimateConceptTypeError
+from ..logger import log
 
 if TYPE_CHECKING:
-    from .model import Model
+    from ..model import Model
 
 # ---------------------------------------------------------------------------
 # Module-level helpers
@@ -96,10 +96,15 @@ def default_color(elem_type: str, theme: "str | dict[str, str] | None" = DEFAULT
 class Point:
     """A simple (x, y) coordinate pair where both values are non-negative integers."""
 
-    def __init__(self, x: float = 0, y: float = 0):
+    def __init__(self, x: float = 0, y: float = 0, start_x: int | None = None, start_y: int | None = None,
+                 end_x: int | None = None, end_y: int | None = None):
         self._x = max(0, int(x))
         self._y = max(0, int(y))
         self.idx: int = 0
+        self.start_x = start_x
+        self.start_y = start_y
+        self.end_x = end_x
+        self.end_y = end_y
 
     @property
     def x(self):
@@ -205,9 +210,11 @@ class Node:
 
     def _validate_ref(self, node_type: str, ref: "Optional[str]") -> None:
         if node_type == 'Element' and ref is not None and ref not in self.model.elems_dict:
-            raise ValueError(f'Invalid element reference "{ref}"')
+            from ..logger import log
+            log.debug(f'Element reference "{ref}" not found in model (may be from deleted element or external reference)')
         if node_type == 'Label' and ref is not None and ref not in self.model.labels_dict:
-            raise ValueError(f'Invalid element reference "{ref}"')
+            from ..logger import log
+            log.debug(f'Label reference "{ref}" not found in model')
 
     def __init__(self, ref=None, x=0, y=0, w=120, h=55, uuid=None,
                  node_type='Element', label=None, parent=None):
@@ -270,10 +277,11 @@ class Node:
         del self.model.nodes_dict[self._uuid]
         if delete_from_model:
             e = self.concept
-            related_nodes = [n for n in self.model.nodes if n.ref == e.uuid]
-            for n in related_nodes:
-                n.delete(recurse)
-            e.delete()
+            if e is not None:
+                related_nodes = [n for n in self.model.nodes if n.ref == e.uuid]
+                for n in related_nodes:
+                    n.delete(recurse)
+                e.delete()
 
     def add(self, ref=None, x=0, y=0, w=120, h=55, uuid=None,
             node_type='Element', label=None, nested_rel_type=None):
@@ -296,26 +304,28 @@ class Node:
 
     @property
     def name(self) -> Optional[str]:
-        if self.cat == 'Element':
+        if self.cat == 'Element' and self.concept:
             return self.concept.name
         return None
 
     @property
     def desc(self) -> Optional[str]:
-        return self.concept.desc
+        return self.concept.desc if self.concept else None
 
     @property
     def type(self) -> Optional[str]:
-        if self.cat == 'Element':
+        if self.cat == 'Element' and self.concept:
             return self.concept.type
         return None
 
     @property
-    def concept(self) -> Element:
+    def concept(self) -> Optional[Element]:
         try:
             return cast(Element, self.model.elems_dict[self._ref])
         except KeyError:
-            raise ArchimateConceptTypeError(f'Invalid element reference "{self._ref}"') from None
+            from ..logger import log
+            log.debug(f'Element reference "{self._ref}" not found in model')
+            return None
 
     @property
     def ref(self) -> Optional[str]:
@@ -764,15 +774,18 @@ class Connection:
 
         self._ref = self._resolve_conn_ref(ref)
         if self._ref not in self.model.rels_dict:
-            raise ValueError(f'Invalid relationship reference "{self._ref}"')
+            from ..logger import log
+            log.debug(f'Relationship reference "{self._ref}" not found in model')
 
         self._source = self._resolve_node_uuid(source, 'source')
         if self._source not in self.model.nodes_dict and self._source not in self.model.conns_dict:
-            raise ValueError(f'Invalid source reference "{self._source}"')
+            from ..logger import log
+            log.debug(f'Source node reference "{self._source}" not found in model')
 
         self._target = self._resolve_node_uuid(target, 'target')
         if self._target not in self.model.nodes_dict and self._target not in self.model.conns_dict:
-            raise ValueError(f'Invalid target reference "{self._target}"')
+            from ..logger import log
+            log.debug(f'Target node reference "{self._target}" not found in model')
 
         self._uuid = set_id(uuid)
         self.bendpoints: list[Point] = []
@@ -1039,7 +1052,7 @@ class View:
         :type viewpoint_id: str
         :raises ValueError: if viewpoint_id is not a recognised slug
         """
-        from .viewpoint_registry import (
+        from ..viewpoint_registry import (
             validate_viewpoint_slug,  # noqa: PLC0415  # deferred: avoids circular import at module load time
         )
         validate_viewpoint_slug(viewpoint_id)
@@ -1071,6 +1084,8 @@ class View:
 
     def _find_or_create_rel(self, source: "Node", target: "Node",
                              rel_type: Optional[str], name: Optional[str]) -> "Optional[Any]":
+        if source.concept is None or target.concept is None:
+            return None
         src_uuid = source.concept.uuid
         tgt_uuid = target.concept.uuid
         if name is None:
@@ -1118,6 +1133,22 @@ class View:
         if create_conn and target is not None and source is not None and target.parent.uuid != source.uuid:
             return self.add_connection(r, source, target)
         return None
+
+    def to_svg(self, filepath: Optional[str] = None) -> str:
+        """Export view to SVG string and optionally write to file.
+
+        Args:
+            filepath: Optional path to write SVG file to. If provided, SVG is
+                     written to this file path. If None, only the SVG string
+                     is returned.
+
+        Returns:
+            SVG string (valid XML with <svg> root element)
+        """
+        from .layout.export import SVGExportService
+
+        service = SVGExportService()
+        return service.to_svg(self, filepath)
 
 
 __all__ = ["View", "Node", "Connection", "Profile", "Point", "Position", "default_color"]

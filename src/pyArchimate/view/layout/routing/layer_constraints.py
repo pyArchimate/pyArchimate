@@ -1,0 +1,198 @@
+"""ArchiMate layer constraint handling for layout operations."""
+
+from __future__ import annotations
+
+from enum import Enum
+from typing import Any, Dict
+
+
+class ArchiMateLayer(Enum):
+    """ArchiMate layers as defined in the specification."""
+
+    BUSINESS = "business"
+    APPLICATION = "application"
+    TECHNOLOGY = "technology"
+    OTHER = "other"
+
+    @classmethod
+    def from_archimate_type(cls, element_type: str) -> "ArchiMateLayer":
+        """Determine ArchiMate layer from element type."""
+        element_type_lower = element_type.lower()
+
+        # Check for explicit layer indicators first
+        if "business" in element_type_lower:
+            return cls.BUSINESS
+        if "application" in element_type_lower:
+            return cls.APPLICATION
+        if any(t in element_type_lower for t in ["technology", "infrastructure", "device"]):
+            return cls.TECHNOLOGY
+
+        # Business layer elements
+        if any(t in element_type_lower for t in ["actor", "role", "interaction", "process", "function", "product", "event"]):
+            return cls.BUSINESS
+
+        # Application layer elements
+        if any(t in element_type_lower for t in ["component", "interface", "data object"]):
+            return cls.APPLICATION
+
+        # Technology layer elements
+        if any(t in element_type_lower for t in ["system software", "node", "network"]):
+            return cls.TECHNOLOGY
+
+        return cls.OTHER
+
+    def layer_order(self) -> int:
+        """Get layer ordering (higher = lower in diagram)."""
+        order = {
+            ArchiMateLayer.BUSINESS: 0,
+            ArchiMateLayer.APPLICATION: 1,
+            ArchiMateLayer.TECHNOLOGY: 2,
+            ArchiMateLayer.OTHER: 3,
+        }
+        return order[self]
+
+
+class LayerConstraint:
+    """Manages ArchiMate layer constraints during layout."""
+
+    def __init__(self) -> None:
+        """Initialize layer constraint system."""
+        self.element_layers: Dict[int, ArchiMateLayer] = {}
+
+    def assign_layer(self, element_id: int, layer: ArchiMateLayer) -> None:
+        """Assign an element to a layer."""
+        self.element_layers[element_id] = layer
+
+    def get_layer(self, element_id: int) -> ArchiMateLayer:
+        """Get the layer of an element."""
+        return self.element_layers.get(element_id, ArchiMateLayer.OTHER)
+
+    def _layers_correctly_ordered(
+        self,
+        pos1: tuple[float, float],
+        pos2: tuple[float, float],
+        layer1: "ArchiMateLayer",
+        layer2: "ArchiMateLayer",
+        vertical: bool,
+    ) -> bool:
+        if layer1.layer_order() >= layer2.layer_order():
+            return True
+        if vertical:
+            return pos1[1] <= pos2[1]
+        return pos1[0] <= pos2[0]
+
+    def validate_layer_order(
+        self, positions: Dict[int, tuple[float, float]], vertical: bool = True
+    ) -> bool:
+        """Validate that element positions respect layer ordering.
+
+        Args:
+            positions: Dict of element_id -> (x, y) position
+            vertical: If True, check vertical ordering; else horizontal
+
+        Returns:
+            True if all constraints satisfied, False otherwise
+        """
+        for elem1_id, pos1 in positions.items():
+            for elem2_id, pos2 in positions.items():
+                if elem1_id >= elem2_id:
+                    continue
+                layer1 = self.get_layer(elem1_id)
+                layer2 = self.get_layer(elem2_id)
+                if not self._layers_correctly_ordered(pos1, pos2, layer1, layer2, vertical):
+                    return False
+        return True
+
+    def enforce_layer_separation(
+        self, positions: Dict[int, Any], spacing: float = 100
+    ) -> Dict[int, Any]:
+        """Enforce minimum separation between layers.
+
+        Args:
+            positions: Dict of element_id -> (x, y) position
+            spacing: Minimum spacing between layers
+
+        Returns:
+            Updated positions dict with layer constraints enforced
+        """
+        # Group elements by layer
+        layers: Dict[ArchiMateLayer, list[int]] = {}
+        for elem_id, layer in self.element_layers.items():
+            if layer not in layers:
+                layers[layer] = []
+            layers[layer].append(elem_id)
+
+        updated_positions = dict(positions)
+
+        # Ensure proper vertical ordering (Business > Application > Technology)
+        layer_y_ranges: dict[ArchiMateLayer, tuple[float, float]] = {}
+        current_y: float = 0
+        for layer in [ArchiMateLayer.BUSINESS, ArchiMateLayer.APPLICATION, ArchiMateLayer.TECHNOLOGY]:
+            if layer in layers:
+                max_height = max(50, len(layers[layer]) * 30)
+                layer_y_ranges[layer] = (current_y, current_y + max_height)
+                current_y += max_height + spacing
+
+        for elem_id, pos in updated_positions.items():
+            layer = self.get_layer(elem_id)
+            if layer in layer_y_ranges:
+                y_min, y_max = layer_y_ranges[layer]
+                updated_positions[elem_id] = self._clamp_position_to_layer(pos, y_min, y_max)
+
+        return updated_positions
+
+    def _clamp_position_to_layer(self, pos: Any, y_min: float, y_max: float) -> Any:
+        if hasattr(pos, 'x') and hasattr(pos, 'y'):
+            x, y = pos.x, pos.y
+        else:
+            x, y = pos[0], pos[1]
+        new_y = max(y_min, min(y, y_max - 50))
+        if hasattr(pos, 'x'):
+            from ..utils.geometry import Point
+            return Point(x, new_y)
+        return (x, new_y)
+
+    def enforce_layer_separation_with_exclusions(
+        self, positions: dict[int, Any], spacing: float = 100, excluded_ids: set[int] | None = None
+    ) -> dict[int, Any]:
+        """Enforce minimum separation between layers while excluding specified elements.
+
+        Args:
+            positions: Dict of element_id -> Position (Point or tuple)
+            spacing: Minimum spacing between layers
+            excluded_ids: Set of element IDs to exclude from repositioning
+
+        Returns:
+            Updated positions dict with layer constraints enforced
+        """
+        if excluded_ids is None:
+            excluded_ids = set()
+
+        # Group elements by layer (excluding specified IDs)
+        layers: Dict[ArchiMateLayer, list[int]] = {}
+        for elem_id, layer in self.element_layers.items():
+            if elem_id not in excluded_ids:
+                if layer not in layers:
+                    layers[layer] = []
+                layers[layer].append(elem_id)
+
+        updated_positions = dict(positions)
+
+        # Ensure proper vertical ordering (Business > Application > Technology)
+        layer_y_ranges: dict[ArchiMateLayer, tuple[float, float]] = {}
+        current_y: float = 0
+        for layer in [ArchiMateLayer.BUSINESS, ArchiMateLayer.APPLICATION, ArchiMateLayer.TECHNOLOGY]:
+            if layer in layers:
+                max_height = max(50, len(layers[layer]) * 30)
+                layer_y_ranges[layer] = (current_y, current_y + max_height)
+                current_y += max_height + spacing
+
+        for elem_id, pos in updated_positions.items():
+            if elem_id in excluded_ids:
+                continue
+            layer = self.get_layer(elem_id)
+            if layer in layer_y_ranges:
+                y_min, y_max = layer_y_ranges[layer]
+                updated_positions[elem_id] = self._clamp_position_to_layer(pos, y_min, y_max)
+
+        return updated_positions

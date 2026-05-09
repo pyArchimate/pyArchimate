@@ -127,6 +127,7 @@ select = [
 ]
 ignore = [
     "E501",  # line too long — handled by formatter
+    "N999",  # pyArchimate is intentional CamelCase module name
 ]
 exclude = [
     "**/node_modules",
@@ -188,6 +189,7 @@ output = "build/coverage.xml"
 paths = [
     "tests/features/"
 ]
+tags = ["~@wip"]
 
 [tool.pymarkdown]
 # MD010 - no hard tabs

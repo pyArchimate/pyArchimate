@@ -111,6 +111,15 @@ class _N:
     cy = 100
 
 
+class _EdgeN:
+    cx = 50
+    cy = 100
+    x = 20
+    y = 60
+    w = 60
+    h = 40
+
+
 def test_resolve_bp_coords_start_xy():
     bp = etree.Element("bendpoint", startX="10", startY="20")
     x, y = _resolve_bp_coords(bp, _N(), _N())
@@ -126,10 +135,22 @@ def test_resolve_bp_coords_end_xy():
 
 
 def test_resolve_bp_coords_no_attrs():
+    # Absent attributes mean offset=0 from the source centre, so the bendpoint
+    # lands exactly at the source node centre (cx=50, cy=100).
     bp = etree.Element("bendpoint")
     x, y = _resolve_bp_coords(bp, _N(), _N())
-    assert x == 0
-    assert y == 0
+    assert x == 50
+    assert y == 100
+
+
+def test_resolve_bp_coords_start_only_uses_source_centre():
+    # startX/startY are offsets from the SOURCE centre (cx=50, cy=100).
+    # The test was previously named "prefers_top_left" but that referred to a
+    # scoring heuristic that was rejected; we always use cx/cy as basis.
+    bp = etree.Element("bendpoint", startX="0", startY="40")
+    x, y = _resolve_bp_coords(bp, _EdgeN(), _EdgeN())
+    assert x == 50   # 0 + source.cx (50)
+    assert y == 140  # 40 + source.cy (100)
 
 
 # =============================================================================

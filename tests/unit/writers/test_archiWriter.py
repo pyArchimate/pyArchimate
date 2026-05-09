@@ -3,7 +3,7 @@ from typing import cast
 
 from lxml import etree
 
-from src.pyArchimate import ArchiType
+from src.pyArchimate import ArchiType, Point
 from src.pyArchimate.model import Model
 from src.pyArchimate.view import View
 from src.pyArchimate.writers.archiWriter import archi_writer
@@ -114,6 +114,32 @@ def test_archi_writer_connection_font_color(tmp_path):
     assert 'fontColor' in xml_str
 
 
+def test_archi_writer_connection_bendpoint_offsets_use_node_origin(tmp_path):
+    """Bendpoint offsets are written relative to the node CENTRE (Archi format spec).
+
+    Source: x=10, y=10, w=100, h=50  → cx=60, cy=35
+    Target: x=210, y=10, w=100, h=50 → cx=260, cy=35
+    Bendpoint absolute: (110, 50)
+    startX = 110 - 60 = 50,  startY = 50 - 35 = 15
+    endX   = 110 - 260 = -150, endY = 50 - 35 = 15
+    """
+    model = Model('conn-bp-origin')
+    a = model.add(ArchiType.ApplicationComponent, 'A')
+    b = model.add(ArchiType.ApplicationService, 'B')
+    rel = model.add_relationship(ArchiType.Serving, source=a, target=b)
+    view = cast(View, model.add(ArchiType.View, 'V'))
+    na = view.add(ref=a.uuid, x=10, y=10, w=100, h=50)
+    nb = view.add(ref=b.uuid, x=210, y=10, w=100, h=50)
+    conn = view.add_connection(ref=rel.uuid, source=na, target=nb)
+    conn.add_bendpoint(Point(110, 50))
+    target = tmp_path / 'conn_bp_origin.archimate'
+    xml_str = archi_writer(model, str(target))
+    assert 'startX="50"' in xml_str
+    assert 'startY="15"' in xml_str
+    assert 'endX="-150"' in xml_str
+    assert 'endY="15"' in xml_str
+
+
 def test_archi_writer_node_icon_color_and_gradient(tmp_path):
     """Node with icon_color and gradient writes feature elements (lines 216, 219)."""
     model = Model('icon-grad')
@@ -148,3 +174,41 @@ def test_archi_writer_view_with_primary_viewpoint(tmp_path):
     target = tmp_path / 'vp_view.archimate'
     xml_str = archi_writer(model, str(target))
     assert 'viewpoint' in xml_str
+
+
+def test_archi_writer_preserves_technology_and_physical_folder(tmp_path):
+    """Folder names like 'Technology & Physical' should not be treated as a Technology prefix."""
+    model = Model('tech-folder')
+    elem = model.add(ArchiType.Equipment, 'Rack')
+    elem.folder = '/Technology & Physical'
+    target = tmp_path / 'tech_folder.archimate'
+    xml_str = archi_writer(model, str(target))
+    assert target.exists()
+    assert 'Rack' in xml_str
+
+
+def test_archi_writer_propagates_target_connections_to_group_ancestors(tmp_path):
+    """Connections into nested nodes should only be listed on the direct target, not on parent groups."""
+    model = Model('group-target-connections')
+    src_elem = model.add(ArchiType.ApplicationComponent, 'Source')
+    tgt_elem = model.add(ArchiType.ApplicationService, 'Target')
+    rel = model.add_relationship(ArchiType.Serving, source=src_elem, target=tgt_elem)
+
+    view = cast(View, model.add(ArchiType.View, 'V'))
+    src = view.add(ref=src_elem.uuid, x=0, y=0, w=100, h=50)
+    group = view.add(ref=None, node_type='Container', label='Group', x=200, y=0, w=220, h=140)
+    tgt = group.add(ref=tgt_elem.uuid, x=20, y=20, w=100, h=50)
+    conn = view.add_connection(ref=rel.uuid, source=src, target=tgt)
+
+    target = tmp_path / 'group_target_connections.archimate'
+    xml_str = archi_writer(model, str(target))
+    assert target.exists()
+
+    root = etree.fromstring(xml_str.encode('utf-8'))
+    group_node = root.find(".//child[@name='Group']")
+    assert group_node is not None
+    tgt_node = root.find(f".//child[@id='{tgt.uuid}']")
+    assert tgt_node is not None
+
+    assert conn.uuid not in (group_node.get('targetConnections') or '')
+    assert conn.uuid in (tgt_node.get('targetConnections') or '')

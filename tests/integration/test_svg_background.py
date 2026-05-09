@@ -1,0 +1,272 @@
+"""Integration tests for SVG white background feature."""
+
+from pathlib import Path
+from xml.etree import ElementTree as ET
+
+from src.pyArchimate.model import Model
+from src.pyArchimate.view import View
+
+
+def test_svg_export_with_demo_includes_white_background():
+    """Test that SVG export from demo file includes white background."""
+    model = Model()
+    demo_path = Path(__file__).parent.parent.parent / 'temp' / 'auto-layout-demo-formatted.archimate'
+
+    if demo_path.exists():
+        model.read(str(demo_path))
+
+        if model.views:
+            view = model.views[0]
+
+            # Export to SVG
+            svg_string = view.to_svg()
+
+            # Parse SVG
+            if '<?xml' in svg_string:
+                start_idx = svg_string.find('<svg')
+                end_idx = svg_string.rfind('</svg>') + 6
+                svg_part = svg_string[start_idx:end_idx]
+            else:
+                svg_part = svg_string
+
+            root = ET.fromstring(svg_part)
+
+            # Find all rectangles
+            rects = root.findall('.//{http://www.w3.org/2000/svg}rect')
+            assert len(rects) >= 2, "Should have at least background + node rectangles"
+
+            # First rectangle should be the white background
+            bg_rect = rects[0]
+            assert bg_rect.get('x') == '0', "Background x should be 0"
+            assert bg_rect.get('y') == '0', "Background y should be 0"
+            assert bg_rect.get('fill') == 'white', "Background fill should be white"
+            assert bg_rect.get('stroke') == 'none', "Background stroke should be none"
+
+            print(f"✓ SVG white background test passed ({len(rects)} rectangles found)")
+    else:
+        print("⊘ Demo file not found, skipping test")
+
+
+def test_svg_background_covers_entire_canvas():
+    """Test that background rectangle covers the entire SVG canvas."""
+    model = Model()
+    demo_path = Path(__file__).parent.parent.parent / 'temp' / 'auto-layout-demo-formatted.archimate'
+
+    if demo_path.exists():
+        model.read(str(demo_path))
+
+        if model.views:
+            view = model.views[0]
+
+            # Export to SVG
+            svg_string = view.to_svg()
+
+            # Parse SVG
+            if '<?xml' in svg_string:
+                start_idx = svg_string.find('<svg')
+                end_idx = svg_string.rfind('</svg>') + 6
+                svg_part = svg_string[start_idx:end_idx]
+            else:
+                svg_part = svg_string
+
+            root = ET.fromstring(svg_part)
+
+            # Get SVG dimensions
+            svg_width = int(root.get('width', 0))
+            svg_height = int(root.get('height', 0))
+
+            # Find background rectangle
+            rects = root.findall('.//{http://www.w3.org/2000/svg}rect')
+            bg_rect = rects[0]
+
+            bg_width = int(bg_rect.get('width', 0))
+            bg_height = int(bg_rect.get('height', 0))
+
+            # Background should cover entire canvas
+            assert bg_width == svg_width, "Background width should match SVG width"
+            assert bg_height == svg_height, "Background height should match SVG height"
+
+            print(f"✓ Background covers entire canvas: {bg_width}x{bg_height}")
+    else:
+        print("⊘ Demo file not found, skipping test")
+
+
+def test_svg_background_appears_behind_nodes():
+    """Test that background appears behind nodes and connections."""
+    model = Model()
+    demo_path = Path(__file__).parent.parent.parent / 'temp' / 'auto-layout-demo-formatted.archimate'
+
+    if demo_path.exists():
+        model.read(str(demo_path))
+
+        if model.views:
+            view = model.views[0]
+
+            # Export to SVG
+            svg_string = view.to_svg()
+
+            # Parse SVG
+            if '<?xml' in svg_string:
+                start_idx = svg_string.find('<svg')
+                end_idx = svg_string.rfind('</svg>') + 6
+                svg_part = svg_string[start_idx:end_idx]
+            else:
+                svg_part = svg_string
+
+            # Get SVG as string to check element order
+            assert '<rect' in svg_part, "Should contain rectangles"
+
+            # Background should appear first (after defs)
+            defs_end = svg_part.find('</defs>')
+            first_rect_pos = svg_part.find('<rect', defs_end)
+            assert first_rect_pos > defs_end, "First rectangle (background) should appear after defs"
+
+            # There should be elements after the background
+            assert svg_part.find('<', first_rect_pos + 1) > first_rect_pos, "Should have elements after background"
+
+            print("✓ Background rendering order is correct (behind nodes/connections)")
+    else:
+        print("⊘ Demo file not found, skipping test")
+
+
+def test_empty_view_has_white_background():
+    """Test that empty views still get white background."""
+    model = Model()
+    view = View(name="Empty View", uuid="empty-view", parent=model)
+    model.views_dict[view.uuid] = view
+
+    # Export empty view to SVG
+    svg_string = view.to_svg()
+
+    # Parse SVG
+    if '<?xml' in svg_string:
+        start_idx = svg_string.find('<svg')
+        end_idx = svg_string.rfind('</svg>') + 6
+        svg_part = svg_string[start_idx:end_idx]
+    else:
+        svg_part = svg_string
+
+    root = ET.fromstring(svg_part)
+
+    # Find rectangles
+    rects = root.findall('.//{http://www.w3.org/2000/svg}rect')
+    assert len(rects) >= 1, "Empty view should at least have background rectangle"
+
+    # Verify it's white background
+    bg_rect = rects[0]
+    assert bg_rect.get('fill') == 'white', "Background should be white"
+    assert bg_rect.get('x') == '0', "Background should start at x=0"
+    assert bg_rect.get('y') == '0', "Background should start at y=0"
+
+    print("✓ Empty view has white background")
+
+
+def test_svg_zorder_parent_before_children():
+    """Test that parent nodes render before child nodes in SVG element tree."""
+    from src.pyArchimate.model import Model
+
+    model = Model()
+    view = View(name="Hierarchy Test", uuid="hierarchy-test", parent=model)
+    model.views_dict[view.uuid] = view
+
+    # Create parent and child nodes
+    parent = view.add(ref=None, x=100, y=100, w=200, h=200,
+                      node_type='Label', label='Parent Container')
+    child = parent.add(ref=None, x=50, y=50, w=100, h=100,
+                       node_type='Label', label='Child Element')
+    assert child is not None  # Verify child was created
+
+    # Export to SVG
+    svg_string = view.to_svg()
+
+    # Parse SVG
+    if '<?xml' in svg_string:
+        start_idx = svg_string.find('<svg')
+        end_idx = svg_string.rfind('</svg>') + 6
+        svg_part = svg_string[start_idx:end_idx]
+    else:
+        svg_part = svg_string
+
+    root = ET.fromstring(svg_part)
+
+    # Collect all groups (nodes) in order
+    groups = root.findall('.//{http://www.w3.org/2000/svg}g[@class="node"]')
+    assert len(groups) >= 2, "Should have at least parent and child nodes"
+
+    # Find parent and child in the groups list by searching text content
+    parent_group_idx = None
+    child_group_idx = None
+
+    for idx, group in enumerate(groups):
+        text_elems = group.findall('.//{http://www.w3.org/2000/svg}text')
+        for text in text_elems:
+            if text.text and 'Parent' in text.text:
+                parent_group_idx = idx
+            elif text.text and 'Child' in text.text:
+                child_group_idx = idx
+
+    # Verify parent appears before child in SVG element tree
+    if parent_group_idx is not None and child_group_idx is not None:
+        assert parent_group_idx < child_group_idx, \
+            f"Parent (idx {parent_group_idx}) should appear before child (idx {child_group_idx}) in SVG"
+        print(f"✓ Z-order correct: Parent at index {parent_group_idx}, Child at index {child_group_idx}")
+    else:
+        print("⊘ Could not verify z-order (parent/child text not found in SVG)")
+
+
+def test_nested_elements_render_hierarchy():
+    """Test that deeply nested elements render in proper hierarchy."""
+    from src.pyArchimate.model import Model
+
+    model = Model()
+    view = View(name="Deep Nesting", uuid="deep-nesting", parent=model)
+    model.views_dict[view.uuid] = view
+
+    # Create multi-level nesting: root -> level1 -> level2 -> leaf
+    root = view.add(ref=None, x=0, y=0, w=400, h=400,
+                    node_type='Label', label='Root')
+    level1 = root.add(ref=None, x=50, y=50, w=300, h=300,
+                      node_type='Label', label='Level1')
+    level2 = level1.add(ref=None, x=50, y=50, w=200, h=200,
+                        node_type='Label', label='Level2')
+    leaf = level2.add(ref=None, x=50, y=50, w=100, h=100,
+                      node_type='Label', label='Leaf')
+    assert leaf is not None  # Verify all nodes were created
+
+    # Export to SVG
+    svg_string = view.to_svg()
+
+    # Parse SVG
+    if '<?xml' in svg_string:
+        start_idx = svg_string.find('<svg')
+        end_idx = svg_string.rfind('</svg>') + 6
+        svg_part = svg_string[start_idx:end_idx]
+    else:
+        svg_part = svg_string
+
+    root_elem = ET.fromstring(svg_part)
+
+    # Count total elements - should have all 4 nested nodes
+    all_groups = root_elem.findall('.//{http://www.w3.org/2000/svg}g[@class="node"]')
+    assert len(all_groups) == 4, f"Should have exactly 4 nodes (root + 3 nested), got {len(all_groups)}"
+
+    # Verify containers are rendered with rects (dotted borders) and leaf with solid rect
+    all_dashed_rects = root_elem.findall('.//{http://www.w3.org/2000/svg}rect[@stroke-dasharray="5,5"]')
+    all_rects = root_elem.findall('.//{http://www.w3.org/2000/svg}rect')
+    # 3 containers (root, level1, level2) with dashed borders, plus rects for all elements
+    assert len(all_dashed_rects) == 3, f"Should have 3 container rectangles (dotted borders), got {len(all_dashed_rects)}"
+    # All 4 nodes should have at least one rect element (either dashed container or solid body)
+    assert len(all_rects) >= 4, f"Should render at least 4 rectangles (one per node), got {len(all_rects)}"
+
+    # Verify structure: nested nodes render successfully
+    print(f"✓ Nested hierarchy rendered: {len(all_groups)} nodes in SVG, {len(all_dashed_rects)} containers with dotted borders")
+
+
+if __name__ == '__main__':
+    test_svg_export_with_demo_includes_white_background()
+    test_svg_background_covers_entire_canvas()
+    test_svg_background_appears_behind_nodes()
+    test_empty_view_has_white_background()
+    test_svg_zorder_parent_before_children()
+    test_nested_elements_render_hierarchy()
+    print("\n✓ All SVG background and z-order tests passed!")

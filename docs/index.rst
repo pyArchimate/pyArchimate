@@ -18,6 +18,7 @@ pyArchimate
    guides/visual-styling
    guides/junction-types
    guides/extending
+   features/layout
    examples/hierarchy_examples
    examples/styling_examples
 

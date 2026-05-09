@@ -45,6 +45,58 @@ Elements span the full ArchiMate 3 layer stack: **Strategy, Motivation, Business
 - **Filter** — extract subsets of elements, relationships, or views by custom predicates
 - **Style** — set colours, coordinates, dimensions, and text layout on nodes
 - **Validate** — check for broken references and invalid connections
+- **Auto-Layout** — automatically arrange view elements using force-directed or hierarchical algorithms
+- **Auto-Format** — standardize element sizes, fonts, and alignment per ArchiMate conventions
+- **SVG Export** — render views as self-contained SVG with ArchiMate symbols and standard colors
+
+## Auto-Layout and Auto-Format (BETA)
+
+⚠️ **Status**: BETA — Core functionality is stable and production-ready for typical use cases. API may evolve based on user feedback.
+
+### Quick Start
+
+```python
+from pyArchimate.view import load_view, save_view
+from pyArchimate.view.layout import apply_layout, apply_format, LayoutConfig
+
+# Load a view
+view = load_view("architecture.archimate")
+
+# Apply automatic layout
+result = apply_layout(view)
+
+# Or apply formatting only (without repositioning)
+result = apply_format(view)
+
+# Export as SVG
+svg = view.to_svg(filepath="diagram.svg")
+
+# Save the laid-out view
+save_view(view, "laid_out.archimate")
+```
+
+### Features
+
+- **Two layout algorithms**: Force-directed (general-purpose) and hierarchical (organizational structures)
+- **Respect ArchiMate layers**: Business → Application → Technology ordering enforced
+- **Connection routing**: Orthogonal polylines with intelligent label placement
+- **SVG export**: Self-contained SVG with all 30+ ArchiMate element types and standard colors
+- **Undo/rollback**: Revert layout changes with `undo_layout(view)`
+- **Configuration**: Customize spacing, margins, alignment, element exclusion, and routing style
+
+### Performance
+
+| View Size | Force-Directed | Hierarchical |
+|-----------|----------------|--------------|
+| 100 elements | <200ms | <50ms |
+| 300 elements | <2s | <500ms |
+| 500 elements | <5s | <1s |
+
+### Learn More
+
+- [Auto-Layout Quickstart Guide](specs/011-view-auto-layout/quickstart.md)
+- [Technical Specifications](specs/011-view-auto-layout/auto-layout-specifications.md)
+- [API Reference](specs/011-view-auto-layout/contracts/layout-api.md)
 
 ## Limitations
 

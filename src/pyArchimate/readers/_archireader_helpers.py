@@ -20,12 +20,21 @@ except ImportError:
     )
 
 
+def _handle_diagram_object(parent: Any, child: Any) -> Any:
+    node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'))
+    if node is not None:
+        try:
+            if node.concept.prop('label') is not None:
+                node.label_expression = str(node.concept.prop('label'))
+        except Exception as e:
+            log.debug(f"Failed to set label expression for node {getattr(node, 'uuid', None)}: {e}")
+    return node
+
+
 def _parse_node_type(parent: Any, child: Any, xsi: str) -> Any:
     type_n = child.get(xsi + 'type').split(':')[1]
     if type_n == 'DiagramObject':
-        node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'))
-        if node is not None and node.concept.prop('label') is not None:
-            node.label_expression = str(node.concept.prop('label'))
+        node = _handle_diagram_object(parent, child)
     elif type_n == 'Group':
         node = parent.add(ref=child.get('archimateElement'), uuid=child.get('id'),
                           node_type='Container', label=child.get('name'))
@@ -104,25 +113,44 @@ def get_node(tag: Any, parent: Any, xsi: str) -> None:
 
 
 def _resolve_bp_coords(bp: Any, source_node: Any, target_node: Any) -> tuple[int, int]:
-    x, y = 0, 0
-    if bp.get('startX') is not None:
-        x = int(bp.get('startX')) + source_node.cx
-    if bp.get('startY') is not None:
-        y = int(bp.get('startY')) + source_node.cy
-    if bp.get('endX') is not None:
+    # In Archi's format startX/startY are offsets from the SOURCE centre;
+    # endX/endY are offsets from the TARGET centre.  Both encode the same
+    # physical point for round-trip stability when nodes move.
+    # When an attribute is absent the implied offset is 0, i.e. the bendpoint
+    # sits at the node centre on that axis.
+    # Priority: endX/endY take precedence over startX/startY when both present.
+    has_start_x = bp.get('startX') is not None
+    has_start_y = bp.get('startY') is not None
+    has_end_x   = bp.get('endX') is not None
+    has_end_y   = bp.get('endY') is not None
+
+    if has_end_x:
         x = int(bp.get('endX')) + target_node.cx
-    if bp.get('endY') is not None:
+    elif has_start_x:
+        x = int(bp.get('startX')) + source_node.cx
+    else:
+        x = int(source_node.cx)  # offset = 0 → at source centre
+
+    if has_end_y:
         y = int(bp.get('endY')) + target_node.cy
+    elif has_start_y:
+        y = int(bp.get('startY')) + source_node.cy
+    else:
+        y = int(source_node.cy)  # offset = 0 → at source centre
     return x, y
 
 
 def _parse_connection(sc: Any, parent: View) -> None:
     ref = sc.get('archimateRelationship')
     if ref not in parent.model.rels_dict:
-        log.warning(f'Unknown connection ref {ref}')
+        log.debug(f'Unknown connection ref {ref}')
         return
-    conn = parent.add_connection(ref=ref, source=sc.get('source'),
-                                 target=sc.get('target'), uuid=sc.get('id'))
+    try:
+        conn = parent.add_connection(ref=ref, source=sc.get('source'),
+                                     target=sc.get('target'), uuid=sc.get('id'))
+    except (ValueError, KeyError) as exc:
+        log.warning(f'Skipping connection {sc.get("id")}: {exc}')
+        return
     if sc.get('fontColor') is not None:
         conn.font_color = sc.get('fontColor')
     if sc.get('lineColor') is not None:
@@ -130,18 +158,19 @@ def _parse_connection(sc: Any, parent: View) -> None:
     if sc.get('lineWidth') is not None:
         conn.line_width = int(sc.get('lineWidth'))
     conn.text_position = sc.get('textPosition')
-    source_node = (parent.model.nodes_dict[sc.get('source')]
-                   if sc.get('source') in parent.model.nodes_dict
-                   else parent.model.conns_dict[sc.get('source')])
-    target_node = (parent.model.nodes_dict[sc.get('target')]
-                   if sc.get('target') in parent.model.nodes_dict
-                   else parent.model.conns_dict[sc.get('target')])
+    source_id = sc.get('source')
+    target_id = sc.get('target')
+    source_node = (parent.model.nodes_dict.get(source_id)
+                   or parent.model.conns_dict.get(source_id))
+    target_node = (parent.model.nodes_dict.get(target_id)
+                   or parent.model.conns_dict.get(target_id))
     ft = sc.find('feature')
     if ft is not None and ft.get('name') == 'nameVisible':
         conn.show_label = parse_bool(ft.get('value'))
-    for bp in sc.findall('bendpoint'):
-        _x, _y = _resolve_bp_coords(bp, source_node, target_node)
-        conn.add_bendpoint(Point(_x, _y))
+    if source_node and target_node:
+        for bp in sc.findall('bendpoint'):
+            _x, _y = _resolve_bp_coords(bp, source_node, target_node)
+            conn.add_bendpoint(Point(_x, _y))
 
 
 def get_connection(tag: Any, parent: View) -> None:
@@ -155,8 +184,7 @@ def _resolve_rel_endpoints(e: Any, model: Any) -> tuple[Any, Any] | None:
     src_id, dst_id = e.get('source'), e.get('target')
     if (src_id not in model.elems_dict and src_id not in model.rels_dict) \
             or (dst_id not in model.elems_dict and dst_id not in model.rels_dict):
-        log.warning(f"Invalid {src_id} or {dst_id}")
-        return None
+        return None  # Will retry in next pass
     src = model.elems_dict[src_id] if src_id in model.elems_dict else model.rels_dict[src_id]
     dst = model.elems_dict[dst_id] if dst_id in model.elems_dict else model.rels_dict[dst_id]
     return src, dst
@@ -281,7 +309,38 @@ def get_folders_elem(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_pat
         get_folders_elem(f, model, xsi, merge_flg, folder)
 
 
-def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path: str = '') -> None:
+def _add_resolved_rel(e: Any, type_e: str, folder: str, model: Any, merge_flg: bool, src: Any, dst: Any) -> None:
+    if merge_flg and e.get('id') in model.rels_dict:
+        elem = model.rels_dict[e.get('id')]
+    else:
+        elem = model.add_relationship(rel_type=type_e, name=e.get('name'), uuid=e.get('id'),
+                                      source=src, target=dst, profile=e.get('profiles'))
+    elem.folder = folder
+    _parse_rel_attributes(elem, e)
+
+
+def _retry_unresolved_rels(unresolved: list[Any], model: Any, merge_flg: bool) -> None:
+    max_retries = len(unresolved) + 1
+    still_unresolved: list[Any] = []
+    for _retry_count in range(max_retries):
+        still_unresolved = []
+        for e, type_e, folder in unresolved:
+            endpoints = _resolve_rel_endpoints(e, model)
+            if endpoints is not None:
+                src, dst = endpoints
+                _add_resolved_rel(e, type_e, folder, model, merge_flg, src, dst)
+            else:
+                still_unresolved.append((e, type_e, folder))
+        if not still_unresolved:
+            break
+        unresolved = still_unresolved
+    for e, _type_e, _folder in still_unresolved:
+        log.debug(f"Unable to resolve relationship {e.get('id')}: endpoints not found")
+
+
+def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path: str = '', unresolved: list[Any] | None = None) -> None:
+    if unresolved is None:
+        unresolved = []
     folder = folder_path + '/' + tag.get('name')
     for e in tag.findall('element'):
         type_e = e.get(xsi + 'type').split(':')[1]
@@ -290,17 +349,14 @@ def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path
         type_e = type_e[:-len("Relationship")]
         endpoints = _resolve_rel_endpoints(e, model)
         if endpoints is None:
+            unresolved.append((e, type_e, folder))
             continue
         src, dst = endpoints
-        if merge_flg and e.get('id') in model.rels_dict:
-            elem = model.rels_dict[e.get('id')]
-        else:
-            elem = model.add_relationship(rel_type=type_e, name=e.get('name'), uuid=e.get('id'),
-                                          source=src, target=dst, profile=e.get('profiles'))
-        elem.folder = folder
-        _parse_rel_attributes(elem, e)
+        _add_resolved_rel(e, type_e, folder, model, merge_flg, src, dst)
     for f in tag.findall('folder'):
-        get_folders_rel(f, model, xsi, merge_flg, folder)
+        get_folders_rel(f, model, xsi, merge_flg, folder, unresolved)
+    if folder_path == '':
+        _retry_unresolved_rels(unresolved, model, merge_flg)
 
 
 def get_folders_view(tag: Any, model: Any, xsi: str, folder_path: str = '') -> None:
