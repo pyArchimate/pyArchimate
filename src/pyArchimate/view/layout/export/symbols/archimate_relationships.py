@@ -5,7 +5,7 @@ ArchiMate relationship type, enabling SVG export to render relationships accordi
 the official ArchiMate 3.x specification.
 """
 
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 
 class RelationshipStyle(NamedTuple):
@@ -13,8 +13,8 @@ class RelationshipStyle(NamedTuple):
     relationship_type: str              # e.g., "ServingRelationship"
     stroke_color: str                   # HEX color code (e.g., "#4A90E2")
     stroke_width: float                 # Line width in pixels (1.0, 1.5, 2.0)
-    stroke_dasharray: Optional[str]     # Pattern for dashed/dotted (e.g., "5,5" or "2,4")
-    marker_start: Optional[str]         # Start marker (e.g., "url(#diamond-hollow)")
+    stroke_dasharray: str | None     # Pattern for dashed/dotted (e.g., "5,5" or "2,4")
+    marker_start: str | None         # Start marker (e.g., "url(#diamond-hollow)")
     marker_end: str                     # End marker (e.g., _ARROW_FILLED)
     arrow_type: str                     # "filled", "hollow", "double", "diamond", "circle"
 
@@ -156,7 +156,7 @@ class RelationshipStyleService:
         self.styles = ARCHIMATE_RELATIONSHIP_STYLES.copy()
         self._overrides: dict[str, RelationshipStyle] = {}  # connection_id → style
 
-    def get_style(self, relationship_type: str) -> Optional[RelationshipStyle]:
+    def get_style(self, relationship_type: str) -> RelationshipStyle | None:
         """Get style for a relationship type.
 
         Args:
@@ -210,9 +210,9 @@ class RelationshipStyleService:
     def apply_overrides(
         self,
         style: RelationshipStyle,
-        color_override: Optional[str] = None,
-        stroke_style_override: Optional[str] = None,
-        stroke_width_override: Optional[float] = None,
+        color_override: str | None = None,
+        stroke_style_override: str | None = None,
+        stroke_width_override: float | None = None,
     ) -> RelationshipStyle:
         """Apply per-relationship customization overrides to a style.
 
@@ -240,7 +240,7 @@ class RelationshipStyleService:
 default_relationship_service = RelationshipStyleService()
 
 
-def get_relationship_style(relationship_type: str) -> Optional[RelationshipStyle]:
+def get_relationship_style(relationship_type: str) -> RelationshipStyle | None:
     """Convenience function to get relationship style from default service.
 
     Args:

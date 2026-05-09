@@ -1,12 +1,11 @@
 """Label placement for connections without overlaps."""
 
-from typing import List, Tuple
 
 from ..utils.geometry import Point, Rectangle
 
 
 def position_label_on_connection(
-    connection_points: List[Point],
+    connection_points: list[Point],
     _label_text: str,
     _label_width: float = 50,
     label_height: float = 20,
@@ -56,8 +55,8 @@ def position_label_on_connection(
 
 def detect_label_collision(
     label_bounds: Rectangle,
-    connection_lines: List[Tuple[Point, Point]],
-    other_labels: List[Rectangle],
+    connection_lines: list[tuple[Point, Point]],
+    other_labels: list[Rectangle],
 ) -> bool:
     """Detect if a label collides with connections or other labels.
 
@@ -93,8 +92,8 @@ def avoid_label_collision(
     original_position: Point,
     label_width: float,
     label_height: float,
-    connection_lines: List[Tuple[Point, Point]],
-    placed_labels: List[Rectangle],
+    connection_lines: list[tuple[Point, Point]],
+    placed_labels: list[Rectangle],
     max_offsets: int = 8,
 ) -> Point:
     """Find a collision-free position for a label by trying different offsets.
@@ -166,16 +165,16 @@ class LabelPlacement:
 
     def __init__(self) -> None:
         """Initialize label placement system."""
-        self.placed_labels: List[Rectangle] = []
+        self.placed_labels: list[Rectangle] = []
 
     def place_label(
         self,
         label_text: str,
-        connection_points: List[Point],
-        connection_lines: List[Tuple[Point, Point]],
+        connection_points: list[Point],
+        connection_lines: list[tuple[Point, Point]],
         label_width: float = 50,
         label_height: float = 20,
-    ) -> Tuple[Point, str]:
+    ) -> tuple[Point, str]:
         """Place a label on a connection, avoiding collisions.
 
         Args:

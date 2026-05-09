@@ -1,6 +1,5 @@
 """Graph analysis utilities for layout operations."""
 
-from typing import Dict, List, Set, Tuple
 
 
 class Graph:
@@ -8,8 +7,8 @@ class Graph:
 
     def __init__(self) -> None:
         """Initialize empty graph."""
-        self.nodes: Set[str] = set()
-        self.edges: Dict[str, Set[str]] = {}
+        self.nodes: set[str] = set()
+        self.edges: dict[str, set[str]] = {}
 
     def add_node(self, node_id: str) -> None:
         """Add a node to the graph."""
@@ -24,11 +23,11 @@ class Graph:
         self.edges[node1].add(node2)
         self.edges[node2].add(node1)
 
-    def get_neighbors(self, node_id: str) -> Set[str]:
+    def get_neighbors(self, node_id: str) -> set[str]:
         """Get all neighbors of a node."""
         return self.edges.get(node_id, set())
 
-    def _visit_node_for_cycle(self, node: str, parent: str, visited: Set[str], rec_stack: Set[str]) -> bool:
+    def _visit_node_for_cycle(self, node: str, parent: str, visited: set[str], rec_stack: set[str]) -> bool:
         visited.add(node)
         rec_stack.add(node)
         for neighbor in self.edges.get(node, set()):
@@ -44,19 +43,19 @@ class Graph:
 
     def has_cycle(self) -> bool:
         """Check if graph contains a cycle."""
-        visited: Set[str] = set()
-        rec_stack: Set[str] = set()
+        visited: set[str] = set()
+        rec_stack: set[str] = set()
         for node in self.nodes:
             if node not in visited and self._visit_node_for_cycle(node, "", visited, rec_stack):
                 return True
         return False
 
-    def get_connected_components(self) -> List[Set[str]]:
+    def get_connected_components(self) -> list[set[str]]:
         """Get all connected components in the graph."""
-        visited: Set[str] = set()
-        components: List[Set[str]] = []
+        visited: set[str] = set()
+        components: list[set[str]] = []
 
-        def _dfs(node: str, component: Set[str]) -> None:
+        def _dfs(node: str, component: set[str]) -> None:
             visited.add(node)
             component.add(node)
             for neighbor in self.edges.get(node, set()):
@@ -65,7 +64,7 @@ class Graph:
 
         for node in self.nodes:
             if node not in visited:
-                component: Set[str] = set()
+                component: set[str] = set()
                 _dfs(node, component)
                 components.append(component)
 
@@ -73,8 +72,8 @@ class Graph:
 
 
 def detect_crossings(
-    line1: Tuple[Tuple[float, float], Tuple[float, float]],
-    line2: Tuple[Tuple[float, float], Tuple[float, float]],
+    line1: tuple[tuple[float, float], tuple[float, float]],
+    line2: tuple[tuple[float, float], tuple[float, float]],
 ) -> bool:
     """Detect if two line segments intersect.
 
@@ -85,7 +84,7 @@ def detect_crossings(
     Returns:
         True if lines intersect, False otherwise
     """
-    def ccw(pt_a: Tuple[float, float], pt_b: Tuple[float, float], pt_c: Tuple[float, float]) -> bool:
+    def ccw(pt_a: tuple[float, float], pt_b: tuple[float, float], pt_c: tuple[float, float]) -> bool:
         return (pt_c[1] - pt_a[1]) * (pt_b[0] - pt_a[0]) > (pt_b[1] - pt_a[1]) * (pt_c[0] - pt_a[0])
 
     pt_a, pt_b = line1
@@ -95,7 +94,7 @@ def detect_crossings(
 
 
 def count_crossings(
-    edges: List[Tuple[Tuple[float, float], Tuple[float, float]]],
+    edges: list[tuple[tuple[float, float], tuple[float, float]]],
 ) -> int:
     """Count total number of edge crossings.
 

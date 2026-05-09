@@ -150,7 +150,7 @@ def fetch_symbol(filename: str) -> dict:
             svg_content = response.read().decode('utf-8')
 
         # Parse SVG
-        root = ET.fromstring(svg_content)
+        root = ET.fromstring(svg_content)  # noqa: S314  # dev-only script, fetches from known upstream source
 
         # Extract viewBox
         viewBox = root.get('viewBox', '0 0 100 100')

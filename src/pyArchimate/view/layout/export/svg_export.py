@@ -6,7 +6,7 @@ Archi desktop tool.
 """
 
 import math
-from typing import Any, Optional, Tuple
+from typing import Any
 from xml.etree import ElementTree as ET
 
 from .symbols.archimate_relationships import (
@@ -145,7 +145,7 @@ class SVGExportService:
                 svg_parents[node_uuid] = node_group
         return svg_parents
 
-    def to_svg(self, view: Any, filepath: Optional[str] = None) -> str:
+    def to_svg(self, view: Any, filepath: str | None = None) -> str:
         """Export view to SVG string and optionally write to file.
 
         Args:
@@ -1035,7 +1035,7 @@ class SVGExportService:
         bendpoints: list[Any],
         source_spread: tuple[float, float] = (0.0, 0.0),
         target_spread: tuple[float, float] = (0.0, 0.0),
-    ) -> list[Tuple[float, float]]:
+    ) -> list[tuple[float, float]]:
         """Get polyline points clipped at node boundary edges.
 
         SVG export renders views as stored in the model without routing:
@@ -1115,13 +1115,13 @@ class SVGExportService:
 
     @staticmethod
     def _choose_corner(
-        prev: Tuple[float, float],
-        cur: Tuple[float, float],
+        prev: tuple[float, float],
+        cur: tuple[float, float],
         idx: int,
         last_idx: int,
         target_orientation: str,
         source_orientation: str,
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         if idx == last_idx:
             return (prev[0], cur[1]) if target_orientation == "horizontal" else (cur[0], prev[1])
         if idx == 0:
@@ -1132,10 +1132,10 @@ class SVGExportService:
 
     def _orthogonalize_polyline_points(
         self,
-        points: list[Tuple[float, float]],
+        points: list[tuple[float, float]],
         target_orientation: str = "vertical",
         source_orientation: str = "vertical",
-    ) -> list[Tuple[float, float]]:
+    ) -> list[tuple[float, float]]:
         """Insert corners so each segment is axis-aligned.
 
         The SVG export should use only horizontal and vertical segments.
@@ -1146,7 +1146,7 @@ class SVGExportService:
             return points
 
         last_idx = len(points) - 2
-        orthogonal: list[Tuple[float, float]] = [points[0]]
+        orthogonal: list[tuple[float, float]] = [points[0]]
         for idx, (prev, cur) in enumerate(zip(points, points[1:], strict=False)):
             if prev[0] == cur[0] or prev[1] == cur[1]:
                 orthogonal.append(cur)
@@ -1160,8 +1160,8 @@ class SVGExportService:
 
     @staticmethod
     def _boundary_side(
-        bounds: Tuple[float, float, float, float],
-        point: Tuple[float, float],
+        bounds: tuple[float, float, float, float],
+        point: tuple[float, float],
     ) -> str | None:
         """Return which rectangle edge a point lies on."""
         x1, y1, x2, y2 = bounds
@@ -1178,10 +1178,10 @@ class SVGExportService:
 
     @staticmethod
     def _boundary_stub(
-        point: Tuple[float, float],
+        point: tuple[float, float],
         side: str,
         length: float = 8.0,
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Create a short orthogonal stub away from a boundary edge."""
         x, y = point
         if side == "top":
@@ -1196,10 +1196,10 @@ class SVGExportService:
 
     def _boundary_anchor(
         self,
-        bounds: Tuple[float, float, float, float],
+        bounds: tuple[float, float, float, float],
         side: str,
         spread: tuple[float, float],
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Place an anchor on the requested edge, clamped away from corners."""
         x1, y1, x2, y2 = bounds
         margin = self.EDGE_CORNER_MARGIN
@@ -1216,8 +1216,8 @@ class SVGExportService:
 
     @staticmethod
     def _preferred_boundary_side(
-        bounds: Tuple[float, float, float, float],
-        other_point: Tuple[float, float],
+        bounds: tuple[float, float, float, float],
+        other_point: tuple[float, float],
         exit_from: bool = True,
     ) -> str:
         """Pick the edge side that best matches the connection direction."""
@@ -1239,8 +1239,8 @@ class SVGExportService:
 
     @staticmethod
     def _infer_boundary_orientation(
-        bounds: Tuple[float, float, float, float],
-        point: Tuple[float, float],
+        bounds: tuple[float, float, float, float],
+        point: tuple[float, float],
         exit_from: bool = False,
     ) -> str:
         """Infer whether a boundary point lies on a horizontal or vertical edge."""
@@ -1261,7 +1261,7 @@ class SVGExportService:
         edge: float,
         cross_lo: float,
         cross_hi: float,
-    ) -> Optional[tuple[float, float]]:
+    ) -> tuple[float, float] | None:
         """Parametric t for line hitting axis-aligned edge; returns (t, cross_coord) or None."""
         if abs(d_main) <= 0.01:
             return None
@@ -1275,10 +1275,10 @@ class SVGExportService:
 
     @staticmethod
     def _clip_point_to_boundary(
-        bounds: Tuple[float, float, float, float],
-        from_point: Tuple[float, float],
-        to_point: Tuple[float, float],
-    ) -> Tuple[float, float]:
+        bounds: tuple[float, float, float, float],
+        from_point: tuple[float, float],
+        to_point: tuple[float, float],
+    ) -> tuple[float, float]:
         """Find the boundary intersection point of a line segment with a rectangle.
 
         Returns the point where the line from from_point toward to_point exits the rectangle.
@@ -1412,7 +1412,7 @@ class SVGExportService:
         total_span = step * (count - 1)
         return -total_span / 2.0 + index * step
 
-    def _get_node_bounds(self, node: Any) -> Tuple[float, float, float, float]:
+    def _get_node_bounds(self, node: Any) -> tuple[float, float, float, float]:
         """Get node bounds using symbol bounding box when available.
 
         For symbol-based rendering, this uses the symbol's bounding box coordinates
@@ -1465,7 +1465,7 @@ class SVGExportService:
         edge_main: float,
         cross_lo: float,
         cross_hi: float,
-    ) -> Optional[tuple[float, float, float]]:
+    ) -> tuple[float, float, float] | None:
         """Check if parametric line intersects an axis-aligned edge. Returns (t, coord_main, coord_cross) or None."""
         if dp_main == 0:
             return None
@@ -1479,11 +1479,11 @@ class SVGExportService:
 
     def _clip_line_at_rectangle(
         self,
-        p1: Tuple[float, float],
-        p2: Tuple[float, float],
-        bounds: Tuple[float, float, float, float],
+        p1: tuple[float, float],
+        p2: tuple[float, float],
+        bounds: tuple[float, float, float, float],
         exit_from: bool = True,
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Clip a line segment at rectangle edge.
 
         Args:
@@ -1505,10 +1505,10 @@ class SVGExportService:
         dx = px2 - px1
         dy = py2 - py1
 
-        best_t: Optional[float] = None
+        best_t: float | None = None
         best_point = (px1, py1) if exit_from else (px2, py2)
 
-        def _update(hit: Optional[tuple[float, float, float]], swap_coords: bool) -> None:
+        def _update(hit: tuple[float, float, float] | None, swap_coords: bool) -> None:
             nonlocal best_t, best_point
             if hit is None:
                 return
@@ -1531,7 +1531,7 @@ class SVGExportService:
     def _render_connection_label(
         self,
         svg: ET.Element,
-        points: list[Tuple[float, float]],
+        points: list[tuple[float, float]],
         label_text: str,
     ) -> None:
         """Render a connection label on the longest segment.
@@ -1589,7 +1589,7 @@ class SVGExportService:
         )
         text_elem.text = label_text
 
-    def _find_longest_segment(self, points: list[Tuple[float, float]]) -> Optional[int]:
+    def _find_longest_segment(self, points: list[tuple[float, float]]) -> int | None:
         """Find the index of the longest segment in a polyline.
 
         Args:

@@ -319,7 +319,7 @@ class Node:
         return None
 
     @property
-    def concept(self) -> Optional[Element]:
+    def concept(self) -> Element | None:
         try:
             return cast(Element, self.model.elems_dict[self._ref])
         except KeyError:
@@ -1134,7 +1134,7 @@ class View:
             return self.add_connection(r, source, target)
         return None
 
-    def to_svg(self, filepath: Optional[str] = None) -> str:
+    def to_svg(self, filepath: str | None = None) -> str:
         """Export view to SVG string and optionally write to file.
 
         Args:

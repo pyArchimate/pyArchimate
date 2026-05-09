@@ -4,7 +4,7 @@ This module provides layout algorithms and formatting utilities for ArchiMate vi
 """
 
 import time
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 from .algorithms import get_algorithm
 from .core import LayoutConfig, LayoutResult
@@ -12,7 +12,7 @@ from .format import FormatService
 from .utils.geometry import Point
 
 
-def apply_layout(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResult:
+def apply_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
     """Apply layout algorithm to automatically position elements in a view.
 
     Repositions all elements in the view according to the selected algorithm while preserving
@@ -83,7 +83,7 @@ def apply_layout(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResu
         )
 
 
-def apply_format(view: Any, config: Optional[LayoutConfig] = None) -> LayoutResult:
+def apply_format(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
     """Apply formatting to standardize element appearance per ArchiMate conventions.
 
     Standardizes element sizes, fonts, and alignment without repositioning elements. All
