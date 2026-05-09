@@ -43,6 +43,7 @@ testing = [  # runtime tooling required to exercise the test suite
     "jaraco.functools>=4.4.0,<5.0.0",
     "pytest-httpx>=0.24.0,<1.0.0",
     "httpx>=0.27.0,<0.32.0",
+    "defusedxml>=0.7.1,<1.0.0",
 ]
 
 lint = [
@@ -147,7 +148,7 @@ exclude = [
 check-typed-exception = true
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "N999"]  # S101: assertions OK in tests; N999: test files mirror camelCase reader/writer names
+"tests/**" = ["S101", "N999", "N817"]  # S101: assertions OK in tests; N999: test files mirror camelCase reader/writer names; N817: ET is the canonical ElementTree alias
 
 [tool.ruff.format]
 quote-style = "double"

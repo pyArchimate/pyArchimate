@@ -10,7 +10,7 @@ And generates symbol definitions with proper paths and colors.
 import ssl
 from urllib.parse import quote
 from urllib.request import urlopen
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET
 
 # Mapping of repository file names to element type names
 SYMBOL_MAPPING = {
@@ -147,7 +147,7 @@ def fetch_symbol(filename: str) -> dict | None:
             svg_content = response.read().decode('utf-8')
 
         # Parse SVG
-        root = ET.fromstring(svg_content)  # noqa: S314  # dev-only script, fetches from known upstream source
+        root = ET.fromstring(svg_content)
 
         # Extract viewBox
         view_box = root.get('viewBox', '0 0 100 100')
