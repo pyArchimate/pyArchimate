@@ -100,6 +100,12 @@ def count_edge_crossings(edges: List[Tuple[Point, Point]]) -> int:
     return crossings
 
 
+def _connection_ratio(index: int, count: int) -> float:
+    if count > 1:
+        return index / (count - 1)
+    return 0.5
+
+
 def spread_connection_endpoints(
     node_positions: Dict[int, Tuple[float, float]],
     node_sizes: Dict[int, Tuple[float, float]],
@@ -154,10 +160,7 @@ def spread_connection_endpoints(
             source_size[0],
             source_size[1],
         )
-        if num_outgoing > 1:
-            ratio = connection_index / (num_outgoing - 1)
-        else:
-            ratio = 0.5
+        ratio = _connection_ratio(connection_index, num_outgoing)
         source_endpoint = Point(
             source_rect.x + source_rect.width,
             source_rect.y + source_rect.height * ratio,
@@ -170,10 +173,7 @@ def spread_connection_endpoints(
             target_size[0],
             target_size[1],
         )
-        if num_incoming > 1:
-            ratio = incoming_index / (num_incoming - 1)
-        else:
-            ratio = 0.5
+        ratio = _connection_ratio(incoming_index, num_incoming)
         target_endpoint = Point(
             target_rect.x,
             target_rect.y + target_rect.height * ratio,

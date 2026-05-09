@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict, cast
+from typing import Any, Dict
 
 
 class ArchiMateLayer(Enum):
@@ -67,6 +67,20 @@ class LayerConstraint:
         """Get the layer of an element."""
         return self.element_layers.get(element_id, ArchiMateLayer.OTHER)
 
+    def _layers_correctly_ordered(
+        self,
+        pos1: tuple[float, float],
+        pos2: tuple[float, float],
+        layer1: "ArchiMateLayer",
+        layer2: "ArchiMateLayer",
+        vertical: bool,
+    ) -> bool:
+        if layer1.layer_order() >= layer2.layer_order():
+            return True
+        if vertical:
+            return pos1[1] <= pos2[1]
+        return pos1[0] <= pos2[0]
+
     def validate_layer_order(
         self, positions: Dict[int, tuple[float, float]], vertical: bool = True
     ) -> bool:
@@ -83,21 +97,10 @@ class LayerConstraint:
             for elem2_id, pos2 in positions.items():
                 if elem1_id >= elem2_id:
                     continue
-
                 layer1 = self.get_layer(elem1_id)
                 layer2 = self.get_layer(elem2_id)
-
-                if layer1.layer_order() < layer2.layer_order():
-                    # layer1 should be "above" or "left of" layer2
-                    if vertical:
-                        # Vertical: smaller y means higher position
-                        if pos1[1] > pos2[1]:
-                            return False
-                    else:
-                        # Horizontal: smaller x means more left
-                        if pos1[0] > pos2[0]:
-                            return False
-
+                if not self._layers_correctly_ordered(pos1, pos2, layer1, layer2, vertical):
+                    return False
         return True
 
     def enforce_layer_separation(
@@ -130,28 +133,26 @@ class LayerConstraint:
                 layer_y_ranges[layer] = (current_y, current_y + max_height)
                 current_y += max_height + spacing
 
-        # Adjust positions to enforce layer boundaries
         for elem_id, pos in updated_positions.items():
             layer = self.get_layer(elem_id)
             if layer in layer_y_ranges:
                 y_min, y_max = layer_y_ranges[layer]
-                # Handle both Point objects and tuples
-                if hasattr(pos, 'x') and hasattr(pos, 'y'):
-                    pos_point = cast(Any, pos)
-                    x, y = pos_point.x, pos_point.y
-                else:
-                    x, y = pos[0], pos[1]
-                new_y = max(y_min, min(y, y_max - 50))
-                # Return as Point if input was Point, else as tuple
-                if hasattr(pos, 'x'):
-                    from ..utils.geometry import Point
-                    updated_positions[elem_id] = Point(x, new_y)
-                else:
-                    updated_positions[elem_id] = (x, new_y)
+                updated_positions[elem_id] = self._clamp_position_to_layer(pos, y_min, y_max)
 
         return updated_positions
 
-    def enforce_layer_separation_with_exclusions(  # noqa: C901
+    def _clamp_position_to_layer(self, pos: Any, y_min: float, y_max: float) -> Any:
+        if hasattr(pos, 'x') and hasattr(pos, 'y'):
+            x, y = pos.x, pos.y
+        else:
+            x, y = pos[0], pos[1]
+        new_y = max(y_min, min(y, y_max - 50))
+        if hasattr(pos, 'x'):
+            from ..utils.geometry import Point
+            return Point(x, new_y)
+        return (x, new_y)
+
+    def enforce_layer_separation_with_exclusions(
         self, positions: dict[int, Any], spacing: float = 100, excluded_ids: set[int] | None = None
     ) -> dict[int, Any]:
         """Enforce minimum separation between layers while excluding specified elements.
@@ -186,25 +187,12 @@ class LayerConstraint:
                 layer_y_ranges[layer] = (current_y, current_y + max_height)
                 current_y += max_height + spacing
 
-        # Adjust positions to enforce layer boundaries (skip excluded)
         for elem_id, pos in updated_positions.items():
             if elem_id in excluded_ids:
                 continue
-
             layer = self.get_layer(elem_id)
             if layer in layer_y_ranges:
                 y_min, y_max = layer_y_ranges[layer]
-                # Handle both Point objects and tuples
-                if hasattr(pos, 'x') and hasattr(pos, 'y'):
-                    x, y = pos.x, pos.y
-                else:
-                    x, y = pos[0], pos[1]
-                new_y = max(y_min, min(y, y_max - 50))
-                # Return as Point if input was Point, else as tuple
-                if hasattr(pos, 'x'):
-                    from ..utils.geometry import Point
-                    updated_positions[elem_id] = Point(x, new_y)
-                else:
-                    updated_positions[elem_id] = (x, new_y)
+                updated_positions[elem_id] = self._clamp_position_to_layer(pos, y_min, y_max)
 
         return updated_positions

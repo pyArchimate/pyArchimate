@@ -116,7 +116,32 @@ class HierarchicalLayout(LayoutAlgorithm):
 
         return graph
 
-    def _assign_layers(  # noqa: C901
+    def _has_unassigned_predecessor(
+        self, node_id: int, assigned: set[int], graph: Dict[int, List[int]]
+    ) -> bool:
+        for source in graph:
+            if node_id in graph[source] and source not in assigned:
+                return True
+        return False
+
+    def _collect_layer_candidates(
+        self,
+        nodes: List[Any],
+        assigned: set[int],
+        graph: Dict[int, List[int]],
+        current_layer: int,
+        layer_constraint: "LayerConstraint",
+    ) -> List[int]:
+        candidates = []
+        for node_id in range(len(nodes)):
+            if node_id in assigned:
+                continue
+            if not self._has_unassigned_predecessor(node_id, assigned, graph):
+                if self._respects_archimate_ordering(node_id, current_layer, nodes, layer_constraint):
+                    candidates.append(node_id)
+        return candidates
+
+    def _assign_layers(
         self,
         nodes: List[Any],
         graph: Dict[int, List[int]],
@@ -145,35 +170,16 @@ class HierarchicalLayout(LayoutAlgorithm):
             for target in graph[source]:
                 in_degree[target] = in_degree.get(target, 0) + 1
 
-        # Assign layers by topological level, respecting ArchiMate layers
         layers: List[List[int]] = []
         assigned: set[int] = set()
         current_layer = 0
 
         while len(assigned) < len(nodes):
-            layer_nodes = []
-
-            # Find nodes with no unassigned predecessors
-            for node_id in range(len(nodes)):
-                if node_id in assigned:
-                    continue
-
-                has_unassigned_pred = False
-                for source in graph:
-                    if node_id in graph[source] and source not in assigned:
-                        has_unassigned_pred = True
-                        break
-
-                if not has_unassigned_pred:
-                    # Check ArchiMate layer constraints
-                    # Can assign to any layer >= its ArchiMate layer precedence
-                    if self._respects_archimate_ordering(
-                        node_id, current_layer, nodes, layer_constraint
-                    ):
-                        layer_nodes.append(node_id)
+            layer_nodes = self._collect_layer_candidates(
+                nodes, assigned, graph, current_layer, layer_constraint
+            )
 
             if not layer_nodes:
-                # If no valid nodes found, force assignment of remaining nodes
                 for node_id in range(len(nodes)):
                     if node_id not in assigned:
                         layer_nodes.append(node_id)

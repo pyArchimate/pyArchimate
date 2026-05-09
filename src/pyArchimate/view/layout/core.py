@@ -31,61 +31,52 @@ class LayoutConfig:
     layer_priority: str = "mandatory"
     grid_size: float = 10.0
 
-    def __post_init__(self) -> None:  # noqa: C901
-        """Validate configuration parameters."""
-        # Algorithm validation
-        if self.algorithm not in ("force_directed", "hierarchical"):
-            raise ValueError(f"Unknown algorithm: {self.algorithm}")
-
-        # Spacing and margin validation
+    def _validate_spacing_and_margin(self) -> None:
         if self.spacing <= 0:
             raise ValueError("spacing must be positive (>0)")
         if self.spacing > 500:
             raise ValueError("spacing should not exceed 500 pixels")
-
         if self.margin < 0:
             raise ValueError("margin must be non-negative (>=0)")
         if self.margin > 500:
             raise ValueError("margin should not exceed 500 pixels")
 
-        # Alignment validation
+    def _validate_alignment_and_grid(self) -> None:
         if self.alignment not in ("free", "grid"):
             raise ValueError(f"Invalid alignment: {self.alignment} (must be 'free' or 'grid')")
-
-        # Grid size validation (only relevant for alignment='grid')
         if self.alignment == "grid":
             if self.grid_size <= 0:
                 raise ValueError("grid_size must be positive when alignment='grid'")
             if self.grid_size > 100:
                 raise ValueError("grid_size should not exceed 100 pixels")
 
-        # Routing style validation
+    def _validate_node_size_constraints(self) -> None:
+        if not self.node_size_constraints:
+            return
+        allowed_keys = {"min_width", "max_width", "min_height", "max_height"}
+        invalid_keys = set(self.node_size_constraints.keys()) - allowed_keys
+        if invalid_keys:
+            raise ValueError(f"Invalid node_size_constraints keys: {invalid_keys}")
+        min_w = self.node_size_constraints.get("min_width", 0)
+        max_w = self.node_size_constraints.get("max_width", float('inf'))
+        min_h = self.node_size_constraints.get("min_height", 0)
+        max_h = self.node_size_constraints.get("max_height", float('inf'))
+        if min_w < 0 or max_w < 0 or min_h < 0 or max_h < 0:
+            raise ValueError("node_size_constraints values must be non-negative")
+        if min_w > max_w or min_h > max_h:
+            raise ValueError("node_size_constraints min cannot exceed max")
+
+    def __post_init__(self) -> None:
+        """Validate configuration parameters."""
+        if self.algorithm not in ("force_directed", "hierarchical"):
+            raise ValueError(f"Unknown algorithm: {self.algorithm}")
+        self._validate_spacing_and_margin()
+        self._validate_alignment_and_grid()
         if self.routing_style not in ("orthogonal", "mixed_45"):
             raise ValueError(f"Invalid routing_style: {self.routing_style} (must be 'orthogonal' or 'mixed_45')")
-
-        # Layer priority validation
         if self.layer_priority not in ("mandatory", "soft"):
             raise ValueError(f"Invalid layer_priority: {self.layer_priority} (must be 'mandatory' or 'soft')")
-
-        # Node size constraints validation
-        if self.node_size_constraints:
-            allowed_keys = {"min_width", "max_width", "min_height", "max_height"}
-            invalid_keys = set(self.node_size_constraints.keys()) - allowed_keys
-            if invalid_keys:
-                raise ValueError(f"Invalid node_size_constraints keys: {invalid_keys}")
-
-            # Validate constraint values
-            min_w = self.node_size_constraints.get("min_width", 0)
-            max_w = self.node_size_constraints.get("max_width", float('inf'))
-            min_h = self.node_size_constraints.get("min_height", 0)
-            max_h = self.node_size_constraints.get("max_height", float('inf'))
-
-            if min_w < 0 or max_w < 0 or min_h < 0 or max_h < 0:
-                raise ValueError("node_size_constraints values must be non-negative")
-            if min_w > max_w or min_h > max_h:
-                raise ValueError("node_size_constraints min cannot exceed max")
-
-        # Excluded element IDs validation
+        self._validate_node_size_constraints()
         if not isinstance(self.excluded_element_ids, list):
             raise ValueError("excluded_element_ids must be a list")
 

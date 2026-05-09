@@ -1,6 +1,7 @@
 """Unit tests for SVGExportService._clip_line_at_rectangle."""
 
 import pytest
+
 from src.pyArchimate.view.layout.export.svg_export import SVGExportService
 
 

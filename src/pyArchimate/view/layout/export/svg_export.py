@@ -125,6 +125,26 @@ class SVGExportService:
 
         # If target is in source's children, it's a containment relationship
         return target_node in getattr(source_node, "nodes", [])
+    def _render_nodes_to_svg(
+        self,
+        svg: ET.Element,
+        sorted_nodes: list[Any],
+    ) -> dict[str, ET.Element]:
+        svg_parents: dict[str, ET.Element] = {"root": svg}
+        for node in sorted_nodes:
+            parent_elem = svg
+            for potential_parent in sorted_nodes:
+                if node != potential_parent and node in getattr(potential_parent, "nodes", []):
+                    parent_uuid = getattr(potential_parent, "uuid", None)
+                    if parent_uuid in svg_parents:
+                        parent_elem = svg_parents[parent_uuid]
+                    break
+            node_group = self._render_node_into(parent_elem, node)
+            node_uuid = getattr(node, "uuid", None)
+            if node_uuid:
+                svg_parents[node_uuid] = node_group
+        return svg_parents
+
     def to_svg(self, view: Any, filepath: Optional[str] = None) -> str:
         """Export view to SVG string and optionally write to file.
 
@@ -168,28 +188,7 @@ class SVGExportService:
         # Render nodes on top, respecting containment hierarchy (parents before children)
         sorted_nodes = self._sort_nodes_by_hierarchy(view)
 
-        # Build a mapping of node UUID to SVG parent element
-        # This ensures nested nodes are rendered inside their container groups
-        svg_parents: dict[str, ET.Element] = {}
-        svg_parents["root"] = svg
-
-        for node in sorted_nodes:
-            # Determine parent element for this node
-            # If node is in another node's children, render it inside that node's group
-            parent_elem = svg
-            for potential_parent in sorted_nodes:
-                if node != potential_parent and node in getattr(potential_parent, "nodes", []):
-                    # Find the SVG group for the parent node
-                    parent_uuid = getattr(potential_parent, "uuid", None)
-                    if parent_uuid in svg_parents:
-                        parent_elem = svg_parents[parent_uuid]
-                    break
-
-            # Render node into the appropriate parent element
-            node_group = self._render_node_into(parent_elem, node)
-            node_uuid = getattr(node, "uuid", None)
-            if node_uuid:
-                svg_parents[node_uuid] = node_group
+        self._render_nodes_to_svg(svg, sorted_nodes)
 
         # Render connections/relationships last (so they appear on top of nodes)
         # Try new rendering with relationship styles, fall back to basic rendering if needed
@@ -772,6 +771,63 @@ class SVGExportService:
 
         return lines if lines else [text]
 
+    @staticmethod
+    def _render_triangle_marker(
+        svg: ET.Element,
+        ex: float,
+        ey: float,
+        dx: float,
+        dy: float,
+        marker_size: int,
+        marker_type: str,
+        color: str,
+    ) -> None:
+        perp_x = -dy
+        perp_y = dx
+        p1 = (ex + dx * marker_size, ey + dy * marker_size)
+        p2 = (
+            ex - perp_x * marker_size / 2 - dx * marker_size / 3,
+            ey - perp_y * marker_size / 2 - dy * marker_size / 3,
+        )
+        p3 = (
+            ex + perp_x * marker_size / 2 - dx * marker_size / 3,
+            ey + perp_y * marker_size / 2 - dy * marker_size / 3,
+        )
+        points_str = f"{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]}"
+        fill = color if marker_type == "filled" else "none"
+        stroke = "none" if marker_type == "filled" else color
+        stroke_width = "1" if marker_type == "filled" else "1.5"
+        ET.SubElement(svg, "polygon", {
+            "points": points_str,
+            "fill": fill,
+            "stroke": stroke,
+            "stroke-width": stroke_width,
+            "stroke-linejoin": "miter",
+        })
+
+    @staticmethod
+    def _render_diamond_marker(
+        svg: ET.Element,
+        ex: float,
+        ey: float,
+        dx: float,
+        dy: float,
+        color: str,
+    ) -> None:
+        size = 8
+        p1 = (ex + dx * size, ey + dy * size)
+        p2 = (ex - dy * size, ey + dx * size)
+        p3 = (ex - dx * size, ey - dy * size)
+        p4 = (ex + dy * size, ey - dx * size)
+        points_str = f"{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]} {p4[0]},{p4[1]}"
+        ET.SubElement(svg, "polygon", {
+            "points": points_str,
+            "fill": color,
+            "stroke": "none",
+            "stroke-width": "1",
+            "stroke-linejoin": "miter",
+        })
+
     def _render_marker_shape(
         self,
         svg: ET.Element,
@@ -791,13 +847,10 @@ class SVGExportService:
             color: Color of the marker
             position: 'start' or 'end' (affects direction)
         """
-        import math
-
         ex, ey = endpoint
         dx = direction_from[0] - ex
         dy = direction_from[1] - ey
 
-        # Normalize direction
         dist = math.sqrt(dx * dx + dy * dy)
         if dist < 0.1:
             return
@@ -806,71 +859,24 @@ class SVGExportService:
         dy /= dist
 
         if position == "end":
-            # Arrow pointing in direction of line
             dx = -dx
             dy = -dy
 
-        # Create arrow pointing marker (larger size for visibility)
         marker_size = 12
         if marker_type in ("filled", "hollow"):
-            # Triangle arrow: base perpendicular to direction, point along direction
-            perp_x = -dy
-            perp_y = dx
-
-            # Triangle vertices (pointing along dx, dy direction)
-            p1 = (ex + dx * marker_size, ey + dy * marker_size)  # Point
-            p2 = (
-                ex - perp_x * marker_size / 2 - dx * marker_size / 3,
-                ey - perp_y * marker_size / 2 - dy * marker_size / 3,
-            )  # Base corners
-            p3 = (
-                ex + perp_x * marker_size / 2 - dx * marker_size / 3,
-                ey + perp_y * marker_size / 2 - dy * marker_size / 3,
-            )
-
-            points_str = f"{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]}"
-
-            fill = color if marker_type == "filled" else "none"
-            stroke = "none" if marker_type == "filled" else color
-            stroke_width = "1" if marker_type == "filled" else "1.5"
-
-            ET.SubElement(
-                svg,
-                "polygon",
-                {
-                    "points": points_str,
-                    "fill": fill,
-                    "stroke": stroke,
-                    "stroke-width": stroke_width,
-                    "stroke-linejoin": "miter",
-                },
-            )
-
+            self._render_triangle_marker(svg, ex, ey, dx, dy, marker_size, marker_type, color)
         elif marker_type == "diamond":
-            # Diamond marker (larger for visibility)
-            size = 8
-            p1 = (ex + dx * size, ey + dy * size)
-            p2 = (ex - dy * size, ey + dx * size)
-            p3 = (ex - dx * size, ey - dy * size)
-            p4 = (ex + dy * size, ey - dx * size)
+            self._render_diamond_marker(svg, ex, ey, dx, dy, color)
 
-            points_str = f"{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]} {p4[0]},{p4[1]}"
-
-            fill = color
-            stroke = "none"
-            stroke_width = "1"
-
-            ET.SubElement(
-                svg,
-                "polygon",
-                {
-                    "points": points_str,
-                    "fill": fill,
-                    "stroke": stroke,
-                    "stroke-width": stroke_width,
-                    "stroke-linejoin": "miter",
-                },
-            )
+    @staticmethod
+    def _lookup_rel_style(
+        rel_type: str,
+        relationship_service: RelationshipStyleService,
+    ) -> Any:
+        style = relationship_service.get_style(rel_type)
+        if not style and "Relationship" in rel_type:
+            style = relationship_service.get_style(rel_type.replace("Relationship", ""))
+        return style
 
     def _render_relationship(
         self,
@@ -915,15 +921,9 @@ class SVGExportService:
         if len(points) < 2:
             return
 
-        # Get relationship type and style
         rel_type = getattr(conn, "type", "Association")
-        relationship_style = relationship_service.get_style(rel_type)
+        relationship_style = self._lookup_rel_style(rel_type, relationship_service)
 
-        # If no style found, try without "Relationship" suffix
-        if not relationship_style and "Relationship" in rel_type:
-            relationship_style = relationship_service.get_style(rel_type.replace("Relationship", ""))
-
-        # Fall back to basic connection rendering if no style found
         if not relationship_style:
             self._render_connection(svg, conn, nodes_dict, endpoint_spreads)
             return
@@ -1113,6 +1113,23 @@ class SVGExportService:
 
         return full_points
 
+    @staticmethod
+    def _choose_corner(
+        prev: Tuple[float, float],
+        cur: Tuple[float, float],
+        idx: int,
+        last_idx: int,
+        target_orientation: str,
+        source_orientation: str,
+    ) -> Tuple[float, float]:
+        if idx == last_idx:
+            return (prev[0], cur[1]) if target_orientation == "horizontal" else (cur[0], prev[1])
+        if idx == 0:
+            return (prev[0], cur[1]) if source_orientation == "horizontal" else (cur[0], prev[1])
+        if abs(cur[0] - prev[0]) >= abs(cur[1] - prev[1]):
+            return (cur[0], prev[1])
+        return (prev[0], cur[1])
+
     def _orthogonalize_polyline_points(
         self,
         points: list[Tuple[float, float]],
@@ -1128,21 +1145,13 @@ class SVGExportService:
         if len(points) < 2:
             return points
 
+        last_idx = len(points) - 2
         orthogonal: list[Tuple[float, float]] = [points[0]]
         for idx, (prev, cur) in enumerate(zip(points, points[1:], strict=False)):
             if prev[0] == cur[0] or prev[1] == cur[1]:
                 orthogonal.append(cur)
                 continue
-
-            if idx == len(points) - 2:
-                corner = (prev[0], cur[1]) if target_orientation == "horizontal" else (cur[0], prev[1])
-            elif idx == 0:
-                corner = (prev[0], cur[1]) if source_orientation == "horizontal" else (cur[0], prev[1])
-            elif abs(cur[0] - prev[0]) >= abs(cur[1] - prev[1]):
-                corner = (cur[0], prev[1])
-            else:
-                corner = (prev[0], cur[1])
-
+            corner = self._choose_corner(prev, cur, idx, last_idx, target_orientation, source_orientation)
             if orthogonal[-1] != corner:
                 orthogonal.append(corner)
             orthogonal.append(cur)
@@ -1244,7 +1253,28 @@ class SVGExportService:
         return "vertical" if exit_from else "horizontal"
 
     @staticmethod
-    def _clip_point_to_boundary(  # noqa: C901
+    def _edge_t(
+        f_main: float,
+        f_cross: float,
+        d_main: float,
+        d_cross: float,
+        edge: float,
+        cross_lo: float,
+        cross_hi: float,
+    ) -> Optional[tuple[float, float]]:
+        """Parametric t for line hitting axis-aligned edge; returns (t, cross_coord) or None."""
+        if abs(d_main) <= 0.01:
+            return None
+        t = (edge - f_main) / d_main
+        if not (0 < t < 1.0):
+            return None
+        cross = f_cross + t * d_cross
+        if cross_lo <= cross <= cross_hi:
+            return t, cross
+        return None
+
+    @staticmethod
+    def _clip_point_to_boundary(
         bounds: Tuple[float, float, float, float],
         from_point: Tuple[float, float],
         to_point: Tuple[float, float],
@@ -1257,56 +1287,102 @@ class SVGExportService:
         x1, y1, x2, y2 = bounds
         fx, fy = from_point
         tx, ty = to_point
-
         dx = tx - fx
         dy = ty - fy
 
-        # If from_point is already on or outside boundary, return it
         if abs(dx) < 0.01 and abs(dy) < 0.01:
             return from_point
 
-        # Find closest intersection with rectangle edges
         min_t = 1.0
         result = to_point
 
-        # Right edge (x = x2)
-        if abs(dx) > 0.01:
-            t = (x2 - fx) / dx
-            if 0 < t < min_t:
-                y = fy + t * dy
-                if y1 <= y <= y2:
-                    min_t = t
-                    result = (x2, y)
+        hit = SVGExportService._edge_t(fx, fy, dx, dy, x2, y1, y2)
+        if hit and hit[0] < min_t:
+            min_t, result = hit[0], (x2, hit[1])
 
-        # Left edge (x = x1)
-        if abs(dx) > 0.01:
-            t = (x1 - fx) / dx
-            if 0 < t < min_t:
-                y = fy + t * dy
-                if y1 <= y <= y2:
-                    min_t = t
-                    result = (x1, y)
+        hit = SVGExportService._edge_t(fx, fy, dx, dy, x1, y1, y2)
+        if hit and hit[0] < min_t:
+            min_t, result = hit[0], (x1, hit[1])
 
-        # Bottom edge (y = y2)
-        if abs(dy) > 0.01:
-            t = (y2 - fy) / dy
-            if 0 < t < min_t:
-                x = fx + t * dx
-                if x1 <= x <= x2:
-                    min_t = t
-                    result = (x, y2)
+        hit = SVGExportService._edge_t(fy, fx, dy, dx, y2, x1, x2)
+        if hit and hit[0] < min_t:
+            min_t, result = hit[0], (hit[1], y2)
 
-        # Top edge (y = y1)
-        if abs(dy) > 0.01:
-            t = (y1 - fy) / dy
-            if 0 < t < min_t:
-                x = fx + t * dx
-                if x1 <= x <= x2:
-                    result = (x, y1)
+        hit = SVGExportService._edge_t(fy, fx, dy, dx, y1, x1, x2)
+        if hit and hit[0] < min_t:
+            result = (hit[1], y1)
 
         return result
 
-    def _compute_endpoint_spreads(  # noqa: C901
+    def _spread_source_connections(
+        self,
+        node_uuid: str,
+        node: Any,
+        conns: list[Any],
+        nodes_dict: dict[str, Any],
+        endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]],
+    ) -> None:
+        src_conns = [c for c in conns if getattr(c, "_source", None) == node_uuid]
+        if len(src_conns) <= 1:
+            return
+        src_conns_sorted = sorted(
+            src_conns,
+            key=lambda c, _node=node: float(  # type: ignore[misc]
+                getattr(nodes_dict.get(getattr(c, "_target", None) or ""), "cx", getattr(_node, "cx", 0))
+            ),
+        )
+        for i, conn in enumerate(src_conns_sorted):
+            target_node = nodes_dict.get(getattr(conn, "_target", None) or "")
+            if not target_node:
+                continue
+            dy = float(getattr(target_node, "cy", 0)) - float(getattr(node, "cy", 0))
+            dx = float(getattr(target_node, "cx", 0)) - float(getattr(node, "cx", 0))
+            spread_val = self._distributed_spread(
+                i,
+                len(src_conns_sorted),
+                float(getattr(node, "w", 120)) if abs(dy) > abs(dx) else float(getattr(node, "h", 55)),
+            )
+            if abs(dy) > abs(dx):
+                spread_x, spread_y = spread_val, 0.0
+            else:
+                spread_x, spread_y = 0.0, spread_val
+            endpoint_spreads[(node_uuid, "src", id(conn))] = (spread_x, spread_y)
+
+    def _spread_target_connections(
+        self,
+        node_uuid: str,
+        node: Any,
+        conns: list[Any],
+        nodes_dict: dict[str, Any],
+        endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]],
+    ) -> None:
+        tgt_conns = [c for c in conns if getattr(c, "_target", None) == node_uuid]
+        if len(tgt_conns) <= 1:
+            return
+        tgt_conns_sorted = sorted(
+            tgt_conns,
+            key=lambda c, _node=node: float(  # type: ignore[misc]
+                getattr(nodes_dict.get(getattr(c, "_source", None) or ""), "cx", getattr(_node, "cx", 0))
+            ),
+        )
+        for i, conn in enumerate(tgt_conns_sorted):
+            source_node = nodes_dict.get(getattr(conn, "_source", None) or "")
+            if not source_node:
+                continue
+            dy = float(getattr(node, "cy", 0)) - float(getattr(source_node, "cy", 0))
+            dx = float(getattr(node, "cx", 0)) - float(getattr(source_node, "cx", 0))
+            spread_val = self._distributed_spread(
+                i,
+                len(tgt_conns_sorted),
+                float(getattr(node, "w", 120)) if abs(dy) > abs(dx) else float(getattr(node, "h", 55)),
+            )
+            if abs(dy) > abs(dx):
+                spread_x, spread_y = spread_val, 0.0
+            else:
+                spread_x, spread_y = 0.0, spread_val
+            endpoint_spreads[(node_uuid, "tgt", id(conn))] = (spread_x, spread_y)
+
+    def _compute_endpoint_spreads(
         self,
         view: Any,
     ) -> dict[tuple[str, str, int], tuple[float, float]]:
@@ -1316,69 +1392,11 @@ class SVGExportService:
         kept local to SVG export so the model itself is not mutated.
         """
         endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]] = {}
-        def _collect_all_nodes(node_dict: dict[str, Any]) -> dict[str, Any]:
-            result = {}
-            for uuid, node in node_dict.items():
-                result[uuid] = node
-                child_dict = getattr(node, "nodes_dict", {})
-                if child_dict:
-                    result.update(_collect_all_nodes(child_dict))
-            return result
-
-        nodes_dict: dict[Any, Any] = _collect_all_nodes(getattr(view, "nodes_dict", {}))
+        nodes_dict: dict[Any, Any] = self._build_complete_nodes_dict(view)
         conns = getattr(view, "conns", [])
-
         for node_uuid, node in nodes_dict.items():
-            src_conns = [c for c in conns if getattr(c, "_source", None) == node_uuid]
-            if len(src_conns) > 1:
-                src_conns_sorted = sorted(
-                    src_conns,
-                    key=lambda c, _node=node: float(  # type: ignore[misc]
-                        getattr(nodes_dict.get(getattr(c, "_target", None)), "cx", getattr(_node, "cx", 0))
-                    ),
-                )
-                for i, conn in enumerate(src_conns_sorted):
-                    target_node = nodes_dict.get(getattr(conn, "_target", None))
-                    if not target_node:
-                        continue
-                    dy = float(getattr(target_node, "cy", 0)) - float(getattr(node, "cy", 0))
-                    dx = float(getattr(target_node, "cx", 0)) - float(getattr(node, "cx", 0))
-                    spread_val = self._distributed_spread(
-                        i,
-                        len(src_conns_sorted),
-                        float(getattr(node, "w", 120)) if abs(dy) > abs(dx) else float(getattr(node, "h", 55)),
-                    )
-                    if abs(dy) > abs(dx):
-                        spread_x, spread_y = spread_val, 0.0
-                    else:
-                        spread_x, spread_y = 0.0, spread_val
-                    endpoint_spreads[(node_uuid, "src", id(conn))] = (spread_x, spread_y)
-
-            tgt_conns = [c for c in conns if getattr(c, "_target", None) == node_uuid]
-            if len(tgt_conns) > 1:
-                tgt_conns_sorted = sorted(
-                    tgt_conns,
-                    key=lambda c, _node=node: float(  # type: ignore[misc]
-                        getattr(nodes_dict.get(getattr(c, "_source", None)), "cx", getattr(_node, "cx", 0))
-                    ),
-                )
-                for i, conn in enumerate(tgt_conns_sorted):
-                    source_node = nodes_dict.get(getattr(conn, "_source", None))
-                    if not source_node:
-                        continue
-                    dy = float(getattr(node, "cy", 0)) - float(getattr(source_node, "cy", 0))
-                    dx = float(getattr(node, "cx", 0)) - float(getattr(source_node, "cx", 0))
-                    spread_val = self._distributed_spread(
-                        i,
-                        len(tgt_conns_sorted),
-                        float(getattr(node, "w", 120)) if abs(dy) > abs(dx) else float(getattr(node, "h", 55)),
-                    )
-                    if abs(dy) > abs(dx):
-                        spread_x, spread_y = spread_val, 0.0
-                    else:
-                        spread_x, spread_y = 0.0, spread_val
-                    endpoint_spreads[(node_uuid, "tgt", id(conn))] = (spread_x, spread_y)
-
+            self._spread_source_connections(node_uuid, node, conns, nodes_dict, endpoint_spreads)
+            self._spread_target_connections(node_uuid, node, conns, nodes_dict, endpoint_spreads)
         return endpoint_spreads
 
     def _distributed_spread(self, index: int, count: int, edge_span: float) -> float:
@@ -1438,7 +1456,28 @@ class SVGExportService:
 
         return (bounds_x1, bounds_y1, bounds_x2, bounds_y2)
 
-    def _clip_line_at_rectangle(  # noqa: C901
+    @staticmethod
+    def _check_edge_intersection(
+        p1_main: float,
+        p1_cross: float,
+        dp_main: float,
+        dp_cross: float,
+        edge_main: float,
+        cross_lo: float,
+        cross_hi: float,
+    ) -> Optional[tuple[float, float, float]]:
+        """Check if parametric line intersects an axis-aligned edge. Returns (t, coord_main, coord_cross) or None."""
+        if dp_main == 0:
+            return None
+        t = (edge_main - p1_main) / dp_main
+        if not (0 <= t <= 1):
+            return None
+        cross = p1_cross + t * dp_cross
+        if not (cross_lo <= cross <= cross_hi):
+            return None
+        return t, edge_main, cross
+
+    def _clip_line_at_rectangle(
         self,
         p1: Tuple[float, float],
         p2: Tuple[float, float],
@@ -1460,58 +1499,32 @@ class SVGExportService:
         px1, py1 = p1
         px2, py2 = p2
 
-        # If both points are outside or inside, return appropriate point
         if px1 == px2 and py1 == py2:
             return (px1, py1)
 
-        # Find intersection with rectangle edges
-        # Check each edge: top, bottom, left, right
-
-        best_t = None
-        best_point = (px1, py1) if exit_from else (px2, py2)
-
-        # Direction vector
         dx = px2 - px1
         dy = py2 - py1
 
-        # Check intersection with each edge
-        # Top edge (y = y1)
-        if dy != 0:
-            t = (y1 - py1) / dy
-            if 0 <= t <= 1:
-                ix = px1 + t * dx
-                if x1 <= ix <= x2:
-                    best_t = t
-                    best_point = (ix, y1)
+        best_t: Optional[float] = None
+        best_point = (px1, py1) if exit_from else (px2, py2)
 
+        def _update(hit: Optional[tuple[float, float, float]], swap_coords: bool) -> None:
+            nonlocal best_t, best_point
+            if hit is None:
+                return
+            t, main, cross = hit
+            if best_t is None or (exit_from and t > best_t) or (not exit_from and t < best_t):
+                best_t = t
+                best_point = (main, cross) if not swap_coords else (cross, main)
+
+        # Top edge (y = y1): main=y, cross=x
+        _update(self._check_edge_intersection(py1, px1, dy, dx, y1, x1, x2), swap_coords=True)
         # Bottom edge (y = y2)
-        if dy != 0:
-            t = (y2 - py1) / dy
-            if 0 <= t <= 1:
-                ix = px1 + t * dx
-                if x1 <= ix <= x2:
-                    if best_t is None or (exit_from and t > best_t) or (not exit_from and t < best_t):
-                        best_t = t
-                        best_point = (ix, y2)
-
-        # Left edge (x = x1)
-        if dx != 0:
-            t = (x1 - px1) / dx
-            if 0 <= t <= 1:
-                iy = py1 + t * dy
-                if y1 <= iy <= y2:
-                    if best_t is None or (exit_from and t > best_t) or (not exit_from and t < best_t):
-                        best_t = t
-                        best_point = (x1, iy)
-
+        _update(self._check_edge_intersection(py1, px1, dy, dx, y2, x1, x2), swap_coords=True)
+        # Left edge (x = x1): main=x, cross=y
+        _update(self._check_edge_intersection(px1, py1, dx, dy, x1, y1, y2), swap_coords=False)
         # Right edge (x = x2)
-        if dx != 0:
-            t = (x2 - px1) / dx
-            if 0 <= t <= 1:
-                iy = py1 + t * dy
-                if y1 <= iy <= y2:
-                    if best_t is None or (exit_from and t > best_t) or (not exit_from and t < best_t):
-                        best_point = (x2, iy)
+        _update(self._check_edge_intersection(px1, py1, dx, dy, x2, y1, y2), swap_coords=False)
 
         return best_point
 

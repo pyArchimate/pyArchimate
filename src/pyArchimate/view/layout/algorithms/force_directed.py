@@ -23,7 +23,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
         self.max_velocity = 150.0  # Maximum velocity per iteration
         self.min_separation = 200.0  # Minimum distance between nodes (increased from 150)
 
-    def apply(self, view: Any, config: LayoutConfig) -> LayoutResult:  # noqa: C901
+    def apply(self, view: Any, config: LayoutConfig) -> LayoutResult:
         """Apply force-directed layout to a view.
 
         Args:
@@ -61,9 +61,8 @@ class ForceDirectedLayout(LayoutAlgorithm):
             # Adjust repulsion constant based on spacing config
             self.min_separation = config.spacing + 100
 
-            # Initialize positions and velocities
+            # Initialize positions
             positions = self._initialize_positions(nodes, config)
-            velocities = {node_id: Point(0, 0) for node_id in positions.keys()}
 
             # Set up layer constraints with priority handling
             layer_constraint = LayerConstraint()
@@ -76,42 +75,9 @@ class ForceDirectedLayout(LayoutAlgorithm):
             max_iter = self._get_iteration_limit(len(nodes))
 
             # Run physics simulation (excluding specified elements)
-            converged = False
-            iterations_completed = 0
-            for i, _ in enumerate(range(max_iter)):
-                iterations_completed = i
-                # Calculate forces (skip excluded nodes)
-                forces = self._calculate_forces(positions, filtered_edges, layer_constraint)
-
-                # Update velocities and positions (skip excluded nodes)
-                max_velocity = 0.0
-                for node_id in positions:
-                    if node_id in excluded_ids:
-                        continue
-
-                    if node_id in forces:
-                        force = forces[node_id]
-                        vx = force.x * self.damping
-                        vy = force.y * self.damping
-
-                        # Clamp velocity magnitude to prevent explosion
-                        v_mag = math.sqrt(vx * vx + vy * vy)
-                        if v_mag > self.max_velocity:
-                            scale = self.max_velocity / v_mag
-                            vx *= scale
-                            vy *= scale
-
-                        velocities[node_id] = Point(vx, vy)
-                        positions[node_id] = Point(
-                            positions[node_id].x + vx,
-                            positions[node_id].y + vy,
-                        )
-                        max_velocity = max(max_velocity, abs(vx), abs(vy))
-
-                # Check for convergence
-                if max_velocity < self.tolerance:
-                    converged = True
-                    break
+            converged, iterations_completed = self._run_simulation(
+                positions, filtered_edges, layer_constraint, excluded_ids, max_iter
+            )
 
             # Resolve any remaining overlaps by pushing nodes apart
             positions = self._resolve_overlaps(positions, nodes, excluded_ids)
@@ -125,11 +91,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
 
             # Store positions back to nodes (skip excluded)
             # Convert to integers for Archi XML compatibility
-            for i, node in enumerate(nodes):
-                if i not in excluded_ids and i in positions:
-                    pos = positions[i]
-                    node.x = int(round(pos.x))
-                    node.y = int(round(pos.y))
+            self._apply_positions(nodes, positions, excluded_ids)
 
             elapsed_ms = (time.time() - start_time) * 1000
 
@@ -189,6 +151,50 @@ class ForceDirectedLayout(LayoutAlgorithm):
 
         return positions
 
+    def _run_simulation(
+        self,
+        positions: Dict[int, Point],
+        filtered_edges: list[Any],
+        layer_constraint: LayerConstraint,
+        excluded_ids: set[int],
+        max_iter: int,
+    ) -> tuple[bool, int]:
+        converged = False
+        iterations_completed = 0
+        for i, _ in enumerate(range(max_iter)):
+            iterations_completed = i
+            forces = self._calculate_forces(positions, filtered_edges, layer_constraint)
+            max_velocity = 0.0
+            for node_id in positions:
+                if node_id in excluded_ids:
+                    continue
+                if node_id in forces:
+                    force = forces[node_id]
+                    vx = force.x * self.damping
+                    vy = force.y * self.damping
+                    v_mag = math.sqrt(vx * vx + vy * vy)
+                    if v_mag > self.max_velocity:
+                        scale = self.max_velocity / v_mag
+                        vx *= scale
+                        vy *= scale
+                    positions[node_id] = Point(
+                        positions[node_id].x + vx,
+                        positions[node_id].y + vy,
+                    )
+                    max_velocity = max(max_velocity, abs(vx), abs(vy))
+            if max_velocity < self.tolerance:
+                converged = True
+                break
+        return converged, iterations_completed
+
+    def _apply_positions(
+        self, nodes: list[Any], positions: Dict[int, Point], excluded_ids: set[int]
+    ) -> None:
+        for i, node in enumerate(nodes):
+            if i not in excluded_ids and i in positions:
+                node.x = int(round(positions[i].x))
+                node.y = int(round(positions[i].y))
+
     def _resolve_overlaps(
         self, positions: Dict[int, Point], nodes: List[Any], excluded_ids: set[int] | None = None
     ) -> Dict[int, Point]:
@@ -227,37 +233,41 @@ class ForceDirectedLayout(LayoutAlgorithm):
                     if ni in excluded_ids or nj in excluded_ids:
                         continue
 
-                    pi = positions[ni]
-                    pj = positions[nj]
-
-                    w1, h1 = node_dims.get(ni, (100, 80))
-                    w2, h2 = node_dims.get(nj, (100, 80))
-
-                    # Check if bounding boxes overlap
-                    dx = abs(pi.x - pj.x)
-                    dy = abs(pi.y - pj.y)
-                    min_dx = (w1 + w2) / 2.0 + 10
-                    min_dy = (h1 + h2) / 2.0 + 10
-
-                    if dx < min_dx and dy < min_dy:
-                        # Push nodes apart
-                        dist = pi.distance_to(pj)
-                        if dist > 0.1:
-                            direction_x = (pj.x - pi.x) / dist
-                            direction_y = (pj.y - pi.y) / dist
-                        else:
-                            direction_x, direction_y = 1.0, 0.0
-
-                        push = max(min_dx - dx, min_dy - dy) / 2.0 + 15
-
-                        positions[ni] = Point(pi.x - direction_x * push, pi.y - direction_y * push)
-                        positions[nj] = Point(pj.x + direction_x * push, pj.y + direction_y * push)
+                    if self._adjust_pair_positions(positions, ni, nj, node_dims):
                         any_adjusted = True
 
             if not any_adjusted:
                 break
 
         return positions
+
+    def _adjust_pair_positions(
+        self,
+        positions: Dict[int, Point],
+        ni: int,
+        nj: int,
+        node_dims: dict[int, tuple[int, int]],
+    ) -> bool:
+        pi = positions[ni]
+        pj = positions[nj]
+        w1, h1 = node_dims.get(ni, (100, 80))
+        w2, h2 = node_dims.get(nj, (100, 80))
+        dx = abs(pi.x - pj.x)
+        dy = abs(pi.y - pj.y)
+        min_dx = (w1 + w2) / 2.0 + 10
+        min_dy = (h1 + h2) / 2.0 + 10
+        if dx >= min_dx or dy >= min_dy:
+            return False
+        dist = pi.distance_to(pj)
+        if dist > 0.1:
+            direction_x = (pj.x - pi.x) / dist
+            direction_y = (pj.y - pi.y) / dist
+        else:
+            direction_x, direction_y = 1.0, 0.0
+        push = max(min_dx - dx, min_dy - dy) / 2.0 + 15
+        positions[ni] = Point(pi.x - direction_x * push, pi.y - direction_y * push)
+        positions[nj] = Point(pj.x + direction_x * push, pj.y + direction_y * push)
+        return True
 
     def _get_iteration_limit(self, node_count: int) -> int:
         """Get adaptive iteration limit based on element count.
@@ -276,7 +286,73 @@ class ForceDirectedLayout(LayoutAlgorithm):
         else:
             return 150
 
-    def _calculate_forces(  # noqa: C901
+    def _compute_repulsive_forces(
+        self, forces: Dict[int, Point], positions: Dict[int, Point], node_ids: list[int]
+    ) -> None:
+        for i in range(len(node_ids)):
+            for j in range(i + 1, len(node_ids)):
+                node_i = node_ids[i]
+                node_j = node_ids[j]
+                p_i = positions[node_i]
+                p_j = positions[node_j]
+                dist = p_i.distance_to(p_j)
+                if dist < 0.1:
+                    dist = 0.1
+                if dist < self.min_separation:
+                    magnitude = self.k_repulsion * (self.min_separation - dist) / (dist * dist)
+                else:
+                    magnitude = self.k_repulsion / (dist * dist) * 0.1
+                dx = (p_i.x - p_j.x) / dist
+                dy = (p_i.y - p_j.y) / dist
+                forces[node_i].x += magnitude * dx
+                forces[node_i].y += magnitude * dy
+                forces[node_j].x -= magnitude * dx
+                forces[node_j].y -= magnitude * dy
+
+    def _compute_attractive_forces(
+        self, forces: Dict[int, Point], positions: Dict[int, Point], edges: list[Any]
+    ) -> None:
+        for edge in edges:
+            if isinstance(edge, (tuple, list)) and len(edge) >= 2:
+                source_idx, target_idx = edge[0], edge[1]
+            else:
+                continue
+            if source_idx not in positions or target_idx not in positions:
+                continue
+            p_source = positions[source_idx]
+            p_target = positions[target_idx]
+            dist = p_source.distance_to(p_target)
+            if dist < 0.1:
+                dist = 0.1
+            magnitude = self.k_attraction * dist
+            dx = (p_target.x - p_source.x) / dist
+            dy = (p_target.y - p_source.y) / dist
+            forces[source_idx].x += magnitude * dx
+            forces[source_idx].y += magnitude * dy
+            forces[target_idx].x -= magnitude * dx
+            forces[target_idx].y -= magnitude * dy
+
+    def _compute_layer_forces(
+        self,
+        forces: Dict[int, Point],
+        positions: Dict[int, Point],
+        node_ids: list[int],
+        layer_constraint: LayerConstraint,
+    ) -> None:
+        for i in range(len(node_ids)):
+            node_i = node_ids[i]
+            layer_i = layer_constraint.get_layer(node_i)
+            for j in range(i + 1, len(node_ids)):
+                node_j = node_ids[j]
+                layer_j = layer_constraint.get_layer(node_j)
+                if layer_i.layer_order() == layer_j.layer_order():
+                    continue
+                if layer_i.layer_order() < layer_j.layer_order():
+                    if positions[node_i].y > positions[node_j].y:
+                        forces[node_i].y -= 50
+                        forces[node_j].y += 50
+
+    def _calculate_forces(
         self,
         positions: Dict[int, Point],
         edges: list[Any],
@@ -293,89 +369,8 @@ class ForceDirectedLayout(LayoutAlgorithm):
             Dict mapping node index to force vector
         """
         forces: Dict[int, Point] = {i: Point(0, 0) for i in positions.keys()}
-
-        # Repulsive forces between all pairs
         node_ids = list(positions.keys())
-        for i in range(len(node_ids)):
-            for j in range(i + 1, len(node_ids)):
-                node_i = node_ids[i]
-                node_j = node_ids[j]
-
-                p_i = positions[node_i]
-                p_j = positions[node_j]
-
-                dist = p_i.distance_to(p_j)
-                if dist < 0.1:
-                    dist = 0.1
-
-                # Repulsive force magnitude - increases as nodes get closer than min separation
-                if dist < self.min_separation:
-                    # Strong repulsion when nodes are too close
-                    magnitude = self.k_repulsion * (self.min_separation - dist) / (dist * dist)
-                else:
-                    # Weak repulsion when nodes are far enough apart
-                    magnitude = self.k_repulsion / (dist * dist) * 0.1
-
-                # Force direction
-                dx = (p_i.x - p_j.x) / dist
-                dy = (p_i.y - p_j.y) / dist
-
-                forces[node_i].x += magnitude * dx
-                forces[node_i].y += magnitude * dy
-                forces[node_j].x -= magnitude * dx
-                forces[node_j].y -= magnitude * dy
-
-        # Attractive forces along edges
-        for edge in edges:
-            # Extract connected nodes (handle different edge formats)
-            if isinstance(edge, (tuple, list)) and len(edge) >= 2:
-                source_idx, target_idx = edge[0], edge[1]
-            else:
-                # Skip if edge format is unclear
-                continue
-
-            if source_idx not in positions or target_idx not in positions:
-                continue
-
-            p_source = positions[source_idx]
-            p_target = positions[target_idx]
-
-            dist = p_source.distance_to(p_target)
-            if dist < 0.1:
-                dist = 0.1
-
-            # Attractive force magnitude
-            magnitude = self.k_attraction * dist
-
-            # Force direction
-            dx = (p_target.x - p_source.x) / dist
-            dy = (p_target.y - p_source.y) / dist
-
-            forces[source_idx].x += magnitude * dx
-            forces[source_idx].y += magnitude * dy
-            forces[target_idx].x -= magnitude * dx
-            forces[target_idx].y -= magnitude * dy
-
-        # Apply layer constraint forces (optimized to only check different layers)
-        node_ids = list(positions.keys())
-        for i in range(len(node_ids)):
-            node_i = node_ids[i]
-            layer_i = layer_constraint.get_layer(node_i)
-
-            # Only compare with nodes in different layers to reduce O(n²) overhead
-            for j in range(i + 1, len(node_ids)):
-                node_j = node_ids[j]
-                layer_j = layer_constraint.get_layer(node_j)
-
-                # Skip if same layer
-                if layer_i.layer_order() == layer_j.layer_order():
-                    continue
-
-                # If node_i should be above node_j but isn't, apply corrective force
-                if layer_i.layer_order() < layer_j.layer_order():
-                    if positions[node_i].y > positions[node_j].y:
-                        # Wrong order, apply corrective force (reduced to prevent instability)
-                        forces[node_i].y -= 50  # Push up
-                        forces[node_j].y += 50  # Push down
-
+        self._compute_repulsive_forces(forces, positions, node_ids)
+        self._compute_attractive_forces(forces, positions, edges)
+        self._compute_layer_forces(forces, positions, node_ids, layer_constraint)
         return forces

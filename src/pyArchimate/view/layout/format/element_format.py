@@ -166,7 +166,34 @@ class FormatService:
         """Initialize format service."""
         self.registry = ElementFormatRegistry()
 
-    def format_element(  # noqa: C901
+    def _apply_font(self, element: Any, spec: Any, user_font_override: dict[str, Any] | None) -> None:
+        if user_font_override is None:
+            self._apply_default_font(element, spec)
+        else:
+            self._apply_override_font(element, spec, user_font_override)
+
+    def _apply_default_font(self, element: Any, spec: Any) -> None:
+        if hasattr(element, 'font_name'):
+            element.font_name = spec.font_family
+            element.font_size = spec.font_size
+        else:
+            element.font_family = spec.font_family
+            element.font_size = spec.font_size
+            element.font_style = spec.font_style
+            element.font_weight = spec.font_weight
+
+    def _apply_override_font(self, element: Any, spec: Any, override: dict[str, Any]) -> None:
+        if hasattr(element, 'font_name'):
+            font_name = override.get("font_family") or override.get("font_name") or spec.font_family
+            element.font_name = font_name
+            element.font_size = int(override.get("font_size", spec.font_size))
+        else:
+            element.font_family = override.get("font_family", spec.font_family)
+            element.font_size = int(override.get("font_size", spec.font_size))
+            element.font_style = override.get("font_style", spec.font_style)
+            element.font_weight = override.get("font_weight", spec.font_weight)
+
+    def format_element(
         self,
         element: Any,
         user_size_override: Optional[Tuple[float, float]] = None,
@@ -208,42 +235,7 @@ class FormatService:
             element.width = width
             element.height = height
 
-        # Apply font standardization (respect user overrides)
-        # Support both 'font_name' (pyArchimate) and 'font_family' (generic)
-        if user_font_override is None:
-            if hasattr(element, 'font_name'):
-                element.font_name = spec.font_family
-                element.font_size = spec.font_size
-            else:
-                element.font_family = spec.font_family
-                element.font_size = spec.font_size
-                element.font_style = spec.font_style
-                element.font_weight = spec.font_weight
-        else:
-            if hasattr(element, 'font_name'):
-                font_name = user_font_override.get("font_family") or user_font_override.get("font_name") or spec.font_family
-                element.font_name = font_name
-                element.font_size = int(user_font_override.get("font_size", spec.font_size))
-            else:
-                if "font_family" in user_font_override:
-                    element.font_family = user_font_override["font_family"]
-                else:
-                    element.font_family = spec.font_family
-
-                if "font_size" in user_font_override:
-                    element.font_size = int(user_font_override["font_size"])
-                else:
-                    element.font_size = spec.font_size
-
-                if "font_style" in user_font_override:
-                    element.font_style = user_font_override["font_style"]
-                else:
-                    element.font_style = spec.font_style
-
-                if "font_weight" in user_font_override:
-                    element.font_weight = user_font_override["font_weight"]
-                else:
-                    element.font_weight = spec.font_weight
+        self._apply_font(element, spec, user_font_override)
 
         # Apply grid alignment if requested
         if alignment == "grid":

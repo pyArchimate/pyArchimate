@@ -3,7 +3,39 @@
 from typing import Any, Dict, List, Tuple
 
 
-def normalize_edges(edges: Any, nodes: List[Any]) -> List[Tuple[int, int]]:  # noqa: C901
+def _normalize_tuple_edge(edge: Any) -> tuple[int | None, int | None]:
+    source_idx, target_idx = edge
+    return source_idx, target_idx
+
+
+def _normalize_connection_edge(edge: Any, uuid_to_index: dict[str, int]) -> tuple[int | None, int | None]:
+    source_idx = uuid_to_index.get(edge._source)
+    target_idx = uuid_to_index.get(edge._target)
+    return source_idx, target_idx
+
+
+def _normalize_dict_edge(edge: dict[str, Any], uuid_to_index: dict[str, int]) -> tuple[int | None, int | None]:
+    source_key = edge.get('source') or edge.get('_source')
+    target_key = edge.get('target') or edge.get('_target')
+
+    if isinstance(source_key, int):
+        source_idx: int | None = source_key
+    elif isinstance(source_key, str):
+        source_idx = uuid_to_index.get(source_key)
+    else:
+        source_idx = None
+
+    if isinstance(target_key, int):
+        target_idx: int | None = target_key
+    elif isinstance(target_key, str):
+        target_idx = uuid_to_index.get(target_key)
+    else:
+        target_idx = None
+
+    return source_idx, target_idx
+
+
+def normalize_edges(edges: Any, nodes: List[Any]) -> List[Tuple[int, int]]:
     """Convert various edge formats to tuples of (source_index, target_index).
 
     Handles:
@@ -34,33 +66,13 @@ def normalize_edges(edges: Any, nodes: List[Any]) -> List[Tuple[int, int]]:  # n
         source_idx = None
         target_idx = None
 
-        # Handle tuple format (source_index, target_index)
         if isinstance(edge, tuple) and len(edge) == 2:
-            source_idx, target_idx = edge
-
-        # Handle Connection objects
+            source_idx, target_idx = _normalize_tuple_edge(edge)
         elif hasattr(edge, '_source') and hasattr(edge, '_target'):
-            source_uuid = edge._source
-            target_uuid = edge._target
-            source_idx = node_uuid_to_index.get(source_uuid)
-            target_idx = node_uuid_to_index.get(target_uuid)
-
-        # Handle dictionary format
+            source_idx, target_idx = _normalize_connection_edge(edge, node_uuid_to_index)
         elif isinstance(edge, dict):
-            source_key = edge.get('source') or edge.get('_source')
-            target_key = edge.get('target') or edge.get('_target')
+            source_idx, target_idx = _normalize_dict_edge(edge, node_uuid_to_index)
 
-            if isinstance(source_key, int):
-                source_idx = source_key
-            elif isinstance(source_key, str):
-                source_idx = node_uuid_to_index.get(source_key)
-
-            if isinstance(target_key, int):
-                target_idx = target_key
-            elif isinstance(target_key, str):
-                target_idx = node_uuid_to_index.get(target_key)
-
-        # Add if both indices found and valid
         if source_idx is not None and target_idx is not None:
             if 0 <= source_idx < len(nodes) and 0 <= target_idx < len(nodes):
                 normalized.append((source_idx, target_idx))

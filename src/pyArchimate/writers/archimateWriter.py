@@ -111,28 +111,31 @@ def _write_elem_junction_type(elem: _Element, e: Any, model: Model) -> None:
         pv.text = junction_type
 
 
-def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
-    elems = et.SubElement(root, 'elements')
-    for e in model.elements:
+def _get_elem_xsi_type(e: Any) -> str:
+    if e.type != 'Junction':
+        return e.type  # type: ignore[no-any-return]
+    junction_type = getattr(e, 'junction_type', None)
+    if junction_type == 'or':
+        return 'OrJunction'
+    return 'AndJunction'
+
+
+def _ensure_folder(e: Any) -> None:
+    if e.folder is None:
         cat = archi_category[e.type].split('-')[0]
         if cat == "Junction":
             cat = "Other"
         elif cat == "Physical":
             cat = 'Technology'
-        if e.folder is None:
-            e.folder = '/' + cat
+        e.folder = '/' + cat
 
-        # For Junction elements, map junction_type to the concrete xsi:type
-        elem_xsi_type = e.type
-        if e.type == 'Junction':
-            junction_type = getattr(e, 'junction_type', None)
-            if junction_type == 'or':
-                elem_xsi_type = 'OrJunction'
-            else:
-                elem_xsi_type = 'AndJunction'
 
+def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
+    elems = et.SubElement(root, 'elements')
+    for e in model.elements:
+        _ensure_folder(e)
+        elem_xsi_type = _get_elem_xsi_type(e)
         elem_attrs = {'identifier': e.uuid, str(xsi): elem_xsi_type}
-        # Add parentId if element has a parent
         parent_uuid = getattr(e, '_parent_uuid', None)
         if parent_uuid:
             elem_attrs['parentId'] = parent_uuid

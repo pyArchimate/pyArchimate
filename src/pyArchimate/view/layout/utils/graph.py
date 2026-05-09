@@ -28,31 +28,27 @@ class Graph:
         """Get all neighbors of a node."""
         return self.edges.get(node_id, set())
 
+    def _visit_node_for_cycle(self, node: str, parent: str, visited: Set[str], rec_stack: Set[str]) -> bool:
+        visited.add(node)
+        rec_stack.add(node)
+        for neighbor in self.edges.get(node, set()):
+            if neighbor == parent:
+                continue
+            if neighbor not in visited:
+                if self._visit_node_for_cycle(neighbor, node, visited, rec_stack):
+                    return True
+            elif neighbor in rec_stack:
+                return True
+        rec_stack.remove(node)
+        return False
+
     def has_cycle(self) -> bool:
         """Check if graph contains a cycle."""
         visited: Set[str] = set()
         rec_stack: Set[str] = set()
-
-        def _has_cycle_util(node: str, parent: str = "") -> bool:
-            visited.add(node)
-            rec_stack.add(node)
-
-            for neighbor in self.edges.get(node, set()):
-                if neighbor == parent:
-                    continue
-                if neighbor not in visited:
-                    if _has_cycle_util(neighbor, node):
-                        return True
-                elif neighbor in rec_stack:
-                    return True
-
-            rec_stack.remove(node)
-            return False
-
         for node in self.nodes:
-            if node not in visited and _has_cycle_util(node):
+            if node not in visited and self._visit_node_for_cycle(node, "", visited, rec_stack):
                 return True
-
         return False
 
     def get_connected_components(self) -> List[Set[str]]:
