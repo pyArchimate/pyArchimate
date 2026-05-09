@@ -165,8 +165,8 @@ class SVGExportService:
         svg = ET.Element(
             "svg",
             {
-                "xmlns": "http://www.w3.org/2000/svg",  # NOSONAR: W3C SVG namespace URI — not an HTTP connection, spec-mandated string
-                "xmlns:xlink": "http://www.w3.org/1999/xlink",  # NOSONAR: W3C XLink namespace URI — not an HTTP connection, spec-mandated string
+                "xmlns": "http://www.w3.org/2000/svg",  # NOSONAR  W3C SVG namespace URI — not an HTTP connection, spec-mandated string
+                "xmlns:xlink": "http://www.w3.org/1999/xlink",  # NOSONAR  W3C XLink namespace URI — not an HTTP connection, spec-mandated string
                 "width": str(int(svg_width)),
                 "height": str(int(svg_height)),
                 "viewBox": f"0 0 {int(svg_width)} {int(svg_height)}",

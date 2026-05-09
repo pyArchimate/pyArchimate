@@ -461,16 +461,16 @@ def _route_multi_row(
     sy: float,
     tx: float,
     ty: float,
-    sh_half: float,
-    th_half: float,
-    src_spread_x: float,
-    tgt_spread_x: float,
+    half_heights: tuple[float, float],
+    spread_x: tuple[float, float],
     row_gaps: list[float],
     col_gaps: list[float],
-    tgt_dy: float,
-    src_dy: float,
+    dy_offsets: tuple[float, float],
     going_down: bool,
 ) -> None:
+    sh_half, th_half = half_heights
+    src_spread_x, tgt_spread_x = spread_x
+    src_dy, tgt_dy = dy_offsets
     if going_down:
         gap_y1 = _nearest_row_gap_below(sy, sh_half, row_gaps) + src_dy
         gap_y2 = _nearest_row_gap_above(ty, th_half, row_gaps) + tgt_dy
@@ -494,18 +494,18 @@ def _place_bendpoints(
     sy: float,
     tx: float,
     ty: float,
-    sh_half: float,
-    th_half: float,
+    half_heights: tuple[float, float],
     source_anchor: tuple[float, float],
     target_anchor: tuple[float, float],
-    src_spread_x: float,
-    tgt_spread_x: float,
+    spread_x: tuple[float, float],
     rows: list[tuple[float, float]],
     row_gaps: list[float],
     col_gaps: list[float],
-    tgt_dy: float,
-    src_dy: float,
+    dy_offsets: tuple[float, float],
 ) -> None:
+    sh_half, th_half = half_heights
+    src_spread_x, tgt_spread_x = spread_x
+    tgt_dy, src_dy = dy_offsets
     dx, dy = tx - sx, ty - sy
     if abs(dx) < 1 and abs(dy) < 1:
         return
@@ -526,7 +526,7 @@ def _place_bendpoints(
         conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y))))
         conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y))))
     else:
-        _route_multi_row(conn, sx, sy, tx, ty, sh_half, th_half, src_spread_x, tgt_spread_x, row_gaps, col_gaps, tgt_dy, src_dy, going_down)
+        _route_multi_row(conn, sx, sy, tx, ty, (sh_half, th_half), (src_spread_x, tgt_spread_x), row_gaps, col_gaps, (src_dy, tgt_dy), going_down)
 
 
 def _route_single_connection(
@@ -576,11 +576,12 @@ def _route_single_connection(
     src_dy = src_offsets.get(id(conn), 0.0)
 
     _place_bendpoints(
-        conn, sx, sy, tx, ty, sh_half, th_half,
+        conn, sx, sy, tx, ty,
+        (sh_half, th_half),
         source_anchor, target_anchor,
-        src_spread_x, tgt_spread_x,
+        (src_spread_x, tgt_spread_x),
         rows, row_gaps, col_gaps,
-        tgt_dy, src_dy,
+        (tgt_dy, src_dy),
     )
 
 
