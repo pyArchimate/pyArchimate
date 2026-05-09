@@ -9,7 +9,7 @@ from ..utils.graph import detect_crossings
 def generate_polyline(
     p_start: Point,
     p_end: Point,
-    obstacles: List[Rectangle] | None = None,
+    _obstacles: List[Rectangle] | None = None,
     routing_style: str = "orthogonal",
 ) -> List[Point]:
     """Generate a polyline (path) between two points.
@@ -17,15 +17,12 @@ def generate_polyline(
     Args:
         p_start: Starting point
         p_end: Ending point
-        obstacles: List of rectangles to avoid (optional)
+        _obstacles: Reserved for future obstacle-avoidance routing (currently unused)
         routing_style: "orthogonal" (0°/90°) or "mixed_45" (allow ±45° angles)
 
     Returns:
         List of waypoints forming the polyline
     """
-    if obstacles is None:
-        obstacles = []
-
     # Determine if 45-degree angles can be used
     allow_45_degree = routing_style == "mixed_45"
 

@@ -105,7 +105,6 @@ def step_view_connected(context):
         MockNode(2, x=300, y=300),
         MockNode(3, x=0, y=300),
     ]
-    from tests.features.layout.customize_layout_steps import MockConnection
     conns = [
         MockConnection(0, 1),
         MockConnection(1, 2),
@@ -177,6 +176,7 @@ def step_apply_layout_excluded(context, ids):
         if char.isdigit():
             excluded.append(int(char))
     config = LayoutConfig(excluded_element_ids=excluded)
+    context.initial_positions = {i: (n.x, n.y) for i, n in enumerate(context.view.nodes)}
     context.result = apply_layout(context.view, config)
 
 
@@ -301,7 +301,11 @@ def step_verify_element_position(context, element_id, x, y):
 def step_verify_repositioned(context):
     """Verify other elements were moved."""
     # At least one non-excluded element should have moved
-    assert any(n.x != n.x for n in context.view.nodes), "Elements not repositioned"
+    initial = getattr(context, "initial_positions", {})
+    assert any(
+        (n.x, n.y) != initial.get(i, (n.x, n.y))
+        for i, n in enumerate(context.view.nodes)
+    ), "Elements not repositioned"
 
 
 @then("all elements should snap to {grid_size:d}-pixel grid")
