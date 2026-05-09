@@ -15,9 +15,11 @@ class RelationshipStyle(NamedTuple):
     stroke_width: float                 # Line width in pixels (1.0, 1.5, 2.0)
     stroke_dasharray: Optional[str]     # Pattern for dashed/dotted (e.g., "5,5" or "2,4")
     marker_start: Optional[str]         # Start marker (e.g., "url(#diamond-hollow)")
-    marker_end: str                     # End marker (e.g., "url(#arrow-filled)")
+    marker_end: str                     # End marker (e.g., _ARROW_FILLED)
     arrow_type: str                     # "filled", "hollow", "double", "diamond", "circle"
 
+
+_ARROW_FILLED = "url(#arrow-filled)"
 
 # ArchiMate 3.x Standard Relationship Styles
 ARCHIMATE_RELATIONSHIP_STYLES = {
@@ -28,7 +30,7 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_width=1.0,
         stroke_dasharray=None,
         marker_start=None,
-        marker_end="url(#arrow-filled)",
+        marker_end=_ARROW_FILLED,
         arrow_type="filled"
     ),
 
@@ -48,7 +50,7 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_width=1.0,
         stroke_dasharray=None,
         marker_start="url(#diamond-hollow)",
-        marker_end="url(#arrow-filled)",
+        marker_end=_ARROW_FILLED,
         arrow_type="diamond"
     ),
 
@@ -58,7 +60,7 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_width=1.0,
         stroke_dasharray=None,
         marker_start="url(#diamond-filled)",
-        marker_end="url(#arrow-filled)",
+        marker_end=_ARROW_FILLED,
         arrow_type="diamond"
     ),
 
@@ -69,7 +71,7 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_width=1.0,
         stroke_dasharray="2,4",
         marker_start=None,
-        marker_end="url(#arrow-filled)",
+        marker_end=_ARROW_FILLED,
         arrow_type="filled"
     ),
 
@@ -79,7 +81,7 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_width=1.0,
         stroke_dasharray=None,
         marker_start=None,
-        marker_end="url(#arrow-filled)",
+        marker_end=_ARROW_FILLED,
         arrow_type="filled"
     ),
 
@@ -99,7 +101,7 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_width=1.0,
         stroke_dasharray="5,5",
         marker_start=None,
-        marker_end="url(#arrow-filled)",
+        marker_end=_ARROW_FILLED,
         arrow_type="filled"
     ),
 
@@ -109,7 +111,7 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_width=1.0,
         stroke_dasharray="2,4",
         marker_start=None,
-        marker_end="url(#arrow-filled)",
+        marker_end=_ARROW_FILLED,
         arrow_type="filled"
     ),
 
@@ -120,7 +122,7 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_width=1.0,
         stroke_dasharray="2,4",
         marker_start=None,
-        marker_end="url(#arrow-filled)",
+        marker_end=_ARROW_FILLED,
         arrow_type="filled"
     ),
 
@@ -130,7 +132,7 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_width=1.0,
         stroke_dasharray=None,
         marker_start=None,
-        marker_end="url(#arrow-filled)",
+        marker_end=_ARROW_FILLED,
         arrow_type="filled"
     ),
 
@@ -140,7 +142,7 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_width=1.0,
         stroke_dasharray="2,4",
         marker_start=None,
-        marker_end="url(#arrow-filled)",
+        marker_end=_ARROW_FILLED,
         arrow_type="filled"
     ),
 }

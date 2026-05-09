@@ -7,8 +7,8 @@ from ..utils.geometry import Point, Rectangle
 
 def position_label_on_connection(
     connection_points: List[Point],
-    label_text: str,
-    label_width: float = 50,
+    _label_text: str,
+    _label_width: float = 50,
     label_height: float = 20,
 ) -> Point:
     """Position a label near a connection with offset.
@@ -30,12 +30,8 @@ def position_label_on_connection(
     mid_point = connection_points[mid_idx]
 
     # Get direction vector of nearby segment
-    if mid_idx > 0:
-        p1 = connection_points[mid_idx - 1]
-        p2 = connection_points[mid_idx]
-    else:
-        p1 = connection_points[0]
-        p2 = connection_points[1]
+    p1 = connection_points[mid_idx - 1]
+    p2 = connection_points[mid_idx]
 
     # Calculate perpendicular offset direction
     dx = p2.x - p1.x

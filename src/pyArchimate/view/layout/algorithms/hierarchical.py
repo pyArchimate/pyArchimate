@@ -120,7 +120,7 @@ class HierarchicalLayout(LayoutAlgorithm):
         self,
         nodes: List[Any],
         graph: Dict[int, List[int]],
-        config: LayoutConfig,
+        _config: LayoutConfig,
     ) -> List[List[int]]:
         """Assign nodes to layers using topological sort respecting ArchiMate layers.
 
@@ -166,7 +166,6 @@ class HierarchicalLayout(LayoutAlgorithm):
 
                 if not has_unassigned_pred:
                     # Check ArchiMate layer constraints
-                    archimate_layer = layer_constraint.get_layer(node_id)
                     # Can assign to any layer >= its ArchiMate layer precedence
                     if self._respects_archimate_ordering(
                         node_id, current_layer, nodes, layer_constraint
@@ -191,10 +190,10 @@ class HierarchicalLayout(LayoutAlgorithm):
 
     def _respects_archimate_ordering(
         self,
-        node_id: int,
-        layer_index: int,
+        _node_id: int,
+        _layer_index: int,
         nodes: List[Any],
-        layer_constraint: LayerConstraint,
+        _layer_constraint: LayerConstraint,
     ) -> bool:
         """Check if assigning node to layer respects ArchiMate layer ordering.
 
@@ -248,7 +247,7 @@ class HierarchicalLayout(LayoutAlgorithm):
 
             # Sort by barycenter
             reordered_layers[layer_idx] = sorted(
-                current_layer, key=lambda x: barycenters.get(x, 0)
+                current_layer, key=lambda x, _b=barycenters: _b.get(x, 0)  # type: ignore[misc]
             )
 
         return reordered_layers

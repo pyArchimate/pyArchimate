@@ -856,9 +856,9 @@ class SVGExportService:
 
             points_str = f"{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]} {p4[0]},{p4[1]}"
 
-            fill = color if marker_type == "diamond" else "none"
-            stroke = "none" if marker_type == "diamond" else color
-            stroke_width = "1" if marker_type == "diamond" else "1.5"
+            fill = color
+            stroke = "none"
+            stroke_width = "1"
 
             ET.SubElement(
                 svg,
@@ -1302,7 +1302,6 @@ class SVGExportService:
             if 0 < t < min_t:
                 x = fx + t * dx
                 if x1 <= x <= x2:
-                    min_t = t
                     result = (x, y1)
 
         return result
@@ -1334,8 +1333,8 @@ class SVGExportService:
             if len(src_conns) > 1:
                 src_conns_sorted = sorted(
                     src_conns,
-                    key=lambda c: float(
-                        getattr(nodes_dict.get(getattr(c, "_target", None)), "cx", getattr(node, "cx", 0))
+                    key=lambda c, _node=node: float(  # type: ignore[misc]
+                        getattr(nodes_dict.get(getattr(c, "_target", None)), "cx", getattr(_node, "cx", 0))
                     ),
                 )
                 for i, conn in enumerate(src_conns_sorted):
@@ -1359,8 +1358,8 @@ class SVGExportService:
             if len(tgt_conns) > 1:
                 tgt_conns_sorted = sorted(
                     tgt_conns,
-                    key=lambda c: float(
-                        getattr(nodes_dict.get(getattr(c, "_source", None)), "cx", getattr(node, "cx", 0))
+                    key=lambda c, _node=node: float(  # type: ignore[misc]
+                        getattr(nodes_dict.get(getattr(c, "_source", None)), "cx", getattr(_node, "cx", 0))
                     ),
                 )
                 for i, conn in enumerate(tgt_conns_sorted):
@@ -1482,9 +1481,8 @@ class SVGExportService:
             if 0 <= t <= 1:
                 ix = px1 + t * dx
                 if x1 <= ix <= x2:
-                    if best_t is None or (exit_from and t > best_t) or (not exit_from and t < best_t):  # type: ignore[unreachable]
-                        best_t = t
-                        best_point = (ix, y1)
+                    best_t = t
+                    best_point = (ix, y1)
 
         # Bottom edge (y = y2)
         if dy != 0:
@@ -1513,7 +1511,6 @@ class SVGExportService:
                 iy = py1 + t * dy
                 if y1 <= iy <= y2:
                     if best_t is None or (exit_from and t > best_t) or (not exit_from and t < best_t):
-                        best_t = t
                         best_point = (x2, iy)
 
         return best_point

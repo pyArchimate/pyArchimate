@@ -164,7 +164,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
                 error_message=error_msg,
             )
 
-    def _initialize_positions(self, nodes: list[Any], config: LayoutConfig) -> Dict[int, Point]:
+    def _initialize_positions(self, nodes: list[Any], _config: LayoutConfig) -> Dict[int, Point]:
         """Initialize node positions randomly or in a grid pattern.
 
         Args:

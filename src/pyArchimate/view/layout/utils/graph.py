@@ -50,9 +50,8 @@ class Graph:
             return False
 
         for node in self.nodes:
-            if node not in visited:
-                if _has_cycle_util(node):
-                    return True
+            if node not in visited and _has_cycle_util(node):
+                return True
 
         return False
 

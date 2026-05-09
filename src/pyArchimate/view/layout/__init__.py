@@ -395,7 +395,7 @@ def _apply_orthogonal_routing(view: Any) -> None:  # noqa: C901
             # Sort by target position for consistent spreading
             src_conns_sorted = sorted(
                 src_conns,
-                key=lambda c: float(nodes_dict.get(getattr(c, '_target', None), node).cx)
+                key=lambda c, _node=node: float(nodes_dict.get(getattr(c, '_target', None), _node).cx)  # type: ignore[misc,union-attr]
             )
             for i, conn in enumerate(src_conns_sorted):
                 # Calculate spread offset (perpendicular to dominant connection direction)
@@ -421,7 +421,7 @@ def _apply_orthogonal_routing(view: Any) -> None:  # noqa: C901
             # Sort by source position for consistent spreading
             tgt_conns_sorted = sorted(
                 tgt_conns,
-                key=lambda c: float(nodes_dict.get(getattr(c, '_source', None), node).cx)
+                key=lambda c, _node=node: float(nodes_dict.get(getattr(c, '_source', None), _node).cx)  # type: ignore[misc,union-attr]
             )
             for i, conn in enumerate(tgt_conns_sorted):
                 # Calculate spread offset (perpendicular to dominant connection direction)
@@ -459,7 +459,7 @@ def _apply_orthogonal_routing(view: Any) -> None:  # noqa: C901
             tgt_groups[conn._target].append(conn)
             src_groups_dir[conn._source].append(conn)
 
-        for _, group in tgt_groups.items():
+        for group in tgt_groups.values():
             n = len(group)
             if n <= 1:
                 continue
@@ -471,7 +471,7 @@ def _apply_orthogonal_routing(view: Any) -> None:  # noqa: C901
             for i, conn in enumerate(sorted_g):
                 tgt_offsets[id(conn)] = (i - (n - 1) / 2.0) * _SPREAD_STEP
 
-        for _, group in src_groups_dir.items():
+        for group in src_groups_dir.values():
             n = len(group)
             if n <= 1:
                 continue
