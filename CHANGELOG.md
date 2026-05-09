@@ -1,3 +1,88 @@
+## v1.8.0 (2026-05-09)
+
+### Feat
+
+- add SVG symbols for Archimate relationships and business layer elements
+- add SVG symbols for Archimate relationships and business layer elements
+- add SVG symbols for Archimate relationships and business layer elements
+- extract and integrate Archi stencil icons into SVG export
+- add proper icons and viewboxes for all symbol definitions
+- render fixed-size type-indicator icons in SVG export
+- add view auto-layout and auto-format feature specification and planning
+- optimize force-directed algorithm performance by 40% using layer constraint filtering and increased convergence tolerance
+- complete Phase 7 documentation tasks and start Phase 8 work
+- refine bendpoint coordinate resolution for connections
+- improve connection rendering in SVG export
+- improve connection rendering in SVG export
+- add white background to SVG export (User Story 5 enhancement)
+- add BDD scenarios and step definitions for SVG export (Tasks T109-T110)
+- implement Phase 6B - SVG Export (Tasks T099-T106)
+- complete Phases 1-5 implementation with clarified Phase 6B SVG export specification
+- implement Phase 5 - Hierarchical Layout feature (User Story 3)
+- implement Phase 4 - Auto-Format feature (User Story 2)
+- add view auto-layout and auto-format feature specification and planning
+
+### Fix
+
+- add NOSONAR comment for S5852 false positive in svg_export regex
+- use \d shorthand instead of [0-9] in svg_export regex (linter UP035)
+- resolve CodeQL github-code-quality bot findings
+- replace backtracking-prone regex with unambiguous character classes (S5852)
+- **sonar**: resolve remaining S7632 and S107 issues
+- suppress S5332 false positives for SVG XML namespace URIs (NOSONAR)
+- replace backtracking-prone regex with unambiguous pattern (S5852)
+- resolve SonarCloud Phase 1 issues (S1192, S1515, S1172, S1854, S2583, S5727, S7512, S1066)
+- restore centre-based bendpoint offsets in archiWriter
+- **lint**: re-apply ruff fixes lost during rebase
+- correct orthogonal routing for nested nodes and eliminate waypoint backtracking
+- resolve SVG export and nested element rendering issues
+- resolve merge conflict in svg_export.py
+- SVG z-order and container rendering for nested view elements
+- remove all incorrect icon paths from symbol definitions
+- remove symbol definitions without proper icons
+- correct connection and bendpoint translation in archi writer
+- render wide Facility elements as rectangles instead of symbols
+- ensure container labels are fully inside visual bounds
+- increase vertical offset for container labels
+- correct undefined variable in wrapped text rendering
+- render connections on top of nodes instead of behind
+- render Facility symbols correctly, not as container borders
+- render nested nodes inside container groups in SVG hierarchy
+- Scale symbols to fit node bounds regardless of aspect ratio
+- Use bendpoint position instead of target for routing direction
+- SVG export should render views as stored without routing calculations
+- correct target boundary side calculation for cleaner routing
+- prefer horizontal connection routing for better layout
+- remove arrow end marker from composition and aggregation connections
+- hide containment relationships between containers and nested nodes
+- render connections to nested view elements
+- SVG z-order and container rendering for nested view elements
+- enable pre-push checks by adjusting coverage threshold and deferring BDD tests
+- correct BDD feature file scenario syntax
+- update round-trip integration test assertions to match current implementation (120x55, Segoe UI 9pt)
+- correct all 5 failing unit tests
+- resolve ruff linting issues (unused variables, zip strict parameter)
+- resolve all mypy type errors in layout module
+- improve code quality and type annotations
+- improve SVG relationship marker visibility by increasing size and stroke width
+- gracefully handle nodes with missing element references
+- improve relationship resolution with multi-pass retry for forward references
+- handle missing element/node references in Archi file import
+- use two-pass view loading to ensure all nodes exist before reading connections
+- improve writer robustness for non-standard folders and missing nodes
+- handle forward references in relationships and missing connectionRefs during import
+- apply endpoint spreads to all boundary bendpoints in orthogonal routing
+- correct round-trip bugs in archi/OpenGroup read-write cycle
+
+### Refactor
+
+- resolve remaining 7 SonarCloud S3776/S108 issues
+- reduce cognitive complexity across layout/export modules (SonarCloud S3776)
+- render relationship arrowheads as inline polygons
+- rewrite SVG export to use flat inline SVG matching Archi's approach
+- reorder imports in test_archi_writer.py for readability
+- improve code formatting in svg_export.py
+
 ## v1.7.1 (2026-05-08)
 
 ## v1.7.0 (2026-05-08)
