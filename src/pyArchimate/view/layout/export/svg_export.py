@@ -464,7 +464,7 @@ class SVGExportService:
             return f"{x_fmt} {y_fmt}"
 
         # Match coordinate pairs: "x y" (with optional decimal points)
-        result = re.sub(r'(-?\d+\.?\d*)\s+(-?\d+\.?\d*)', transform_number, svg_path)
+        result = re.sub(r'(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)', transform_number, svg_path)
         return result
 
     def _render_node(self, svg: ET.Element, node: Any) -> None:
