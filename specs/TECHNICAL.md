@@ -416,7 +416,7 @@ pysonar --sonar-token=<token-from-.secrets>
 You can also query SonarCloud public API for the current critical issues list; the token value is stored in the project `.env` file (look for the SONAR_TOKEN key there) and should not be committed.
 
 ```
-https://sonarcloud.io/api/issues/search?projectKeys=pyArchimate_pyArchimate&severities=CRITICAL,MAJOR&statuses=OPEN,CONFIRMED
+https://sonarcloud.io/api/issues/search?projectKeys=pyArchimate_pyArchimate&severities=BLOCKER,CRITICAL,MAJOR,MINOR&statuses=OPEN,CONFIRMED
 ```
 
 ### SonarCloud Remediation Workflow
