@@ -561,9 +561,6 @@ class SVGExportService:
         # Group for node
         g = ET.SubElement(parent, "g", {"class": "node"})
 
-        # Check if this is a container (has child nodes)
-        has_children = len(getattr(node, "nodes", [])) > 0
-
         # ── Junction nodes: small circle (Or=white, And=black) ──────────
         if element_type in ("OrJunction", "AndJunction", "Junction"):
             self._render_junction(g, x, y, w, h, element_type, node)
@@ -997,6 +994,31 @@ class SVGExportService:
             style = relationship_service.get_style(rel_type.replace("Relationship", ""))
         return style
 
+    def _resolve_connection_nodes(
+        self,
+        conn: Any,
+        nodes_dict: dict[str, Any],
+    ) -> Optional[tuple[Any, Any]]:
+        """Return (source_node, target_node) or None when either UUID/node is missing."""
+        source_uuid = getattr(conn, "_source", None)
+        target_uuid = getattr(conn, "_target", None)
+        if not source_uuid or not target_uuid:
+            return None
+        source_node = nodes_dict.get(source_uuid)
+        target_node = nodes_dict.get(target_uuid)
+        if not source_node or not target_node:
+            return None
+        return source_node, target_node
+
+    def _build_relationship_label(self, rel_type: str, conn: Any) -> str:
+        """Return label text, appending influence_strength for Influence relationships."""
+        label = self._get_short_type_name(rel_type)
+        if rel_type in ("Influence", "InfluenceRelationship"):
+            strength = getattr(conn, "influence_strength", None) or getattr(conn, "_influence_strength", None)
+            if strength:
+                return f"{label} ({strength})"
+        return label
+
     def _render_relationship(
         self,
         svg: ET.Element,
@@ -1004,54 +1026,31 @@ class SVGExportService:
         nodes_dict: dict[str, Any],
         relationship_service: RelationshipStyleService,
     ) -> None:
-        """Render a single relationship with ArchiMate styling.
-
-        Args:
-            svg: SVG root element
-            conn: Connection/relationship to render
-            nodes_dict: Dictionary of nodes by uuid
-            relationship_service: Service for relationship styles
-        """
-        source_uuid = getattr(conn, "_source", None)
-        target_uuid = getattr(conn, "_target", None)
-
-        if not source_uuid or not target_uuid:
+        """Render a single relationship with ArchiMate styling."""
+        endpoints = self._resolve_connection_nodes(conn, nodes_dict)
+        if endpoints is None:
             return
-
-        source_node = nodes_dict.get(source_uuid)
-        target_node = nodes_dict.get(target_uuid)
-
-        if not source_node or not target_node:
-            return
+        source_node, target_node = endpoints
 
         bendpoints = getattr(conn, "bendpoints", [])
         points = self._get_clipped_polyline_points(source_node, target_node, bendpoints)
-
         if len(points) < 2:
             return
 
         rel_type = getattr(conn, "type", "Association")
         relationship_style = self._lookup_rel_style(rel_type, relationship_service)
-
         if not relationship_style:
             self._render_connection(svg, conn, nodes_dict)
             return
 
-        # Apply per-relationship overrides if available
         stroke_color = getattr(conn, "stroke_color", None) or relationship_style.stroke_color
         stroke_width = getattr(conn, "stroke_width", None) or relationship_style.stroke_width
         stroke_dasharray = getattr(conn, "stroke_style", None) or relationship_style.stroke_dasharray
 
-        # Build base polyline attrs (points filled in after marker adjustment below)
         polyline_attrs: dict[str, str] = {
-            "points": "",          # placeholder; replaced after adjustment
-            "fill": "none",
-            "stroke": stroke_color,
-            "stroke-width": str(stroke_width),
-            "opacity": "0.8",
+            "points": "", "fill": "none",
+            "stroke": stroke_color, "stroke-width": str(stroke_width), "opacity": "0.8",
         }
-
-        # Add dash pattern if specified
         if stroke_dasharray:
             polyline_attrs["stroke-dasharray"] = stroke_dasharray
 
@@ -1060,13 +1059,8 @@ class SVGExportService:
         polyline_attrs["points"] = " ".join(f"{round(p[0])},{round(p[1])}" for p in pts)
         ET.SubElement(svg, "polyline", polyline_attrs)
 
-        # ── Influence: append strength to label ──────────────────────────
-        label_text = self._get_short_type_name(rel_type)
-        if rel_type in ("Influence", "InfluenceRelationship"):
-            strength = getattr(conn, "influence_strength", None) or getattr(conn, "_influence_strength", None)
-            if strength:
-                label_text = f"{label_text} ({strength})"
-        if label_text and len(points) >= 2:
+        label_text = self._build_relationship_label(rel_type, conn)
+        if label_text:
             self._render_connection_label(svg, points, label_text)
 
     def _render_connection(
@@ -1384,6 +1378,20 @@ class SVGExportService:
         return None
 
     @staticmethod
+    def _exit_x_edge(
+        wx: float, wy: float, x1: float, y1: float, x2: float, y2: float
+    ) -> Tuple[float, float]:
+        """Exit at left or right edge; y clamped to element height."""
+        return (x1 if wx < x1 else x2), max(y1, min(y2, wy))
+
+    @staticmethod
+    def _exit_y_edge(
+        wx: float, wy: float, x1: float, y1: float, x2: float, y2: float
+    ) -> Tuple[float, float]:
+        """Exit at top or bottom edge; x clamped to element width."""
+        return max(x1, min(x2, wx)), (y1 if wy < y1 else y2)
+
+    @staticmethod
     def _orthogonal_clip(
         bounds: Tuple[float, float, float, float],
         waypoint: Tuple[float, float],
@@ -1393,45 +1401,29 @@ class SVGExportService:
         Archi stores bendpoints as corners of L-shaped segments.  The connection
         leaves the element perpendicularly on whichever axis the waypoint is outside:
 
-        - waypoint left/right of element (and within y-range) → exit at left/right edge,
-          y = waypoint.y clamped to element height.
-        - waypoint above/below element (and within x-range) → exit at top/bottom edge,
-          x = waypoint.x clamped to element width.
-        - waypoint in a corner (outside on both axes) → choose the axis with the
-          larger absolute overshoot.
-        - waypoint inside element → fall back to element center → waypoint clip.
+        - outside x only → exit left/right edge at waypoint.y
+        - outside y only → exit top/bottom edge at waypoint.x
+        - corner (outside both) → exit on the axis with the larger absolute overshoot
+        - inside element → fall back to centre → waypoint clip
         """
         x1, y1, x2, y2 = bounds
         wx, wy = waypoint
-
         outside_x = wx < x1 or wx > x2
         outside_y = wy < y1 or wy > y2
 
-        if outside_x and not outside_y:
-            ex = x1 if wx < x1 else x2
-            ey = max(y1, min(y2, wy))
-            return ex, ey
-
-        if outside_y and not outside_x:
-            ex = max(x1, min(x2, wx))
-            ey = y1 if wy < y1 else y2
-            return ex, ey
-
         if outside_x and outside_y:
-            # Corner: prefer the axis with larger overshoot
+            # Corner: choose axis with larger overshoot
             dx_out = min(abs(wx - x1), abs(wx - x2))
             dy_out = min(abs(wy - y1), abs(wy - y2))
-            if dx_out >= dy_out:
-                ex = x1 if wx < x1 else x2
-                ey = max(y1, min(y2, wy))
-            else:
-                ex = max(x1, min(x2, wx))
-                ey = y1 if wy < y1 else y2
-            return ex, ey
+            outside_x = dx_out >= dy_out        # reuse flag: True → exit x-axis edge
 
-        # Waypoint inside element — clip center → waypoint line
-        cx = (x1 + x2) / 2.0
-        cy = (y1 + y2) / 2.0
+        if outside_x:
+            return SVGExportService._exit_x_edge(wx, wy, x1, y1, x2, y2)
+        if outside_y:
+            return SVGExportService._exit_y_edge(wx, wy, x1, y1, x2, y2)
+
+        # Waypoint inside element — clip centre → waypoint line
+        cx, cy = (x1 + x2) / 2.0, (y1 + y2) / 2.0
         return SVGExportService._clip_point_to_boundary(bounds, (cx, cy), waypoint)
 
     @staticmethod
