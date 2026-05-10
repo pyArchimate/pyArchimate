@@ -350,6 +350,338 @@ def test_svg_export_spreads_target_connection_points_away_from_corners():
         assert target_y_min - 1 <= y <= target_y_max + 1
 
 
+# ── Junction rendering ────────────────────────────────────────────────────────
+
+def test_svg_or_junction_renders_white_circle():
+    """OrJunction should produce a white-filled circle."""
+    model = Model("junctions")
+    view = model.add(ArchiType.View, "V")
+    elem = model.add(ArchiType.OrJunction, "or")
+    view.add(elem, x=50, y=50, w=20, h=20)
+    svg = view.to_svg()
+    root = ET.fromstring(svg)
+    ns = "{http://www.w3.org/2000/svg}"
+    circles = root.findall(f".//{ns}circle")
+    assert circles, "OrJunction should render a circle"
+    assert any(c.get("fill") == "white" for c in circles), "OrJunction circle must be white"
+
+
+def test_svg_and_junction_renders_black_circle():
+    """AndJunction should produce a black-filled circle."""
+    model = Model("junctions")
+    view = model.add(ArchiType.View, "V")
+    elem = model.add(ArchiType.AndJunction, "and")
+    view.add(elem, x=50, y=50, w=20, h=20)
+    svg = view.to_svg()
+    root = ET.fromstring(svg)
+    ns = "{http://www.w3.org/2000/svg}"
+    circles = root.findall(f".//{ns}circle")
+    assert circles, "AndJunction should render a circle"
+    assert any(c.get("fill") == "black" for c in circles), "AndJunction circle must be black"
+
+
+# ── Grouping and Group rendering ─────────────────────────────────────────────
+
+def test_svg_grouping_renders_dashed_path_with_label_in_tab():
+    """Grouping should use a dashed L-shaped path and place label in the tab."""
+    model = Model("groupings")
+    view = model.add(ArchiType.View, "V")
+    elem = model.add(ArchiType.Grouping, "MyGroup")
+    view.add(elem, x=10, y=10, w=200, h=120)
+    svg = view.to_svg()
+    root = ET.fromstring(svg)
+    ns = "{http://www.w3.org/2000/svg}"
+    paths = root.findall(f".//{ns}path[@stroke-dasharray]")
+    assert paths, "Grouping should render a dashed path"
+    assert any("4,3" in p.get("stroke-dasharray", "") for p in paths)
+    texts = root.findall(f".//{ns}text")
+    assert any("MyGroup" in (t.text or "") for t in texts)
+
+
+# ── Access relationship markers ───────────────────────────────────────────────
+
+def _make_access_view(access_type_val):
+    model = Model("access")
+    view = model.add(ArchiType.View, "V")
+    src = model.add(ArchiType.ApplicationComponent, "Src")
+    tgt = model.add(ArchiType.DataObject, "Tgt")
+    rel = model.add_relationship(ArchiType.Access, source=src, target=tgt)
+    rel.access_type = access_type_val
+    sn = view.add(src, x=10, y=50)
+    tn = view.add(tgt, x=250, y=50)
+    view.add_connection(ref=rel.uuid, source=sn, target=tn)
+    return ET.fromstring(view.to_svg())
+
+
+def test_svg_access_read_has_start_marker_only():
+    root = _make_access_view("Read")
+    ns = "{http://www.w3.org/2000/svg}"
+    pls = root.findall(f".//{ns}polyline")
+    assert pls
+    pl = pls[0]
+    assert "arrow-start" in pl.get("marker-start", ""), "Read should have start marker"
+    assert "marker-end" not in pl.attrib or not pl.get("marker-end"), "Read should have no end marker"
+
+
+def test_svg_access_write_has_end_marker_only():
+    root = _make_access_view("Write")
+    ns = "{http://www.w3.org/2000/svg}"
+    pls = root.findall(f".//{ns}polyline")
+    assert pls
+    pl = pls[0]
+    assert "marker-start" not in pl.attrib or not pl.get("marker-start"), "Write should have no start marker"
+    assert "arrow-filled" in pl.get("marker-end", ""), "Write should have end marker"
+
+
+def test_svg_access_readwrite_has_both_markers():
+    root = _make_access_view("ReadWrite")
+    ns = "{http://www.w3.org/2000/svg}"
+    pls = root.findall(f".//{ns}polyline")
+    assert pls
+    pl = pls[0]
+    assert "arrow-start" in pl.get("marker-start", ""), "ReadWrite should have start marker"
+    assert "arrow-filled" in pl.get("marker-end", ""), "ReadWrite should have end marker"
+
+
+def test_svg_access_undefined_has_no_markers():
+    root = _make_access_view(None)
+    ns = "{http://www.w3.org/2000/svg}"
+    pls = root.findall(f".//{ns}polyline")
+    assert pls
+    pl = pls[0]
+    assert not pl.get("marker-start"), "Undefined access should have no start marker"
+    assert not pl.get("marker-end"), "Undefined access should have no end marker"
+
+
+# ── Association directed / undirected ────────────────────────────────────────
+
+def _make_assoc_view(directed: bool):
+    model = Model("assoc")
+    view = model.add(ArchiType.View, "V")
+    a = model.add(ArchiType.ApplicationComponent, "A")
+    b = model.add(ArchiType.ApplicationComponent, "B")
+    rel = model.add_relationship(ArchiType.Association, source=a, target=b)
+    rel.is_directed = directed
+    na = view.add(a, x=10, y=50)
+    nb = view.add(b, x=250, y=50)
+    view.add_connection(ref=rel.uuid, source=na, target=nb)
+    return ET.fromstring(view.to_svg())
+
+
+def test_svg_association_directed_has_end_marker():
+    root = _make_assoc_view(True)
+    ns = "{http://www.w3.org/2000/svg}"
+    pls = root.findall(f".//{ns}polyline")
+    assert pls
+    assert any("arrow-filled" in pl.get("marker-end", "") for pl in pls), "Directed association needs end marker"
+
+
+def test_svg_association_undirected_has_no_markers():
+    root = _make_assoc_view(False)
+    ns = "{http://www.w3.org/2000/svg}"
+    pls = root.findall(f".//{ns}polyline")
+    assert pls
+    pl = pls[0]
+    assert not pl.get("marker-start"), "Undirected association: no start marker"
+    assert not pl.get("marker-end"), "Undirected association: no end marker"
+
+
+# ── Influence strength label ─────────────────────────────────────────────────
+
+def test_svg_influence_label_includes_strength():
+    model = Model("influence")
+    view = model.add(ArchiType.View, "V")
+    a = model.add(ArchiType.Driver, "A")
+    b = model.add(ArchiType.Goal, "B")
+    rel = model.add_relationship(ArchiType.Influence, source=a, target=b)
+    rel.influence_strength = "+"
+    na = view.add(a, x=10, y=50)
+    nb = view.add(b, x=250, y=50)
+    view.add_connection(ref=rel.uuid, source=na, target=nb)
+    svg = view.to_svg()
+    assert "Influence (+)" in svg, "Influence label must include strength"
+
+
+# ── Composition / Aggregation diamond marker ─────────────────────────────────
+
+def test_svg_composition_has_diamond_start_marker():
+    model = Model("comp")
+    view = model.add(ArchiType.View, "V")
+    a = model.add(ArchiType.ApplicationComponent, "A")
+    b = model.add(ArchiType.ApplicationComponent, "B")
+    rel = model.add_relationship(ArchiType.Composition, source=a, target=b)
+    na = view.add(a, x=10, y=50)
+    nb = view.add(b, x=250, y=50)
+    view.add_connection(ref=rel.uuid, source=na, target=nb)
+    root = ET.fromstring(view.to_svg())
+    ns = "{http://www.w3.org/2000/svg}"
+    pls = root.findall(f".//{ns}polyline")
+    assert pls
+    assert any("diamond" in pl.get("marker-start", "") for pl in pls), "Composition needs diamond start"
+    assert not any(pl.get("marker-end") for pl in pls), "Composition must have no end marker"
+
+
+def test_svg_aggregation_has_hollow_diamond_start_marker():
+    model = Model("agg")
+    view = model.add(ArchiType.View, "V")
+    a = model.add(ArchiType.ApplicationComponent, "A")
+    b = model.add(ArchiType.ApplicationComponent, "B")
+    rel = model.add_relationship(ArchiType.Aggregation, source=a, target=b)
+    na = view.add(a, x=10, y=50)
+    nb = view.add(b, x=250, y=50)
+    view.add_connection(ref=rel.uuid, source=na, target=nb)
+    root = ET.fromstring(view.to_svg())
+    ns = "{http://www.w3.org/2000/svg}"
+    pls = root.findall(f".//{ns}polyline")
+    assert pls
+    assert any("diamond-hollow" in pl.get("marker-start", "") for pl in pls)
+
+
+# ── Realization hollow end marker ─────────────────────────────────────────────
+
+def test_svg_realization_has_hollow_arrow_end_marker():
+    model = Model("real")
+    view = model.add(ArchiType.View, "V")
+    a = model.add(ArchiType.ApplicationComponent, "A")
+    b = model.add(ArchiType.ApplicationComponent, "B")
+    rel = model.add_relationship(ArchiType.Realization, source=a, target=b)
+    na = view.add(a, x=10, y=50)
+    nb = view.add(b, x=250, y=50)
+    view.add_connection(ref=rel.uuid, source=na, target=nb)
+    root = ET.fromstring(view.to_svg())
+    ns = "{http://www.w3.org/2000/svg}"
+    pls = root.findall(f".//{ns}polyline")
+    assert pls
+    assert any("arrow-hollow" in pl.get("marker-end", "") for pl in pls)
+
+
+# ── Orthogonal clip branches ──────────────────────────────────────────────────
+
+def test_orthogonal_clip_outside_x_inside_y():
+    """Bendpoint left of element: exit left edge at bp.y."""
+    from src.pyArchimate.view.layout.export.svg_export import SVGExportService
+    bounds = (100.0, 50.0, 200.0, 100.0)
+    bp = (50.0, 75.0)  # left of element, inside y-range
+    result = SVGExportService._orthogonal_clip(bounds, bp)
+    assert result == (100.0, 75.0), f"Expected (100, 75), got {result}"
+
+
+def test_orthogonal_clip_inside_x_outside_y():
+    """Bendpoint below element: exit bottom edge at bp.x."""
+    from src.pyArchimate.view.layout.export.svg_export import SVGExportService
+    bounds = (100.0, 50.0, 200.0, 100.0)
+    bp = (150.0, 150.0)  # inside x-range, below element
+    result = SVGExportService._orthogonal_clip(bounds, bp)
+    assert result == (150.0, 100.0), f"Expected (150, 100), got {result}"
+
+
+def test_orthogonal_clip_corner_x_dominates():
+    """Bendpoint in corner with larger x-overshoot: exit the x-axis edge."""
+    from src.pyArchimate.view.layout.export.svg_export import SVGExportService
+    bounds = (100.0, 50.0, 200.0, 100.0)
+    bp = (40.0, 110.0)  # left overshoot=60, bottom overshoot=10 → x dominates
+    result = SVGExportService._orthogonal_clip(bounds, bp)
+    assert result[0] == 100.0, "Should exit left edge"
+    assert result[1] == 100.0, "y clamped to element bottom"
+
+
+def test_orthogonal_clip_corner_y_dominates():
+    """Bendpoint in corner with larger y-overshoot: exit the y-axis edge."""
+    from src.pyArchimate.view.layout.export.svg_export import SVGExportService
+    bounds = (100.0, 50.0, 200.0, 100.0)
+    bp = (210.0, 200.0)  # right overshoot=10, bottom overshoot=100 → y dominates
+    result = SVGExportService._orthogonal_clip(bounds, bp)
+    assert result[1] == 100.0, "Should exit bottom edge"
+    assert result[0] == 200.0, "x clamped to element right"
+
+
+def test_orthogonal_clip_inside_falls_back_to_center_clip():
+    """Bendpoint inside element: falls back to centre→waypoint clip.
+    If the waypoint is closer than any boundary intersection, the result
+    is the waypoint itself (no clipping needed — connection starts there).
+    Result must be inside or on the element bounds.
+    """
+    from src.pyArchimate.view.layout.export.svg_export import SVGExportService
+    bounds = (100.0, 50.0, 200.0, 100.0)
+    x1, y1, x2, y2 = bounds
+    bp = (170.0, 60.0)  # inside element, off-centre toward top-right
+    result = SVGExportService._orthogonal_clip(bounds, bp)
+    rx, ry = result
+    assert x1 - 0.1 <= rx <= x2 + 0.1, f"Result x out of bounds: {rx}"
+    assert y1 - 0.1 <= ry <= y2 + 0.1, f"Result y out of bounds: {ry}"
+
+
+# ── Connection with bendpoints (orthogonal exit) ──────────────────────────────
+
+def test_svg_connection_with_bendpoint_exits_orthogonally():
+    """Connection with a bendpoint to the left exits at the left edge at bp.y."""
+    model = Model("bend")
+    view = model.add(ArchiType.View, "V")
+    a = model.add(ArchiType.ApplicationComponent, "A")
+    b = model.add(ArchiType.ApplicationComponent, "B")
+    rel = model.add_relationship(ArchiType.Serving, source=a, target=b)
+    na = view.add(a, x=100, y=50, w=120, h=55)
+    nb = view.add(b, x=100, y=200, w=120, h=55)
+    conn = view.add_connection(ref=rel.uuid, source=na, target=nb)
+    # Manually add a bendpoint to the left of element A at y=90 (within A's y-range)
+    from src.pyArchimate.view import Point
+    conn.add_bendpoint(Point(30.0, 90.0))  # x=30 < 100=element left
+    root = ET.fromstring(view.to_svg())
+    ns = "{http://www.w3.org/2000/svg}"
+    pls = root.findall(f".//{ns}polyline")
+    assert pls
+    coords_str = pls[0].get("points", "")
+    pts = [tuple(float(v) for v in p.split(",")) for p in coords_str.split()]
+    # First point should be at left edge (x≈100) at y≈90 (orthogonal exit)
+    assert abs(pts[0][0] - 100) < 2, f"Should exit left edge, got x={pts[0][0]}"
+    assert abs(pts[0][1] - 90) < 2, f"Should exit at bp.y=90, got y={pts[0][1]}"
+
+
+# ── Short type name stripping ─────────────────────────────────────────────────
+
+def test_svg_export_strips_relationship_suffix_from_label():
+    model = Model("label-strip")
+    view = model.add(ArchiType.View, "V")
+    a = model.add(ArchiType.ApplicationComponent, "A")
+    b = model.add(ArchiType.ApplicationComponent, "B")
+    rel = model.add_relationship(ArchiType.Serving, source=a, target=b)
+    na = view.add(a, x=10, y=50)
+    nb = view.add(b, x=250, y=50)
+    view.add_connection(ref=rel.uuid, source=na, target=nb)
+    svg = view.to_svg()
+    assert "Serving" in svg
+    assert "ServingRelationship" not in svg
+
+
+# ── icon size threshold ───────────────────────────────────────────────────────
+
+def test_svg_icon_hidden_when_element_too_small():
+    """Elements smaller than threshold should not render corner icon."""
+    model = Model("tiny")
+    view = model.add(ArchiType.View, "V")
+    elem = model.add(ArchiType.ApplicationComponent, "tiny")
+    view.add(elem, x=10, y=10, w=25, h=20)
+    root = ET.fromstring(view.to_svg())
+    ns = "{http://www.w3.org/2000/svg}"
+    paths = root.findall(f".//{ns}path")
+    # Icon path would have fill=none stroke=black; at this size none should appear
+    icon_paths = [p for p in paths if p.get("fill") == "none" and p.get("stroke") == "black"]
+    assert not icon_paths, "No icon path expected for element below size threshold"
+
+
+def test_svg_icon_shown_when_element_large_enough():
+    """Elements above the threshold should render the corner icon."""
+    model = Model("big")
+    view = model.add(ArchiType.View, "V")
+    elem = model.add(ArchiType.ApplicationComponent, "big")
+    view.add(elem, x=10, y=10, w=120, h=55)
+    root = ET.fromstring(view.to_svg())
+    ns = "{http://www.w3.org/2000/svg}"
+    icon_paths = [p for p in root.findall(f".//{ns}path")
+                  if p.get("fill") == "none" and p.get("stroke") == "black"]
+    assert icon_paths, "Icon path expected for element above size threshold"
+
+
 if __name__ == '__main__':
     test_svg_export_with_demo_view()
     test_svg_export_to_file()

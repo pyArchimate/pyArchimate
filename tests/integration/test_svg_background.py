@@ -251,16 +251,15 @@ def test_nested_elements_render_hierarchy():
     all_groups = root_elem.findall('.//{http://www.w3.org/2000/svg}g[@class="node"]')
     assert len(all_groups) == 4, f"Should have exactly 4 nodes (root + 3 nested), got {len(all_groups)}"
 
-    # Verify containers are rendered with rects (dotted borders) and leaf with solid rect
-    all_dashed_rects = root_elem.findall('.//{http://www.w3.org/2000/svg}rect[@stroke-dasharray="5,5"]')
+    # Containers keep their own symbol shape (no dashed-rect override since that
+    # was removed so containers display their actual ArchiMate symbol).
+    # All 4 nodes should render with at least one rect each (fallback plain rect
+    # for unknown 'Label' node type).
     all_rects = root_elem.findall('.//{http://www.w3.org/2000/svg}rect')
-    # 3 containers (root, level1, level2) with dashed borders, plus rects for all elements
-    assert len(all_dashed_rects) == 3, f"Should have 3 container rectangles (dotted borders), got {len(all_dashed_rects)}"
-    # All 4 nodes should have at least one rect element (either dashed container or solid body)
     assert len(all_rects) >= 4, f"Should render at least 4 rectangles (one per node), got {len(all_rects)}"
 
     # Verify structure: nested nodes render successfully
-    print(f"✓ Nested hierarchy rendered: {len(all_groups)} nodes in SVG, {len(all_dashed_rects)} containers with dotted borders")
+    print(f"✓ Nested hierarchy rendered: {len(all_groups)} nodes in SVG, {len(all_rects)} rect elements")
 
 
 if __name__ == '__main__':
