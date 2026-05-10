@@ -6,7 +6,7 @@ Archi desktop tool.
 """
 
 import math
-from typing import Any, Optional, Tuple
+from typing import Any
 from xml.etree import ElementTree as ET
 
 from .symbols.archimate_relationships import (
@@ -998,7 +998,7 @@ class SVGExportService:
         self,
         conn: Any,
         nodes_dict: dict[str, Any],
-    ) -> Optional[tuple[Any, Any]]:
+    ) -> tuple[Any, Any] | None:
         """Return (source_node, target_node) or None when either UUID/node is missing."""
         source_uuid = getattr(conn, "_source", None)
         target_uuid = getattr(conn, "_target", None)
@@ -1120,7 +1120,7 @@ class SVGExportService:
         source_node: Any,
         target_node: Any,
         bendpoints: list[Any],
-    ) -> list[Tuple[float, float]]:
+    ) -> list[tuple[float, float]]:
         """Get polyline points clipped at node boundary edges.
 
         No routing is performed. Bendpoints are used as-is from the model.
@@ -1168,7 +1168,7 @@ class SVGExportService:
         bendpoints: list[Any],
         source_spread: tuple[float, float] = (0.0, 0.0),
         target_spread: tuple[float, float] = (0.0, 0.0),
-    ) -> list[Tuple[float, float]]:
+    ) -> list[tuple[float, float]]:
         """Get orthogonally-routed polyline points (reserved for auto-layout use).
 
         This routing helper is intentionally NOT called by to_svg(); it is kept
@@ -1380,22 +1380,22 @@ class SVGExportService:
     @staticmethod
     def _exit_x_edge(
         wx: float, wy: float, x1: float, y1: float, x2: float, y2: float
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Exit at left or right edge; y clamped to element height."""
         return (x1 if wx < x1 else x2), max(y1, min(y2, wy))
 
     @staticmethod
     def _exit_y_edge(
         wx: float, wy: float, x1: float, y1: float, x2: float, y2: float
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Exit at top or bottom edge; x clamped to element width."""
         return max(x1, min(x2, wx)), (y1 if wy < y1 else y2)
 
     @staticmethod
     def _orthogonal_clip(
-        bounds: Tuple[float, float, float, float],
-        waypoint: Tuple[float, float],
-    ) -> Tuple[float, float]:
+        bounds: tuple[float, float, float, float],
+        waypoint: tuple[float, float],
+    ) -> tuple[float, float]:
         """Compute the element boundary exit point for an orthogonal (axis-aligned) connection.
 
         Archi stores bendpoints as corners of L-shaped segments.  The connection
