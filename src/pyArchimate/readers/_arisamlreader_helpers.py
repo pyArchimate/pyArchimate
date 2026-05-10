@@ -2,7 +2,7 @@
 import ctypes
 import platform
 import sys
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 try:
     from ..constants import ARIS_TYPE_MAP as ARIS_type_map  # noqa: N811  # alias matches public API export name
@@ -66,7 +66,7 @@ def get_text_size(text: str, points: int, font: str) -> tuple[float, float]:
                 fnt = ImageFont.truetype(path, points)
                 bbox = fnt.getbbox(text)
                 return bbox[2] - bbox[0], bbox[3] - bbox[1]
-            except (IOError, OSError):
+            except OSError:
                 continue
         # Fallback: approximate with a character-count heuristic
         return len(text) * points * 0.6, float(points)
@@ -78,9 +78,9 @@ def id_of(_id: str) -> str:
     return 'id-' + _id
 
 
-def _parse_aris_attrs(elem: Any) -> tuple[Optional[str], Optional[str], dict[str, str]]:
-    name: Optional[str] = None
-    desc: Optional[str] = None
+def _parse_aris_attrs(elem: Any) -> tuple[str | None, str | None, dict[str, str]]:
+    name: str | None = None
+    desc: str | None = None
     props: dict[str, str] = {}
     for attr in elem.findall('AttrDef'):
         key = attr.attrib[_ATTRDEF_TYPE]
@@ -168,7 +168,7 @@ def parse_relationships(groups: Any, root: Any, model: Model) -> None:
         parse_relationships(g, root, model)
 
 
-def parse_nodes(grp: Any, view: Optional[View], model: Model,
+def parse_nodes(grp: Any, view: View | None, model: Model,
                 scale_x: float, scale_y: float) -> None:
     if grp is None or view is None:
         return
@@ -225,7 +225,7 @@ def _handle_regular_conn(conn: Any, o_id: str, view: View, model: Model,
                                   int(pos.get(_POS_Y)) * scale_y))
 
 
-def parse_connections(grp: Any, view: Optional[View], model: Model,
+def parse_connections(grp: Any, view: View | None, model: Model,
                       scale_x: float, scale_y: float) -> None:
     if grp is None or view is None:
         return
@@ -240,7 +240,7 @@ def parse_connections(grp: Any, view: Optional[View], model: Model,
                 _handle_regular_conn(conn, o_id, view, model, scale_x, scale_y)
 
 
-def parse_containers(grp: Any, view: Optional[View], scale_x: float, scale_y: float) -> None:
+def parse_containers(grp: Any, view: View | None, scale_x: float, scale_y: float) -> None:
     if grp is None or view is None:
         return
     if not isinstance(view, View):
@@ -277,7 +277,7 @@ def parse_labels(root: Any, model: Model) -> None:
             model.labels_dict[o_id] = o_name
 
 
-def parse_labels_in_view(grp: Any, view: Optional[View], model: Model,
+def parse_labels_in_view(grp: Any, view: View | None, model: Model,
                          scale_x: float, scale_y: float) -> None:
     if grp is None or view is None:
         return

@@ -10,7 +10,7 @@ And generates symbol definitions with proper paths and colors.
 import ssl
 from urllib.parse import quote
 from urllib.request import urlopen
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET
 
 # Mapping of repository file names to element type names
 SYMBOL_MAPPING = {
@@ -127,7 +127,7 @@ ARCHIMATE_COLORS = {
 }
 
 
-def fetch_symbol(filename: str) -> dict:
+def fetch_symbol(filename: str) -> dict | None:
     """Fetch a symbol SVG from the repository.
 
     Args:
@@ -141,10 +141,7 @@ def fetch_symbol(filename: str) -> dict:
     url = f"https://raw.githubusercontent.com/marcelomg/archimate-symbols/master/{encoded_filename}"
 
     try:
-        # Handle SSL certificate verification
         ssl_context = ssl.create_default_context()
-        ssl_context.check_hostname = False
-        ssl_context.verify_mode = ssl.CERT_NONE
 
         with urlopen(url, context=ssl_context, timeout=5) as response:
             svg_content = response.read().decode('utf-8')
@@ -153,7 +150,7 @@ def fetch_symbol(filename: str) -> dict:
         root = ET.fromstring(svg_content)
 
         # Extract viewBox
-        viewBox = root.get('viewBox', '0 0 100 100')
+        view_box = root.get('viewBox', '0 0 100 100')
 
         # Extract fill color from first rectangle or ellipse
         color = "#FFD700"  # Default
@@ -179,15 +176,15 @@ def fetch_symbol(filename: str) -> dict:
             paths.append(f"M {x} {y} L {float(x) + float(width)} {y} L {float(x) + float(width)} {float(y) + float(height)} L {x} {float(y) + float(height)} Z")
 
         # Combine all paths
-        combined_path = " ".join(paths) if paths else f"M 0 0 L 100 0 L 100 100 L 0 100 Z"
+        combined_path = " ".join(paths) if paths else "M 0 0 L 100 0 L 100 100 L 0 100 Z"
 
         # Calculate bounding box (simplified: use viewBox bounds)
-        vb_parts = viewBox.split()
+        vb_parts = view_box.split()
         bbox = (float(vb_parts[0]), float(vb_parts[1]), float(vb_parts[2]), float(vb_parts[3]))
 
         return {
             "svg_path": combined_path,
-            "viewBox": viewBox,
+            "viewBox": view_box,
             "bounding_box": bbox,
             "color": color,
         }
@@ -247,14 +244,14 @@ ARCHIMATE_SYMBOLS = {
     for element_type in sorted(symbols.keys()):
         symbol = symbols[element_type]
         svg_path = symbol["svg_path"].replace('"', '\\"')
-        viewBox = symbol["viewBox"]
+        view_box = symbol["viewBox"]
         bbox = symbol["bounding_box"]
         color = symbol["color"]
 
         code += f'''    "{element_type}": SymbolDefinition(
         element_type="{element_type}",
         svg_path="{svg_path}",
-        viewBox="{viewBox}",
+        viewBox="{view_box}",
         bounding_box={bbox},
         default_color="{color}"
     ),

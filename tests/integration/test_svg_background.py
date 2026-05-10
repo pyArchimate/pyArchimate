@@ -1,7 +1,8 @@
 """Integration tests for SVG white background feature."""
 
 from pathlib import Path
-from xml.etree import ElementTree as ET
+
+from defusedxml import ElementTree as ET
 
 from src.pyArchimate.model import Model
 from src.pyArchimate.view import View

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict
+from typing import Any
 
 
 class ArchiMateLayer(Enum):
@@ -15,7 +15,7 @@ class ArchiMateLayer(Enum):
     OTHER = "other"
 
     @classmethod
-    def from_archimate_type(cls, element_type: str) -> "ArchiMateLayer":
+    def from_archimate_type(cls, element_type: str) -> ArchiMateLayer:
         """Determine ArchiMate layer from element type."""
         element_type_lower = element_type.lower()
 
@@ -57,7 +57,7 @@ class LayerConstraint:
 
     def __init__(self) -> None:
         """Initialize layer constraint system."""
-        self.element_layers: Dict[int, ArchiMateLayer] = {}
+        self.element_layers: dict[int, ArchiMateLayer] = {}
 
     def assign_layer(self, element_id: int, layer: ArchiMateLayer) -> None:
         """Assign an element to a layer."""
@@ -71,8 +71,8 @@ class LayerConstraint:
         self,
         pos1: tuple[float, float],
         pos2: tuple[float, float],
-        layer1: "ArchiMateLayer",
-        layer2: "ArchiMateLayer",
+        layer1: ArchiMateLayer,
+        layer2: ArchiMateLayer,
         vertical: bool,
     ) -> bool:
         if layer1.layer_order() >= layer2.layer_order():
@@ -82,7 +82,7 @@ class LayerConstraint:
         return pos1[0] <= pos2[0]
 
     def validate_layer_order(
-        self, positions: Dict[int, tuple[float, float]], vertical: bool = True
+        self, positions: dict[int, tuple[float, float]], vertical: bool = True
     ) -> bool:
         """Validate that element positions respect layer ordering.
 
@@ -104,8 +104,8 @@ class LayerConstraint:
         return True
 
     def enforce_layer_separation(
-        self, positions: Dict[int, Any], spacing: float = 100
-    ) -> Dict[int, Any]:
+        self, positions: dict[int, Any], spacing: float = 100
+    ) -> dict[int, Any]:
         """Enforce minimum separation between layers.
 
         Args:
@@ -116,7 +116,7 @@ class LayerConstraint:
             Updated positions dict with layer constraints enforced
         """
         # Group elements by layer
-        layers: Dict[ArchiMateLayer, list[int]] = {}
+        layers: dict[ArchiMateLayer, list[int]] = {}
         for elem_id, layer in self.element_layers.items():
             if layer not in layers:
                 layers[layer] = []
@@ -169,7 +169,7 @@ class LayerConstraint:
             excluded_ids = set()
 
         # Group elements by layer (excluding specified IDs)
-        layers: Dict[ArchiMateLayer, list[int]] = {}
+        layers: dict[ArchiMateLayer, list[int]] = {}
         for elem_id, layer in self.element_layers.items():
             if elem_id not in excluded_ids:
                 if layer not in layers:

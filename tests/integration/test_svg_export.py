@@ -2,9 +2,9 @@
 
 import tempfile
 from pathlib import Path
-from xml.etree import ElementTree as ET
 
 import pytest
+from defusedxml import ElementTree as ET
 
 from src.pyArchimate import ArchiType
 from src.pyArchimate.model import Model
@@ -81,7 +81,7 @@ def test_svg_export_to_file():
                 assert Path(temp_path).exists()
 
                 # Verify file contents
-                with open(temp_path, 'r') as f:
+                with open(temp_path) as f:
                     content = f.read()
                     assert '<svg' in content
                     assert '</svg>' in content
