@@ -43,6 +43,7 @@ testing = [  # runtime tooling required to exercise the test suite
     "jaraco.functools>=4.4.0,<5.0.0",
     "pytest-httpx>=0.24.0,<1.0.0",
     "httpx>=0.27.0,<0.32.0",
+    "defusedxml>=0.7.1,<1.0.0",
 ]
 
 lint = [
@@ -120,7 +121,7 @@ select = [
     "E", "F", "W", "B", "C", "I", "S110", "A", "N",
     # TODO(009-quality-uplift): Enable UP rule set — 124 violations exceed the 20-violation cap;
     # most are auto-fixable (ruff --fix) but UP042/UP032 need semantic review
-    # "UP",
+    "UP",
     # TODO(009-quality-uplift): Enable PT rule set — 163 violations exceed cap;
     # primarily PT009 (unittest assertions) in legacy tests
     # "PT",
@@ -128,6 +129,8 @@ select = [
 ignore = [
     "E501",  # line too long — handled by formatter
     "N999",  # pyArchimate is intentional CamelCase module name
+    "UP042",  # StrEnum requires Python 3.11+; project supports 3.10+
+    "UP032"  # need semantic review
 ]
 exclude = [
     "**/node_modules",
@@ -145,7 +148,7 @@ exclude = [
 check-typed-exception = true
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "N999"]  # S101: assertions OK in tests; N999: test files mirror camelCase reader/writer names
+"tests/**" = ["S101", "N999", "N817"]  # S101: assertions OK in tests; N999: test files mirror camelCase reader/writer names; N817: ET is the canonical ElementTree alias
 
 [tool.ruff.format]
 quote-style = "double"

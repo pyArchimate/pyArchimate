@@ -2,7 +2,7 @@
 
 import math
 import random
-from typing import Any, Dict, List
+from typing import Any
 
 from ..core import LayoutAlgorithm, LayoutConfig, LayoutResult
 from ..routing.layer_constraints import ArchiMateLayer, LayerConstraint
@@ -126,7 +126,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
                 error_message=error_msg,
             )
 
-    def _initialize_positions(self, nodes: list[Any], _config: LayoutConfig) -> Dict[int, Point]:
+    def _initialize_positions(self, nodes: list[Any], _config: LayoutConfig) -> dict[int, Point]:
         """Initialize node positions randomly or in a grid pattern.
 
         Args:
@@ -136,7 +136,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
         Returns:
             Dict mapping node index to initial position
         """
-        positions: Dict[int, Point] = {}
+        positions: dict[int, Point] = {}
         canvas_width = max(100, len(nodes) * 10)
         canvas_height = canvas_width
 
@@ -153,7 +153,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
 
     def _run_simulation(
         self,
-        positions: Dict[int, Point],
+        positions: dict[int, Point],
         filtered_edges: list[Any],
         layer_constraint: LayerConstraint,
         excluded_ids: set[int],
@@ -188,7 +188,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
         return converged, iterations_completed
 
     def _apply_positions(
-        self, nodes: list[Any], positions: Dict[int, Point], excluded_ids: set[int]
+        self, nodes: list[Any], positions: dict[int, Point], excluded_ids: set[int]
     ) -> None:
         for i, node in enumerate(nodes):
             if i not in excluded_ids and i in positions:
@@ -197,7 +197,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
 
     def _scan_all_pairs(
         self,
-        positions: Dict[int, Point],
+        positions: dict[int, Point],
         node_ids: list[int],
         node_dims: dict[int, tuple[int, int]],
         excluded_ids: set[int],
@@ -214,8 +214,8 @@ class ForceDirectedLayout(LayoutAlgorithm):
         return any_adjusted
 
     def _resolve_overlaps(
-        self, positions: Dict[int, Point], nodes: List[Any], excluded_ids: set[int] | None = None
-    ) -> Dict[int, Point]:
+        self, positions: dict[int, Point], nodes: list[Any], excluded_ids: set[int] | None = None
+    ) -> dict[int, Point]:
         """Resolve remaining overlaps by pushing overlapping nodes apart.
 
         Args:
@@ -247,7 +247,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
 
     def _adjust_pair_positions(
         self,
-        positions: Dict[int, Point],
+        positions: dict[int, Point],
         ni: int,
         nj: int,
         node_dims: dict[int, tuple[int, int]],
@@ -291,7 +291,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
             return 150
 
     def _compute_repulsive_forces(
-        self, forces: Dict[int, Point], positions: Dict[int, Point], node_ids: list[int]
+        self, forces: dict[int, Point], positions: dict[int, Point], node_ids: list[int]
     ) -> None:
         for i in range(len(node_ids)):
             for j in range(i + 1, len(node_ids)):
@@ -314,7 +314,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
                 forces[node_j].y -= magnitude * dy
 
     def _compute_attractive_forces(
-        self, forces: Dict[int, Point], positions: Dict[int, Point], edges: list[Any]
+        self, forces: dict[int, Point], positions: dict[int, Point], edges: list[Any]
     ) -> None:
         for edge in edges:
             if isinstance(edge, (tuple, list)) and len(edge) >= 2:
@@ -338,8 +338,8 @@ class ForceDirectedLayout(LayoutAlgorithm):
 
     def _compute_layer_forces(
         self,
-        forces: Dict[int, Point],
-        positions: Dict[int, Point],
+        forces: dict[int, Point],
+        positions: dict[int, Point],
         node_ids: list[int],
         layer_constraint: LayerConstraint,
     ) -> None:
@@ -358,10 +358,10 @@ class ForceDirectedLayout(LayoutAlgorithm):
 
     def _calculate_forces(
         self,
-        positions: Dict[int, Point],
+        positions: dict[int, Point],
         edges: list[Any],
         layer_constraint: LayerConstraint,
-    ) -> Dict[int, Point]:
+    ) -> dict[int, Point]:
         """Calculate forces on each node.
 
         Args:
@@ -372,7 +372,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
         Returns:
             Dict mapping node index to force vector
         """
-        forces: Dict[int, Point] = {i: Point(0, 0) for i in positions.keys()}
+        forces: dict[int, Point] = {i: Point(0, 0) for i in positions.keys()}
         node_ids = list(positions.keys())
         self._compute_repulsive_forces(forces, positions, node_ids)
         self._compute_attractive_forces(forces, positions, edges)

@@ -94,12 +94,19 @@ def default_color(elem_type: str, theme: "str | dict[str, str] | None" = DEFAULT
 # ---------------------------------------------------------------------------
 
 class Point:
-    """A simple (x, y) coordinate pair where both values are non-negative integers."""
+    """A simple (x, y) coordinate pair stored as floats for lossless round-trips.
+
+    Archi's native format encodes bendpoints as integer offsets from element
+    centres; those centres can be half-integers (e.g. element height 55 →
+    cy = y + 27.5).  Storing the resolved absolute coordinate as a float
+    preserves the value so that ``round(bp.x - cx)`` reproduces the original
+    integer offset exactly during export.
+    """
 
     def __init__(self, x: float = 0, y: float = 0, start_x: int | None = None, start_y: int | None = None,
                  end_x: int | None = None, end_y: int | None = None):
-        self._x = max(0, int(x))
-        self._y = max(0, int(y))
+        self._x = max(0.0, float(x))
+        self._y = max(0.0, float(y))
         self.idx: int = 0
         self.start_x = start_x
         self.start_y = start_y
@@ -127,11 +134,11 @@ class Position:
     """Positional relationship between two nodes (distance, angle, orientation)."""
 
     def __init__(self):
-        self.dx: Optional[float] = None
-        self.dy: Optional[float] = None
+        self.dx: float | None = None
+        self.dy: float | None = None
         self.gap_x: float = 0
         self.gap_y: float = 0
-        self.angle: Optional[float] = None
+        self.angle: float | None = None
         self.orientation: str = ""
 
     @property
@@ -162,7 +169,7 @@ class Profile:
         self.name = name
         self._uuid = set_id(uuid)
         self.concept = concept
-        self.model: "Model" = cast("Model", model)
+        self.model: Model = cast("Model", model)
 
     def delete(self):
         """Remove this profile and clear all references to it from elements and relationships."""
@@ -197,7 +204,7 @@ class Node:
     """
 
     @staticmethod
-    def _resolve_ref(ref: object) -> "Optional[str]":
+    def _resolve_ref(ref: object) -> "str | None":
         if ref is None:
             return None
         if isinstance(ref, str):
@@ -208,7 +215,7 @@ class Node:
             return str(ref.uuid)  # pyright: ignore[reportAttributeAccessIssue]
         raise ValueError("'ref' is not an instance of 'Element' class.")
 
-    def _validate_ref(self, node_type: str, ref: "Optional[str]") -> None:
+    def _validate_ref(self, node_type: str, ref: "str | None") -> None:
         if node_type == 'Element' and ref is not None and ref not in self.model.elems_dict:
             from ..logger import log
             log.debug(f'Element reference "{ref}" not found in model (may be from deleted element or external reference)')
@@ -222,9 +229,9 @@ class Node:
         if parent is None or not (hasattr(parent, 'view') and hasattr(parent, 'model')):
             raise ValueError('Node class parent should be a class View or Node instance!')
 
-        self.parent: "View | Node" = parent
-        self._view: "View" = cast("View", parent.view)
-        self._model: "Model" = cast("Model", parent.model)
+        self.parent: View | Node = parent
+        self._view: View = cast("View", parent.view)
+        self._model: Model = cast("Model", parent.model)
 
         self._ref = self._resolve_ref(ref)
         self._validate_ref(node_type, self._ref)
@@ -240,23 +247,23 @@ class Node:
         self.flags = 0
         self.cat = node_type
         self.label = label
-        self.nodes_dict: dict[str, "Node"] = {}
-        self._fill_color: Optional[str] = None
-        self.line_color: Optional[str] = None
+        self.nodes_dict: dict[str, Node] = {}
+        self._fill_color: str | None = None
+        self.line_color: str | None = None
         self.opacity: int | float = 100
         self.lc_opacity: int | float = 100
-        self.font_color: Optional[str] = None
+        self.font_color: str | None = None
         self.font_name = 'Segoe UI'
         self.font_size: int | float = 9
-        self.text_alignment: Optional[str] = None
+        self.text_alignment: str | None = None
         self.text_position = None
-        self.label_expression: Optional[str] = None
-        self.border_type: Optional[str] = None
+        self.label_expression: str | None = None
+        self.border_type: str | None = None
         self.icon_color = None
         self.gradient = None
-        self.image_path: Optional[str] = None
-        self.image_position: Optional[int] = None
-        self.image_type: Optional[int] = None
+        self.image_path: str | None = None
+        self.image_position: int | None = None
+        self.image_type: int | None = None
         self.image_source: bool = False
 
     # --- lifecycle ---
@@ -303,23 +310,23 @@ class Node:
     # --- concept proxy ---
 
     @property
-    def name(self) -> Optional[str]:
+    def name(self) -> str | None:
         if self.cat == 'Element' and self.concept:
             return self.concept.name
         return None
 
     @property
-    def desc(self) -> Optional[str]:
+    def desc(self) -> str | None:
         return self.concept.desc if self.concept else None
 
     @property
-    def type(self) -> Optional[str]:
+    def type(self) -> str | None:
         if self.cat == 'Element' and self.concept:
             return self.concept.type
         return None
 
     @property
-    def concept(self) -> Optional[Element]:
+    def concept(self) -> Element | None:
         try:
             return cast(Element, self.model.elems_dict[self._ref])
         except KeyError:
@@ -328,7 +335,7 @@ class Node:
             return None
 
     @property
-    def ref(self) -> Optional[str]:
+    def ref(self) -> str | None:
         return self._ref
 
     @ref.setter
@@ -467,7 +474,7 @@ class Node:
     def nodes(self) -> list["Node"]:
         return list(self.nodes_dict.values())
 
-    def getnodes(self, elem_type: Optional[str] = None) -> list["Node"]:
+    def getnodes(self, elem_type: str | None = None) -> list["Node"]:
         if elem_type is None:
             return list(self.nodes_dict.values())
         return [x for x in self.nodes_dict.values() if x.type == elem_type]
@@ -493,7 +500,7 @@ class Node:
             return self.add(ref=_e, x=x, y=y, w=w, h=h, nested_rel_type=nested_rel_type)
         return None
 
-    def is_inside(self, x: float = 0, y: float = 0, point: Optional[Point] = None) -> bool:
+    def is_inside(self, x: float = 0, y: float = 0, point: Point | None = None) -> bool:
         """Return True if the (x,y) point lies within this node's bounding box."""
         if point is not None:
             x = float(point.x)
@@ -767,10 +774,10 @@ class Connection:
             raise ArchimateConceptTypeError(
                 'Connection class parent should be a class View instance!'
             )
-        self.parent: 'View' = parent
+        self.parent: View = parent
         self.view = self.parent
         self._uuid = set_id(uuid)
-        self.model: "Model" = self.parent.parent
+        self.model: Model = self.parent.parent
 
         self._ref = self._resolve_conn_ref(ref)
         if self._ref not in self.model.rels_dict:
@@ -827,11 +834,11 @@ class Connection:
         return cast(str, self.model.rels_dict[self._ref].type)
 
     @property
-    def name(self) -> Optional[str]:
-        return cast(Optional[str], self.model.rels_dict[self._ref].name)
+    def name(self) -> str | None:
+        return cast(str | None, self.model.rels_dict[self._ref].name)
 
     @property
-    def source(self) -> Optional[Node]:
+    def source(self) -> Node | None:
         if self._source in self.model.nodes_dict:
             return cast(Node, self.model.nodes_dict[self._source])
         elif self._source in self.model.conns_dict:
@@ -850,7 +857,7 @@ class Connection:
             self._source = new_ref
 
     @property
-    def target(self) -> Optional[Node]:
+    def target(self) -> Node | None:
         if self._target in self.model.nodes_dict:
             return cast(Node, self.model.nodes_dict[self._target])
         elif self._target in self.model.conns_dict:
@@ -888,7 +895,7 @@ class Connection:
         if index < len(self.bendpoints):
             self.bendpoints[index] = bp
 
-    def get_bendpoint(self, index: int) -> Optional[Point]:
+    def get_bendpoint(self, index: int) -> Point | None:
         return self.bendpoints[index] if index < len(self.bendpoints) else None
 
     def del_bendpoint(self, index: int) -> None:
@@ -959,8 +966,8 @@ class View:
             raise ArchimateConceptTypeError(
                 'View class parent should be a class Model instance!'
             )
-        self.parent: "Model" = cast("Model", parent)
-        self.model: "Model" = cast("Model", parent)
+        self.parent: Model = cast("Model", parent)
+        self.model: Model = cast("Model", parent)
         self._uuid = set_id(uuid)
         self.name = name
         self.desc = desc
@@ -969,7 +976,7 @@ class View:
         self.conns_dict: dict[str, Connection] = defaultdict(Connection)
         self._properties: dict[str, object] = {}
         self.folder = folder
-        self._primary_viewpoint: Optional[str] = None
+        self._primary_viewpoint: str | None = None
 
     @property
     def view(self) -> "View":
@@ -987,8 +994,8 @@ class View:
             del self.parent.views_dict[_id]
 
     def add(self, ref: object = None, x: int = 0, y: int = 0, w: int = 120, h: int = 55,
-            uuid: Optional[str] = None, node_type: str = 'Element',
-            label: Optional[str] = None) -> Node:
+            uuid: str | None = None, node_type: str = 'Element',
+            label: str | None = None) -> Node:
         """Add and return a Node in this view."""
         n = Node(ref, x, y, w, h, uuid, node_type, label, self)
         self.nodes_dict[n.uuid] = n
@@ -996,7 +1003,7 @@ class View:
         return n
 
     def add_connection(self, ref: object = None, source: object = None,
-                       target: object = None, uuid: Optional[str] = None) -> Connection:
+                       target: object = None, uuid: str | None = None) -> Connection:
         """Add and return a Connection between two Nodes."""
         c = Connection(ref, source, target, uuid, self)
         self.conns_dict[c.uuid] = c
@@ -1037,7 +1044,7 @@ class View:
         self.folder = None
 
     @property
-    def primary_viewpoint(self) -> Optional[str]:
+    def primary_viewpoint(self) -> str | None:
         """Return the primary viewpoint slug for this view.
 
         :return: canonical viewpoint slug or None
@@ -1060,9 +1067,9 @@ class View:
         if self.model is not None:
             self.model._viewpoint_views[self._uuid] = viewpoint_id
 
-    def get_or_create_node(self, elem: object = None, elem_type: Optional[str] = None,
+    def get_or_create_node(self, elem: object = None, elem_type: str | None = None,
                            x: int = 0, y: int = 0, w: int = 120, h: int = 55,
-                           create_elem: bool = False, create_node: bool = False) -> Optional[Node]:
+                           create_elem: bool = False, create_node: bool = False) -> Node | None:
         """Return an existing node for the element, or create one if requested."""
         _e = None
         if not isinstance(elem, Element):
@@ -1083,7 +1090,7 @@ class View:
         return None
 
     def _find_or_create_rel(self, source: "Node", target: "Node",
-                             rel_type: Optional[str], name: Optional[str]) -> "Optional[Any]":
+                             rel_type: str | None, name: str | None) -> "Any | None":
         if source.concept is None or target.concept is None:
             return None
         src_uuid = source.concept.uuid
@@ -1113,7 +1120,7 @@ class View:
 
     def get_or_create_connection(self, rel: object = None, source: Optional["Node"] = None,
                                  target: Optional["Node"] = None,
-                                 rel_type: Optional[str] = None, name: Optional[str] = None,
+                                 rel_type: str | None = None, name: str | None = None,
                                  create_conn: bool = False) -> Optional["Connection"]:
         """Return an existing connection or create one if requested."""
         if rel is None:
@@ -1134,7 +1141,7 @@ class View:
             return self.add_connection(r, source, target)
         return None
 
-    def to_svg(self, filepath: Optional[str] = None) -> str:
+    def to_svg(self, filepath: str | None = None) -> str:
         """Export view to SVG string and optionally write to file.
 
         Args:

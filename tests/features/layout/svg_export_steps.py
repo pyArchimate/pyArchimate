@@ -2,9 +2,9 @@
 
 import tempfile
 from pathlib import Path
-from xml.etree import ElementTree as ET
 
 from behave import given, then, when
+from defusedxml import ElementTree as ET
 
 from src.pyArchimate.model import Model
 from src.pyArchimate.view import View
@@ -348,7 +348,7 @@ def step_svg_written_to_file(context):
 @then('the file contains valid SVG XML with <?xml declaration')
 def step_file_has_xml_declaration(context):
     """Verify file has XML declaration."""
-    with open(context.temp_file, 'r') as f:
+    with open(context.temp_file) as f:
         content = f.read()
         assert '<?xml' in content
 

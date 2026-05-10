@@ -4,7 +4,6 @@ This module provides the ArchiMate 3.x specification color palette, mapping each
 type to its standard color code. Supports per-element color overrides via element properties.
 """
 
-from typing import Optional
 
 # ArchiMate 3.x Standard Color Palette (Archi tool layer-based colors)
 _BUSINESS     = "#fffbdb"
@@ -117,7 +116,7 @@ class ColorPalette:
         self.colors = ARCHIMATE_PALETTE.copy()
         self._overrides: dict[str, str] = {}  # element_id → color_code
 
-    def get_color(self, element_type: str, element_id: Optional[str] = None) -> str:
+    def get_color(self, element_type: str, element_id: str | None = None) -> str:
         """Get color for element type with optional per-element override.
 
         Args:
@@ -190,7 +189,7 @@ class ColorPalette:
 default_palette = ColorPalette()
 
 
-def get_element_color(element_type: str, element_id: Optional[str] = None) -> str:
+def get_element_color(element_type: str, element_id: str | None = None) -> str:
     """Convenience function to get element color from default palette.
 
     Args:

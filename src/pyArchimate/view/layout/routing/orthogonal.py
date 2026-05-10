@@ -1,6 +1,5 @@
 """Orthogonal connection routing for layout operations."""
 
-from typing import Dict, List, Tuple
 
 from ..utils.geometry import Point, Rectangle
 from ..utils.graph import detect_crossings
@@ -9,9 +8,9 @@ from ..utils.graph import detect_crossings
 def generate_polyline(
     p_start: Point,
     p_end: Point,
-    _obstacles: List[Rectangle] | None = None,
+    _obstacles: list[Rectangle] | None = None,
     routing_style: str = "orthogonal",
-) -> List[Point]:
+) -> list[Point]:
     """Generate a polyline (path) between two points.
 
     Args:
@@ -59,8 +58,8 @@ def generate_polyline(
 
 
 def detect_line_crossings(
-    line1: Tuple[Point, Point],
-    line2: Tuple[Point, Point],
+    line1: tuple[Point, Point],
+    line2: tuple[Point, Point],
 ) -> bool:
     """Detect if two line segments cross.
 
@@ -80,7 +79,7 @@ def detect_line_crossings(
     )
 
 
-def count_edge_crossings(edges: List[Tuple[Point, Point]]) -> int:
+def count_edge_crossings(edges: list[tuple[Point, Point]]) -> int:
     """Count total number of edge crossings.
 
     Args:
@@ -104,10 +103,10 @@ def _connection_ratio(index: int, count: int) -> float:
 
 
 def spread_connection_endpoints(
-    node_positions: Dict[int, Tuple[float, float]],
-    node_sizes: Dict[int, Tuple[float, float]],
-    connections: List[Tuple[int, int]],
-) -> Dict[Tuple[int, int], Tuple[Point, Point]]:
+    node_positions: dict[int, tuple[float, float]],
+    node_sizes: dict[int, tuple[float, float]],
+    connections: list[tuple[int, int]],
+) -> dict[tuple[int, int], tuple[Point, Point]]:
     """Distribute connection endpoints equally around node edges.
 
     Args:
@@ -118,11 +117,11 @@ def spread_connection_endpoints(
     Returns:
         Dict mapping (source_id, target_id) to (start_point, end_point)
     """
-    endpoints: Dict[Tuple[int, int], Tuple[Point, Point]] = {}
+    endpoints: dict[tuple[int, int], tuple[Point, Point]] = {}
 
     # Group connections by source and target
-    outgoing_per_node: Dict[int, List[int]] = {}
-    incoming_per_node: Dict[int, List[int]] = {}
+    outgoing_per_node: dict[int, list[int]] = {}
+    incoming_per_node: dict[int, list[int]] = {}
 
     for source, target in connections:
         if source not in outgoing_per_node:
@@ -182,10 +181,10 @@ def spread_connection_endpoints(
 
 
 def apply_barycentric_crossing_reduction(
-    node_positions: Dict[int, Tuple[float, float]],
-    connections: List[Tuple[int, int]],
+    node_positions: dict[int, tuple[float, float]],
+    connections: list[tuple[int, int]],
     iterations: int = 5,
-) -> Dict[int, Tuple[float, float]]:
+) -> dict[int, tuple[float, float]]:
     """Apply barycentric method to reduce crossing count.
 
     Args:
@@ -201,7 +200,7 @@ def apply_barycentric_crossing_reduction(
     # Simple barycentric: move nodes toward center of connected nodes
     for _ in range(iterations):
         # Group connections by node
-        neighbors: Dict[int, List[int]] = {}
+        neighbors: dict[int, list[int]] = {}
         for source, target in connections:
             if source not in neighbors:
                 neighbors[source] = []

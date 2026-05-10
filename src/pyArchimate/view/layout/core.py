@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
@@ -92,7 +92,7 @@ class LayoutResult:
     connections_processed: int
     layout_time_ms: float
     quality_metrics: dict[str, Any] = field(default_factory=dict)
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class LayoutAlgorithm(ABC):

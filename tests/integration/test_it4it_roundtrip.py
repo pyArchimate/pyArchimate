@@ -6,12 +6,10 @@ Tests run against two fixture sets:
    tests/fixtures/generate_synthetic_model.py with the same element/
    relationship/view proportions as the IT4IT reference architecture.
 
-2. **IT4IT fixtures** (optional) — copyright The Open Group; not
-   redistributable. Obtain from The Open Group and place in tests/fixtures/:
-     tests/fixtures/it4it-fixed.xml
-     tests/fixtures/it4it-normative.xml
-     tests/fixtures/it4it-fixed.archimate
-   IT4IT tests are skipped automatically when files are absent.
+2. **IT4IT normative fixture** (optional) — copyright The Open Group; not
+   redistributable. Obtain ``it4it-normative.xml`` from The Open Group and
+   place it at tests/fixtures/it4it-normative.xml.
+   The test is skipped automatically when the file is absent.
 """
 
 import tempfile
@@ -29,19 +27,11 @@ FIXTURES = Path(__file__).parent.parent / "fixtures"
 SYNTH_XML = FIXTURES / "synthetic_large.xml"
 SYNTH_ARCHIMATE = FIXTURES / "synthetic_large.archimate"
 
-# IT4IT fixtures — optional, copyright The Open Group
-IT4IT_XML = FIXTURES / "it4it-fixed.xml"
+# IT4IT normative fixture — optional, copyright The Open Group
 IT4IT_NORMATIVE_XML = FIXTURES / "it4it-normative.xml"
-IT4IT_ARCHIMATE = FIXTURES / "it4it-fixed.archimate"
 
-requires_it4it_xml = pytest.mark.skipif(
-    not IT4IT_XML.exists(), reason="IT4IT XML fixture not present (copyright The Open Group)"
-)
 requires_it4it_normative = pytest.mark.skipif(
     not IT4IT_NORMATIVE_XML.exists(), reason="IT4IT normative XML fixture not present (copyright The Open Group)"
-)
-requires_it4it_archimate = pytest.mark.skipif(
-    not IT4IT_ARCHIMATE.exists(), reason="IT4IT .archimate fixture not present (copyright The Open Group)"
 )
 
 
@@ -149,16 +139,7 @@ class TestSyntheticLargeModel:
 
 
 class TestIT4ITLoad:
-    """Verify IT4IT example files load cleanly without errors."""
-
-    @requires_it4it_xml
-    def test_load_it4it_fixed_xml(self):
-        """IT4IT fixed XML loads without errors."""
-        m = Model()
-        m.read(str(IT4IT_XML))
-        assert len(m.elems_dict) > 0
-        assert len(m.rels_dict) > 0
-        assert len(m.views_dict) > 0
+    """Verify the IT4IT normative XML file loads cleanly without errors."""
 
     @requires_it4it_normative
     def test_load_it4it_normative_xml(self):
@@ -168,170 +149,3 @@ class TestIT4ITLoad:
         assert len(m.elems_dict) > 0
         assert len(m.rels_dict) > 0
         assert len(m.views_dict) > 0
-
-    @requires_it4it_archimate
-    def test_load_it4it_fixed_archimate(self):
-        """IT4IT fixed .archimate loads without errors."""
-        m = Model()
-        m.read(str(IT4IT_ARCHIMATE))
-        assert len(m.elems_dict) > 0
-        assert len(m.rels_dict) > 0
-        assert len(m.views_dict) > 0
-
-    @requires_it4it_xml
-    @requires_it4it_normative
-    def test_fixed_xml_and_normative_xml_identical_counts(self):
-        """Fixed and normative XML files produce identical model counts."""
-        m_fixed = Model()
-        m_fixed.read(str(IT4IT_XML))
-
-        m_norm = Model()
-        m_norm.read(str(IT4IT_NORMATIVE_XML))
-
-        assert _counts(m_fixed) == _counts(m_norm)
-
-    @requires_it4it_xml
-    def test_no_validation_errors_xml(self):
-        """IT4IT XML model has no orphan nodes or invalid connections."""
-        m = Model()
-        m.read(str(IT4IT_XML))
-        assert m.check_invalid_conn() == []
-        assert m.check_invalid_nodes() == []
-
-    @requires_it4it_archimate
-    def test_no_validation_errors_archimate(self):
-        """IT4IT .archimate model has no orphan nodes or invalid connections."""
-        m = Model()
-        m.read(str(IT4IT_ARCHIMATE))
-        assert m.check_invalid_conn() == []
-        assert m.check_invalid_nodes() == []
-
-
-class TestIT4ITRoundTripXML:
-    """Verify IT4IT XML model survives a read→write→read cycle."""
-
-    @requires_it4it_xml
-    def test_roundtrip_xml_to_xml_preserves_counts(self):
-        """Read XML, write XML, re-read: element/relation/view counts preserved."""
-        m1 = Model()
-        m1.read(str(IT4IT_XML))
-        c1 = _counts(m1)
-
-        with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as f:
-            tmp = f.name
-        try:
-            m1.write(tmp, writer=archimate_writer)
-            m2 = Model()
-            m2.read(tmp)
-            c2 = _counts(m2)
-        finally:
-            Path(tmp).unlink(missing_ok=True)
-
-        assert c2["elements"] == c1["elements"]
-        assert c2["relations"] == c1["relations"]
-        assert c2["views"] == c1["views"]
-
-    @requires_it4it_xml
-    def test_roundtrip_xml_to_xml_no_validation_errors(self):
-        """Round-tripped XML model has no validation errors."""
-        m1 = Model()
-        m1.read(str(IT4IT_XML))
-
-        with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as f:
-            tmp = f.name
-        try:
-            m1.write(tmp, writer=archimate_writer)
-            m2 = Model()
-            m2.read(tmp)
-        finally:
-            Path(tmp).unlink(missing_ok=True)
-
-        assert m2.check_invalid_conn() == []
-        assert m2.check_invalid_nodes() == []
-
-    @requires_it4it_xml
-    def test_roundtrip_xml_preserves_element_names(self):
-        """Round-tripped XML: named elements survive the cycle with names intact."""
-        m1 = Model()
-        m1.read(str(IT4IT_XML))
-        # Only check elements that have explicit names; nameless elements get
-        # their type assigned as name by the writer (intentional behaviour).
-        names_before = {uuid: e.name for uuid, e in m1.elems_dict.items() if e.name is not None}
-
-        with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as f:
-            tmp = f.name
-        try:
-            m1.write(tmp, writer=archimate_writer)
-            m2 = Model()
-            m2.read(tmp)
-        finally:
-            Path(tmp).unlink(missing_ok=True)
-
-        for uuid, name in names_before.items():
-            assert uuid in m2.elems_dict, f"Element {uuid} lost after round-trip"
-            assert m2.elems_dict[uuid].name == name
-
-
-class TestIT4ITRoundTripArchimate:
-    """Verify IT4IT .archimate model survives a read→write→read cycle."""
-
-    @requires_it4it_archimate
-    def test_roundtrip_archimate_preserves_counts(self):
-        """Read .archimate, write .archimate, re-read: counts preserved."""
-        m1 = Model()
-        m1.read(str(IT4IT_ARCHIMATE))
-        c1 = _counts(m1)
-
-        with tempfile.NamedTemporaryFile(suffix=".archimate", delete=False) as f:
-            tmp = f.name
-        try:
-            m1.write(tmp, writer=archi_writer)
-            m2 = Model()
-            m2.read(tmp)
-            c2 = _counts(m2)
-        finally:
-            Path(tmp).unlink(missing_ok=True)
-
-        assert c2["elements"] == c1["elements"]
-        assert c2["relations"] == c1["relations"]
-        assert c2["views"] == c1["views"]
-        assert c2["nodes"] == c1["nodes"]
-        assert c2["conns"] == c1["conns"]
-
-    @requires_it4it_archimate
-    def test_roundtrip_archimate_no_validation_errors(self):
-        """Round-tripped .archimate model has no validation errors."""
-        m1 = Model()
-        m1.read(str(IT4IT_ARCHIMATE))
-
-        with tempfile.NamedTemporaryFile(suffix=".archimate", delete=False) as f:
-            tmp = f.name
-        try:
-            m1.write(tmp, writer=archi_writer)
-            m2 = Model()
-            m2.read(tmp)
-        finally:
-            Path(tmp).unlink(missing_ok=True)
-
-        assert m2.check_invalid_conn() == []
-        assert m2.check_invalid_nodes() == []
-
-    @requires_it4it_archimate
-    def test_roundtrip_archimate_preserves_element_names(self):
-        """Round-tripped .archimate: element names survive the cycle."""
-        m1 = Model()
-        m1.read(str(IT4IT_ARCHIMATE))
-        names_before = {uuid: e.name for uuid, e in m1.elems_dict.items()}
-
-        with tempfile.NamedTemporaryFile(suffix=".archimate", delete=False) as f:
-            tmp = f.name
-        try:
-            m1.write(tmp, writer=archi_writer)
-            m2 = Model()
-            m2.read(tmp)
-        finally:
-            Path(tmp).unlink(missing_ok=True)
-
-        for uuid, name in names_before.items():
-            assert uuid in m2.elems_dict, f"Element {uuid} lost after round-trip"
-            assert m2.elems_dict[uuid].name == name

@@ -205,10 +205,10 @@ def _write_connection(child: _Element, conn: object, xsi: et.QName) -> None:  # 
         c.set('textPosition', text_position)
     for bp in getattr(conn, 'bendpoints', []):
         et.SubElement(c, 'bendpoint',
-                      startX=str(int(bp.x - conn_source.cx)),
-                      startY=str(int(bp.y - conn_source.cy)),
-                      endX=str(int(bp.x - conn_target.cx)),
-                      endY=str(int(bp.y - conn_target.cy)))
+                      startX=str(round(bp.x - conn_source.cx)),
+                      startY=str(round(bp.y - conn_source.cy)),
+                      endX=str(round(bp.x - conn_target.cx)),
+                      endY=str(round(bp.y - conn_target.cy)))
 
 
 def _set_node_visual_attrs(child: _Element, node: object) -> None:
@@ -393,7 +393,7 @@ def archi_writer(model: Model, file_path: str) -> str:
                 # Write plain XML for .xml format
                 with open(file_path, 'wb') as fd:
                     fd.write(xml_str)
-        except IOError:
+        except OSError:
             log.error(f'{__mod__}.write: Cannot write to file "{file_path}')
 
     return xml_str.decode()

@@ -144,7 +144,7 @@ class TestXMLFormatSelection:
             m.write(temp_path)
 
             # Verify file was created and contains OpenGroup format markers
-            with open(temp_path, 'r') as f:
+            with open(temp_path) as f:
                 content = f.read()
                 # OpenGroup format uses archimate3.xsd schema location
                 assert 'archimate3.xsd' in content or '<model' in content or 'xmlns=' in content

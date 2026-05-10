@@ -5,7 +5,7 @@ import os
 import sys
 import zipfile
 from collections import defaultdict, deque
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import lxml.etree as et
 
@@ -31,7 +31,7 @@ __mod__ = __name__.split('.')[-1]
 ARCHIMATE_EXCEPTION_GROUP = (ArchimateConceptTypeError,)
 
 
-def _matches_rel(r: Any, rel_type: Optional[str], elem_uuid: str, wants_in: bool, wants_out: bool) -> bool:
+def _matches_rel(r: Any, rel_type: str | None, elem_uuid: str, wants_in: bool, wants_out: bool) -> bool:
     if wants_in and r.target.uuid == elem_uuid:
         return rel_type is None or r.type == rel_type
     if wants_out and r.source.uuid == elem_uuid:
@@ -264,7 +264,7 @@ class Model:
         self.theme = 'archi'
         self._viewpoint_elements: dict[str, set[str]] = {}  # slug → set of element UUIDs
         self._viewpoint_views: dict[str, str] = {}          # view UUID → primary viewpoint slug
-        self._element_hierarchy: dict[str, Optional[str]] = {}  # child_uuid → parent_uuid
+        self._element_hierarchy: dict[str, str | None] = {}  # child_uuid → parent_uuid
         self._element_children: dict[str, set[str]] = {}        # parent_uuid → child_uuids
         self._images_dict: dict[str, bytes] = {}  # filename → image bytes (for .archimate ZIP support)
         self._image_files: list[str] = []  # list of image filenames from archive
@@ -296,8 +296,8 @@ class Model:
             self.elems_dict[_e.uuid] = _e
             return _e
 
-    def add_relationship(self, rel_type: str = '', source: Any = None, target: Any = None, uuid: Optional[str] = None, name: Optional[str] = None, access_type: Optional[str] = None,  # noqa: E501
-                         influence_strength: Optional[str] = None, desc: Optional[str] = None, is_directed: Optional[bool] = None, profile: Optional[str] = None) -> "Relationship":
+    def add_relationship(self, rel_type: str = '', source: Any = None, target: Any = None, uuid: str | None = None, name: str | None = None, access_type: str | None = None,  # noqa: E501
+                         influence_strength: str | None = None, desc: str | None = None, is_directed: bool | None = None, profile: str | None = None) -> "Relationship":
         """
         Method to add a new Relationship between two Element objects
 
@@ -523,7 +523,7 @@ class Model:
             with open(file_path, 'rb') as f:
                 magic = f.read(2)
                 return magic == b'PK'
-        except (IOError, OSError):
+        except OSError:
             return False
 
     @staticmethod
@@ -612,12 +612,12 @@ class Model:
                     log.error(f"{__mod__} {self.__class__.__name__}.{operation}: Invalid .archimate file - model.xml not found in archive: '{file_path}'")
                     sys.exit(1)
             # Load plain XML files (.xml format)
-            with open(file_path, 'r', encoding='utf-8') as fd:
+            with open(file_path, encoding='utf-8') as fd:
                 return fd.read()
         except UnicodeDecodeError:
             log.error(f"{__mod__} {self.__class__.__name__}.{operation}: File encoding error - unable to decode as UTF-8: '{file_path}'")
             sys.exit(1)
-        except IOError:
+        except OSError:
             log.error(f"{__mod__} {self.__class__.__name__}.{operation}: Cannot open or read file '{file_path}'")
             sys.exit(1)
 
@@ -769,7 +769,7 @@ class Model:
         """
         return [x for x in self.views_dict.values() if x.name == name]
 
-    def get_or_create_element(self, elem_type: str, elem: str, create_elem: bool = False) -> Optional[Any]:
+    def get_or_create_element(self, elem_type: str, elem: str, create_elem: bool = False) -> Any | None:
         """
         Method to get an Element by name or create one if not existing
 
@@ -792,9 +792,9 @@ class Model:
         else:
             return None
 
-    def get_or_create_relationship(self, rel_type: str, name: Optional[str], source: Any, target: Any, create_rel: bool = False,  # noqa: E501
-                                   access_type: Optional[str] = None,
-                                   influence_strength: Optional[str] = None, desc: Optional[str] = None, is_directed: Optional[bool] = None) -> Optional[Any]:
+    def get_or_create_relationship(self, rel_type: str, name: str | None, source: Any, target: Any, create_rel: bool = False,  # noqa: E501
+                                   access_type: str | None = None,
+                                   influence_strength: str | None = None, desc: str | None = None, is_directed: bool | None = None) -> Any | None:
         """
         Method to get a Relationship by source/target/type and/or by name or create one if not found
 
@@ -1041,7 +1041,7 @@ class Model:
         :return: True if cycle would be created, False otherwise
         """
         visited: set[str] = set()
-        current: Optional[str] = parent_uuid
+        current: str | None = parent_uuid
         while current is not None:
             if current == child_uuid:
                 return True
@@ -1106,7 +1106,7 @@ class Model:
             self._element_children.pop(parent_uuid, None)
         self.elems_dict[child_uuid]._parent_uuid = None
 
-    def get_parent(self, elem_uuid: str) -> Optional[Element]:
+    def get_parent(self, elem_uuid: str) -> Element | None:
         """Get the parent element of a given element.
 
         :param elem_uuid: Element UUID
@@ -1132,7 +1132,7 @@ class Model:
         """
         result: list[Element] = []
         visited: set[str] = set()
-        current: Optional[str] = self._element_hierarchy.get(elem_uuid)
+        current: str | None = self._element_hierarchy.get(elem_uuid)
         while current is not None:
             if current in visited:
                 break
