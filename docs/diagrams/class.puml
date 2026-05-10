@@ -262,4 +262,20 @@ Relationship "0..*" o-- "0..*" Profile : specialized by
 
 Connection "0..*" -- "*" Point : defines path
 
+class SVGExportService {
+  + to_svg(view, filepath) : str
+  --
+  # _sort_nodes_by_hierarchy(view) : list
+  # _build_complete_nodes_dict(view) : dict
+  # _is_containment_relationship(conn, nodes) : bool
+  # _render_node_into(parent, node) : Element
+  # _render_relationship(svg, conn, nodes, svc)
+  # _get_clipped_polyline_points(...) : list
+  # _get_node_bounds(node) : tuple
+  # _word_wrap_text(text, max_width) : list[str]
+  # _distributed_spread(idx, count, span) : float
+}
+
+View --> SVGExportService : delegates to_svg()
+
 @enduml

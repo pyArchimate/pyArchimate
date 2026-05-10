@@ -231,8 +231,13 @@ Visual representation of a relationship between nodes.
 ### SVG Export
 
 - `view.to_svg(filepath=None)` — render a view to a self-contained SVG string; optionally write to file
-- Renders element symbols, colours, connection arrowheads, and nested containers
-- Applies ArchiMate colour palette by element layer
+- Renders full ArchiMate-compliant element symbols with layer-specific icons (Business, Application, Technology, Motivation, Strategy, Physical, Implementation layers)
+- Applies ArchiMate colour palette by element layer; respects per-node `fill_color` overrides
+- Relationship-specific line styles and arrowhead markers: filled/hollow triangles, diamonds (Composition/Aggregation), open arrows (Access), dashed lines (Influence, Realization)
+- Preserves stored bendpoints from the model; connection endpoints clipped orthogonally at element boundaries
+- Renders relationship type labels on connections; Influence relationships include strength annotation
+- Supports special element types: Or/And Junctions (circle), Grouping (dashed L-border with tab label), Group (solid grey)
+- Containment relationships (Composition/Aggregation where target is a visual child) suppressed as redundant with container boundaries
 - No external tools required; suitable for CI pipelines and automated reporting
 
 ---
@@ -505,7 +510,7 @@ Known deviations from the ArchiMate 3.x standard and Archi tool compatibility ga
 | Folder taxonomy rebuilt on export | Open | Exact folder structure not round-tripped |
 | Only four node kinds recognised; unknown kinds dropped | Open | Non-standard nodes silently lost on import |
 
-### Resolved (since v1.2.1)
+### Resolved (since v1.3.0)
 
 | Gap | Fixed in | Details |
 |-----|----------|---------|
@@ -513,3 +518,5 @@ Known deviations from the ArchiMate 3.x standard and Archi tool compatibility ga
 | Reader reads `modifier`; writer emits `influenceStrength` | v1.3.0 | Reader normalises both field names; round-trip fidelity restored |
 | Relationship docs parsed with `e.text` instead of `doc.text` | v1.3.0 | `_archireader_helpers.py` now extracts documentation correctly |
 | `bool("false")` always `True` for `nameVisible` | v1.3.1 | Replaced with `parse_bool()` (W3C xsd:boolean semantics) |
+| Bendpoint coordinates written as floats in OpenGroup XML | v1.4.x | Archi requires integer coordinates; bendpoints now round-tripped as integers in exchange format |
+| Connection endpoints not clipped at element boundary in SVG | v1.8.0 | Orthogonal clip applied at source/target boundary; bendpoints preserved exactly from model |

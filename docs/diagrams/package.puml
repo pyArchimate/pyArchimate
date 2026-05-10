@@ -26,11 +26,20 @@ package "pyArchimate" {
         class "hierarchical.py"
       }
       package "export" {
-        class "svg_export.py"
+        class "svg_export.py" as SvgExport {
+          class SVGExportService
+        }
         package "symbols" {
-          class "archimate_symbols.py"
-          class "archimate_relationships.py"
-          class "color_palette.py"
+          class "archimate_symbols.py" as ArchSymbols {
+            NamedTuple SymbolDefinition
+          }
+          class "archimate_relationships.py" as ArchRels {
+            NamedTuple RelationshipStyle
+            class RelationshipStyleService
+          }
+          class "color_palette.py" as ColorPal {
+            class ColorPalette
+          }
         }
       }
       package "format" {
