@@ -3,7 +3,7 @@
 Implements the Sugiyama layered layout method with ArchiMate layer constraints.
 """
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from ..core import LayoutAlgorithm, LayoutConfig, LayoutResult
 from ..routing.layer_constraints import ArchiMateLayer, LayerConstraint
@@ -97,7 +97,7 @@ class HierarchicalLayout(LayoutAlgorithm):
                 error_message=str(e),
             )
 
-    def _build_graph(self, nodes: List[Any], edges: List[Any]) -> Dict[int, List[int]]:
+    def _build_graph(self, nodes: list[Any], edges: list[Any]) -> dict[int, list[int]]:
         """Build adjacency list representation of the graph.
 
         Args:
@@ -117,7 +117,7 @@ class HierarchicalLayout(LayoutAlgorithm):
         return graph
 
     def _has_unassigned_predecessor(
-        self, node_id: int, assigned: set[int], graph: Dict[int, List[int]]
+        self, node_id: int, assigned: set[int], graph: dict[int, list[int]]
     ) -> bool:
         for source in graph:
             if node_id in graph[source] and source not in assigned:
@@ -126,12 +126,12 @@ class HierarchicalLayout(LayoutAlgorithm):
 
     def _collect_layer_candidates(
         self,
-        nodes: List[Any],
+        nodes: list[Any],
         assigned: set[int],
-        graph: Dict[int, List[int]],
+        graph: dict[int, list[int]],
         current_layer: int,
         layer_constraint: "LayerConstraint",
-    ) -> List[int]:
+    ) -> list[int]:
         candidates = []
         for node_id in range(len(nodes)):
             if node_id in assigned:
@@ -141,7 +141,7 @@ class HierarchicalLayout(LayoutAlgorithm):
                     candidates.append(node_id)
         return candidates
 
-    def _build_layer_constraint(self, nodes: List[Any]) -> "LayerConstraint":
+    def _build_layer_constraint(self, nodes: list[Any]) -> "LayerConstraint":
         layer_constraint = LayerConstraint()
         for i, node in enumerate(nodes):
             element_type = getattr(node, "type", "unknown")
@@ -149,7 +149,7 @@ class HierarchicalLayout(LayoutAlgorithm):
             layer_constraint.assign_layer(i, archimate_layer)
         return layer_constraint
 
-    def _force_one_assignment(self, nodes: List[Any], assigned: set[int]) -> List[int]:
+    def _force_one_assignment(self, nodes: list[Any], assigned: set[int]) -> list[int]:
         for node_id in range(len(nodes)):
             if node_id not in assigned:
                 return [node_id]
@@ -157,10 +157,10 @@ class HierarchicalLayout(LayoutAlgorithm):
 
     def _assign_layers(
         self,
-        nodes: List[Any],
-        graph: Dict[int, List[int]],
+        nodes: list[Any],
+        graph: dict[int, list[int]],
         _config: LayoutConfig,
-    ) -> List[List[int]]:
+    ) -> list[list[int]]:
         """Assign nodes to layers using topological sort respecting ArchiMate layers.
 
         Args:
@@ -173,7 +173,7 @@ class HierarchicalLayout(LayoutAlgorithm):
         """
         layer_constraint = self._build_layer_constraint(nodes)
 
-        layers: List[List[int]] = []
+        layers: list[list[int]] = []
         assigned: set[int] = set()
         current_layer = 0
 
@@ -196,7 +196,7 @@ class HierarchicalLayout(LayoutAlgorithm):
         self,
         _node_id: int,
         _layer_index: int,
-        nodes: List[Any],
+        nodes: list[Any],
         _layer_constraint: LayerConstraint,
     ) -> bool:
         """Check if assigning node to layer respects ArchiMate layer ordering.
@@ -217,8 +217,8 @@ class HierarchicalLayout(LayoutAlgorithm):
         return True
 
     def _minimize_crossings(
-        self, layers: List[List[int]], graph: Dict[int, List[int]]
-    ) -> List[List[int]]:
+        self, layers: list[list[int]], graph: dict[int, list[int]]
+    ) -> list[list[int]]:
         """Minimize edge crossings using barycentric method.
 
         Args:
@@ -257,8 +257,8 @@ class HierarchicalLayout(LayoutAlgorithm):
         return reordered_layers
 
     def _assign_positions(
-        self, layers: List[List[int]], config: LayoutConfig, nodes: List[Any]
-    ) -> Dict[int, Point]:
+        self, layers: list[list[int]], config: LayoutConfig, nodes: list[Any]
+    ) -> dict[int, Point]:
         """Assign x,y coordinates to nodes based on layer structure.
 
         Args:
@@ -300,7 +300,7 @@ class HierarchicalLayout(LayoutAlgorithm):
         return positions
 
     def _count_crossings(
-        self, positions: Dict[int, Point], edges: List[Tuple[int, int]]
+        self, positions: dict[int, Point], edges: list[tuple[int, int]]
     ) -> int:
         """Count edge crossings in the layout.
 

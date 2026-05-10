@@ -7,7 +7,7 @@ including size standardization, font consistency, and grid alignment.
 import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Optional, Set, Tuple
+from typing import Any
 
 
 class ArchiMateElementCategory(Enum):
@@ -67,8 +67,8 @@ class ElementFormatRegistry:
 
     def __init__(self) -> None:
         """Initialize format registry with ArchiMate element standards."""
-        self._specs: Dict[str, ElementFormatSpec] = {}
-        self._type_to_category: Dict[str, ArchiMateElementCategory] = {}
+        self._specs: dict[str, ElementFormatSpec] = {}
+        self._type_to_category: dict[str, ArchiMateElementCategory] = {}
         self._initialize_standards()
 
     # Archi default element size — all element types use the same dimensions
@@ -196,11 +196,11 @@ class FormatService:
     def format_element(
         self,
         element: Any,
-        user_size_override: Optional[Tuple[float, float]] = None,
-        user_font_override: Optional[Dict[str, str]] = None,
+        user_size_override: tuple[float, float] | None = None,
+        user_font_override: dict[str, str] | None = None,
         alignment: str = "free",
         grid_size: float = 10.0,
-        size_constraints: Optional[Dict[str, float]] = None,
+        size_constraints: dict[str, float] | None = None,
     ) -> None:
         """Format an individual element.
 
@@ -241,7 +241,7 @@ class FormatService:
         if alignment == "grid":
             self._snap_to_grid(element, grid_size)
 
-    def _apply_size_constraint(self, size: float, constraints: Dict[str, float], dimension: str) -> float:
+    def _apply_size_constraint(self, size: float, constraints: dict[str, float], dimension: str) -> float:
         """Apply min/max constraints to a dimension.
 
         Args:
@@ -281,9 +281,9 @@ class FormatService:
         view: Any,
         alignment: str = "free",
         grid_size: float = 10.0,
-        excluded_element_ids: Optional[Set[str]] = None,
-        size_constraints: Optional[Dict[str, float]] = None,
-    ) -> Dict[str, Any]:
+        excluded_element_ids: set[str] | None = None,
+        size_constraints: dict[str, float] | None = None,
+    ) -> dict[str, Any]:
         """Format all elements in a view.
 
         Args:
@@ -330,7 +330,7 @@ class FormatService:
             "errors": errors,
         }
 
-    def calculate_size_variance(self, view: Any) -> Dict[str, float]:
+    def calculate_size_variance(self, view: Any) -> dict[str, float]:
         """Calculate size variance statistics for a view.
 
         Args:

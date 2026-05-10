@@ -1,6 +1,6 @@
 """Utilities for edge/connection handling in layout algorithms."""
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 
 def _normalize_tuple_edge(edge: Any) -> tuple[int | None, int | None]:
@@ -47,7 +47,7 @@ def _normalize_single_edge(
     return None, None
 
 
-def normalize_edges(edges: Any, nodes: List[Any]) -> List[Tuple[int, int]]:
+def normalize_edges(edges: Any, nodes: list[Any]) -> list[tuple[int, int]]:
     """Convert various edge formats to tuples of (source_index, target_index).
 
     Handles:
@@ -66,7 +66,7 @@ def normalize_edges(edges: Any, nodes: List[Any]) -> List[Tuple[int, int]]:
         return []
 
     # Build UUID to index mapping
-    node_uuid_to_index: Dict[str, int] = {}
+    node_uuid_to_index: dict[str, int] = {}
     for i, node in enumerate(nodes):
         node_uuid = getattr(node, 'uuid', None)
         if node_uuid:

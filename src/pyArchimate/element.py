@@ -1,7 +1,7 @@
 """Element module - extracted from the legacy monolith."""
 
 import re
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 from uuid import UUID, uuid4
 
 from .constants import ARCHI_CATEGORY, JUNCTION_TYPES, NAMED_COLORS
@@ -37,7 +37,7 @@ def _is_valid_uuid(uuid_to_test, version=4):
     return str(uuid_obj) == uuid_to_test
 
 
-def set_id(uuid: Optional[str] = None) -> str:
+def set_id(uuid: str | None = None) -> str:
     """
     Function to create an identifier if none exists
 
@@ -55,7 +55,7 @@ def set_id(uuid: Optional[str] = None) -> str:
     return _id
 
 
-def _normalize_color(color: Optional[str]) -> Optional[str]:
+def _normalize_color(color: str | None) -> str | None:
     """
     Normalize a color to lowercase hex format.
 
@@ -154,17 +154,17 @@ class Element:
 
         # Attribute and data structure initialization
         self._uuid: str = set_id(uuid)
-        self.parent: "Model" = cast("Model", parent)
-        self.model: "Model" = cast("Model", parent)
-        self.name: Optional[str] = name
-        self._type: Optional[str] = elem_type
-        self.desc: Optional[str] = desc
-        self.folder: Optional[str] = folder
+        self.parent: Model = cast("Model", parent)
+        self.model: Model = cast("Model", parent)
+        self.name: str | None = name
+        self._type: str | None = elem_type
+        self.desc: str | None = desc
+        self.folder: str | None = folder
         self._properties: dict[str, object] = {}
-        self._profile: Optional[str] = profile
-        self.junction_type: Optional[str] = None
+        self._profile: str | None = profile
+        self.junction_type: str | None = None
         self._viewpoints: list[str] = []  # list of canonical viewpoint slugs
-        self._parent_uuid: Optional[str] = None
+        self._parent_uuid: str | None = None
         self._visual_style: dict[str, Any] = {}
 
     def _delete_view_refs(self, _id: str) -> None:
@@ -226,7 +226,7 @@ class Element:
         return self._uuid
 
     @property
-    def type(self) -> Optional[str]:  # noqa: A003  # 'type' is the canonical ArchiMate attribute name; renaming would break public API
+    def type(self) -> str | None:  # noqa: A003  # 'type' is the canonical ArchiMate attribute name; renaming would break public API
         """
         Get the Archimate concept type of this element
 
@@ -489,7 +489,7 @@ class Element:
                 self.parent._viewpoint_elements.get(viewpoint_id, set()).discard(self._uuid)
 
     @property
-    def parent_uuid(self) -> Optional[str]:
+    def parent_uuid(self) -> str | None:
         """Get the parent element UUID (for hierarchical grouping).
 
         :return: Parent element UUID or None if this is a root element
@@ -497,7 +497,7 @@ class Element:
         """
         return self._parent_uuid
 
-    def set_fill_color(self, color: Optional[str]) -> None:
+    def set_fill_color(self, color: str | None) -> None:
         """Set the fill color of this element.
 
         :param color: Hex color (#RRGGBB), named color, or None to use default
@@ -509,7 +509,7 @@ class Element:
         else:
             self._visual_style['fillColor'] = _normalize_color(color)
 
-    def set_line_color(self, color: Optional[str]) -> None:
+    def set_line_color(self, color: str | None) -> None:
         """Set the line/border color of this element.
 
         :param color: Hex color (#RRGGBB), named color, or None to use default
@@ -521,7 +521,7 @@ class Element:
         else:
             self._visual_style['lineColor'] = _normalize_color(color)
 
-    def set_line_width(self, width: Optional[float]) -> None:
+    def set_line_width(self, width: float | None) -> None:
         """Set the line/border width of this element.
 
         :param width: Width in pixels (≥ 0), or None to use default
@@ -538,7 +538,7 @@ class Element:
                 raise ValueError(f"Line width must be non-negative number, got {width}")
             self._visual_style['lineWidth'] = float(width)
 
-    def set_transparency(self, alpha: Optional[float]) -> None:
+    def set_transparency(self, alpha: float | None) -> None:
         """Set the transparency/opacity of this element.
 
         :param alpha: Opacity 0.0 (transparent) to 1.0 (opaque), or None to use default
@@ -555,8 +555,8 @@ class Element:
                 raise ValueError(f"Transparency must be 0.0-1.0, got {alpha}")
             self._visual_style['transparency'] = float(alpha)
 
-    def set_visual_style(self, fill_color: Optional[str] = None, line_color: Optional[str] = None,
-                        line_width: Optional[float] = None, transparency: Optional[float] = None) -> None:
+    def set_visual_style(self, fill_color: str | None = None, line_color: str | None = None,
+                        line_width: float | None = None, transparency: float | None = None) -> None:
         """Set multiple visual style properties at once.
 
         :param fill_color: Fill color (hex or named)
@@ -574,7 +574,7 @@ class Element:
         if transparency is not None:
             self.set_transparency(transparency)
 
-    def get_fill_color(self) -> Optional[str]:
+    def get_fill_color(self) -> str | None:
         """Get the fill color of this element.
 
         :return: Hex color (#rrggbb) or None if not set (use default)
@@ -582,7 +582,7 @@ class Element:
         """
         return self._visual_style.get('fillColor')
 
-    def get_line_color(self) -> Optional[str]:
+    def get_line_color(self) -> str | None:
         """Get the line/border color of this element.
 
         :return: Hex color (#rrggbb) or None if not set (use default)
@@ -590,7 +590,7 @@ class Element:
         """
         return self._visual_style.get('lineColor')
 
-    def get_line_width(self) -> Optional[float]:
+    def get_line_width(self) -> float | None:
         """Get the line/border width of this element.
 
         :return: Width in pixels or None if not set (use default)
@@ -598,7 +598,7 @@ class Element:
         """
         return self._visual_style.get('lineWidth')
 
-    def get_transparency(self) -> Optional[float]:
+    def get_transparency(self) -> float | None:
         """Get the transparency/opacity of this element.
 
         :return: Opacity 0.0-1.0 or None if not set (use default)
@@ -621,7 +621,7 @@ class Element:
         """
         self._visual_style.clear()
 
-    def set_junction_type(self, junction_type: Optional[str]) -> None:
+    def set_junction_type(self, junction_type: str | None) -> None:
         """
         Set the junction type for a Junction element.
 
@@ -637,7 +637,7 @@ class Element:
             raise ValueError(f"Invalid junction type: {junction_type}. Must be one of {JUNCTION_TYPES}")
         self.junction_type = junction_type_lower
 
-    def get_junction_type(self) -> Optional[str]:
+    def get_junction_type(self) -> str | None:
         """
         Get the junction type for a Junction element.
 

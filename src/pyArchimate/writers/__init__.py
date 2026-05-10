@@ -3,7 +3,8 @@
 Writer registry helpers extracted from the legacy module.
 """
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from ..enums import Writers
 

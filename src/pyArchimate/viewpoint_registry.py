@@ -35,7 +35,7 @@ STANDARD_VIEWPOINTS: list[Viewpoint] = [
 _REGISTRY: dict[str, Viewpoint] = {vp.id: vp for vp in STANDARD_VIEWPOINTS}
 
 
-def get_viewpoint(slug: str) -> 'Viewpoint | None':
+def get_viewpoint(slug: str) -> Viewpoint | None:
     """Return the Viewpoint for a canonical slug, or None if not found."""
     return _REGISTRY.get(slug)
 
