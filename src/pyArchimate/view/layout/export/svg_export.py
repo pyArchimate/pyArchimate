@@ -505,23 +505,30 @@ class SVGExportService:
         # Check if this is a container (has child nodes)
         has_children = len(getattr(node, "nodes", [])) > 0
 
-        # ── Container nodes: dashed, transparent border ────────────
-        if has_children and element_type != "Group":
-            ET.SubElement(
-                g,
-                "rect",
-                {
-                    "x": str(int(x)),
-                    "y": str(int(y)),
-                    "width": str(int(w)),
-                    "height": str(int(h)),
-                    "fill": "none",
-                    "stroke": "black",
-                    "stroke-width": "1",
-                    "stroke-dasharray": "5,5",
-                },
+        # ── Grouping: dashed L-shaped border, label in top-left tab ──
+        if element_type == "Grouping":
+            name = getattr(node, "name", getattr(node, "label", ""))
+            # Tab width = 75% of element width (matches original SVG proportion)
+            tab_w = w * 0.75
+            # Tab height: just enough for the text lines, never scales with element height
+            line_h = 11  # noqa: N806
+            lines = self._word_wrap_text(name, tab_w - 10) if name else []
+            tab_h = max(15.0, len(lines) * line_h + 6)
+            tab_h = min(tab_h, h * 0.4)  # cap at 40% so shape stays readable
+            # Build L-shape path directly in canvas coordinates
+            tx, ty = x + tab_w, y + tab_h
+            body = (
+                f"M {tx:.1f} {ty:.1f} L {tx:.1f} {y:.1f} L {x:.1f} {y:.1f} "
+                f"L {x:.1f} {ty:.1f} L {x+w:.1f} {ty:.1f} L {x+w:.1f} {y+h:.1f} "
+                f"L {x:.1f} {y+h:.1f} L {x:.1f} {ty:.1f}"
             )
-            self._render_topleft_text(g, node, x, y, w)
+            ET.SubElement(
+                g, "path",
+                {"d": body, "fill": "none", "stroke": "black",
+                 "stroke-width": "1", "stroke-dasharray": "4,3"},
+            )
+            if name:
+                self._render_wrapped_text(g, name, x + 5, y + tab_h / 2, tab_w - 10, is_centered=False)
             return g
 
         # ── Group: solid grey, no icon, label top-left ───────────────
@@ -635,11 +642,15 @@ class SVGExportService:
                 {"d": scaled_body, "fill": "none", "stroke": "black", "stroke-width": "1"},
             )
 
-        # 3. Icon (top-right, fixed size, translated line-art)
-        if symbol_def.icon_path and symbol_def.icon_viewbox:
+        # 3. Icon (top-right corner, always fixed pixel size — never scaled with element)
+        # icon_ox/oy anchor the icon area; _translate_icon uses scale=1.0 so size is invariant.
+        # Only render when the element is large enough to accommodate the icon without overflow.
+        _ICON_W = 22  # reserved icon width in canvas pixels  # noqa: N806
+        _ICON_H = 20  # reserved icon height in canvas pixels  # noqa: N806
+        if symbol_def.icon_path and symbol_def.icon_viewbox and w >= _ICON_W + 8 and h >= _ICON_H + 8:
             ICON_MARGIN = 4  # noqa: C901, N806
-            icon_ox = x + w - 20 - ICON_MARGIN  # 4px from right edge, 20px wide
-            icon_oy = y + ICON_MARGIN  # 4px from top
+            icon_ox = x + w - _ICON_W - ICON_MARGIN  # right-aligned, fixed distance from edge
+            icon_oy = y + ICON_MARGIN  # fixed distance from top
             translated = self._translate_icon(symbol_def.icon_path, symbol_def.icon_viewbox, icon_ox, icon_oy)
             ET.SubElement(
                 g,

@@ -1,0 +1,37 @@
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" version="1.1" width="8.2965000000"
+     height="8.2965000000">
+    <title><![CDATA[Capability 2]]></title>
+    <g transform=" scale(1.000000) ">
+        <g xmlns="http://www.w3.org/2000/svg" id="Layer1007">
+            <path d="  M0.0000,5.5312 L2.7653,5.5312 L2.7653,2.7660 L5.5305,2.7660 L5.5305,0.0000 L8.2965,0.0000 L8.2965,8.2965 L0.0000,8.2965 L0.0000,5.5312 Z"
+                  style="stroke-width: 0.4253; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+            <path d="  M0.0000,5.5312 L2.7653,5.5312 L2.7653,2.7660 L5.5305,2.7660 L5.5305,0.0000 L8.2965,0.0000 L8.2965,8.2965 L0.0000,8.2965 L0.0000,5.5312 Z"
+                  style="stroke-width: 0.4253; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #f5deaa; fill-opacity: 1.0000; "/>
+        </g>
+        <g xmlns="http://www.w3.org/2000/svg" id="Layer1008">
+            <path d="  M2.7653,5.5312 L8.2965,5.5312 Z"
+                  style="stroke-width: 0.4253; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+            <path d="  M2.7653,5.5312 L8.2965,5.5312"
+                  style="stroke-width: 0.4253; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+        </g>
+        <g xmlns="http://www.w3.org/2000/svg" id="Layer1009">
+            <path d="  M5.5305,2.7660 L8.2965,2.7660 Z"
+                  style="stroke-width: 0.4253; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+            <path d="  M5.5305,2.7660 L8.2965,2.7660"
+                  style="stroke-width: 0.4253; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+        </g>
+        <g xmlns="http://www.w3.org/2000/svg" id="Layer1010">
+            <path d="  M2.7653,5.5312 L2.7653,8.2965 Z"
+                  style="stroke-width: 0.4253; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+            <path d="  M2.7653,5.5312 L2.7653,8.2965"
+                  style="stroke-width: 0.4253; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+        </g>
+        <g xmlns="http://www.w3.org/2000/svg" id="Layer1011">
+            <path d="  M5.5305,2.7660 L5.5305,8.2965 Z"
+                  style="stroke-width: 0.4253; stroke-linecap: butt; stroke-linejoin: miter; fill-rule: evenodd; fill: #000000; fill-opacity: 0.0000; "/>
+            <path d="  M5.5305,2.7660 L5.5305,8.2965"
+                  style="stroke-width: 0.4253; stroke: #000000; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; fill: none; fill-opacity: 0.0000; "/>
+        </g>
+        <!--converted by libvisio2svg-->
+    </g>
+</svg>
