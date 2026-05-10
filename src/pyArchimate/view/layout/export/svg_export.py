@@ -10,6 +10,7 @@ from typing import Any, Optional, Tuple
 from xml.etree import ElementTree as ET
 
 from .symbols.archimate_relationships import (
+    _ARROW_FILLED,
     RelationshipStyleService,
 )
 from .symbols.archimate_symbols import ARCHIMATE_SYMBOLS
@@ -283,7 +284,8 @@ class SVGExportService:
         )
 
         # Relationship markers
-        # Filled arrow (for serving, access, etc.)
+        # Filled arrow (for serving, access write, etc.)
+        # refX=0: tip (x=8) lands at the adjusted endpoint (element edge after offset).
         marker_filled = ET.SubElement(
             defs,
             "marker",
@@ -291,7 +293,7 @@ class SVGExportService:
                 "id": "arrow-filled",
                 "markerWidth": "8",
                 "markerHeight": "8",
-                "refX": "6",
+                "refX": "0",
                 "refY": "4",
                 "orient": "auto",
             },
@@ -306,6 +308,8 @@ class SVGExportService:
         )
 
         # Hollow arrow (for realization, etc.)
+        # refX=0 + white fill: base at adjusted endpoint, tip at element edge;
+        # white fill hides the line inside the arrowhead body.
         marker_hollow = ET.SubElement(
             defs,
             "marker",
@@ -313,7 +317,7 @@ class SVGExportService:
                 "id": "arrow-hollow",
                 "markerWidth": "8",
                 "markerHeight": "8",
-                "refX": "6",
+                "refX": "0",
                 "refY": "4",
                 "orient": "auto",
             },
@@ -323,13 +327,38 @@ class SVGExportService:
             "polygon",
             {
                 "points": "0 0, 8 4, 0 8",
-                "fill": "none",
+                "fill": "white",
                 "stroke": "black",
                 "stroke-width": "1",
             },
         )
 
+        # Reversed arrow for start-side markers (e.g. Access Read).
+        # Tip at x=0 → refX=0 keeps tip AT the element edge; body extends toward target.
+        marker_start_arrow = ET.SubElement(
+            defs,
+            "marker",
+            {
+                "id": "arrow-start",
+                "markerWidth": "8",
+                "markerHeight": "8",
+                "refX": "0",
+                "refY": "4",
+                "orient": "auto",
+            },
+        )
+        ET.SubElement(
+            marker_start_arrow,
+            "polygon",
+            {
+                "points": "8 0, 0 4, 8 8",
+                "fill": "black",
+            },
+        )
+
         # Diamond filled (for composition)
+        # refX=8: right tip (x=8) at the adjusted start point; left tip (x=0) at element edge.
+        # The polyline is offset forward by 8px so the line starts at the right tip.
         marker_diamond_filled = ET.SubElement(
             defs,
             "marker",
@@ -337,7 +366,7 @@ class SVGExportService:
                 "id": "diamond-filled",
                 "markerWidth": "8",
                 "markerHeight": "8",
-                "refX": "4",
+                "refX": "8",
                 "refY": "4",
                 "orient": "auto",
             },
@@ -352,6 +381,8 @@ class SVGExportService:
         )
 
         # Diamond hollow (for aggregation)
+        # refX=8 + white fill: right tip at adjusted start point, left tip at element edge;
+        # white fill hides any line segment inside the diamond.
         marker_diamond_hollow = ET.SubElement(
             defs,
             "marker",
@@ -359,7 +390,7 @@ class SVGExportService:
                 "id": "diamond-hollow",
                 "markerWidth": "8",
                 "markerHeight": "8",
-                "refX": "4",
+                "refX": "8",
                 "refY": "4",
                 "orient": "auto",
             },
@@ -369,7 +400,7 @@ class SVGExportService:
             "polygon",
             {
                 "points": "4 0, 8 4, 4 8, 0 4",
-                "fill": "none",
+                "fill": "white",
                 "stroke": "black",
                 "stroke-width": "1",
             },
@@ -476,6 +507,38 @@ class SVGExportService:
         """
         self._render_node_into(svg, node)
 
+    def _render_junction(self, g: ET.Element, x: float, y: float, w: float, h: float, element_type: str, node: Any) -> None:
+        """Render Or/And junction as a circle (Or=white, And=black)."""
+        is_or = element_type == "OrJunction"
+        if not is_or and element_type == "Junction":
+            ref_id = getattr(node, "_ref", None)
+            model = getattr(node, "_model", None)
+            if ref_id and model and hasattr(model, "elements"):
+                elem = next((e for e in model.elements if getattr(e, "uuid", "") == ref_id), None)
+                is_or = getattr(elem, "junction_type", None) == "or" if elem else False
+        cx, cy, r = x + w / 2, y + h / 2, min(w, h) / 2
+        ET.SubElement(g, "circle", {
+            "cx": f"{cx:.1f}", "cy": f"{cy:.1f}", "r": f"{r:.1f}",
+            "fill": "white" if is_or else "black", "stroke": "black", "stroke-width": "1",
+        })
+
+    def _render_grouping(self, g: ET.Element, x: float, y: float, w: float, h: float, node: Any) -> None:
+        """Render Grouping as dashed L-shaped border with label in top-left tab."""
+        name = getattr(node, "name", getattr(node, "label", ""))
+        tab_w = w * 0.75
+        lines = self._word_wrap_text(name, tab_w - 10) if name else []
+        tab_h = min(max(15.0, len(lines) * 11 + 6), h * 0.4)
+        tx, ty = x + tab_w, y + tab_h
+        body = (
+            f"M {tx:.1f} {ty:.1f} L {tx:.1f} {y:.1f} L {x:.1f} {y:.1f} "
+            f"L {x:.1f} {ty:.1f} L {x+w:.1f} {ty:.1f} L {x+w:.1f} {y+h:.1f} "
+            f"L {x:.1f} {y+h:.1f} L {x:.1f} {ty:.1f}"
+        )
+        ET.SubElement(g, "path", {"d": body, "fill": "none", "stroke": "black",
+                                   "stroke-width": "1", "stroke-dasharray": "4,3"})
+        if name:
+            self._render_wrapped_text(g, name, x + 5, y + tab_h / 2, tab_w - 10, is_centered=False)
+
     def _render_node_into(self, parent: ET.Element, node: Any) -> ET.Element:
         """Render a single node as flat inline SVG with stacked layers.
 
@@ -505,30 +568,14 @@ class SVGExportService:
         # Check if this is a container (has child nodes)
         has_children = len(getattr(node, "nodes", [])) > 0
 
+        # ── Junction nodes: small circle (Or=white, And=black) ──────────
+        if element_type in ("OrJunction", "AndJunction", "Junction"):
+            self._render_junction(g, x, y, w, h, element_type, node)
+            return g
+
         # ── Grouping: dashed L-shaped border, label in top-left tab ──
         if element_type == "Grouping":
-            name = getattr(node, "name", getattr(node, "label", ""))
-            # Tab width = 75% of element width (matches original SVG proportion)
-            tab_w = w * 0.75
-            # Tab height: just enough for the text lines, never scales with element height
-            line_h = 11  # noqa: N806
-            lines = self._word_wrap_text(name, tab_w - 10) if name else []
-            tab_h = max(15.0, len(lines) * line_h + 6)
-            tab_h = min(tab_h, h * 0.4)  # cap at 40% so shape stays readable
-            # Build L-shape path directly in canvas coordinates
-            tx, ty = x + tab_w, y + tab_h
-            body = (
-                f"M {tx:.1f} {ty:.1f} L {tx:.1f} {y:.1f} L {x:.1f} {y:.1f} "
-                f"L {x:.1f} {ty:.1f} L {x+w:.1f} {ty:.1f} L {x+w:.1f} {y+h:.1f} "
-                f"L {x:.1f} {y+h:.1f} L {x:.1f} {ty:.1f}"
-            )
-            ET.SubElement(
-                g, "path",
-                {"d": body, "fill": "none", "stroke": "black",
-                 "stroke-width": "1", "stroke-dasharray": "4,3"},
-            )
-            if name:
-                self._render_wrapped_text(g, name, x + 5, y + tab_h / 2, tab_w - 10, is_centered=False)
+            self._render_grouping(g, x, y, w, h, node)
             return g
 
         # ── Group: solid grey, no icon, label top-left ───────────────
@@ -839,6 +886,71 @@ class SVGExportService:
             "stroke-linejoin": "miter",
         })
 
+    def _apply_access_markers(self, conn: Any, attrs: dict[str, str]) -> None:
+        """Set marker attrs for Access relationship based on access_type."""
+        at = getattr(conn, "access_type", None) or getattr(conn, "_access_type", None)
+        if at is not None and hasattr(at, "value"):
+            at = at.value
+        if at == "Read":
+            attrs["marker-start"] = "url(#arrow-start)"
+        elif at == "Write":
+            attrs["marker-end"] = _ARROW_FILLED
+        elif at == "ReadWrite":
+            attrs["marker-start"] = "url(#arrow-start)"
+            attrs["marker-end"] = _ARROW_FILLED
+        # undefined → no markers
+
+    def _apply_marker_attrs(self, rel_type: str, conn: Any, style: Any, attrs: dict[str, str]) -> None:
+        """Set marker-start / marker-end on polyline attrs based on relationship semantics."""
+        if rel_type in ("Access", "AccessRelationship"):
+            self._apply_access_markers(conn, attrs)
+        elif rel_type in ("Association", "AssociationRelationship"):
+            directed = getattr(conn, "is_directed", None) or getattr(conn, "_is_directed", None)
+            if str(directed).lower() == "true":
+                attrs["marker-end"] = _ARROW_FILLED
+        elif rel_type in ("CompositionRelationship", "Composition",
+                          "AggregationRelationship", "Aggregation"):
+            if style.marker_start:
+                attrs["marker-start"] = style.marker_start
+        else:
+            if style.marker_start:
+                attrs["marker-start"] = style.marker_start
+            if style.marker_end:
+                attrs["marker-end"] = style.marker_end
+
+    def _offset_points_for_markers(
+        self,
+        points: list[tuple[float, float]],
+        polyline_attrs: dict[str, str],
+    ) -> list[tuple[float, float]]:
+        """Offset polyline endpoints so markers sit fully outside the line.
+
+        diamond start (refX=8): push P0 forward by marker_offset so line
+        begins at diamond's far tip; element-side tip stays at element edge.
+        end arrow (refX=0): pull Pn backward so line stops at arrowhead base.
+        """
+        marker_offset = 8  # canvas px — markerWidth × strokeWidth(1)
+        pts = list(points)
+        if len(pts) < 2:
+            return pts
+        mstart = polyline_attrs.get("marker-start", "")
+        mend = polyline_attrs.get("marker-end", "")
+        if "diamond" in mstart:
+            p0, p1 = pts[0], pts[1]
+            dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+            d = math.hypot(dx, dy)
+            if d > marker_offset:
+                ux, uy = dx / d, dy / d
+                pts[0] = (p0[0] + ux * marker_offset, p0[1] + uy * marker_offset)
+        if mend:
+            pn1, pn = pts[-2], pts[-1]
+            dx, dy = pn[0] - pn1[0], pn[1] - pn1[1]
+            d = math.hypot(dx, dy)
+            if d > marker_offset:
+                ux, uy = dx / d, dy / d
+                pts[-1] = (pn[0] - ux * marker_offset, pn[1] - uy * marker_offset)
+        return pts
+
     def _render_marker_shape(
         self,
         svg: ET.Element,
@@ -944,10 +1056,9 @@ class SVGExportService:
         stroke_width = getattr(conn, "stroke_width", None) or relationship_style.stroke_width
         stroke_dasharray = getattr(conn, "stroke_style", None) or relationship_style.stroke_dasharray
 
-        # Render polyline with relationship style
-        points_str = " ".join(f"{int(p[0])},{int(p[1])}" for p in points)
-        polyline_attrs = {
-            "points": points_str,
+        # Build base polyline attrs (points filled in after marker adjustment below)
+        polyline_attrs: dict[str, str] = {
+            "points": "",          # placeholder; replaced after adjustment
             "fill": "none",
             "stroke": stroke_color,
             "stroke-width": str(stroke_width),
@@ -958,22 +1069,17 @@ class SVGExportService:
         if stroke_dasharray:
             polyline_attrs["stroke-dasharray"] = stroke_dasharray
 
-        # Add markers if specified
-        # Composition and Aggregation show start marker (diamond) only
-        if relationship_style.marker_start:
-            polyline_attrs["marker-start"] = relationship_style.marker_start
-        if relationship_style.marker_end and rel_type not in (
-            "CompositionRelationship",
-            "Composition",
-            "AggregationRelationship",
-            "Aggregation",
-        ):
-            polyline_attrs["marker-end"] = relationship_style.marker_end
-
+        self._apply_marker_attrs(rel_type, conn, relationship_style, polyline_attrs)
+        pts = self._offset_points_for_markers(points, polyline_attrs)
+        polyline_attrs["points"] = " ".join(f"{round(p[0])},{round(p[1])}" for p in pts)
         ET.SubElement(svg, "polyline", polyline_attrs)
 
-        # Render relationship label
+        # ── Influence: append strength to label ──────────────────────────
         label_text = self._get_short_type_name(rel_type)
+        if rel_type in ("Influence", "InfluenceRelationship"):
+            strength = getattr(conn, "influence_strength", None) or getattr(conn, "_influence_strength", None)
+            if strength:
+                label_text = f"{label_text} ({strength})"
         if label_text and len(points) >= 2:
             self._render_connection_label(svg, points, label_text)
 
