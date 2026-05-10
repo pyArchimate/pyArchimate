@@ -330,8 +330,7 @@ def _write_connections(view_elem: _Element, _v: object, xsi: et.QName) -> None:
         })
         _write_conn_style(c_elem, c)
         for bp in c.get_all_bendpoints():
-            # Compact float format: "517.5" when fractional, "517" when whole.
-            et.SubElement(c_elem, 'bendpoint', x=f'{bp.x:g}', y=f'{bp.y:g}')
+            et.SubElement(c_elem, 'bendpoint', x=str(int(round(bp.x))), y=str(int(round(bp.y))))
 
 
 def _write_views(root: _Element, model: Model, xsi: et.QName) -> None:
