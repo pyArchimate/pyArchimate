@@ -1157,8 +1157,12 @@ class SVGExportService:
         first_bp = (float(getattr(bendpoints[0], "x", 0)), float(getattr(bendpoints[0], "y", 0)))
         last_bp = (float(getattr(bendpoints[-1], "x", 0)), float(getattr(bendpoints[-1], "y", 0)))
 
-        start = self._clip_point_to_boundary(source_bounds, (sx, sy), first_bp)
-        end = self._clip_point_to_boundary(target_bounds, (tx, ty), last_bp)
+        # Use orthogonal clip: Archi stores bendpoints as corners of axis-aligned (L-shaped)
+        # segments.  When the first bendpoint exits the source on one axis only, the
+        # connection leaves the element perpendicularly — at the same coordinate on the
+        # other axis — not along the diagonal centre→bendpoint line.
+        start = self._orthogonal_clip(source_bounds, first_bp)
+        end = self._orthogonal_clip(target_bounds, last_bp)
         middle = [(float(getattr(bp, "x", 0)), float(getattr(bp, "y", 0))) for bp in bendpoints]
 
         return [start] + middle + [end]
@@ -1378,6 +1382,57 @@ class SVGExportService:
         if cross_lo <= cross <= cross_hi:
             return t, cross
         return None
+
+    @staticmethod
+    def _orthogonal_clip(
+        bounds: Tuple[float, float, float, float],
+        waypoint: Tuple[float, float],
+    ) -> Tuple[float, float]:
+        """Compute the element boundary exit point for an orthogonal (axis-aligned) connection.
+
+        Archi stores bendpoints as corners of L-shaped segments.  The connection
+        leaves the element perpendicularly on whichever axis the waypoint is outside:
+
+        - waypoint left/right of element (and within y-range) → exit at left/right edge,
+          y = waypoint.y clamped to element height.
+        - waypoint above/below element (and within x-range) → exit at top/bottom edge,
+          x = waypoint.x clamped to element width.
+        - waypoint in a corner (outside on both axes) → choose the axis with the
+          larger absolute overshoot.
+        - waypoint inside element → fall back to element center → waypoint clip.
+        """
+        x1, y1, x2, y2 = bounds
+        wx, wy = waypoint
+
+        outside_x = wx < x1 or wx > x2
+        outside_y = wy < y1 or wy > y2
+
+        if outside_x and not outside_y:
+            ex = x1 if wx < x1 else x2
+            ey = max(y1, min(y2, wy))
+            return ex, ey
+
+        if outside_y and not outside_x:
+            ex = max(x1, min(x2, wx))
+            ey = y1 if wy < y1 else y2
+            return ex, ey
+
+        if outside_x and outside_y:
+            # Corner: prefer the axis with larger overshoot
+            dx_out = min(abs(wx - x1), abs(wx - x2))
+            dy_out = min(abs(wy - y1), abs(wy - y2))
+            if dx_out >= dy_out:
+                ex = x1 if wx < x1 else x2
+                ey = max(y1, min(y2, wy))
+            else:
+                ex = max(x1, min(x2, wx))
+                ey = y1 if wy < y1 else y2
+            return ex, ey
+
+        # Waypoint inside element — clip center → waypoint line
+        cx = (x1 + x2) / 2.0
+        cy = (y1 + y2) / 2.0
+        return SVGExportService._clip_point_to_boundary(bounds, (cx, cy), waypoint)
 
     @staticmethod
     def _clip_point_to_boundary(
