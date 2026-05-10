@@ -1,3 +1,29 @@
+## v1.9.0 (2026-05-10)
+
+### Feat
+
+- **009**: enable ruff UP rule set and add type annotations to src/
+- enhance SVG export with ArchiMate-compliant symbols and icons
+- add specification documents for enhancing SVG view export
+
+### Fix
+
+- **docs**: update specifications for quality uplift feature with additional clarifications
+- **tests**: switch to defusedxml for safe XML parsing in tests and scripts
+- **scripts**: resolve SonarQube warnings in extract_archimate_symbols
+- **009**: apply PEP 585 type annotations, suppress Snyk S314, trim IT4IT fixtures
+- **009**: remove stale UP032 ignore, apply f-string fix, justify UP042
+- use orthogonal clip for connection endpoints when bendpoints exist
+- revert float bendpoint coords in OpenGroup XML — Archi requires integers
+- preserve connections and bendpoints exactly across all read/write/svg
+- correct relationship and junction rendering in SVG export
+
+### Refactor
+
+- reduce cognitive complexity of _render_relationship and _orthogonal_clip
+- update dependencies and improve XML formatting consistency in test fixtures
+- improve XML formatting consistency in test fixtures
+
 ## v1.8.0 (2026-05-09)
 
 ### Feat
