@@ -180,9 +180,6 @@ class SVGExportService:
         # Add white background rectangle
         self._add_background(svg, svg_width, svg_height)
 
-        # Compute temporary endpoint spreads so repeated connections do not stack
-        endpoint_spreads = self._compute_endpoint_spreads(view)
-
         # Build complete nodes dictionary including nested nodes (for connection rendering)
         complete_nodes_dict = self._build_complete_nodes_dict(view)
 
@@ -192,13 +189,12 @@ class SVGExportService:
         self._render_nodes_to_svg(svg, sorted_nodes)
 
         # Render connections/relationships last (so they appear on top of nodes)
-        # Try new rendering with relationship styles, fall back to basic rendering if needed
         relationship_service = RelationshipStyleService()
         for conn in view.conns:
-            # Skip containment relationships (they're already shown visually by container boundaries)
+            # Skip containment relationships (shown visually by container boundaries)
             if self._is_containment_relationship(conn, complete_nodes_dict):
                 continue
-            self._render_relationship(svg, conn, complete_nodes_dict, relationship_service, endpoint_spreads)
+            self._render_relationship(svg, conn, complete_nodes_dict, relationship_service)
 
         # Convert to string
         svg_string = ET.tostring(svg, encoding="unicode")
@@ -1007,7 +1003,6 @@ class SVGExportService:
         conn: Any,
         nodes_dict: dict[str, Any],
         relationship_service: RelationshipStyleService,
-        endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]],
     ) -> None:
         """Render a single relationship with ArchiMate styling.
 
@@ -1029,17 +1024,8 @@ class SVGExportService:
         if not source_node or not target_node:
             return
 
-        # Get bendpoints
         bendpoints = getattr(conn, "bendpoints", [])
-
-        # Build polyline points
-        points = self._get_clipped_polyline_points(
-            source_node,
-            target_node,
-            bendpoints,
-            endpoint_spreads.get((source_uuid, "src", id(conn)), (0.0, 0.0)),
-            endpoint_spreads.get((target_uuid, "tgt", id(conn)), (0.0, 0.0)),
-        )
+        points = self._get_clipped_polyline_points(source_node, target_node, bendpoints)
 
         if len(points) < 2:
             return
@@ -1048,7 +1034,7 @@ class SVGExportService:
         relationship_style = self._lookup_rel_style(rel_type, relationship_service)
 
         if not relationship_style:
-            self._render_connection(svg, conn, nodes_dict, endpoint_spreads)
+            self._render_connection(svg, conn, nodes_dict)
             return
 
         # Apply per-relationship overrides if available
@@ -1088,7 +1074,6 @@ class SVGExportService:
         svg: ET.Element,
         conn: Any,
         nodes_dict: dict[str, Any],
-        endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]],
     ) -> None:
         """Render a single connection as a polyline with optional label.
 
@@ -1109,17 +1094,8 @@ class SVGExportService:
         if not source_node or not target_node:
             return
 
-        # Get bendpoints
         bendpoints = getattr(conn, "bendpoints", [])
-
-        # Build polyline points
-        points = self._get_clipped_polyline_points(
-            source_node,
-            target_node,
-            bendpoints,
-            endpoint_spreads.get((source_uuid, "src", id(conn)), (0.0, 0.0)),
-            endpoint_spreads.get((target_uuid, "tgt", id(conn)), (0.0, 0.0)),
-        )
+        points = self._get_clipped_polyline_points(source_node, target_node, bendpoints)
 
         if len(points) < 2:
             return
@@ -1150,85 +1126,98 @@ class SVGExportService:
         source_node: Any,
         target_node: Any,
         bendpoints: list[Any],
-        source_spread: tuple[float, float] = (0.0, 0.0),
-        target_spread: tuple[float, float] = (0.0, 0.0),
     ) -> list[Tuple[float, float]]:
         """Get polyline points clipped at node boundary edges.
 
-        SVG export renders views as stored in the model without routing:
-        - If bendpoints exist: Use them with routing logic (for auto-layout results)
-        - If no bendpoints: Render simple direct path (model as-is)
+        No routing is performed. Bendpoints are used as-is from the model.
+        The source clip point is computed toward the first bendpoint (or target
+        centre when there are none); the target clip point toward the last.
 
         Args:
             source_node: Source node
             target_node: Target node
-            bendpoints: List of intermediate bendpoints (if any)
+            bendpoints: Stored intermediate waypoints (absolute view coordinates)
 
         Returns:
-            List of (x, y) tuples representing polyline points
+            List of (x, y) tuples: [source_clip, *bendpoints, target_clip]
         """
-        # Get source and target centers
         sx = float(getattr(source_node, "x", 0)) + float(getattr(source_node, "w", 120)) / 2
         sy = float(getattr(source_node, "y", 0)) + float(getattr(source_node, "h", 55)) / 2
         tx = float(getattr(target_node, "x", 0)) + float(getattr(target_node, "w", 120)) / 2
         ty = float(getattr(target_node, "y", 0)) + float(getattr(target_node, "h", 55)) / 2
 
+        source_bounds = self._get_node_bounds(source_node)
+        target_bounds = self._get_node_bounds(target_node)
+
+        if not bendpoints:
+            start = self._clip_point_to_boundary(source_bounds, (sx, sy), (tx, ty))
+            end = self._clip_point_to_boundary(target_bounds, (tx, ty), (sx, sy))
+            return [start, end]
+
+        first_bp = (float(getattr(bendpoints[0], "x", 0)), float(getattr(bendpoints[0], "y", 0)))
+        last_bp = (float(getattr(bendpoints[-1], "x", 0)), float(getattr(bendpoints[-1], "y", 0)))
+
+        start = self._clip_point_to_boundary(source_bounds, (sx, sy), first_bp)
+        end = self._clip_point_to_boundary(target_bounds, (tx, ty), last_bp)
+        middle = [(float(getattr(bp, "x", 0)), float(getattr(bp, "y", 0))) for bp in bendpoints]
+
+        return [start] + middle + [end]
+
+    def _get_routed_polyline_points(
+        self,
+        source_node: Any,
+        target_node: Any,
+        bendpoints: list[Any],
+        source_spread: tuple[float, float] = (0.0, 0.0),
+        target_spread: tuple[float, float] = (0.0, 0.0),
+    ) -> list[Tuple[float, float]]:
+        """Get orthogonally-routed polyline points (reserved for auto-layout use).
+
+        This routing helper is intentionally NOT called by to_svg(); it is kept
+        here for future use by the layout engine.  to_svg() calls
+        _get_clipped_polyline_points() which preserves stored waypoints as-is.
+        """
+        sx = float(getattr(source_node, "x", 0)) + float(getattr(source_node, "w", 120)) / 2
+        sy = float(getattr(source_node, "y", 0)) + float(getattr(source_node, "h", 55)) / 2
+        tx = float(getattr(target_node, "x", 0)) + float(getattr(target_node, "w", 120)) / 2
+        ty = float(getattr(target_node, "y", 0)) + float(getattr(target_node, "h", 55)) / 2
         sx += source_spread[0]
         sy += source_spread[1]
         tx += target_spread[0]
         ty += target_spread[1]
 
-        # Get node bounds
         source_bounds = self._get_node_bounds(source_node)
         target_bounds = self._get_node_bounds(target_node)
 
-        # If no bendpoints: Render simple direct line clipped at boundaries
         if not bendpoints:
-            start_point = self._clip_point_to_boundary(source_bounds, (sx, sy), (tx, ty))
-            end_point = self._clip_point_to_boundary(target_bounds, (tx, ty), (sx, sy))
-            return [start_point, end_point]
+            return [
+                self._clip_point_to_boundary(source_bounds, (sx, sy), (tx, ty)),
+                self._clip_point_to_boundary(target_bounds, (tx, ty), (sx, sy)),
+            ]
 
-        # With bendpoints: Apply routing logic for proper orthogonal paths
-        # Use first bendpoint (not final target) to determine source exit side
-        first_bendpoint = (bendpoints[0].x, bendpoints[0].y) if bendpoints else (tx, ty)
+        first_bendpoint = (bendpoints[0].x, bendpoints[0].y)
+        last_bendpoint = (bendpoints[-1].x, bendpoints[-1].y)
         source_side = self._preferred_boundary_side(source_bounds, first_bendpoint, exit_from=True)
-
-        # Use last bendpoint (not source) to determine target entry side
-        last_bendpoint = (bendpoints[-1].x, bendpoints[-1].y) if bendpoints else (sx, sy)
         target_side = self._preferred_boundary_side(target_bounds, last_bendpoint, exit_from=True)
-
         start_point = self._boundary_anchor(source_bounds, source_side, source_spread)
         end_point = self._boundary_anchor(target_bounds, target_side, target_spread)
 
-        # Build full polyline (source anchor → bendpoints → target anchor)
         full_points = [start_point]
-
-        # Add bendpoints
         for bp in bendpoints:
-            bx = float(getattr(bp, "x", 0))
-            by = float(getattr(bp, "y", 0))
-            full_points.append((bx, by))
-
+            full_points.append((float(getattr(bp, "x", 0)), float(getattr(bp, "y", 0))))
         full_points.append(end_point)
 
-        # Insert source boundary stub so the first segment exits orthogonally.
         if len(full_points) >= 2:
             full_points.insert(1, self._boundary_stub(full_points[0], source_side))
 
-        # Preserve the chosen target side for the final segment and marker orientation.
         target_orientation = "horizontal" if target_side in ("left", "right") else "vertical"
-        if len(full_points) >= 2:
-            full_points[-1] = end_point
-
         source_orientation = "horizontal" if source_side in ("top", "bottom") else "vertical"
 
-        full_points = self._orthogonalize_polyline_points(
+        return self._orthogonalize_polyline_points(
             full_points,
             target_orientation=target_orientation,
             source_orientation=source_orientation,
         )
-
-        return full_points
 
     @staticmethod
     def _choose_corner(

@@ -94,12 +94,19 @@ def default_color(elem_type: str, theme: "str | dict[str, str] | None" = DEFAULT
 # ---------------------------------------------------------------------------
 
 class Point:
-    """A simple (x, y) coordinate pair where both values are non-negative integers."""
+    """A simple (x, y) coordinate pair stored as floats for lossless round-trips.
+
+    Archi's native format encodes bendpoints as integer offsets from element
+    centres; those centres can be half-integers (e.g. element height 55 →
+    cy = y + 27.5).  Storing the resolved absolute coordinate as a float
+    preserves the value so that ``round(bp.x - cx)`` reproduces the original
+    integer offset exactly during export.
+    """
 
     def __init__(self, x: float = 0, y: float = 0, start_x: int | None = None, start_y: int | None = None,
                  end_x: int | None = None, end_y: int | None = None):
-        self._x = max(0, int(x))
-        self._y = max(0, int(y))
+        self._x = max(0.0, float(x))
+        self._y = max(0.0, float(y))
         self.idx: int = 0
         self.start_x = start_x
         self.start_y = start_y

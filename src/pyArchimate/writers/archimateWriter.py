@@ -288,11 +288,6 @@ def _add_node(parent: _Element, n: Node, xsi: et.QName) -> None:
         _add_node(n_elem, sub_n, xsi)
 
 
-def _is_node_embedded(n1: Any, n2: Any) -> bool:
-    if not (hasattr(n1, 'x') and hasattr(n2, 'x')):
-        return False
-    return bool((n1.x < n2.x < n1.x + n1.w) and (n1.y < n2.y < n1.y + n1.h))
-
 
 def _write_conn_style(c_elem: _Element, c: Any) -> None:
     style = et.SubElement(c_elem, 'style')
@@ -324,8 +319,8 @@ def _write_connections(view_elem: _Element, _v: object, xsi: et.QName) -> None:
         if c.source is None or c.target is None:
             log.debug(f"Skipping connection {c.uuid}: missing source or target node")
             continue
-        if _is_node_embedded(c.source, c.target) or _is_node_embedded(c.target, c.source):
-            continue
+        # Do NOT skip connections between embedded nodes — the OpenGroup format
+        # must preserve all explicit connections regardless of visual containment.
         c_elem = et.SubElement(view_elem, 'connection', attrib={
             'identifier': c.uuid,
             'relationshipRef': c.ref,
@@ -335,7 +330,8 @@ def _write_connections(view_elem: _Element, _v: object, xsi: et.QName) -> None:
         })
         _write_conn_style(c_elem, c)
         for bp in c.get_all_bendpoints():
-            et.SubElement(c_elem, 'bendpoint', x=str(bp.x), y=str(bp.y))
+            # Compact float format: "517.5" when fractional, "517" when whole.
+            et.SubElement(c_elem, 'bendpoint', x=f'{bp.x:g}', y=f'{bp.y:g}')
 
 
 def _write_views(root: _Element, model: Model, xsi: et.QName) -> None:
