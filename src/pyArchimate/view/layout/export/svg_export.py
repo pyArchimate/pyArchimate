@@ -6,7 +6,7 @@ Archi desktop tool.
 """
 
 import math
-from typing import Any
+from typing import Any, Optional, Tuple
 from xml.etree import ElementTree as ET
 
 from .symbols.archimate_relationships import (
