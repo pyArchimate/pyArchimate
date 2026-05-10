@@ -97,7 +97,26 @@ poetry run cz bump        # bumps [project] version, updates CHANGELOG.md, creat
 git push origin master --tags
 ```
 
-### 11. Merge master back into develop
+### 11. Create GitHub release
+
+Ask Claude to draft release notes based on the v1.8.0 release as a template:
+
+```
+Look at the v1.8.0 release, particularly the text provided as part of the release,
+and do the same for v<NEW_VERSION>. I typically ask for a subject line and summary
+of all commits since the last release.
+```
+
+Then review the draft and publish:
+
+```bash
+gh release create v<NEW_VERSION> --title "v<NEW_VERSION>" --notes "<PASTE NOTES>"
+```
+
+Or create directly on GitHub at https://github.com/pyArchimate/pyArchimate/releases/new,
+selecting the version tag and pasting the draft.
+
+### 12. Merge master back into develop
 
 ```bash
 git checkout develop
