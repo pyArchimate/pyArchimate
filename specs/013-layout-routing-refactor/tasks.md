@@ -2,7 +2,37 @@
 
 **Type**: Enhancement / Refactor | **Date**: 2026-05-11 | **Branch**: `013-layout-routing-refactor`
 
-## Overview
+**Phase 1 complete** — all 61 original tasks done. Phase 2 tasks are in [phase2-routing-quality.md](phase2-routing-quality.md).
+
+## Phase 2 quick-reference (see phase2-routing-quality.md for full detail)
+
+### 2A — Path cleanup
+- [ ] P2-T01: Diagnose remaining U-turns (which connections, which cluster combo)
+- [ ] P2-T02: Fix displacement double-shift for connections in multiple clusters
+- [ ] P2-T03: Add `_merge_collinear_adjacent()` to `segment_separation.py`
+- [ ] P2-T04: Wire `_merge_collinear_adjacent()` into `auto_route`
+- [ ] P2-T05: Test `test_no_redundant_bendpoints`
+- [ ] P2-T06: Strengthen U-turn test to zero
+
+### 2B — Layout improvements
+- [ ] P2-T07: Change `LayoutConfig.grid_size` default 160 → 240
+- [ ] P2-T08: Add `LayoutConfig.high_degree_threshold = 5`
+- [ ] P2-T09: Implement high-degree node row isolation in `assign_grid_cells`
+- [ ] P2-T10: Unit test for 240px grid snap
+- [ ] P2-T11: Unit test for high-degree isolation
+
+### 2C — Multi-pass routing
+- [ ] P2-T12: `ObstacleMap.unmark_routed_segment()`
+- [ ] P2-T13: Extract `_route_pass()` helper
+- [ ] P2-T14: `_detect_node_crossings()`
+- [ ] P2-T15: `_detect_double_crossings()`
+- [ ] P2-T16: Multi-pass outer loop in `auto_route` (max 3 passes)
+- [ ] P2-T17: `RoutingConfig.max_routing_passes = 3`
+- [ ] P2-T18–P2-T21: Tests and performance validation
+
+---
+
+## Overview (Phase 1)
 
 Separate node-arrangement (`auto_layout`) and connection-routing (`auto_route`) into independent public functions. Enhance grid snapping (coarse 120px), layer ordering, obstacle avoidance, segment separation, proportional corner clearance, and skip-and-warn for unroutable connections.
 

@@ -2,8 +2,36 @@
 
 **Feature Branch**: `013-layout-routing-refactor`  
 **Created**: 2026-05-11  
-**Status**: Draft  
+**Status**: Phase 1 complete — Phase 2 (routing quality) planned  
 **Input**: Enhance auto-layout and auto-routing as independent functions with precise rules for node arrangement and connection routing.
+
+## Phase 1 Status (2026-05-11)
+
+All 61 original tasks complete. Core functions `auto_layout` and `auto_route` ship and pass 1479 unit/integration tests including a 14-case SVG-level integration suite (`tests/integration/test_tutorial_svg_requirements.py`).
+
+### Known routing quality gaps driving Phase 2
+
+The following issues remain visible in dense diagrams (e.g. the 16-node tutorial topology):
+
+| ID | Category | Description |
+|----|----------|-------------|
+| RQ-01 | U-turns | ~6 connections still have opposite-direction segments on the same axis after displacement post-processing |
+| RQ-02 | Redundant bendpoints | Consecutive collinear segments on the same axis (no direction change) produce unnecessary intermediate waypoints |
+| RQ-03 | Node crossings | Some connections still route through node bounding boxes (e.g. CRM → Order API serving connection) |
+| RQ-04 | Double crossings | Some connection pairs cross each other twice; a detour path would cross only once or not at all |
+| RQ-05 | Layout spacing | Default inter-node gap (grid_size = 160px with 120px nodes → 40px gap) is too tight for routing; dense diagrams saturate BFS corridors |
+| RQ-06 | Layout row assignment | Nodes with many connections are not promoted to their own row, forcing many connections through narrow passages |
+
+### Root cause analysis
+
+Single-pass BFS routing with penalty-based separation has fundamental limits:
+- By connection N, earlier connections have saturated adjacent corridors; connection N falls back to penalty=0 and shares an existing corridor
+- The displacement post-pass fixes zero-separation collinear overlaps but can create secondary 5px near-overlaps via cascading corner shifts
+- The BFS does not model the full set of planned routes when making decisions for any individual connection
+
+### Resolution: multi-pass routing (see Phase 2 plan)
+
+A multi-pass approach routes all connections, detects conflicts, then re-routes conflicting connections treating existing routes as soft obstacles. This converges in 2-3 passes for typical diagrams and eliminates the corridor-saturation problem.
 
 ## Clarifications
 
