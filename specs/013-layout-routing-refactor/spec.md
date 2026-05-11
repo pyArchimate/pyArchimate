@@ -171,7 +171,7 @@ All connections produced by `auto_route` MUST satisfy:
 - **Segment separation**: Two segments from different connections that would be collinear MUST be displaced by at least 10px (or configured `min_segment_gap`)
 - **No collinear overlap**: Two segments may cross (X-intersection) but MUST NOT run parallel at the same coordinate (T-overlap or overlap)
 - **Crossing minimization**: The routing algorithm MUST prefer paths with fewer crossings over paths with more segments when both are feasible
-- **Endpoint spreading**: On each node edge, connection attachment points are distributed across the middle portion of the edge. No point is within `corner_clearance` of a corner, where `corner_clearance = max(10% of edge length, 4px)`. Points are equally spaced within the available zone. Never coincident.
+- **Endpoint spreading**: On ALL FOUR node edges (left, right, top, bottom), connection attachment points are distributed across the middle portion of each edge. No point is within `corner_clearance` of a corner, where `corner_clearance = max(10% of edge length, 4px)`. Points are equally spaced within the available zone. Never coincident. Spreading is pre-computed per (node, edge) group before routing begins.
 
 ## ArchiMate Layer Constraints *(mandatory)*
 
