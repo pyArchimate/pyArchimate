@@ -54,10 +54,9 @@ src/pyArchimate/view/layout/
 ├── __init__.py                  # Add auto_layout(), auto_route(); keep apply_layout() wrapper
 ├── core.py                      # Add RoutingConfig, add warnings: list[str] to LayoutResult
 ├── layout_engine.py             # NEW: pure node-arrangement logic (grid snap, layer sort, collision)
-├── routing_engine.py            # NEW: pure connection-routing logic (obstacle avoidance, separation)
 ├── routing/
-│   ├── orthogonal.py            # ENHANCE: add obstacle-aware A*/corridor routing
-│   ├── obstacle_map.py          # NEW: grid-inflated obstacle map builder
+│   ├── orthogonal.py            # ENHANCE: obstacle-aware routing (refactor _route_single_connection)
+│   ├── obstacle_map.py          # NEW: grid-inflated obstacle map + corridor BFS with crossing cost
 │   ├── segment_separation.py    # NEW: collinear segment detection and displacement
 │   └── label_placement.py       # ENHANCE: extend for routing clearance checks
 └── utils/
@@ -166,7 +165,7 @@ def auto_layout(view, config: LayoutConfig | None = None) -> LayoutResult
 **Design**:
 - Inflate each node bounding box by a small margin (default 2px) to create clearance
 - Provide a `is_blocked(segment: tuple) -> bool` query
-- Provide a `find_corridor(start, end) -> list[Point] | None` that returns an orthogonal path or `None` if no path found
+- Provide a `find_corridor(start, end, crossing_penalty) -> list[Point] | None` that returns an orthogonal path (minimum crossing cost) or `None` if no path found; BFS cell cost weighted by `crossing_penalty` when crossing an already-routed connection segment
 
 **Tests**:
 - `tests/unit/view/layout/test_obstacle_map.py`:

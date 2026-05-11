@@ -23,8 +23,9 @@ class LayoutConfig:
 
 **Changes from current**:
 - `grid_size` default: `10.0` → `120.0`
-- `alignment` default: `"free"` → `"grid"` for `auto_layout`
+- `alignment` default: `"free"` → `"grid"` (coarse grid always active for `auto_layout`)
 - `layer_direction` field: new
+- `auto_layout` only writes `(x, y)` per node; `width` and `height` are immutable (FR-006 revised)
 
 ---
 

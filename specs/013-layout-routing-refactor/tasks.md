@@ -6,7 +6,7 @@
 
 Separate node-arrangement (`auto_layout`) and connection-routing (`auto_route`) into independent public functions. Enhance grid snapping (coarse 120px), layer ordering, obstacle avoidance, segment separation, proportional corner clearance, and skip-and-warn for unroutable connections.
 
-**Total Tasks**: 52 tasks across 7 phases
+**Total Tasks**: 61 tasks across 7 phases
 **Estimated Duration**: ~3–4 days
 **Scope**: All phases required for full feature delivery; US1 alone is a usable MVP
 
@@ -76,7 +76,7 @@ Phase 7 (polish: backward-compat, BDD, docs)
 - [ ] T011 Write failing tests for `LayoutResult.warnings` in `tests/unit/view/layout/test_result_warnings.py`: field exists with default `[]`, can append warning strings, does not mutate across instances
 - [ ] T012 Add `RoutingConfig` dataclass to `src/pyArchimate/view/layout/core.py` with fields: `min_segment_gap: float = 10.0`, `corner_clearance_pct: float = 0.10`, `corner_clearance_min: float = 4.0`, `crossing_penalty: float = 1.0`; add `__post_init__` validation per data-model.md rules
 - [ ] T013 Add `warnings: list[str] = field(default_factory=list)` to `LayoutResult` in `src/pyArchimate/view/layout/core.py`
-- [ ] T014 Change `LayoutConfig.grid_size` default from `10.0` to `120.0` in `src/pyArchimate/view/layout/core.py`
+- [ ] T014 Change `LayoutConfig.grid_size` default from `10.0` to `120.0` and `alignment` default from `"free"` to `"grid"` in `src/pyArchimate/view/layout/core.py`
 - [ ] T015 Add `layer_direction: str = "vertical"` field to `LayoutConfig` in `src/pyArchimate/view/layout/core.py`; validate: only `"vertical"` or `"horizontal"` accepted
 - [ ] T016 Export `RoutingConfig` from `src/pyArchimate/view/layout/__init__.py` `__all__` list
 - [ ] T017 Verify T010–T011 tests now pass; fix any issues
@@ -108,7 +108,7 @@ Phase 7 (polish: backward-compat, BDD, docs)
 - [ ] T029 Add `auto_layout(view, config: LayoutConfig | None = None) -> LayoutResult` to `src/pyArchimate/view/layout/__init__.py`: builds config if None; calls `assign_grid_cells` then `apply_node_positions`; returns `LayoutResult` with `algorithm_used="auto_layout"`, correct counts, empty warnings if no issues
 - [ ] T030 [P] Write failing test: `auto_layout` idempotent — calling twice produces same node positions
 - [ ] T031 [P] Write failing test: `auto_layout` on empty view returns success with zero counts and no error
-- [ ] T032 Verify all Phase 3 tests pass (T021–T031); fix any issues; confirm SC-001 (< 2s for 500 nodes) with a perf smoke test
+- [ ] T032 Verify all Phase 3 tests pass (T021–T031); fix any issues; confirm SC-001 (< 2s for 500 nodes) with a perf smoke test using a programmatically generated fixture of 500 `BusinessObject` nodes in `tests/unit/view/layout/test_auto_layout.py` (generate nodes with `mock_node(id, layer)` helper, assert completion under 2000ms)
 
 ---
 
@@ -119,6 +119,7 @@ Phase 7 (polish: backward-compat, BDD, docs)
 **Independent Test**: Call `auto_route` on a view with connections passing through nodes. Verify: (a) no segment intersects any node bounding box; (b) no segment overlaps any connection label bbox; (c) collinear segments of different connections separated ≥ 10px; (d) skipped connection has preserved waypoints + warning in result; (e) no node position changed.
 
 - [ ] T033 Write failing test: no connection segment intersects any node bounding box after `auto_route` in `tests/unit/view/layout/test_auto_route.py`
+- [ ] T033b [P] Write failing test: no connection segment overlaps any connection label bounding box after `auto_route` (SC-007 / FR-014) in `tests/unit/view/layout/test_auto_route.py`; use a fixture connection with a label bbox that overlaps a naive straight-line path
 - [ ] T034 [P] Write failing test: `auto_route` does not modify any node position (SC-010)
 - [ ] T035 [P] Write failing test: collinear segments from different connections displaced ≥ `min_segment_gap` (default 10px)
 - [ ] T036 [P] Write failing test: unroutable connection — waypoints preserved, warning added to result, other connections still routed
@@ -126,10 +127,11 @@ Phase 7 (polish: backward-compat, BDD, docs)
 - [ ] T038 Implement `compute_corner_clearance(edge_length, pct, min_px) -> float` in `src/pyArchimate/view/layout/utils/geometry.py`
 - [ ] T039 [P] Implement `detect_collinear_overlaps(segments: list) -> list[tuple]` in `src/pyArchimate/view/layout/routing/segment_separation.py`: returns pairs of segments that are collinear and overlapping
 - [ ] T040 [P] Implement `displace_collinear_segments(overlapping_pairs, min_gap) -> dict[segment_id, offset]` in `src/pyArchimate/view/layout/routing/segment_separation.py`: computes perpendicular offset for each segment in each overlapping pair
-- [ ] T041 Refactor `_route_single_connection` in `src/pyArchimate/view/layout/__init__.py` to use `ObstacleMap.find_corridor` for path finding; if `find_corridor` returns `None`: preserve existing waypoints, return `(skipped=True, conn_id)`
-- [ ] T042 Add `auto_route(view, config: RoutingConfig | None = None) -> LayoutResult` to `src/pyArchimate/view/layout/__init__.py`: builds config if None; builds `ObstacleMap` from view nodes; calls routing per connection; collects skipped connections as warnings; runs segment separation post-pass; returns `LayoutResult` with `algorithm_used="auto_route"`, correct counts, warnings list
+- [ ] T041 Refactor `_route_single_connection` in `src/pyArchimate/view/layout/__init__.py` to use `ObstacleMap.find_corridor` for path finding; if `find_corridor` returns `None`: preserve existing waypoints, return `(skipped=True, conn_id)`; also check each routed segment against all connection label bboxes and re-route if overlap found
+- [ ] T041b Implement crossing-aware path cost in `ObstacleMap.find_corridor` in `src/pyArchimate/view/layout/routing/obstacle_map.py`: track already-routed connection segments in a `routed_segments` set; when BFS evaluates a cell, add `crossing_penalty` (from `RoutingConfig`) to its cost if that cell crosses a routed segment; BFS therefore prefers paths with fewer crossings (FR-016)
+- [ ] T042 Add `auto_route(view, config: RoutingConfig | None = None) -> LayoutResult` to `src/pyArchimate/view/layout/__init__.py`: builds config if None; builds `ObstacleMap` from view nodes; calls routing per connection passing `config.crossing_penalty`; collects skipped connections as warnings; runs segment separation post-pass; returns `LayoutResult` with `algorithm_used="auto_route"`, correct counts, warnings list
 - [ ] T043 Write failing test: `auto_route` on view with no connections returns success, zero connections processed, empty warnings; node positions unchanged
-- [ ] T044 Verify all Phase 4 tests pass (T033–T043); fix any issues; confirm SC-005 (< 3s for 500 nodes / 1000 connections) with perf smoke test
+- [ ] T044 Verify all Phase 4 tests pass (T033–T043b); fix any issues; confirm SC-005 (< 3s for 500 nodes / 1000 connections) with a perf smoke test using a programmatically generated fixture of 500 nodes and 1000 connections in `tests/unit/view/layout/test_auto_route.py` (generate with `mock_node` + `mock_connection` helpers, assert completion under 3000ms)
 
 ---
 
@@ -140,8 +142,8 @@ Phase 7 (polish: backward-compat, BDD, docs)
 **Independent Test**: Apply `auto_layout` then `auto_route` to a view with 50+ nodes and 100+ connections. Verify all US1 and US2 acceptance criteria simultaneously. Then call `auto_layout` again and verify node positions are stable (idempotent).
 
 - [ ] T045 [US3] Write integration test: chain `auto_layout` + `auto_route` on a realistic fixture view; assert all SC-001–SC-010 criteria in `tests/integration/test_layout_route_chain.py`
-- [ ] T046 [US3] Write integration test: non-interference — call `auto_layout` only and capture waypoints; call `auto_route` only and capture node positions; verify neither function touched the other's domain in `tests/integration/test_layout_route_independence.py`
-- [ ] T047 [US3] Write integration test: idempotency — call `auto_layout` twice; node positions identical on both calls
+- [ ] T046 [P] [US3] Write integration test: non-interference — call `auto_layout` only and capture waypoints; call `auto_route` only and capture node positions; verify neither function touched the other's domain in `tests/integration/test_layout_route_independence.py`
+- [ ] T047 [P] [US3] Write integration test: idempotency — call `auto_layout` twice; node positions identical on both calls
 - [ ] T048 [US3] Verify T045–T047 pass; fix composition issues if any (e.g., stale obstacle map after layout)
 
 ---
@@ -163,13 +165,13 @@ Phase 7 (polish: backward-compat, BDD, docs)
 
 **Purpose**: Backward compatibility, BDD acceptance tests, `__all__` exports, docstrings, existing test suite regression check.
 
-- [ ] T053 Update `apply_layout()` in `src/pyArchimate/view/layout/__init__.py` to call `auto_layout(view, config)` then `auto_route(view)` internally; merge both `LayoutResult` objects (sum counts, merge warnings); return combined result
+- [ ] T053 Update `apply_layout()` in `src/pyArchimate/view/layout/__init__.py` to call `auto_layout(view, config)` then `auto_route(view, routing_config)` internally; construct `routing_config = RoutingConfig()` using `LayoutConfig` fields where applicable (e.g., preserve `routing_style` from config via a `min_segment_gap` default mapping); merge both `LayoutResult` objects (sum counts, merge warnings); return combined result
 - [ ] T054 Verify existing `tests/integration/test_layout_api.py` and `tests/integration/test_layout_round_trip.py` pass without modification (backward compat)
 - [ ] T055 [P] Export `auto_layout`, `auto_route`, `RoutingConfig` in `src/pyArchimate/view/layout/__init__.py` `__all__`
 - [ ] T056 [P] Add Google-style docstrings to `auto_layout`, `auto_route`, `RoutingConfig`, `ObstacleMap` public methods
 - [ ] T057 [P] Create BDD feature file `tests/features/layout/auto_route.feature` with scenarios for: obstacle avoidance, segment separation, skip-and-warn, endpoint corner clearance
 - [ ] T058 [P] Implement BDD step definitions in `tests/features/layout/auto_route_steps.py`
-- [ ] T059 Run full test suite (`pytest` + `behave`); fix any regressions; confirm all 52 tasks complete
+- [ ] T059 Run full test suite (`pytest` + `behave`); fix any regressions; confirm all 61 tasks complete
 
 ---
 
@@ -199,9 +201,9 @@ Phase 2 (Foundation)
 | 1 — Setup | T001–T009 | — | 8 of 9 |
 | 2 — Foundation | T010–T020 | — | partial |
 | 3 — US1 Auto-Layout | T021–T032 | US1 (P1) | 8 of 12 |
-| 4 — US2 Auto-Routing | T033–T044 | US2 (P1) | 7 of 12 |
-| 5 — US3 Chain | T045–T048 | US3 (P2) | 2 of 4 |
+| 4 — US2 Auto-Routing | T033–T044 (+T033b, T041b) | US2 (P1) | 9 of 14 |
+| 5 — US3 Chain | T045–T048 | US3 (P2) | 4 of 4 |
 | 6 — US4 Config | T049–T052 | US4 (P3) | 3 of 4 |
 | 7 — Polish | T053–T059 | — | 4 of 7 |
 
-**Total**: 59 tasks | **MVP** (US1 only): T001–T032
+**Total**: 61 tasks | **MVP** (US1 only): T001–T032

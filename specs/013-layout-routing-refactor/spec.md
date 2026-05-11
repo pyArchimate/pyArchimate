@@ -81,7 +81,7 @@ A developer wants to override default grid size, layer ordering direction (verti
 
 **Why this priority**: Enables adaptation to different diagram styles and sizes. Non-blocking for MVP.
 
-**Independent Test**: Pass a config with `grid_size=120` to `auto_layout`. Verify all node origins are multiples of 120.
+**Independent Test**: Pass a config with `grid_size=80` to `auto_layout`. Verify all node origins are multiples of 80 (uses a non-default value to distinguish from the default 120).
 
 **Acceptance Scenarios**:
 
@@ -111,9 +111,11 @@ A developer wants to override default grid size, layer ordering direction (verti
 - **FR-003**: `auto_layout` MUST arrange nodes in ArchiMate layer order: Business layer nodes have smaller Y (higher on canvas) than Application layer nodes, which have smaller Y than Technology layer nodes (default: vertical ordering)
 - **FR-004**: `auto_layout` MUST snap every node's top-left corner to the nearest coarse grid point; default grid cell size equals the default node size (120×55px or configured value)
 - **FR-005**: `auto_layout` MUST ensure no two nodes overlap after repositioning; when two nodes snap to the same grid cell, the second node (in processing order) is shifted to the next available free cell in row-major order (right first, then next row), continuing until a free cell is found
-- **FR-006**: `auto_layout` MUST preserve all node properties (name, type, documentation, style) — only (x, y, width, height) may change
+- **FR-006**: `auto_layout` MUST preserve all node properties (name, type, documentation, style, width, height) — only (x, y) may change; node dimensions are never modified by `auto_layout`
 - **FR-007**: `auto_layout` MUST support `layer_direction` configuration: `"vertical"` (default, Business top) or `"horizontal"` (Business left)
 - **FR-008**: `auto_layout` MUST complete in under 2 seconds for views with up to 500 nodes
+
+*(Note: FR-009 intentionally omitted — number reserved for future use.)*
 
 **Auto-Routing**
 
