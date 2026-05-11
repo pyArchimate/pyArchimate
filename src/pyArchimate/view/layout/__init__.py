@@ -275,6 +275,72 @@ def _precompute_spread_anchors(
     return anchors
 
 
+def _apply_exact_anchors(
+    path: list[Point],
+    src_anchor: Point,
+    tgt_anchor: Point,
+    src_node: Any,
+    tgt_node: Any,
+) -> list[Point]:
+    """Replace BFS endpoints with exact anchor coords and insert L-turn connectors.
+
+    BFS cell centres are multiples of resolution; actual spread anchors have sub-cell
+    offsets. Naïvely replacing endpoints creates diagonal segments. Instead we insert
+    one extra corner point to bridge the gap as a proper L-shape:
+
+      Horizontal exit (left/right):
+        src_anchor → (bfs_2nd.x, src_anchor.y) → bfs_2nd → ... → bfs_penult →
+        (bfs_penult.x, tgt_anchor.y) → tgt_anchor   [if target entry is horizontal]
+        OR
+        (tgt_anchor.x, bfs_penult.y) → tgt_anchor   [if target entry is vertical]
+
+    All output segments are strictly horizontal or vertical (no diagonals).
+    """
+    if len(path) <= 1:
+        return [src_anchor]
+
+    def _horiz_exit(anchor: Point, node: Any) -> bool:
+        return anchor.x < float(node.x) or anchor.x > float(node.x) + float(node.w)
+
+    interior = path[1:-1]  # BFS interior (drops grid-snapped start/end)
+
+    result: list[Point] = [src_anchor]
+
+    # Bridge from src_anchor to first BFS interior point (or tgt_anchor if trivial)
+    first_bfs = path[1]  # first BFS point after start (grid-snapped)
+    if _horiz_exit(src_anchor, src_node):
+        # Horizontal exit: go horizontally to first_bfs.x, then continue BFS path
+        corner = Point(first_bfs.x, src_anchor.y)
+    else:
+        # Vertical exit: go vertically to first_bfs.y, then continue BFS path
+        corner = Point(src_anchor.x, first_bfs.y)
+    if abs(corner.x - src_anchor.x) > 0.5 or abs(corner.y - src_anchor.y) > 0.5:
+        result.append(corner)
+
+    # Add all interior BFS points (they are already orthogonal relative to each other)
+    for p in interior:
+        _append_dedup(result, p)
+
+    # Bridge from last BFS interior point (or first_bfs) to tgt_anchor
+    last_bfs = path[-2]  # last BFS point before end (grid-snapped)
+    if _horiz_exit(tgt_anchor, tgt_node):
+        # Horizontal entry: arrive at tgt_anchor.y first, then go horizontally
+        corner2 = Point(last_bfs.x, tgt_anchor.y)
+    else:
+        # Vertical entry: arrive at tgt_anchor.x first, then go vertically
+        corner2 = Point(tgt_anchor.x, last_bfs.y)
+    _append_dedup(result, corner2)
+    _append_dedup(result, tgt_anchor)
+
+    return result
+
+
+def _append_dedup(pts: list[Point], p: Point) -> None:
+    """Append p if it differs from the last point (avoids zero-length segments)."""
+    if not pts or abs(p.x - pts[-1].x) > 0.5 or abs(p.y - pts[-1].y) > 0.5:
+        pts.append(p)
+
+
 def _route_connections(
     conns: list[Any],
     nodes_dict: dict[str, Any],
@@ -313,11 +379,12 @@ def _route_connections(
             )
             all_waypoints.append(list(conn.bendpoints))
         else:
-            # Keep the full BFS path including both anchor endpoints.
-            # _orthogonal_clip uses the first/last bendpoints to determine the exit
-            # direction from each node — the spread anchors are designed to be outside
-            # exactly one axis, so the clip produces a clean perpendicular exit.
-            all_waypoints.append(path)
+            # Replace BFS grid-snapped endpoints with exact anchor coordinates and
+            # snap adjacent interior points to maintain axis-aligned segments.
+            # The BFS returns cell-centre points (multiples of resolution); anchors
+            # carry sub-cell offsets that would create diagonal near-orthogonal segments.
+            exact_path = _apply_exact_anchors(path, src_anchor, tgt_anchor, src_node, tgt_node)
+            all_waypoints.append(exact_path)
             for i in range(len(path) - 1):
                 om.mark_routed_segment(path[i], path[i + 1])
         conn_refs.append(conn)
