@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ..utils.geometry import Point
 
-_EPSILON = 5.0  # tolerance for coordinate comparison (BFS snaps to 10px grid → allow 5px slack)
+_EPSILON = 0.5  # tolerance for coordinate comparison (only detect truly collinear segments)
 
 
 def _segments_from_waypoints(waypoints: list[Point]) -> list[tuple[Point, Point]]:
@@ -76,14 +76,44 @@ def detect_collinear_overlaps(
     return overlaps
 
 
+def _find_overlap_components(
+    overlaps: list[tuple[int, int, int, int, str]],
+) -> list[list[tuple[int, int]]]:
+    """Return connected components of (conn_idx, seg_idx) pairs from overlaps list."""
+    from collections import defaultdict
+
+    adjacency: dict[tuple[int, int], set[tuple[int, int]]] = defaultdict(set)
+    for ci, si, cj, sj, _axis in overlaps:
+        adjacency[(ci, si)].add((cj, sj))
+        adjacency[(cj, sj)].add((ci, si))
+
+    visited: set[tuple[int, int]] = set()
+    components: list[list[tuple[int, int]]] = []
+    for node in adjacency:
+        if node in visited:
+            continue
+        component: list[tuple[int, int]] = []
+        queue = [node]
+        while queue:
+            cur = queue.pop()
+            if cur in visited:
+                continue
+            visited.add(cur)
+            component.append(cur)
+            queue.extend(adjacency[cur] - visited)
+        components.append(component)
+    return components
+
+
 def displace_collinear_segments(
     all_waypoints: list[list[Point]],
     min_gap: float,
 ) -> list[list[Point]]:
-    """Displace overlapping collinear segments so they are separated by at least min_gap.
+    """Displace overlapping collinear segments so all are separated by at least min_gap.
 
-    Modifies waypoints in-place by shifting collinear segment pairs perpendicularly.
-    Returns the updated waypoint lists.
+    Groups segments that share the same corridor (same axis-coordinate and overlapping
+    range) into clusters, then spreads the whole cluster evenly around the original
+    coordinate. This handles N > 2 concurrent overlapping segments correctly.
     """
     if min_gap <= 0:
         return all_waypoints
@@ -92,20 +122,22 @@ def displace_collinear_segments(
     if not overlaps:
         return all_waypoints
 
-    # Track per-segment displacement offset
-    # Key: (conn_idx, seg_idx), value: perpendicular offset applied
+    components = _find_overlap_components(overlaps)
+
+    # Assign evenly-spread offsets within each component.
+    # The component members are sorted deterministically to produce stable output.
     offsets: dict[tuple[int, int], float] = {}
+    for component in components:
+        n = len(component)
+        if n <= 1:
+            continue
+        # Sort by (conn_idx, seg_idx) for determinism
+        members = sorted(component)
+        # Spread: member[i] gets offset = (i - (n-1)/2) * min_gap
+        for i, key in enumerate(members):
+            offsets[key] = (i - (n - 1) / 2.0) * min_gap
 
-    for ci, si, cj, sj, _axis in overlaps:
-        # Assign offsets: move first +gap/2, second -gap/2
-        off_i = offsets.get((ci, si), 0.0)
-        off_j = offsets.get((cj, sj), 0.0)
-        if abs(off_i - off_j) < min_gap:
-            half = min_gap / 2.0
-            offsets[(ci, si)] = half
-            offsets[(cj, sj)] = -half
-
-    # Apply offsets to waypoints
+    # Apply offsets
     result = [list(wps) for wps in all_waypoints]
     for (ci, si), offset in offsets.items():
         if ci >= len(result) or si >= len(result[ci]) - 1:
@@ -113,14 +145,50 @@ def displace_collinear_segments(
         wps = result[ci]
         p1, p2 = wps[si], wps[si + 1]
         if _seg_is_horizontal(p1, p2):
-            # Shift perpendicular = shift y
             new_p1 = Point(p1.x, p1.y + offset)
             new_p2 = Point(p2.x, p2.y + offset)
         else:
-            # Shift perpendicular = shift x
             new_p1 = Point(p1.x + offset, p1.y)
             new_p2 = Point(p2.x + offset, p2.y)
         result[ci][si] = new_p1
         result[ci][si + 1] = new_p2
 
     return result
+
+
+def remove_uturn_waypoints(waypoints: list[Point]) -> list[Point]:
+    """Remove intermediate waypoints that cause U-turns on the same axis.
+
+    A U-turn occurs when three consecutive waypoints are collinear (same x or y)
+    but the direction reverses — e.g. going right then left then right again.
+    The intermediate point is redundant and the segment can be simplified.
+    Iterates until stable (a single pass may expose new U-turns after removal).
+    """
+    if len(waypoints) < 3:
+        return list(waypoints)
+    changed = True
+    pts = list(waypoints)
+    while changed:
+        changed = False
+        result: list[Point] = [pts[0]]
+        for i in range(1, len(pts) - 1):
+            prev = result[-1]
+            cur = pts[i]
+            nxt = pts[i + 1]
+            horiz_uturn = (
+                abs(prev.y - cur.y) < _EPSILON
+                and abs(cur.y - nxt.y) < _EPSILON
+                and (cur.x - prev.x) * (nxt.x - cur.x) < 0
+            )
+            vert_uturn = (
+                abs(prev.x - cur.x) < _EPSILON
+                and abs(cur.x - nxt.x) < _EPSILON
+                and (cur.y - prev.y) * (nxt.y - cur.y) < 0
+            )
+            if horiz_uturn or vert_uturn:
+                changed = True
+            else:
+                result.append(cur)
+        result.append(pts[-1])
+        pts = result
+    return pts

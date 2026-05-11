@@ -11,7 +11,7 @@ class TestRoutingConfigDefaults:
         assert config.min_segment_gap == 10.0
         assert config.corner_clearance_pct == 0.10
         assert config.corner_clearance_min == 4.0
-        assert config.crossing_penalty == 1.0
+        assert config.crossing_penalty == 3.0
 
 
 class TestRoutingConfigValidation:

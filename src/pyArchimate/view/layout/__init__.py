@@ -10,7 +10,7 @@ from .core import LayoutConfig, LayoutResult, RoutingConfig
 from .format import FormatService
 from .layout_engine import apply_node_positions, assign_grid_cells
 from .routing.obstacle_map import ObstacleMap
-from .routing.segment_separation import displace_collinear_segments
+from .routing.segment_separation import displace_collinear_segments, remove_uturn_waypoints
 from .utils.geometry import Point, Rectangle, compute_corner_clearance
 
 
@@ -82,6 +82,89 @@ def auto_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
         )
 
 
+def _seg_pair_close(pa1: Any, pa2: Any, pb1: Any, pb2: Any, gap: float) -> bool:
+    from .routing.segment_separation import (
+        _intervals_overlap as _ivl_overlap,
+    )
+    from .routing.segment_separation import (
+        _seg_is_horizontal,
+        _seg_is_vertical,
+    )
+    if (_seg_is_horizontal(pa1, pa2) and _seg_is_horizontal(pb1, pb2)
+            and abs(pa1.y - pb1.y) < gap
+            and _ivl_overlap(pa1.x, pa2.x, pb1.x, pb2.x)):
+        return True
+    if (_seg_is_vertical(pa1, pa2) and _seg_is_vertical(pb1, pb2)
+            and abs(pa1.x - pb1.x) < gap
+            and _ivl_overlap(pa1.y, pa2.y, pb1.y, pb2.y)):
+        return True
+    return False
+
+
+def _has_new_close_pair(
+    disp_i: list[Point], orig_i: list[Point], wps_j: list[Point], orig_j: list[Point], gap: float
+) -> bool:
+    n_i = len(disp_i) - 1
+    n_j = len(wps_j) - 1
+    for ia in range(n_i):
+        for ib in range(n_j):
+            if _seg_pair_close(disp_i[ia], disp_i[ia + 1],
+                               wps_j[ib], wps_j[ib + 1], gap):
+                if not _seg_pair_close(orig_i[ia], orig_i[ia + 1],
+                                       orig_j[ib], orig_j[ib + 1], gap):
+                    return True
+    return False
+
+
+def _revert_new_close_pairs(
+    separated: list[list[Point]],
+    all_waypoints: list[list[Point]],
+    min_segment_gap: float,
+) -> list[list[Point]]:
+    """Revert displaced connections that introduce new near-close segment pairs."""
+    _gap = min_segment_gap - 0.5
+    displaced_indices = {
+        ci for ci in range(len(separated))
+        if separated[ci] != all_waypoints[ci]
+    }
+    if not displaced_indices:
+        return separated
+
+    to_revert: set[int] = set()
+    for ci in displaced_indices:
+        orig_i = all_waypoints[ci]
+        for cj in range(len(separated)):
+            if ci == cj:
+                continue
+            orig_j = all_waypoints[cj]
+            if _has_new_close_pair(separated[ci], orig_i, orig_j, orig_j, _gap):
+                to_revert.add(ci)
+                break
+    for ci in to_revert:
+        separated[ci] = all_waypoints[ci]
+    return separated
+
+
+def _apply_anchor_restore_and_safety(
+    separated: list[list[Point]],
+    all_waypoints: list[list[Point]],
+) -> None:
+    """Restore anchor endpoints then revert any displacement that broke orthogonality."""
+    for ci in range(len(separated)):
+        orig = all_waypoints[ci]
+        sep = separated[ci]
+        if sep is not orig and len(orig) >= 2:
+            sep[0] = orig[0]
+            sep[-1] = orig[-1]
+    for ci, wps in enumerate(separated):
+        for j in range(len(wps) - 1):
+            dx = abs(wps[j + 1].x - wps[j].x)
+            dy = abs(wps[j + 1].y - wps[j].y)
+            if dx > 0.5 and dy > 0.5:
+                separated[ci] = all_waypoints[ci]
+                break
+
+
 def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
     """Recompute all connection paths as obstacle-avoiding orthogonal polylines.
 
@@ -140,13 +223,21 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
         # Route each connection
         conn_refs, all_waypoints = _route_connections(conns, nodes_dict, om, config, warnings)
 
-        # Post-process: displace collinear overlaps
+        # Post-process: displace truly collinear overlaps (0px separation only).
+        # Penalty-based routing already separates connections by ≥ 1 BFS cell (10px);
+        # this pass only handles any residual zero-separation cases.
         separated = displace_collinear_segments(all_waypoints, config.min_segment_gap)
+        _apply_anchor_restore_and_safety(separated, all_waypoints)
 
-        # Write waypoints back to connections
+        # Near-overlap check: revert displaced connections that introduced new
+        # segment pairs closer than min_segment_gap.
+        separated = _revert_new_close_pairs(separated, all_waypoints, config.min_segment_gap)
+
+        # Write waypoints back to connections, removing any U-turns introduced
+        # by the displacement pass (opposite-direction segments on the same axis).
         for conn, wps in zip(conn_refs, separated, strict=False):
             conn.remove_all_bendpoints()
-            for wp in wps:
+            for wp in remove_uturn_waypoints(wps):
                 conn.add_bendpoint(wp)
 
         elapsed_ms = (time.time() - start_time) * 1000
@@ -204,28 +295,31 @@ def _spread_positions(
     # Must clear inflated obstacle zone: inflate(2px) + resolution(10px) + 1px = 13px minimum.
     _out = 13.0
 
+    # Keep 1px back from the hard boundary so SVG float rounding doesn't push into corner zone
+    _margin = 1.0
+
     if edge in ('left', 'right'):
         # Spread along the y-axis of the vertical edge
-        usable = nh - 2 * cy
+        usable = nh - 2 * cy - 2 * _margin
         if count > 1:
             step = usable / (count - 1)
-            y = ny + cy + index * step
+            y = ny + cy + _margin + index * step
         else:
             y = ny + nh / 2
-        y = max(ny + cy, min(ny + nh - cy, y))
+        y = max(ny + cy + _margin, min(ny + nh - cy - _margin, y))
         # _out must clear the inflated obstacle zone (2px inflate + resolution + 1px).
         # Use 13px — safe for both 10px and 20px BFS resolutions without overshooting gaps.
         x = (nx + nw + _out) if edge == 'right' else (nx - _out)
         return x, y
     else:
         # 'top' or 'bottom' — spread along the x-axis of the horizontal edge
-        usable = nw - 2 * cx
+        usable = nw - 2 * cx - 2 * _margin
         if count > 1:
             step = usable / (count - 1)
-            x = nx + cx + index * step
+            x = nx + cx + _margin + index * step
         else:
             x = nx + nw / 2
-        x = max(nx + cx, min(nx + nw - cx, x))
+        x = max(nx + cx + _margin, min(nx + nw - cx - _margin, x))
         y = (ny + nh + _out) if edge == 'bottom' else (ny - _out)
         return x, y
 
@@ -368,10 +462,9 @@ def _route_connections(
         tgt_anchor = spread_anchors.get((conn_uuid, 'tgt'))
         if src_anchor is None or tgt_anchor is None:
             continue
-        # Use crossing_penalty=0 for path finding — pure A* without routed-segment bias.
-        # Overlapping collinear segments are separated by displace_collinear_segments() after
-        # all connections are routed. mark_routed_segment() still tracks paths for future use.
-        path = om.find_corridor(src_anchor, tgt_anchor, 0.0)
+        # Use configured crossing_penalty so subsequent connections prefer different corridors.
+        # displace_collinear_segments() handles any remaining overlaps.
+        path = om.find_corridor(src_anchor, tgt_anchor, config.crossing_penalty)
         if path is None:
             warnings.append(
                 f"auto_route: skipped connection {conn_uuid}: "

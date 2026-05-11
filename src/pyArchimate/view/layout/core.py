@@ -93,7 +93,7 @@ class RoutingConfig:
     min_segment_gap: float = 10.0
     corner_clearance_pct: float = 0.10
     corner_clearance_min: float = 4.0
-    crossing_penalty: float = 1.0
+    crossing_penalty: float = 3.0
 
     def __post_init__(self) -> None:
         if self.min_segment_gap < 0:

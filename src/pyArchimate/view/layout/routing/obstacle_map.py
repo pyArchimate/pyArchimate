@@ -145,6 +145,29 @@ class ObstacleMap:
             h = (abs(nx - hx) + abs(ny - hy)) * res
             heapq.heappush(heap, (new_g + h, new_g, ncell, ndir))
 
+    def _init_search(
+        self,
+        sc: tuple[int, int],
+        ec: tuple[int, int],
+        res: float,
+    ) -> tuple[
+        dict[tuple[tuple[int, int], str], float],
+        dict[tuple[tuple[int, int], str], tuple[tuple[int, int], str] | None],
+        list[Any],
+    ]:
+        """Initialise A* data structures and push start states onto the heap."""
+        dist: dict[tuple[tuple[int, int], str], float] = {}
+        prev: dict[tuple[tuple[int, int], str], tuple[tuple[int, int], str] | None] = {}
+        heap: list[Any] = []
+        hx, hy = ec
+        for d in ('h', 'v', 'n'):
+            state = (sc, d)
+            dist[state] = 0.0
+            prev[state] = None
+            h0 = (abs(sc[0] - hx) + abs(sc[1] - hy)) * res
+            heapq.heappush(heap, (h0, 0.0, sc, d))
+        return dist, prev, heap
+
     def find_corridor(
         self,
         start: Point,
@@ -163,29 +186,23 @@ class ObstacleMap:
         if sc == ec:
             return [Point(start.x, start.y)]
 
-        # Budget: allow up to 50× Manhattan distance in visited states.
-        # Empirical: worst-case paths in dense 3-layer diagrams needed ~36× Manhattan.
-        # 50× gives comfortable margin for complex detours around obstacle bands.
-        # Minimum 1000 ensures short connections still get a reasonable search budget.
+        # Budget: allow up to 36× Manhattan distance in visited states.
+        # When crossing_penalty > 0, the fallback (penalty=0) guarantees a path is
+        # found even if this budget is exceeded. 36× was empirically sufficient for
+        # typical diagrams. Dense diagrams that exceed it fall back gracefully.
+        # Minimum 500 ensures tiny connections always get enough budget.
         manhattan = abs(sc[0] - ec[0]) + abs(sc[1] - ec[1])
-        max_visited = max(1000, manhattan * 36)
+        if crossing_penalty > 0:
+            max_visited = max(500, manhattan * 20)
+        else:
+            max_visited = max(1000, manhattan * 36)
 
         # A* with direction state to prefer straight segments.
         # Heap entries: (f=g+h, g, cell, direction)
         # dist stores g-values; stale-entry check uses g vs dist[state].
         inf = float('inf')
         self._ec = ec  # store for heuristic access in _expand_neighbour
-        dist: dict[tuple[tuple[int, int], str], float] = {}
-        prev: dict[tuple[tuple[int, int], str], tuple[tuple[int, int], str] | None] = {}
-        heap: list[Any] = []
-
-        hx, hy = ec
-        for d in ('h', 'v', 'n'):
-            state = (sc, d)
-            dist[state] = 0.0
-            prev[state] = None
-            h0 = (abs(sc[0] - hx) + abs(sc[1] - hy)) * res
-            heapq.heappush(heap, (h0, 0.0, sc, d))
+        dist, prev, heap = self._init_search(sc, ec, res)
 
         found_state: tuple[tuple[int, int], str] | None = None
         visited = 0
@@ -210,18 +227,29 @@ class ObstacleMap:
             for ncell, ndir in neighbours:
                 self._expand_neighbour(ncell, ndir, g, direction, res, crossing_penalty, dist, prev, heap, state)
 
+        if found_state is None and crossing_penalty > 0:
+            # Fallback: retry without penalty to guarantee a path is always found.
+            # This means the connection may share a corridor with another, but the
+            # displacement pass will separate them afterward.
+            return self.find_corridor(start, end, crossing_penalty=0.0)
         if found_state is None:
             return None
 
-        # Reconstruct cell path
+        return self._reconstruct_path(found_state, prev, res)
+
+    def _reconstruct_path(
+        self,
+        found_state: tuple[tuple[int, int], str],
+        prev: dict[tuple[tuple[int, int], str], tuple[tuple[int, int], str] | None],
+        res: float,
+    ) -> list[Point]:
+        """Reconstruct waypoint list from A* prev-map and compress collinear runs."""
         cell_path: list[tuple[int, int]] = []
         cur: tuple[tuple[int, int], str] | None = found_state
         while cur is not None:
             cell_path.append(cur[0])
             cur = prev.get(cur)
         cell_path.reverse()
-
-        # Convert cells to points, collapsing collinear segments to waypoints
         raw = [Point(c[0] * res, c[1] * res) for c in cell_path]
         return _compress_waypoints(raw)
 
