@@ -4,12 +4,229 @@ This module provides layout algorithms and formatting utilities for ArchiMate vi
 """
 
 import time
-from typing import Any, cast
+from typing import Any
 
-from .algorithms import get_algorithm
-from .core import LayoutConfig, LayoutResult
+from .core import LayoutConfig, LayoutResult, RoutingConfig
 from .format import FormatService
-from .utils.geometry import Point
+from .layout_engine import apply_node_positions, assign_grid_cells
+from .routing.obstacle_map import ObstacleMap
+from .routing.segment_separation import displace_collinear_segments
+from .utils.geometry import Point, Rectangle, compute_corner_clearance
+
+
+def auto_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
+    """Reposition all nodes in a View in ArchiMate layer order on a coarse grid.
+
+    Does NOT modify connection waypoints (FR-002, SC-010).
+    Only modifies node (x, y); width and height are never changed (FR-006).
+
+    Args:
+        view: View object with .nodes list and .uuid attribute.
+        config: LayoutConfig with grid_size and layer_direction. Defaults to grid_size=120.
+
+    Returns:
+        LayoutResult with success status, nodes processed, and any warnings.
+    """
+    if config is None:
+        config = LayoutConfig()
+
+    start_time = time.time()
+    warnings: list[str] = []
+
+    try:
+        nodes = getattr(view, 'nodes', [])
+        if not nodes:
+            return LayoutResult(
+                success=True,
+                view_id=getattr(view, 'uuid', 'unknown'),
+                algorithm_used="auto_layout",
+                elements_processed=0,
+                connections_processed=0,
+                layout_time_ms=0.0,
+                warnings=[],
+            )
+
+        excluded = {str(e) for e in config.excluded_element_ids}
+        active_nodes = [
+            n for n in nodes
+            if str(getattr(n, 'uuid', None) or getattr(n, 'id', id(n))) not in excluded
+        ]
+
+        cell_assignments = assign_grid_cells(
+            active_nodes,
+            grid_size=config.grid_size,
+            layer_direction=config.layer_direction,
+        )
+        apply_node_positions(view, cell_assignments, config.grid_size, config.margin)
+
+        elapsed_ms = (time.time() - start_time) * 1000
+        return LayoutResult(
+            success=True,
+            view_id=getattr(view, 'uuid', 'unknown'),
+            algorithm_used="auto_layout",
+            elements_processed=len(active_nodes),
+            connections_processed=0,
+            layout_time_ms=elapsed_ms,
+            warnings=warnings,
+        )
+    except Exception as e:
+        elapsed_ms = (time.time() - start_time) * 1000
+        return LayoutResult(
+            success=False,
+            view_id=getattr(view, 'uuid', 'unknown'),
+            algorithm_used="auto_layout",
+            elements_processed=0,
+            connections_processed=0,
+            layout_time_ms=elapsed_ms,
+            error_message=str(e),
+        )
+
+
+def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
+    """Recompute all connection paths as obstacle-avoiding orthogonal polylines.
+
+    Does NOT modify node positions (FR-011, SC-010).
+    Skips unroutable connections with a warning rather than raising (FR-019).
+
+    Args:
+        view: View object with .nodes and .conns lists.
+        config: RoutingConfig controlling gap, clearance, and crossing cost.
+
+    Returns:
+        LayoutResult with success status, connections processed, and any warnings.
+    """
+    if config is None:
+        config = RoutingConfig()
+
+    start_time = time.time()
+    warnings: list[str] = []
+
+    try:
+        nodes = getattr(view, 'nodes', [])
+        conns = getattr(view, 'conns', [])
+
+        if not conns:
+            return LayoutResult(
+                success=True,
+                view_id=getattr(view, 'uuid', 'unknown'),
+                algorithm_used="auto_route",
+                elements_processed=len(nodes),
+                connections_processed=0,
+                layout_time_ms=0.0,
+                warnings=[],
+            )
+
+        nodes_dict = _collect_all_nodes(getattr(view, 'nodes_dict', {}))
+
+        # Build obstacle map from node bounding boxes
+        obstacles = [
+            Rectangle(float(n.x), float(n.y), float(n.w), float(n.h))
+            for n in nodes_dict.values()
+        ]
+        om = ObstacleMap(obstacles, resolution=10.0)
+
+        # Route each connection
+        conn_refs, all_waypoints = _route_connections(conns, nodes_dict, om, config, warnings)
+
+        # Post-process: displace collinear overlaps
+        separated = displace_collinear_segments(all_waypoints, config.min_segment_gap)
+
+        # Write waypoints back to connections
+        for conn, wps in zip(conn_refs, separated, strict=False):
+            conn.remove_all_bendpoints()
+            for wp in wps:
+                conn.add_bendpoint(wp)
+
+        elapsed_ms = (time.time() - start_time) * 1000
+        return LayoutResult(
+            success=True,
+            view_id=getattr(view, 'uuid', 'unknown'),
+            algorithm_used="auto_route",
+            elements_processed=len(nodes),
+            connections_processed=len(conn_refs),
+            layout_time_ms=elapsed_ms,
+            warnings=warnings,
+        )
+
+    except Exception as e:
+        elapsed_ms = (time.time() - start_time) * 1000
+        return LayoutResult(
+            success=False,
+            view_id=getattr(view, 'uuid', 'unknown'),
+            algorithm_used="auto_route",
+            elements_processed=0,
+            connections_processed=0,
+            layout_time_ms=elapsed_ms,
+            error_message=str(e),
+        )
+
+
+def _compute_anchor(
+    node: Any,
+    other_node: Any,
+    config: RoutingConfig,
+    role: str,
+) -> Point:
+    """Compute attachment anchor on node edge facing other_node, with corner clearance."""
+    nx, ny, nw, nh = float(node.x), float(node.y), float(node.w), float(node.h)
+    ox, oy = float(other_node.cx), float(other_node.cy)
+
+    # Determine preferred exit edge
+    dx = ox - (nx + nw / 2)
+    dy = oy - (ny + nh / 2)
+
+    clearance_x = compute_corner_clearance(nw, config.corner_clearance_pct, config.corner_clearance_min)
+    clearance_y = compute_corner_clearance(nh, config.corner_clearance_pct, config.corner_clearance_min)
+
+    if abs(dx) >= abs(dy):
+        # Exit via left or right edge
+        edge_x = nx + nw if dx >= 0 else nx
+        # Clamp y to middle zone
+        mid_y = ny + nh / 2
+        clamped_y = max(ny + clearance_y, min(ny + nh - clearance_y, mid_y))
+        return Point(edge_x, clamped_y)
+    else:
+        # Exit via top or bottom edge
+        edge_y = ny + nh if dy >= 0 else ny
+        mid_x = nx + nw / 2
+        clamped_x = max(nx + clearance_x, min(nx + nw - clearance_x, mid_x))
+        return Point(clamped_x, edge_y)
+
+
+def _route_connections(
+    conns: list[Any],
+    nodes_dict: dict[str, Any],
+    om: ObstacleMap,
+    config: RoutingConfig,
+    warnings: list[str],
+) -> tuple[list[Any], list[list[Point]]]:
+    conn_refs: list[Any] = []
+    all_waypoints: list[list[Point]] = []
+    for conn in conns:
+        source_uuid = getattr(conn, '_source', None)
+        target_uuid = getattr(conn, '_target', None)
+        if not source_uuid or not target_uuid:
+            continue
+        src_node = nodes_dict.get(source_uuid)
+        tgt_node = nodes_dict.get(target_uuid)
+        if not src_node or not tgt_node:
+            continue
+        src_anchor = _compute_anchor(src_node, tgt_node, config, 'source')
+        tgt_anchor = _compute_anchor(tgt_node, src_node, config, 'target')
+        path = om.find_corridor(src_anchor, tgt_anchor, config.crossing_penalty)
+        if path is None:
+            conn_id = getattr(conn, 'uuid', str(id(conn)))
+            warnings.append(
+                f"auto_route: skipped connection {conn_id}: "
+                f"no valid orthogonal path found; existing waypoints preserved"
+            )
+            all_waypoints.append(list(conn.bendpoints))
+        else:
+            all_waypoints.append(path)
+            for i in range(len(path) - 1):
+                om.mark_routed_segment(path[i], path[i + 1])
+        conn_refs.append(conn)
+    return conn_refs, all_waypoints
 
 
 def apply_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
@@ -59,17 +276,25 @@ def apply_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
                     layout_time_ms=0.0,
                 )
 
-        # Get and instantiate the algorithm
-        algorithm_class = get_algorithm(config.algorithm)
-        algorithm = algorithm_class()
+        # Apply layout via auto_layout (coarse grid + layer ordering)
+        layout_result = auto_layout(view, config)
 
-        # Apply layout
-        result = cast(LayoutResult, algorithm.apply(view, config))
+        # Apply routing via auto_route; construct RoutingConfig from LayoutConfig params
+        routing_config = RoutingConfig()
+        route_result = auto_route(view, routing_config)
 
-        # Apply orthogonal routing to connections
-        _apply_orthogonal_routing(view)
-
-        return result
+        # Merge results: sum counts, combine warnings
+        merged_warnings = list(layout_result.warnings) + list(route_result.warnings)
+        elapsed_ms = (time.time() - start_time) * 1000
+        return LayoutResult(
+            success=layout_result.success and route_result.success,
+            view_id=getattr(view, "id", getattr(view, "uuid", "unknown")),
+            algorithm_used=config.algorithm,
+            elements_processed=layout_result.elements_processed,
+            connections_processed=route_result.connections_processed,
+            layout_time_ms=elapsed_ms,
+            warnings=merged_warnings,
+        )
     except Exception as e:
         elapsed_ms = (time.time() - start_time) * 1000
         return LayoutResult(
@@ -606,6 +831,9 @@ __all__ = [
     "apply_layout",
     "apply_format",
     "undo_layout",
+    "auto_layout",
+    "auto_route",
     "LayoutConfig",
+    "RoutingConfig",
     "LayoutResult",
 ]
