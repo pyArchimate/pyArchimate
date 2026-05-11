@@ -313,14 +313,11 @@ def _route_connections(
             )
             all_waypoints.append(list(conn.bendpoints))
         else:
-            # Trim anchor "legs": the raw BFS start/end are 13px outside the node for
-            # BFS clearance.  The SVG renderer clips the rendered line back to the node
-            # edge automatically via _orthogonal_clip — so we store only the interior
-            # turning waypoints (path[1:-1]).  For 2-point trivial paths, keep both.
-            interior = path[1:-1] if len(path) > 2 else path
-            # Keep src_anchor as first point so _orthogonal_clip knows the exit direction
-            trimmed = [path[0]] + interior if interior else path[:1]
-            all_waypoints.append(trimmed)
+            # Keep the full BFS path including both anchor endpoints.
+            # _orthogonal_clip uses the first/last bendpoints to determine the exit
+            # direction from each node — the spread anchors are designed to be outside
+            # exactly one axis, so the clip produces a clean perpendicular exit.
+            all_waypoints.append(path)
             for i in range(len(path) - 1):
                 om.mark_routed_segment(path[i], path[i + 1])
         conn_refs.append(conn)
