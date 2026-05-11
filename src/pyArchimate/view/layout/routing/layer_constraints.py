@@ -31,8 +31,10 @@ class ArchiMateLayer(Enum):
         if any(t in element_type_lower for t in ["actor", "role", "interaction", "process", "function", "product", "event"]):
             return cls.BUSINESS
 
-        # Application layer elements
-        if any(t in element_type_lower for t in ["component", "interface", "data object"]):
+        # Application layer elements (including DataObject, DataStore)
+        if any(t in element_type_lower for t in [
+            "component", "interface", "data object", "dataobject", "datastore", "data store",
+        ]):
             return cls.APPLICATION
 
         # Technology layer elements

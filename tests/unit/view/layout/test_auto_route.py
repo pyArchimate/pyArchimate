@@ -60,8 +60,8 @@ class TestNoSegmentThroughNode:
     def test_routed_path_avoids_obstacle_node(self) -> None:
         """A connection routed through another node must be rerouted around it."""
         src = mock_node("src", x=0, y=200)
-        tgt = mock_node("tgt", x=400, y=200)
-        obstacle = mock_node("obs", x=150, y=170)  # sits in the direct path
+        tgt = mock_node("tgt", x=500, y=200)
+        obstacle = mock_node("obs", x=200, y=170)  # sits in the direct path; >30px from src edge
         conn = mock_connection("c1", "src", "tgt")
         view = make_view([src, tgt, obstacle], [conn])
         result = auto_route(view)

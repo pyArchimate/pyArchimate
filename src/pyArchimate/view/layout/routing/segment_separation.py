@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ..utils.geometry import Point
 
-_EPSILON = 0.5  # tolerance for coordinate comparison
+_EPSILON = 5.0  # tolerance for coordinate comparison (BFS snaps to 10px grid → allow 5px slack)
 
 
 def _segments_from_waypoints(waypoints: list[Point]) -> list[tuple[Point, Point]]:

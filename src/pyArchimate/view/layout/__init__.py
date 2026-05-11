@@ -173,45 +173,106 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
         )
 
 
-def _compute_anchor(
-    node: Any,
-    other_node: Any,
-    config: RoutingConfig,
-    role: str,
-) -> Point:
-    """Compute attachment anchor on node edge facing other_node, with corner clearance."""
+def _exit_edge(node: Any, other_node: Any) -> str:
+    """Return which edge of node faces other_node: 'left', 'right', 'top', 'bottom'."""
     nx, ny, nw, nh = float(node.x), float(node.y), float(node.w), float(node.h)
-    ox, oy = float(other_node.cx), float(other_node.cy)
-
-    # Determine preferred exit edge
+    ox = float(getattr(other_node, 'cx', 0))
+    oy = float(getattr(other_node, 'cy', 0))
     dx = ox - (nx + nw / 2)
     dy = oy - (ny + nh / 2)
-
-    clearance_x = compute_corner_clearance(nw, config.corner_clearance_pct, config.corner_clearance_min)
-    clearance_y = compute_corner_clearance(nh, config.corner_clearance_pct, config.corner_clearance_min)
-
-    # Push anchor outside the node so its BFS cell is beyond the inflated obstacle zone.
-    # Minimum: obstacle_inflate(2px) + resolution + 1px. Use 13px (works for both 10 and 20px).
-    _outside = 13.0
-
     if abs(dx) >= abs(dy):
-        # Exit via left or right edge
-        if dx >= 0:
-            edge_x = nx + nw + _outside
+        return 'right' if dx >= 0 else 'left'
+    return 'bottom' if dy >= 0 else 'top'
+
+
+def _spread_positions(
+    node: Any,
+    edge: str,
+    count: int,
+    index: int,
+    config: RoutingConfig,
+) -> tuple[float, float]:
+    """Return (x, y) anchor on `edge` of `node` for connection at `index` of `count`.
+
+    Positions are evenly spread across the middle portion of the edge (corner zones excluded).
+    Works for all four edges.
+    """
+    nx, ny, nw, nh = float(node.x), float(node.y), float(node.w), float(node.h)
+    cx = compute_corner_clearance(nw, config.corner_clearance_pct, config.corner_clearance_min)
+    cy = compute_corner_clearance(nh, config.corner_clearance_pct, config.corner_clearance_min)
+
+    # Must clear inflated obstacle zone: inflate(2px) + resolution(10px) + 1px = 13px minimum.
+    _out = 13.0
+
+    if edge in ('left', 'right'):
+        # Spread along the y-axis of the vertical edge
+        usable = nh - 2 * cy
+        if count > 1:
+            step = usable / (count - 1)
+            y = ny + cy + index * step
         else:
-            edge_x = nx - _outside
-        mid_y = ny + nh / 2
-        clamped_y = max(ny + clearance_y, min(ny + nh - clearance_y, mid_y))
-        return Point(edge_x, clamped_y)
+            y = ny + nh / 2
+        y = max(ny + cy, min(ny + nh - cy, y))
+        # _out must clear the inflated obstacle zone (2px inflate + resolution + 1px).
+        # Use 13px — safe for both 10px and 20px BFS resolutions without overshooting gaps.
+        x = (nx + nw + _out) if edge == 'right' else (nx - _out)
+        return x, y
     else:
-        # Exit via top or bottom edge
-        if dy >= 0:
-            edge_y = ny + nh + _outside
+        # 'top' or 'bottom' — spread along the x-axis of the horizontal edge
+        usable = nw - 2 * cx
+        if count > 1:
+            step = usable / (count - 1)
+            x = nx + cx + index * step
         else:
-            edge_y = ny - _outside
-        mid_x = nx + nw / 2
-        clamped_x = max(nx + clearance_x, min(nx + nw - clearance_x, mid_x))
-        return Point(clamped_x, edge_y)
+            x = nx + nw / 2
+        x = max(nx + cx, min(nx + nw - cx, x))
+        y = (ny + nh + _out) if edge == 'bottom' else (ny - _out)
+        return x, y
+
+
+def _precompute_spread_anchors(
+    conns: list[Any],
+    nodes_dict: dict[str, Any],
+    config: RoutingConfig,
+) -> dict[tuple[str, str], Point]:
+    """Pre-assign spread anchor positions for all connection endpoints.
+
+    Groups connections by (node_uuid, exit_edge), then distributes positions
+    evenly across that edge for all connections in the group.
+
+    Returns:
+        Dict mapping (conn_uuid, 'src'|'tgt') → spread Point
+    """
+    from collections import defaultdict
+
+    # Collect (node_uuid, edge) → [(conn, role)] groups
+    groups: dict[tuple[str, str], list[tuple[Any, str]]] = defaultdict(list)
+    for conn in conns:
+        src_uuid = getattr(conn, '_source', None)
+        tgt_uuid = getattr(conn, '_target', None)
+        if not src_uuid or not tgt_uuid:
+            continue
+        src_node = nodes_dict.get(src_uuid)
+        tgt_node = nodes_dict.get(tgt_uuid)
+        if not src_node or not tgt_node:
+            continue
+        src_edge = _exit_edge(src_node, tgt_node)
+        tgt_edge = _exit_edge(tgt_node, src_node)
+        groups[(src_uuid, src_edge)].append((conn, 'src'))
+        groups[(tgt_uuid, tgt_edge)].append((conn, 'tgt'))
+
+    anchors: dict[tuple[str, str], Point] = {}
+    for (node_uuid, edge), members in groups.items():
+        node = nodes_dict.get(node_uuid)
+        if not node:
+            continue
+        n = len(members)
+        for i, (conn, role) in enumerate(members):
+            conn_uuid = getattr(conn, 'uuid', str(id(conn)))
+            x, y = _spread_positions(node, edge, n, i, config)
+            anchors[(conn_uuid, role)] = Point(x, y)
+
+    return anchors
 
 
 def _route_connections(
@@ -221,6 +282,10 @@ def _route_connections(
     config: RoutingConfig,
     warnings: list[str],
 ) -> tuple[list[Any], list[list[Point]]]:
+    # Pre-compute spread anchors so each (node, edge) group has evenly distributed
+    # departure/arrival points across all four edges.
+    spread_anchors = _precompute_spread_anchors(conns, nodes_dict, config)
+
     conn_refs: list[Any] = []
     all_waypoints: list[list[Point]] = []
     for conn in conns:
@@ -232,18 +297,30 @@ def _route_connections(
         tgt_node = nodes_dict.get(target_uuid)
         if not src_node or not tgt_node:
             continue
-        src_anchor = _compute_anchor(src_node, tgt_node, config, 'source')
-        tgt_anchor = _compute_anchor(tgt_node, src_node, config, 'target')
-        path = om.find_corridor(src_anchor, tgt_anchor, config.crossing_penalty)
+        conn_uuid = getattr(conn, 'uuid', str(id(conn)))
+        src_anchor = spread_anchors.get((conn_uuid, 'src'))
+        tgt_anchor = spread_anchors.get((conn_uuid, 'tgt'))
+        if src_anchor is None or tgt_anchor is None:
+            continue
+        # Use crossing_penalty=0 for path finding — pure A* without routed-segment bias.
+        # Overlapping collinear segments are separated by displace_collinear_segments() after
+        # all connections are routed. mark_routed_segment() still tracks paths for future use.
+        path = om.find_corridor(src_anchor, tgt_anchor, 0.0)
         if path is None:
-            conn_id = getattr(conn, 'uuid', str(id(conn)))
             warnings.append(
-                f"auto_route: skipped connection {conn_id}: "
+                f"auto_route: skipped connection {conn_uuid}: "
                 f"no valid orthogonal path found; existing waypoints preserved"
             )
             all_waypoints.append(list(conn.bendpoints))
         else:
-            all_waypoints.append(path)
+            # Trim anchor "legs": the raw BFS start/end are 13px outside the node for
+            # BFS clearance.  The SVG renderer clips the rendered line back to the node
+            # edge automatically via _orthogonal_clip — so we store only the interior
+            # turning waypoints (path[1:-1]).  For 2-point trivial paths, keep both.
+            interior = path[1:-1] if len(path) > 2 else path
+            # Keep src_anchor as first point so _orthogonal_clip knows the exit direction
+            trimmed = [path[0]] + interior if interior else path[:1]
+            all_waypoints.append(trimmed)
             for i in range(len(path) - 1):
                 om.mark_routed_segment(path[i], path[i + 1])
         conn_refs.append(conn)

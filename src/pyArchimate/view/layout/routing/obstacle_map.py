@@ -153,8 +153,8 @@ class ObstacleMap:
     ) -> list[Point] | None:
         """Find shortest orthogonal path from start to end avoiding blocked cells.
 
-        Uses Dijkstra/A* with optional crossing_penalty for already-routed segments.
-        Returns None if no path exists.
+        Uses A* with Manhattan heuristic and optional crossing_penalty.
+        Returns None if no path exists or search exceeds the cell budget.
         """
         res = self.resolution
         sc = self._to_cell(start.x, start.y)
@@ -162,6 +162,13 @@ class ObstacleMap:
 
         if sc == ec:
             return [Point(start.x, start.y)]
+
+        # Budget: allow up to 50× Manhattan distance in visited states.
+        # Empirical: worst-case paths in dense 3-layer diagrams needed ~36× Manhattan.
+        # 50× gives comfortable margin for complex detours around obstacle bands.
+        # Minimum 1000 ensures short connections still get a reasonable search budget.
+        manhattan = abs(sc[0] - ec[0]) + abs(sc[1] - ec[1])
+        max_visited = max(1000, manhattan * 36)
 
         # A* with direction state to prefer straight segments.
         # Heap entries: (f=g+h, g, cell, direction)
@@ -181,6 +188,7 @@ class ObstacleMap:
             heapq.heappush(heap, (h0, 0.0, sc, d))
 
         found_state: tuple[tuple[int, int], str] | None = None
+        visited = 0
 
         while heap:
             _f, g, cell, direction = heapq.heappop(heap)
@@ -190,6 +198,9 @@ class ObstacleMap:
             if cell == ec:
                 found_state = state
                 break
+            visited += 1
+            if visited > max_visited:
+                break  # give up — connection is likely unroutable
 
             cx, cy = cell
             neighbours = [
