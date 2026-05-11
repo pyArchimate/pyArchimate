@@ -30,6 +30,18 @@
 - [ ] P2-T17: `RoutingConfig.max_routing_passes = 3`
 - [ ] P2-T18–P2-T21: Tests and performance validation
 
+### 2D — Routing-driven node repositioning (FR-023, opt-in)
+- [ ] P2-T22: `NodeMove` dataclass; `LayoutResult.node_moves` field
+- [ ] P2-T23: `RoutingConfig.allow_node_move = False`, `max_node_displacement = 1`
+- [ ] P2-T24: `_find_candidate_node_moves()` — returns candidate (node/block, delta) pairs
+- [ ] P2-T25: `_apply_node_move()` — tentative move with no-overlap check
+- [ ] P2-T26: Wire node-move fallback into multi-pass (after Pass 2, before skip+warn)
+- [ ] P2-T27: Test `allow_node_move=False` → SC-010 preserved
+- [ ] P2-T28: Test single blocking node moved 1 cell to open corridor
+- [ ] P2-T29: Test move rejected when it would cause overlap
+- [ ] P2-T30: Test rigid block moves together
+- [ ] P2-T31: Integration test — `NodeMove` entries in result
+
 ---
 
 ## Overview (Phase 1)

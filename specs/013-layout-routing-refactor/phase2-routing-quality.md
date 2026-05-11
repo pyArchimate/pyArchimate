@@ -178,13 +178,85 @@ When a node has connections to/from many other nodes (degree ≥ threshold), rou
 
 ---
 
+## Fix 6 — Routing-driven node repositioning (FR-023, RQ-07)
+
+### Description
+
+When all three routing passes fail to produce a crossing-free path for a connection (RQ-03), and `RoutingConfig.allow_node_move = True`, the router may shift a node (or a rigid block of nodes) by up to `max_node_displacement` grid cells along the routing axis to open a corridor. This is a last-resort mechanism, off by default.
+
+### Key design decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| Off by default (`allow_node_move=False`) | Preserves SC-010 for all existing callers; opt-in only |
+| Max 1 grid cell displacement | Prevents large layout disruptions; 1 cell ≈ inter-node gap |
+| Layer constraint enforced | Moved node stays in original ArchiMate layer row |
+| No-overlap check before applying move | Move is rejected if it would create a new node overlap |
+| Block moves for tightly-coupled nodes | Nodes that share a sub-layout (e.g. a stack) move together to preserve legibility |
+| Moves recorded in result | Caller can audit or undo; `NodeMove(uuid, old_x, old_y, new_x, new_y)` per moved node |
+
+### Algorithm sketch
+
+```
+After all routing passes: collect connections still crossing a node (from _detect_node_crossings)
+For each such connection:
+  candidates = nodes that block the connection's corridor
+  For each candidate node (or block):
+    For each valid 1-cell direction (preserves layer, no overlap):
+      Tentatively apply move
+      Re-route the affected connections
+      If crossing resolved AND no new node overlaps: accept move, record in result
+      Else: undo tentative move
+  If no move resolved the crossing: skip + warn (FR-019)
+```
+
+### Data model additions
+
+```python
+@dataclass
+class NodeMove:
+    uuid: str
+    old_x: float
+    old_y: float
+    new_x: float
+    new_y: float
+
+# RoutingConfig additions:
+allow_node_move: bool = False
+max_node_displacement: int = 1  # in grid cells
+```
+
+The `LayoutResult.node_moves: list[NodeMove]` field records all moves applied.
+
+### Phase 2D task list
+
+| ID | Task | Priority |
+|----|------|----------|
+| P2-T22 | Add `NodeMove` dataclass to `core.py`; add `node_moves: list[NodeMove]` to `LayoutResult` | P1 |
+| P2-T23 | Add `allow_node_move: bool = False` and `max_node_displacement: int = 1` to `RoutingConfig` | P1 |
+| P2-T24 | Implement `_find_candidate_node_moves(blocked_conn, waypoints, nodes_dict, config)` — returns list of `(node_or_block, delta_x, delta_y)` candidates | P1 |
+| P2-T25 | Implement `_apply_node_move(nodes_dict, candidate, view)` — shifts node(s), checks no-overlap, returns bool success | P1 |
+| P2-T26 | Wire node-move fallback into multi-pass outer loop (after Pass 2, before final skip+warn) | P1 |
+| P2-T27 | Unit test: `allow_node_move=False` → no node position changes (SC-010 preserved) | P1 |
+| P2-T28 | Unit test: single blocking node is moved 1 cell to resolve corridor | P1 |
+| P2-T29 | Unit test: proposed move rejected when it would cause node overlap | P2 |
+| P2-T30 | Unit test: rigid block of 2 nodes moves together | P2 |
+| P2-T31 | Integration test: `NodeMove` entries appear in result with correct old/new positions | P1 |
+
+### Dependency
+
+P2-T22 through P2-T31 depend on multi-pass routing (P2-T12–P2-T16) being in place, since node moves are triggered only when multi-pass fails to resolve a conflict.
+
+---
+
 ## Recommended execution order
 
 1. **P2-T07** (grid_size default) — single-line change, instant improvement, unblocks routing quality
 2. **P2-T03, P2-T04** (merge collinear adjacent) — easy, eliminates RQ-02
 3. **P2-T01, P2-T02** (fix remaining U-turns) — diagnose first, then fix
-4. **P2-T12 through P2-T16** (multi-pass) — highest complexity, implement last
+4. **P2-T12 through P2-T16** (multi-pass) — highest complexity; gate for node-move feature
 5. **P2-T08, P2-T09** (high-degree layout) — independent, can be done in parallel with multi-pass
+6. **P2-T22 through P2-T31** (node-move) — implement after multi-pass is stable
 
 ---
 
@@ -198,3 +270,5 @@ When a node has connections to/from many other nodes (degree ≥ threshold), rou
 | SC-P2-04 | Zero double crossings in tutorial topology | `test_no_double_crossings` (new) |
 | SC-P2-05 | All existing 1479+ tests still pass | Full test suite |
 | SC-P2-06 | Performance: < 5s for 500 nodes + 1000 connections | Existing perf test (limit may be raised from 3s to 5s) |
+| SC-P2-07 | `allow_node_move=False` (default): no node position changes (SC-010 preserved) | `test_allow_node_move_false` |
+| SC-P2-08 | `allow_node_move=True`: blocking node shifted ≤ 1 cell; result lists the move | `test_node_move_recorded` |

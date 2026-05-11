@@ -119,6 +119,25 @@ A developer wants to override default grid size, layer ordering direction (verti
 
 ---
 
+### User Story 5 - Allow Routing-Driven Node Repositioning (Priority: P3)
+
+A developer has a dense view where some connections cannot route around nodes without crossing through them. They enable `allow_node_move=True` in `RoutingConfig`. The router identifies nodes (or coherent blocks of connected nodes) that, if shifted by one grid cell, would open a routing corridor. It moves those nodes within their layer, re-routes the affected connections, and reports the moves in the result.
+
+**Why this priority**: Node moves are a last resort — most views route cleanly without them. When enabled, they can resolve pathological cases (e.g. a node that sits exactly in the only available corridor for multiple connections). Disabled by default so existing callers are unaffected.
+
+**Independent Test**: Create a view where a node sits in the only available corridor between two other nodes. Invoke `auto_route` with `allow_node_move=True`. Verify: (a) the blocking node has moved by exactly one grid cell, (b) it is still in its original layer, (c) it does not overlap any other node, (d) the previously-blocked connection now routes without crossing any node, (e) the result object lists the moved node with old and new position.
+
+**Acceptance Scenarios**:
+
+1. **Given** `allow_node_move=False` (default), **When** `auto_route` is called, **Then** no node position changes regardless of routing difficulty
+2. **Given** `allow_node_move=True` and a node blocking the only corridor, **When** `auto_route` is called, **Then** the blocking node is shifted by at most `max_node_displacement` grid cells along the routing axis
+3. **Given** a node move is performed, **When** the result is inspected, **Then** it contains a list of `NodeMove(uuid, old_x, old_y, new_x, new_y)` entries
+4. **Given** a candidate node move would cause overlap with another node, **When** `auto_route` evaluates it, **Then** the move is rejected and an alternative path or move is tried instead
+5. **Given** a block of tightly-coupled nodes (sharing edges in the view), **When** `auto_route` determines one must move, **Then** the whole block moves together as a rigid unit (same delta) to preserve their relative positions
+6. **Given** `allow_node_move=True` and no routing conflict can be resolved by a 1-cell move, **When** `auto_route` finishes, **Then** it behaves identically to `allow_node_move=False` for the unresolvable connections (skip + warn)
+
+---
+
 ### Edge Cases
 
 - View with only one layer type: layout arranges nodes in a grid, no cross-layer constraints violated
@@ -163,6 +182,14 @@ A developer wants to override default grid size, layer ordering direction (verti
 - **FR-020**: Both functions MUST be independently callable — calling one MUST NOT require or implicitly invoke the other
 - **FR-021**: Both functions MUST return a result object indicating success, number of nodes and connections processed, and any warnings (e.g., unresolvable overlaps, skipped connections)
 - **FR-022**: Both functions MUST support an optional `config` parameter accepting a configuration object with typed fields and documented defaults
+- **FR-023**: When `RoutingConfig.allow_node_move = True` (default: `False`), `auto_route` MAY reposition one or more nodes — or a coherent block of nodes that form a subgraph — by at most `RoutingConfig.max_node_displacement` grid cells (default: 1) along the routing axis, in order to open a routing corridor that cannot be satisfied by waypoint manipulation alone. Any node repositioned under this mode MUST remain in its original ArchiMate layer (layer ordering is preserved), MUST NOT overlap any other node after the move, and MUST be snapped to the grid. `auto_route` MUST record each moved node (uuid, old position, new position) in the result object. When `allow_node_move = False` (default), `auto_route` MUST NOT alter any node position (SC-010 unchanged).
+
+### Clarification notes for FR-023
+
+- "Block of nodes" means a set of nodes that move together as a rigid unit (same delta) to preserve their relative layout. The routing algorithm may propose a block move when individual node moves would create new overlaps between members of the block.
+- The displacement limit (`max_node_displacement` in grid cells) prevents large layout disruptions; 1 cell means a node may shift by exactly one `grid_size` in one direction.
+- The function must attempt routing with `allow_node_move = False` first; node moves are a last resort when the pure routing pass still leaves unresolvable crossings or node-crossing violations.
+- This mode interacts with the multi-pass routing architecture (Phase 2): node moves are evaluated during the final pass when conflicts remain unresolved.
 
 ### Key Entities
 
@@ -187,7 +214,8 @@ A developer wants to override default grid size, layer ordering direction (verti
 - **SC-007**: After `auto_route`, 0 connection segments overlap any connection label bounding box
 - **SC-008**: After `auto_route`, 0 pairs of connection segments from different connections are collinear and overlapping (separation ≥ 10px enforced)
 - **SC-009**: After `auto_route`, 0 connections depart or arrive within the corner zone (max(10% of edge length, 4px) from each corner); all endpoints lie within the valid middle portion of the node edge
-- **SC-010**: Calling `auto_layout` does not alter any connection waypoints; calling `auto_route` does not alter any node position — verified by comparing view state before/after each call in isolation
+- **SC-010**: When `allow_node_move = False` (default), calling `auto_route` does not alter any node position — verified by comparing view state before/after each call in isolation. Calling `auto_layout` does not alter any connection waypoints (always).
+- **SC-011**: When `allow_node_move = True`, every node moved by `auto_route` (a) remains in its original layer, (b) does not overlap any other node, (c) is snapped to the grid, and (d) is displaced by no more than `max_node_displacement` grid cells. The result object lists all moved nodes with old and new positions.
 
 ## Routing Rules *(mandatory)*
 
