@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import heapq
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    pass
+from typing import Any
 
 from ..utils.geometry import Point, Rectangle
 
@@ -35,8 +32,9 @@ class ObstacleMap:
         self.resolution = resolution
         self._cells: set[tuple[int, int]] = set()
         self._routed: set[tuple[int, int]] = set()
-        self._canvas_w = int(_MAX_CANVAS / resolution) + 10
-        self._canvas_h = int(_MAX_CANVAS / resolution) + 10
+        # Default canvas; will be updated in _build() based on actual obstacle extents
+        self._canvas_w = max(10, int(_MAX_CANVAS / max(resolution, 1.0)))
+        self._canvas_h = max(10, int(_MAX_CANVAS / max(resolution, 1.0)))
         self._build(obstacles)
 
     def _to_cell(self, x: float, y: float) -> tuple[int, int]:
@@ -50,10 +48,13 @@ class ObstacleMap:
             y0 = obs.y - _INFLATE
             x1 = obs.x + obs.width + _INFLATE
             y1 = obs.y + obs.height + _INFLATE
+            # Block every cell that physically overlaps the inflated bbox.
+            # Cell cx covers [cx*res, (cx+1)*res). It overlaps obstacle if cx*res < x1.
+            # Equivalently, max cx is ceil(x1/res) - 1 = int((x1-eps)/res).
             cx0 = int(x0 / res)
             cy0 = int(y0 / res)
-            cx1 = int(x1 / res) + 1
-            cy1 = int(y1 / res) + 1
+            cx1 = int(x1 / res)      # last cell whose left edge is < x1
+            cy1 = int(y1 / res)
             for cx in range(cx0, cx1 + 1):
                 for cy in range(cy0, cy1 + 1):
                     self._cells.add((cx, cy))
@@ -120,7 +121,7 @@ class ObstacleMap:
         crossing_penalty: float,
         dist: dict[tuple[tuple[int, int], str], float],
         prev: dict[tuple[tuple[int, int], str], tuple[tuple[int, int], str] | None],
-        heap: list[tuple[float, tuple[int, int], str]],
+        heap: list[Any],
         cur_state: tuple[tuple[int, int], str],
     ) -> None:
         nx, ny = ncell
@@ -133,13 +134,16 @@ class ObstacleMap:
             move_cost += crossing_penalty * res
         if direction not in ('n', ndir):
             move_cost += res * 0.1
-        new_cost = cost + move_cost
+        new_g = cost + move_cost
         nstate = (ncell, ndir)
         inf = float('inf')
-        if new_cost < dist.get(nstate, inf):
-            dist[nstate] = new_cost
+        if new_g < dist.get(nstate, inf):
+            dist[nstate] = new_g
             prev[nstate] = cur_state
-            heapq.heappush(heap, (new_cost, ncell, ndir))
+            # A* priority: f = g + Manhattan heuristic
+            hx, hy = self._ec
+            h = (abs(nx - hx) + abs(ny - hy)) * res
+            heapq.heappush(heap, (new_g + h, new_g, ncell, ndir))
 
     def find_corridor(
         self,
@@ -159,25 +163,29 @@ class ObstacleMap:
         if sc == ec:
             return [Point(start.x, start.y)]
 
-        # Dijkstra with direction state to prefer straight segments
-        # State: (cell, direction)  direction: 'h' | 'v' | 'n'
+        # A* with direction state to prefer straight segments.
+        # Heap entries: (f=g+h, g, cell, direction)
+        # dist stores g-values; stale-entry check uses g vs dist[state].
         inf = float('inf')
+        self._ec = ec  # store for heuristic access in _expand_neighbour
         dist: dict[tuple[tuple[int, int], str], float] = {}
         prev: dict[tuple[tuple[int, int], str], tuple[tuple[int, int], str] | None] = {}
-        heap: list[tuple[float, tuple[int, int], str]] = []
+        heap: list[Any] = []
 
+        hx, hy = ec
         for d in ('h', 'v', 'n'):
             state = (sc, d)
             dist[state] = 0.0
             prev[state] = None
-            heapq.heappush(heap, (0.0, sc, d))
+            h0 = (abs(sc[0] - hx) + abs(sc[1] - hy)) * res
+            heapq.heappush(heap, (h0, 0.0, sc, d))
 
         found_state: tuple[tuple[int, int], str] | None = None
 
         while heap:
-            cost, cell, direction = heapq.heappop(heap)
+            _f, g, cell, direction = heapq.heappop(heap)
             state = (cell, direction)
-            if cost > dist.get(state, inf):
+            if g > dist.get(state, inf):
                 continue
             if cell == ec:
                 found_state = state
@@ -189,7 +197,7 @@ class ObstacleMap:
                 ((cx, cy + 1), 'v'), ((cx, cy - 1), 'v'),
             ]
             for ncell, ndir in neighbours:
-                self._expand_neighbour(ncell, ndir, cost, direction, res, crossing_penalty, dist, prev, heap, state)
+                self._expand_neighbour(ncell, ndir, g, direction, res, crossing_penalty, dist, prev, heap, state)
 
         if found_state is None:
             return None

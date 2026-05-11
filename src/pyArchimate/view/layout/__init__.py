@@ -118,12 +118,24 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
 
         nodes_dict = _collect_all_nodes(getattr(view, 'nodes_dict', {}))
 
-        # Build obstacle map from node bounding boxes
+        # Build obstacle map from node bounding boxes.
+        # Canvas is sized to actual view extent + 200px margin for routing corridors.
         obstacles = [
             Rectangle(float(n.x), float(n.y), float(n.w), float(n.h))
             for n in nodes_dict.values()
         ]
-        om = ObstacleMap(obstacles, resolution=10.0)
+        canvas_margin = 200.0
+        if nodes_dict:
+            max_x = max(float(n.x) + float(n.w) for n in nodes_dict.values()) + canvas_margin
+            max_y = max(float(n.y) + float(n.h) for n in nodes_dict.values()) + canvas_margin
+        else:
+            max_x = max_y = 800.0
+        # Adaptive resolution: 10px for small/medium views, 20px for large views.
+        # Coarser grid cuts cell count ~4x, keeping BFS tractable on dense diagrams.
+        _res = 10.0 if max(max_x, max_y) < 2000.0 else 20.0
+        om = ObstacleMap(obstacles, resolution=_res)
+        om._canvas_w = int(max_x / _res) + 5
+        om._canvas_h = int(max_y / _res) + 5
 
         # Route each connection
         conn_refs, all_waypoints = _route_connections(conns, nodes_dict, om, config, warnings)
@@ -178,16 +190,25 @@ def _compute_anchor(
     clearance_x = compute_corner_clearance(nw, config.corner_clearance_pct, config.corner_clearance_min)
     clearance_y = compute_corner_clearance(nh, config.corner_clearance_pct, config.corner_clearance_min)
 
+    # Push anchor outside the node so its BFS cell is beyond the inflated obstacle zone.
+    # Minimum: obstacle_inflate(2px) + resolution + 1px. Use 13px (works for both 10 and 20px).
+    _outside = 13.0
+
     if abs(dx) >= abs(dy):
         # Exit via left or right edge
-        edge_x = nx + nw if dx >= 0 else nx
-        # Clamp y to middle zone
+        if dx >= 0:
+            edge_x = nx + nw + _outside
+        else:
+            edge_x = nx - _outside
         mid_y = ny + nh / 2
         clamped_y = max(ny + clearance_y, min(ny + nh - clearance_y, mid_y))
         return Point(edge_x, clamped_y)
     else:
         # Exit via top or bottom edge
-        edge_y = ny + nh if dy >= 0 else ny
+        if dy >= 0:
+            edge_y = ny + nh + _outside
+        else:
+            edge_y = ny - _outside
         mid_x = nx + nw / 2
         clamped_x = max(nx + clearance_x, min(nx + nw - clearance_x, mid_x))
         return Point(clamped_x, edge_y)

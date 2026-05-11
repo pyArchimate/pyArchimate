@@ -70,6 +70,7 @@ class TestNoSegmentThroughNode:
         from src.pyArchimate.view.layout.routing.obstacle_map import ObstacleMap
         from src.pyArchimate.view.layout.utils.geometry import Rectangle
         obs_rect = Rectangle(obstacle.x, obstacle.y, obstacle.w, obstacle.h)
+        # Use resolution=10 to match auto_route's resolution for small views (<2000px)
         om = ObstacleMap([obs_rect], resolution=10.0)
         wps = conn.bendpoints
         for i in range(len(wps) - 1):
