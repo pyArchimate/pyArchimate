@@ -10,7 +10,11 @@ from .core import LayoutConfig, LayoutResult, RoutingConfig
 from .format import FormatService
 from .layout_engine import apply_node_positions, assign_grid_cells
 from .routing.obstacle_map import ObstacleMap
-from .routing.segment_separation import displace_collinear_segments, remove_uturn_waypoints
+from .routing.segment_separation import (
+    _merge_collinear_adjacent,
+    displace_collinear_segments,
+    remove_uturn_waypoints,
+)
 from .utils.geometry import Point, Rectangle, compute_corner_clearance
 
 
@@ -234,10 +238,11 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
         separated = _revert_new_close_pairs(separated, all_waypoints, config.min_segment_gap)
 
         # Write waypoints back to connections, removing any U-turns introduced
-        # by the displacement pass (opposite-direction segments on the same axis).
+        # by the displacement pass and collapsing redundant collinear bendpoints.
         for conn, wps in zip(conn_refs, separated, strict=False):
             conn.remove_all_bendpoints()
-            for wp in remove_uturn_waypoints(wps):
+            cleaned = _merge_collinear_adjacent(remove_uturn_waypoints(wps))
+            for wp in cleaned:
                 conn.add_bendpoint(wp)
 
         elapsed_ms = (time.time() - start_time) * 1000

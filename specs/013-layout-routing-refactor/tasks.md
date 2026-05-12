@@ -7,12 +7,13 @@
 ## Phase 2 quick-reference (see phase2-routing-quality.md for full detail)
 
 ### 2A — Path cleanup
-- [ ] P2-T01: Diagnose remaining U-turns (which connections, which cluster combo)
-- [ ] P2-T02: Fix displacement double-shift for connections in multiple clusters
-- [ ] P2-T03: Add `_merge_collinear_adjacent()` to `segment_separation.py`
-- [ ] P2-T04: Wire `_merge_collinear_adjacent()` into `auto_route`
-- [ ] P2-T05: Test `test_no_redundant_bendpoints`
-- [ ] P2-T06: Strengthen U-turn test to zero
+
+- [X] P2-T01: Diagnose remaining U-turns — result: 0 U-turns, 1 redundant collinear bendpoint found
+- [X] P2-T02: Fix displacement double-shift — N/A: U-turns already 0; `remove_uturn_waypoints` sufficient
+- [X] P2-T03: Add `_merge_collinear_adjacent()` to `segment_separation.py`
+- [X] P2-T04: Wire `_merge_collinear_adjacent()` into `auto_route`
+- [X] P2-T05: Test `test_no_redundant_bendpoints`
+- [X] P2-T06: Strengthen U-turn test to zero
 
 ### 2B — Layout improvements
 - [ ] P2-T07: Change `LayoutConfig.grid_size` default 160 → 240

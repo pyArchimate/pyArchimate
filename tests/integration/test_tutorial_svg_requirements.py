@@ -635,3 +635,57 @@ class TestEndpointNotCoincident:
             seen.add(pt)
 
         assert coincident == [], f"Coincident endpoints: {coincident}"
+
+
+# ---------------------------------------------------------------------------
+# P2-T06 — Zero U-turns / P2-T05 — Zero redundant collinear bendpoints
+# ---------------------------------------------------------------------------
+
+class TestPathQuality:
+    def test_no_uturns(self, tutorial_svgs) -> None:
+        """P2-T06: zero U-turns (collinear reversals) in any connection after routing."""
+        from src.pyArchimate.view.layout.routing.segment_separation import _EPSILON
+
+        view = tutorial_svgs["view"]
+        violations: list[str] = []
+        for conn in view.conns:
+            wps = [(p.x, p.y) for p in conn.bendpoints]
+            for i in range(1, len(wps) - 1):
+                px, py = wps[i - 1]
+                cx, cy = wps[i]
+                nx, ny = wps[i + 1]
+                horiz_uturn = (
+                        abs(py - cy) < _EPSILON
+                        and abs(cy - ny) < _EPSILON
+                        and (cx - px) * (nx - cx) < 0
+                )
+                vert_uturn = (
+                        abs(px - cx) < _EPSILON
+                        and abs(cx - nx) < _EPSILON
+                        and (cy - py) * (ny - cy) < 0
+                )
+                if horiz_uturn or vert_uturn:
+                    violations.append(
+                        f"conn {conn.uuid[:8]} pt {i}: {wps[i - 1]} → {wps[i]} → {wps[i + 1]}"
+                    )
+        assert violations == [], "U-turns found:\n" + "\n".join(violations)
+
+    def test_no_redundant_bendpoints(self, tutorial_svgs) -> None:
+        """P2-T05: no three consecutive waypoints collinear (redundant middle bendpoint)."""
+        from src.pyArchimate.view.layout.routing.segment_separation import _EPSILON
+
+        view = tutorial_svgs["view"]
+        violations: list[str] = []
+        for conn in view.conns:
+            wps = [(p.x, p.y) for p in conn.bendpoints]
+            for i in range(1, len(wps) - 1):
+                px, py = wps[i - 1]
+                cx, cy = wps[i]
+                nx, ny = wps[i + 1]
+                same_horiz = abs(py - cy) < _EPSILON and abs(cy - ny) < _EPSILON
+                same_vert = abs(px - cx) < _EPSILON and abs(cx - nx) < _EPSILON
+                if same_horiz or same_vert:
+                    violations.append(
+                        f"conn {conn.uuid[:8]} pt {i}: {wps[i - 1]} → {wps[i]} → {wps[i + 1]}"
+                    )
+        assert violations == [], "Redundant collinear bendpoints found:\n" + "\n".join(violations)

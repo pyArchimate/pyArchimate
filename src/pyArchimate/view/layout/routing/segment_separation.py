@@ -156,6 +156,36 @@ def displace_collinear_segments(
     return result
 
 
+def _merge_collinear_adjacent(waypoints: list[Point]) -> list[Point]:
+    """Remove redundant intermediate waypoints where three consecutive points share the same axis.
+
+    Collapses A→B→C into A→C when AB and BC are on the same axis (same x or same y),
+    regardless of direction. Does not alter endpoints. Iterates until stable.
+    """
+    if len(waypoints) < 3:
+        return list(waypoints)
+    changed = True
+    pts = list(waypoints)
+    while changed:
+        changed = False
+        result: list[Point] = [pts[0]]
+        i = 1
+        while i < len(pts) - 1:
+            prev = result[-1]
+            cur = pts[i]
+            nxt = pts[i + 1]
+            same_horiz = abs(prev.y - cur.y) < _EPSILON and abs(cur.y - nxt.y) < _EPSILON
+            same_vert = abs(prev.x - cur.x) < _EPSILON and abs(cur.x - nxt.x) < _EPSILON
+            if same_horiz or same_vert:
+                changed = True  # skip cur — it's redundant
+            else:
+                result.append(cur)
+            i += 1
+        result.append(pts[-1])
+        pts = result
+    return pts
+
+
 def remove_uturn_waypoints(waypoints: list[Point]) -> list[Point]:
     """Remove intermediate waypoints that cause U-turns on the same axis.
 
