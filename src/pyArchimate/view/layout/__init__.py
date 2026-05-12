@@ -6,7 +6,7 @@ This module provides layout algorithms and formatting utilities for ArchiMate vi
 import time
 from typing import Any
 
-from .core import LayoutConfig, LayoutResult, RoutingConfig
+from .core import LayoutConfig, LayoutResult, NodeMove, RoutingConfig
 from .format import FormatService
 from .layout_engine import apply_node_positions, assign_grid_cells
 from .routing.obstacle_map import ObstacleMap
@@ -229,6 +229,108 @@ def _fix_endpoint_stubs(wps: list[Point]) -> list[Point]:
     return result
 
 
+def _multi_pass_route(
+    conns: list[Any],
+    conn_refs: list[Any],
+    all_waypoints: list[list[Point]],
+    nodes_dict: dict[str, Any],
+    om: ObstacleMap,
+    resolution: float,
+    config: RoutingConfig,
+    warnings: list[str],
+) -> tuple[list[NodeMove], ObstacleMap]:
+    """Run escalating-penalty re-routing passes then optional node-move fallback."""
+    node_moves: list[NodeMove] = []
+    if config.max_routing_passes < 2:
+        return node_moves, om
+
+    spread_anchors = _precompute_spread_anchors(conns, nodes_dict, config)
+    for pass_num in range(1, config.max_routing_passes):
+        conflicts = (
+            _detect_node_crossings(all_waypoints, nodes_dict)
+            | _detect_double_crossings(all_waypoints)
+        )
+        if not conflicts:
+            break
+        penalty = config.crossing_penalty * (3.0 ** (pass_num - 1))
+        _route_pass(sorted(conflicts), conn_refs, all_waypoints,
+                    spread_anchors, nodes_dict, om, penalty, warnings)
+
+    if config.allow_node_move:
+        om, node_moves = _apply_node_move_fallback(
+            all_waypoints, conn_refs, nodes_dict, spread_anchors,
+            om, resolution, config, warnings, node_moves,
+        )
+    return node_moves, om
+
+
+def _post_process_waypoints(
+    all_waypoints: list[list[Point]],
+    config: RoutingConfig,
+) -> list[list[Point]]:
+    """Displace collinear overlaps, restore anchors, revert unsafe displacements."""
+    separated = displace_collinear_segments(all_waypoints, config.min_segment_gap)
+    _apply_anchor_restore_and_safety(separated, all_waypoints)
+    return _revert_new_close_pairs(separated, all_waypoints, config.min_segment_gap)
+
+
+def _apply_node_move_fallback(
+    all_waypoints: list[list[Point]],
+    conn_refs: list[Any],
+    nodes_dict: dict[str, Any],
+    spread_anchors: dict[tuple[str, str], Point],
+    om: ObstacleMap,
+    resolution: float,
+    config: RoutingConfig,
+    warnings: list[str],
+    node_moves: list[NodeMove],
+) -> tuple[ObstacleMap, list[NodeMove]]:
+    """Last-resort: shift blocking nodes to open routing corridors (P2-T26).
+
+    For each connection still crossing a node after all routing passes, tries
+    each candidate displacement of the blocking node.  Rebuilds the obstacle map
+    after a successful move and re-routes the affected connection.  If no candidate
+    resolves the crossing, appends a warning.
+    """
+    remaining = _detect_node_crossings(all_waypoints, nodes_dict)
+    for ci in sorted(remaining):
+        candidates = _find_candidate_node_moves(ci, all_waypoints, nodes_dict, config)
+        resolved = False
+        for nids, dx, dy in candidates:
+            records = _apply_node_move(nids, dx, dy, nodes_dict)
+            if records is None:
+                continue
+            new_obstacles = [
+                Rectangle(float(n.x), float(n.y), float(n.w), float(n.h))
+                for n in nodes_dict.values()
+            ]
+            om_new = ObstacleMap(new_obstacles, resolution=resolution)
+            om_new._canvas_w = om._canvas_w
+            om_new._canvas_h = om._canvas_h
+            for ki, wps_k in enumerate(all_waypoints):
+                if ki != ci:
+                    for seg in range(len(wps_k) - 1):
+                        om_new.mark_routed_segment(wps_k[seg], wps_k[seg + 1])
+            _route_pass(
+                [ci], conn_refs, all_waypoints,
+                spread_anchors, nodes_dict, om_new,
+                config.crossing_penalty * 3.0, warnings,
+            )
+            if not _detect_node_crossings([all_waypoints[ci]], nodes_dict):
+                node_moves.extend(records)
+                om = om_new
+                resolved = True
+                break
+            _undo_node_moves(records, nodes_dict)
+        if not resolved and ci < len(conn_refs):
+            conn_uuid = getattr(conn_refs[ci], 'uuid', str(ci))
+            warnings.append(
+                f"auto_route: connection {conn_uuid} still crosses a node "
+                "after all routing passes and node-move attempts"
+            )
+    return om, node_moves
+
+
 def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
     """Recompute all connection paths as obstacle-avoiding orthogonal polylines.
 
@@ -287,44 +389,17 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
         # Pass 0: route all connections (existing penalty-based BFS routing).
         conn_refs, all_waypoints = _route_connections(conns, nodes_dict, om, config, warnings)
 
-        # Multi-pass re-routing (P2-T16): detect connections that still cross nodes
-        # or double-cross another connection, then re-route with escalating penalty.
-        # max_routing_passes ≥ 2 triggers at least one re-routing pass.
-        if config.max_routing_passes >= 2:
-            spread_anchors = _precompute_spread_anchors(conns, nodes_dict, config)
-            for pass_num in range(1, config.max_routing_passes):
-                conflicts = (
-                    _detect_node_crossings(all_waypoints, nodes_dict)
-                    | _detect_double_crossings(all_waypoints)
-                )
-                if not conflicts:
-                    break
-                penalty = config.crossing_penalty * (3.0 ** (pass_num - 1))
-                _route_pass(
-                    sorted(conflicts), conn_refs, all_waypoints,
-                    spread_anchors, nodes_dict, om, penalty, warnings,
-                )
+        # Multi-pass conflict resolution + node-move fallback (P2-T16/T26).
+        node_moves, om = _multi_pass_route(
+            conns, conn_refs, all_waypoints, nodes_dict, om, _res, config, warnings,
+        )
 
-        # Post-process: displace truly collinear overlaps (0px separation only).
-        # Penalty-based routing already separates connections by ≥ 1 BFS cell (10px);
-        # this pass only handles any residual zero-separation cases.
-        separated = displace_collinear_segments(all_waypoints, config.min_segment_gap)
-        _apply_anchor_restore_and_safety(separated, all_waypoints)
+        # Post-processing: separation, anchor restore, cleanup.
+        separated = _post_process_waypoints(all_waypoints, config)
 
-        # Near-overlap check: revert displaced connections that introduced new
-        # segment pairs closer than min_segment_gap.
-        separated = _revert_new_close_pairs(separated, all_waypoints, config.min_segment_gap)
-
-        # Write waypoints back to connections:
-        #   1. Absorb short backward stubs at endpoints (BFS grid-snapping artefacts)
-        #   2. Remove U-turns introduced by the displacement pass
-        #   3. Collapse redundant collinear intermediate bendpoints
         for conn, wps in zip(conn_refs, separated, strict=False):
             conn.remove_all_bendpoints()
-            cleaned = _merge_collinear_adjacent(
-                remove_uturn_waypoints(_fix_endpoint_stubs(wps))
-            )
-            for wp in cleaned:
+            for wp in _merge_collinear_adjacent(remove_uturn_waypoints(_fix_endpoint_stubs(wps))):
                 conn.add_bendpoint(wp)
 
         elapsed_ms = (time.time() - start_time) * 1000
@@ -336,6 +411,7 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
             connections_processed=len(conn_refs),
             layout_time_ms=elapsed_ms,
             warnings=warnings,
+            node_moves=node_moves,
         )
 
     except Exception as e:
@@ -740,6 +816,128 @@ def _detect_double_crossings(all_waypoints: list[list[Point]]) -> set[int]:
                 conflicts.add(longer)
 
     return conflicts
+
+
+# ---------------------------------------------------------------------------
+# P2-T24: _find_candidate_node_moves
+# ---------------------------------------------------------------------------
+
+def _find_candidate_node_moves(
+    conn_idx: int,
+    all_waypoints: list[list[Point]],
+    nodes_dict: dict[str, Any],
+    config: RoutingConfig,
+) -> list[tuple[list[str], float, float]]:
+    """Return candidate (node_uuids, delta_x, delta_y) moves for a crossing connection.
+
+    Identifies nodes whose bounding box the connection passes through, then generates
+    ±1-cell displacement candidates in the perpendicular-to-segment axis.  Each
+    candidate is a (node_uuid_list, dx, dy) triple — the list is always length 1 for
+    single nodes (block-move support left for future extension).
+
+    Only cells within the current layer row are proposed (layer constraint preserved).
+    """
+    cell_size = config.max_node_displacement * 120.0  # approximate grid cell size
+    wps = all_waypoints[conn_idx]
+    _shrink = 2.0
+    candidates: list[tuple[list[str], float, float]] = []
+    seen: set[str] = set()
+
+    for j in range(len(wps) - 1):
+        p1, p2 = wps[j], wps[j + 1]
+        horizontal = abs(p1.y - p2.y) < 0.5
+        x_lo = min(p1.x, p2.x)
+        x_hi = max(p1.x, p2.x)
+        y_lo = min(p1.y, p2.y)
+        y_hi = max(p1.y, p2.y)
+
+        for nid, node in nodes_dict.items():
+            if nid in seen:
+                continue
+            nx, ny, nw, nh = float(node.x), float(node.y), float(node.w), float(node.h)
+            rx0, ry0, rx1, ry1 = nx + _shrink, ny + _shrink, nx + nw - _shrink, ny + nh - _shrink
+            crosses = (
+                (horizontal and ry0 < p1.y < ry1 and x_lo < rx1 and x_hi > rx0) or
+                (not horizontal and rx0 < p1.x < rx1 and y_lo < ry1 and y_hi > ry0)
+            )
+            if not crosses:
+                continue
+            seen.add(nid)
+            # Propose displacing the blocking node perpendicular to the segment.
+            if horizontal:
+                # Segment is horizontal → move node up or down
+                for dy in (-cell_size, cell_size):
+                    candidates.append(([nid], 0.0, dy))
+            else:
+                # Segment is vertical → move node left or right
+                for dx in (-cell_size, cell_size):
+                    candidates.append(([nid], dx, 0.0))
+
+    return candidates
+
+
+# ---------------------------------------------------------------------------
+# P2-T25: _apply_node_move
+# ---------------------------------------------------------------------------
+
+def _apply_node_move(
+    nids: list[str],
+    dx: float,
+    dy: float,
+    nodes_dict: dict[str, Any],
+) -> list[NodeMove] | None:
+    """Tentatively shift nodes by (dx, dy); reject if any overlap results.
+
+    Returns a list of NodeMove records on success, None if rejected.
+    Callers must undo by calling _undo_node_moves when the tentative move fails.
+    """
+    moved: list[tuple[Any, float, float]] = []  # (node_obj, old_x, old_y)
+    records: list[NodeMove] = []
+
+    for nid in nids:
+        node = nodes_dict.get(nid)
+        if node is None:
+            return None
+        moved.append((node, float(node.x), float(node.y)))
+        node.x = float(node.x) + dx
+        node.y = float(node.y) + dy
+
+    # Overlap check: verify no two nodes now overlap
+    all_nodes = list(nodes_dict.values())
+    for i, ni in enumerate(all_nodes):
+        for j in range(i + 1, len(all_nodes)):
+            nj = all_nodes[j]
+            if (float(ni.x) < float(nj.x) + float(nj.w) and
+                    float(nj.x) < float(ni.x) + float(ni.w) and
+                    float(ni.y) < float(nj.y) + float(nj.h) and
+                    float(nj.y) < float(ni.y) + float(ni.h)):
+                # Overlap detected — undo
+                for node_obj, old_x, old_y in moved:
+                    node_obj.x = old_x
+                    node_obj.y = old_y
+                return None
+
+    # Commit: build NodeMove records
+    for node_obj, old_x, old_y in moved:
+        nid_val = getattr(node_obj, 'uuid', None) or getattr(node_obj, 'id', str(id(node_obj)))
+        records.append(NodeMove(
+            uuid=str(nid_val),
+            old_x=old_x,
+            old_y=old_y,
+            new_x=float(node_obj.x),
+            new_y=float(node_obj.y),
+        ))
+
+    return records
+
+
+def _undo_node_moves(records: list[NodeMove], nodes_dict: dict[str, Any]) -> None:
+    """Restore node positions from NodeMove records (undo a tentative move)."""
+    for rec in records:
+        node = nodes_dict.get(rec.uuid)
+        if node is not None:
+            node.x = rec.old_x
+            node.y = rec.old_y
 
 
 def apply_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:

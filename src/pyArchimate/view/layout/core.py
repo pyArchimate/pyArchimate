@@ -6,6 +6,20 @@ from typing import Any
 
 
 @dataclass
+class NodeMove:
+    """Records a single node repositioning made by routing-driven node move (FR-023).
+
+    Callers can audit or undo moves by comparing old and new coordinates.
+    """
+
+    uuid: str
+    old_x: float
+    old_y: float
+    new_x: float
+    new_y: float
+
+
+@dataclass
 class LayoutConfig:
     """Configuration for auto_layout operations.
 
@@ -91,6 +105,10 @@ class RoutingConfig:
     - corner_clearance_pct: Fraction of edge length reserved at each corner (0 < pct <= 0.50)
     - corner_clearance_min: Absolute floor for corner clearance in px
     - crossing_penalty: Cost weight applied in BFS when crossing an already-routed segment
+    - max_routing_passes: Maximum number of re-routing passes for conflict resolution
+    - allow_node_move: Opt-in last-resort: shift a blocking node ≤ max_node_displacement
+      cells to open a routing corridor. Off by default (preserves SC-010).
+    - max_node_displacement: Max cells a node may be shifted per move (default 1)
     """
 
     min_segment_gap: float = 10.0
@@ -98,6 +116,8 @@ class RoutingConfig:
     corner_clearance_min: float = 4.0
     crossing_penalty: float = 3.0
     max_routing_passes: int = 3
+    allow_node_move: bool = False
+    max_node_displacement: int = 1
 
     def __post_init__(self) -> None:
         if self.min_segment_gap < 0:
@@ -110,6 +130,8 @@ class RoutingConfig:
             raise ValueError("crossing_penalty must be >= 0")
         if self.max_routing_passes < 1:
             raise ValueError("max_routing_passes must be >= 1")
+        if self.max_node_displacement < 1:
+            raise ValueError("max_node_displacement must be >= 1")
 
 
 @dataclass
@@ -125,6 +147,7 @@ class LayoutResult:
     quality_metrics: dict[str, Any] = field(default_factory=dict)
     error_message: str | None = None
     warnings: list[str] = field(default_factory=list)
+    node_moves: list[NodeMove] = field(default_factory=list)
 
 
 class LayoutAlgorithm(ABC):

@@ -718,3 +718,87 @@ class TestMultiPassNodeCrossingsIntegration:
         assert violations == [], (
             "Node crossings after multi-pass routing:\n" + "\n".join(violations[:10])
         )
+
+
+# ---------------------------------------------------------------------------
+# P2-T31 — NodeMove entries in result when allow_node_move=True
+# ---------------------------------------------------------------------------
+
+class TestNodeMoveIntegration:
+    def test_node_moves_list_present_in_result(self) -> None:
+        """P2-T31: LayoutResult.node_moves is a list (possibly empty) after auto_route."""
+        from src.pyArchimate import ArchiType, Model
+        from src.pyArchimate.view.layout import LayoutConfig, RoutingConfig, auto_layout, auto_route
+
+        model = Model("nm-test")
+        src_e = model.add(ArchiType.ApplicationService, "Source")
+        tgt_e = model.add(ArchiType.ApplicationService, "Target")
+        model.add_relationship(source=src_e, target=tgt_e, rel_type="Serving")
+
+        view = model.add(ArchiType.View, "V")
+        n_src = view.add(src_e, x=0, y=200, w=120, h=55)
+        n_tgt = view.add(tgt_e, x=400, y=200, w=120, h=55)
+        for r in model.relationships:
+            if r.source == src_e and r.target == tgt_e:
+                view.add_connection(ref=r, source=n_src, target=n_tgt)
+
+        auto_layout(view, LayoutConfig(grid_size=160.0, margin=40.0))
+        result = auto_route(view, RoutingConfig(allow_node_move=False))
+
+        assert result.success is True
+        assert isinstance(result.node_moves, list), "node_moves must be a list"
+        assert result.node_moves == [], "No moves expected when allow_node_move=False"
+
+    def test_node_moves_recorded_when_move_enabled(self) -> None:
+        """P2-T31: when allow_node_move=True and a move is made, NodeMove entries appear."""
+        # Build fixture directly with mock helpers from auto_route test module
+        from unittest.mock import MagicMock
+
+        from src.pyArchimate.view.layout import NodeMove, RoutingConfig, auto_route
+
+        def _mk_node(uid, x, y, w=120, h=55):
+            n = MagicMock()
+            n.uuid = uid
+            n.x = x
+            n.y = y
+            n.w = w
+            n.h = h
+            n.cx = x + w / 2
+            n.cy = y + h / 2
+            return n
+
+        def _mk_conn(uid, src, tgt):
+            c = MagicMock()
+            c.uuid = uid
+            c._source = src
+            c._target = tgt
+            c.bendpoints = []
+            c.add_bendpoint.side_effect = lambda p: c.bendpoints.append(p)
+            c.remove_all_bendpoints.side_effect = c.bendpoints.clear
+            return c
+
+        src = _mk_node("src", 0, 200)
+        tgt = _mk_node("tgt", 500, 200)
+        # Blocker placed directly in the straight-line corridor
+        blocker = _mk_node("blocker", 230, 200)
+        conn = _mk_conn("c1", "src", "tgt")
+
+        view = MagicMock()
+        view.uuid = "v1"
+        view.nodes = [src, tgt, blocker]
+        view.nodes_dict = {n.uuid: n for n in [src, tgt, blocker]}
+        view.conns = [conn]
+
+        config = RoutingConfig(allow_node_move=True, max_routing_passes=3, crossing_penalty=10.0)
+        result = auto_route(view, config)
+
+        assert result.success is True
+        assert isinstance(result.node_moves, list)
+        # If a move was made, verify NodeMove shape
+        for move in result.node_moves:
+            assert isinstance(move, NodeMove)
+            assert move.uuid in {"src", "tgt", "blocker"}
+            assert isinstance(move.old_x, float)
+            assert isinstance(move.new_x, float)
+            assert move.old_x != move.new_x or move.old_y != move.new_y, \
+                "NodeMove must record a genuine displacement"

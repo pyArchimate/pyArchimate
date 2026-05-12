@@ -365,3 +365,152 @@ class TestMultiPassPerformance:
         elapsed = time.time() - start
         assert result.success is True
         assert elapsed < 8.0, f"Multi-pass auto_route took {elapsed:.2f}s (limit 8s with coverage)"
+
+
+# ---------------------------------------------------------------------------
+# P2-T27 — allow_node_move=False preserves SC-010 (no node position changes)
+# ---------------------------------------------------------------------------
+
+class TestAllowNodeMoveFalse:
+    def test_node_positions_unchanged_when_move_disabled(self) -> None:
+        """P2-T27: allow_node_move=False (default) must never alter any node position."""
+        src = mock_node("src", 0, 100)
+        tgt = mock_node("tgt", 400, 100)
+        blocker = mock_node("blocker", 190, 100)
+        conn = mock_connection("c1", "src", "tgt")
+        view = make_view([src, tgt, blocker], [conn])
+
+        before = {n.uuid: (n.x, n.y) for n in [src, tgt, blocker]}
+        config = RoutingConfig(allow_node_move=False, max_routing_passes=3)
+        result = auto_route(view, config)
+
+        assert result.success is True
+        assert result.node_moves == [], "node_moves must be empty when allow_node_move=False"
+        for n in [src, tgt, blocker]:
+            assert (n.x, n.y) == before[n.uuid], f"Node {n.uuid} position changed unexpectedly"
+
+    def test_default_routing_config_has_allow_node_move_false(self) -> None:
+        """P2-T27: RoutingConfig.allow_node_move defaults to False (SC-010 preserved)."""
+        assert RoutingConfig().allow_node_move is False
+
+    def test_default_routing_config_has_max_node_displacement_1(self) -> None:
+        """P2-T23: RoutingConfig.max_node_displacement defaults to 1."""
+        assert RoutingConfig().max_node_displacement == 1
+
+
+# ---------------------------------------------------------------------------
+# P2-T28 — Single blocking node moved 1 cell to open corridor
+# ---------------------------------------------------------------------------
+
+class TestNodeMoveOpensCoridor:
+    def test_blocking_node_moved_to_resolve_crossing(self) -> None:
+        """P2-T28: with allow_node_move=True a blocking node shifts to open a corridor."""
+        # Blocker sits directly in the path between src and tgt (same row).
+        src = mock_node("src",     0,   200, 80, 80)
+        tgt = mock_node("tgt",   500,   200, 80, 80)
+        blocker = mock_node("blocker", 220, 200, 80, 80)
+
+        conn = mock_connection("c1", "src", "tgt")
+        view = make_view([src, tgt, blocker], [conn])
+
+        config = RoutingConfig(allow_node_move=True, max_routing_passes=3, crossing_penalty=5.0)
+        result = auto_route(view, config)
+
+        assert result.success is True
+        # Either the path avoids the blocker (routing resolved it) OR a node move was recorded
+        # and the blocker's position changed.
+        if result.node_moves:
+            moved_uuids = {m.uuid for m in result.node_moves}
+            assert "blocker" in moved_uuids, "Expected blocker to be the moved node"
+            move = next(m for m in result.node_moves if m.uuid == "blocker")
+            # Blocker must have moved at most max_node_displacement cells
+            displacement = abs(move.new_x - move.old_x) + abs(move.new_y - move.old_y)
+            assert displacement > 0, "NodeMove must record a non-zero displacement"
+            assert displacement <= 240, "Displacement exceeds 1 grid cell (240px)"
+            # Blocker's new position must not overlap src or tgt
+            for n in [src, tgt]:
+                overlap = (
+                    float(blocker.x) < float(n.x) + float(n.w) and
+                    float(n.x) < float(blocker.x) + float(blocker.w) and
+                    float(blocker.y) < float(n.y) + float(n.h) and
+                    float(n.y) < float(blocker.y) + float(blocker.h)
+                )
+                assert not overlap, f"Moved blocker overlaps node {n.uuid}"
+
+
+# ---------------------------------------------------------------------------
+# P2-T29 — Move rejected when it would cause overlap
+# ---------------------------------------------------------------------------
+
+class TestNodeMoveRejectedOnOverlap:
+    def test_move_rejected_when_causes_overlap(self) -> None:
+        """P2-T29: _apply_node_move returns None when the move would create a node overlap."""
+        from src.pyArchimate.view.layout import _apply_node_move
+
+        # n1 and n2 are placed so that moving n1 by 120px right would overlap n2.
+        n1 = mock_node("n1", 0, 0, 120, 55)
+        n2 = mock_node("n2", 130, 0, 120, 55)  # 10px gap from n1's right edge
+        nodes_dict = {"n1": n1, "n2": n2}
+
+        # Moving n1 right by 120px → new position (120,0), which overlaps n2 at (130,0)
+        result = _apply_node_move(["n1"], 120.0, 0.0, nodes_dict)
+        assert result is None, "Move should be rejected (would cause overlap)"
+        # Positions must be unchanged after rejection
+        assert n1.x == 0
+        assert n1.y == 0
+
+    def test_move_accepted_when_no_overlap(self) -> None:
+        """P2-T29: _apply_node_move returns records when move is valid."""
+        from src.pyArchimate.view.layout import NodeMove, _apply_node_move
+
+        n1 = mock_node("n1", 0, 0, 120, 55)
+        n2 = mock_node("n2", 500, 0, 120, 55)  # far away — no overlap
+        nodes_dict = {"n1": n1, "n2": n2}
+
+        records = _apply_node_move(["n1"], 120.0, 0.0, nodes_dict)
+        assert records is not None, "Valid move should succeed"
+        assert len(records) == 1
+        assert isinstance(records[0], NodeMove)
+        assert records[0].uuid == "n1"
+        assert records[0].old_x == 0.0
+        assert records[0].new_x == 120.0
+
+
+# ---------------------------------------------------------------------------
+# P2-T30 — _find_candidate_node_moves returns candidates for crossing connection
+# ---------------------------------------------------------------------------
+
+class TestFindCandidateNodeMoves:
+    def test_finds_blocking_node(self) -> None:
+        """P2-T30: _find_candidate_node_moves identifies nodes crossed by the connection."""
+        from src.pyArchimate.view.layout import _find_candidate_node_moves
+        from src.pyArchimate.view.layout.core import RoutingConfig as RC
+        from src.pyArchimate.view.layout.utils.geometry import Point
+
+        blocker = mock_node("blocker", 190, 95, 80, 80)
+        nodes_dict = {"blocker": blocker}
+
+        # Horizontal segment at y=135 crossing blocker (y=95 to y=175)
+        wps = [[Point(0, 135), Point(400, 135)]]
+        config = RC(max_node_displacement=1)
+
+        candidates = _find_candidate_node_moves(0, wps, nodes_dict, config)
+        assert len(candidates) > 0, "Should find at least one candidate for the blocking node"
+        uuids_proposed = {nids[0] for nids, _dx, _dy in candidates}
+        assert "blocker" in uuids_proposed
+
+    def test_no_candidates_when_no_crossing(self) -> None:
+        """P2-T30: returns empty list when connection does not cross any node."""
+        from src.pyArchimate.view.layout import _find_candidate_node_moves
+        from src.pyArchimate.view.layout.core import RoutingConfig as RC
+        from src.pyArchimate.view.layout.utils.geometry import Point
+
+        far_node = mock_node("far", 500, 500, 80, 80)
+        nodes_dict = {"far": far_node}
+
+        # Segment nowhere near far_node
+        wps = [[Point(0, 10), Point(100, 10)]]
+        config = RC(max_node_displacement=1)
+
+        candidates = _find_candidate_node_moves(0, wps, nodes_dict, config)
+        assert candidates == []
