@@ -11,7 +11,7 @@ def test_layout_config_defaults() -> None:
     assert config.algorithm == "force_directed"
     assert config.spacing == 50.0
     assert config.margin == 20.0
-    assert config.alignment == "grid"
+    assert config.alignment == "free"  # Default is "free" (changed from "grid")
     assert config.excluded_element_ids == []
     assert config.routing_style == "orthogonal"
 

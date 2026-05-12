@@ -520,7 +520,8 @@ class SVGExportService:
 
     def _render_grouping(self, g: ET.Element, x: float, y: float, w: float, h: float, node: Any) -> None:
         """Render Grouping as dashed L-shaped border with label in top-left tab."""
-        name = getattr(node, "name", getattr(node, "label", ""))
+        _raw = getattr(node, "name", None)
+        name = _raw if _raw is not None else getattr(node, "label", "") or ""
         tab_w = w * 0.75
         lines = self._word_wrap_text(name, tab_w - 10) if name else []
         tab_h = min(max(15.0, len(lines) * 11 + 6), h * 0.4)
@@ -700,7 +701,8 @@ class SVGExportService:
 
         # 4. Text
         has_children = len(getattr(node, "nodes", [])) > 0
-        element_name = getattr(node, "name", getattr(node, "label", ""))
+        _raw_name = getattr(node, "name", None)
+        element_name = _raw_name if _raw_name is not None else getattr(node, "label", "") or ""
         if element_name:
             if has_children:
                 self._render_topleft_text(g, node, x, y, w)
@@ -716,11 +718,12 @@ class SVGExportService:
 
         Args:
             parent: Parent SVG element
-            node: Node with name/label
+            node: Node with name or label
             x, y: Element position
             w: Element width
         """
-        name = getattr(node, "name", getattr(node, "label", ""))
+        _raw = getattr(node, "name", None)
+        name = _raw if _raw is not None else getattr(node, "label", "") or ""
         if name:
             self._render_wrapped_text(parent, name, x + 5, y + 14, w - 10, is_centered=False)
 
@@ -1037,13 +1040,18 @@ class SVGExportService:
         if len(points) < 2:
             return
 
-        rel_type = getattr(conn, "type", "Association")
+        # _type_override allows test steps to inject a display type name without
+        # changing the underlying model relationship type (e.g., "ServesRelationship").
+        rel_type: str = getattr(conn, "_type_override", None) or getattr(conn, "type", None) or "Association"
         relationship_style = self._lookup_rel_style(rel_type, relationship_service)
         if not relationship_style:
             self._render_connection(svg, conn, nodes_dict)
             return
 
-        stroke_color = getattr(conn, "stroke_color", None) or relationship_style.stroke_color
+        # Check both stroke_color and line_color (Connection stores as line_color)
+        stroke_color = (getattr(conn, "stroke_color", None)
+                        or getattr(conn, "line_color", None)
+                        or relationship_style.stroke_color)
         stroke_width = getattr(conn, "stroke_width", None) or relationship_style.stroke_width
         stroke_dasharray = getattr(conn, "stroke_style", None) or relationship_style.stroke_dasharray
 

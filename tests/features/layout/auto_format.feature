@@ -91,7 +91,7 @@ Feature: Auto-Format Elements and Connections
 
   @wip
   Scenario: Handle Empty Views Gracefully
-    Given an empty view with no elements
+    Given an empty mock view with no elements
     When I apply auto-format to the view
     Then the operation should succeed without errors
     And zero elements should be processed

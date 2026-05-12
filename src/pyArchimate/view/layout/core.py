@@ -40,7 +40,7 @@ class LayoutConfig:
     algorithm: str = "force_directed"
     spacing: float = 50.0
     margin: float = 20.0
-    alignment: str = "grid"
+    alignment: str = "free"
     excluded_element_ids: list[int] = field(default_factory=list)
     node_size_constraints: dict[str, Any] = field(default_factory=dict)
     routing_style: str = "orthogonal"

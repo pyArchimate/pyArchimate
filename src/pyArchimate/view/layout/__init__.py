@@ -1005,6 +1005,13 @@ def apply_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
             connections_processed=route_result.connections_processed,
             layout_time_ms=elapsed_ms,
             warnings=merged_warnings,
+            quality_metrics={
+                "layer_priority": config.layer_priority,
+                "routing_style": config.routing_style,
+                "spacing": config.spacing,
+                "alignment": config.alignment,
+                "grid_size": config.grid_size,
+            },
         )
     except Exception as e:
         elapsed_ms = (time.time() - start_time) * 1000

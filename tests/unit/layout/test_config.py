@@ -14,7 +14,7 @@ class TestLayoutConfigValidation:
         assert config.algorithm == "force_directed"
         assert config.spacing == 50.0
         assert config.margin == 20.0
-        assert config.alignment == "grid"
+        assert config.alignment == "free"  # Default is "free" (changed from "grid")
         assert config.routing_style == "orthogonal"
         assert config.layer_priority == "mandatory"
         assert config.grid_size == 240.0

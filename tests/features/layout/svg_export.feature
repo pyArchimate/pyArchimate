@@ -24,7 +24,7 @@ Feature: Export View as SVG Diagram
 
     @wip
     Scenario: SVG labels show short relationship type names
-        Given a view with a "ServestRelationship" connection
+        Given a view with a "ServesRelationship" connection
         When I export the view to SVG
         Then the SVG contains a label "Serves" (without "Relationship" suffix)
         And the label is positioned on the longest segment of the connection

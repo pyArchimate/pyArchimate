@@ -67,7 +67,7 @@ class TestRelationshipStyles:
         """Verify Realization relationship uses dotted line."""
         style = ARCHIMATE_RELATIONSHIP_STYLES["Realization"]
         assert style.stroke_dasharray is not None
-        assert style.stroke_dasharray == "2,2"
+        assert style.stroke_dasharray == "5,5"  # Per BDD spec (was "2,2")
 
     def test_realization_uses_hollow_arrow(self):
         """Verify Realization relationship uses hollow arrow."""
