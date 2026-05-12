@@ -11,7 +11,7 @@
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=pyArchimate_pyArchimate&metric=bugs)](https://sonarcloud.io/project/overview?id=pyArchimate_pyArchimate)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=pyArchimate_pyArchimate&metric=security_rating)](https://sonarcloud.io/project/overview?id=pyArchimate_pyArchimate)
 [![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=pyArchimate_pyArchimate&metric=sqale_rating)](https://sonarcloud.io/project/overview?id=pyArchimate_pyArchimate)
-[![Docs](https://readthedocs.org/projects/pyarchimate/badge/?version=latest)](https://pyarchimate.readthedocs.io)
+[![Docs](https://readthedocs.org/projects/pyarchimate/badge/?version=master)](https://pyarchimate.readthedocs.io)
 
 Documentation: [readthedocs.org](https://pyarchimate.readthedocs.io)
 
