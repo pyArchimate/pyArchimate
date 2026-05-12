@@ -17,7 +17,7 @@ class TestLayoutConfigValidation:
         assert config.alignment == "grid"
         assert config.routing_style == "orthogonal"
         assert config.layer_priority == "mandatory"
-        assert config.grid_size == 120.0
+        assert config.grid_size == 240.0
         assert config.excluded_element_ids == []
         assert config.node_size_constraints == {}
 

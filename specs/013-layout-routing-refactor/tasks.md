@@ -16,11 +16,11 @@
 - [X] P2-T06: Strengthen U-turn test to zero
 
 ### 2B — Layout improvements
-- [ ] P2-T07: Change `LayoutConfig.grid_size` default 160 → 240
-- [ ] P2-T08: Add `LayoutConfig.high_degree_threshold = 5`
-- [ ] P2-T09: Implement high-degree node row isolation in `assign_grid_cells`
-- [ ] P2-T10: Unit test for 240px grid snap
-- [ ] P2-T11: Unit test for high-degree isolation
+- [X] P2-T07: Change `LayoutConfig.grid_size` default 120 → 240
+- [X] P2-T08: Add `LayoutConfig.high_degree_threshold = 5`
+- [X] P2-T09: Implement high-degree node row isolation in `assign_grid_cells`
+- [X] P2-T10: Unit test for 240px grid snap
+- [X] P2-T11: Unit test for high-degree isolation
 
 ### 2C — Multi-pass routing
 - [ ] P2-T12: `ObstacleMap.unmark_routed_segment()`

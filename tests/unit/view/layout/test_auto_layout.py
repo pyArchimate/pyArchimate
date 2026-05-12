@@ -194,3 +194,107 @@ class TestPerformance:
         elapsed = time.time() - start
         assert result.success is True
         assert elapsed < 2.0, f"auto_layout took {elapsed:.2f}s for 500 nodes (limit 2s)"
+
+
+# ---------------------------------------------------------------------------
+# P2-T10 — Default grid_size=240 snapping
+# ---------------------------------------------------------------------------
+
+class TestDefaultGridSize:
+    def test_default_grid_size_is_240(self) -> None:
+        """P2-T10: Default LayoutConfig.grid_size is 240px."""
+        assert LayoutConfig().grid_size == 240.0
+
+    def test_nodes_snap_to_240px_grid(self) -> None:
+        """P2-T10: auto_layout with default config snaps all node origins to 240px multiples."""
+        nodes = [
+            mock_node("b1", "BusinessActor"),
+            mock_node("b2", "BusinessActor"),
+            mock_node("a1", "ApplicationComponent"),
+        ]
+        view = make_view(nodes)
+        config = LayoutConfig(margin=0.0)  # default grid_size=240
+        auto_layout(view, config)
+        for node in nodes:
+            assert node.x % 240 == 0, f"node.x={node.x} not multiple of 240"
+            assert node.y % 240 == 0, f"node.y={node.y} not multiple of 240"
+
+
+# ---------------------------------------------------------------------------
+# P2-T11 — High-degree node row isolation
+# ---------------------------------------------------------------------------
+
+class TestHighDegreeIsolation:
+    def test_high_degree_node_gets_isolation_gap(self) -> None:
+        """P2-T11: high-degree node (degree >= 5) has at least 1 grid-cell gap to neighbors."""
+        from src.pyArchimate.view.layout.layout_engine import assign_grid_cells
+
+        # 1 high-degree node + 2 normal nodes in same layer
+        nodes = [
+            mock_node("hub", "ApplicationComponent"),
+            mock_node("n1",  "ApplicationComponent"),
+            mock_node("n2",  "ApplicationComponent"),
+        ]
+        # hub has degree 5 (high), others have degree 1
+        degrees = {"hub": 5, "n1": 1, "n2": 1}
+        assignments = assign_grid_cells(
+            nodes,
+            grid_size=240.0,
+            layer_direction="vertical",
+            node_degrees=degrees,
+            high_degree_threshold=5,
+        )
+        hub_col = assignments["hub"][0]
+        n1_col  = assignments["n1"][0]
+        n2_col  = assignments["n2"][0]
+        # hub must have at least 1 empty cell between it and any neighbor in same row
+        for neighbor_col in (n1_col, n2_col):
+            if assignments["hub"][1] == assignments[list({"n1","n2"} - {list({"n1","n2"})[0]})[0]][1]:
+                # same row: check gap
+                assert abs(hub_col - neighbor_col) >= 2, (
+                    f"hub col={hub_col} too close to neighbor col={neighbor_col} (gap < 2 cells)"
+                )
+
+    def test_high_degree_threshold_default_is_5(self) -> None:
+        """P2-T11: LayoutConfig.high_degree_threshold defaults to 5."""
+        assert LayoutConfig().high_degree_threshold == 5
+
+    def test_no_isolation_below_threshold(self) -> None:
+        """P2-T11: nodes below threshold packed normally (no isolation gap)."""
+        from src.pyArchimate.view.layout.layout_engine import assign_grid_cells
+
+        nodes = [mock_node(f"n{i}", "ApplicationComponent") for i in range(4)]
+        degrees = {f"n{i}": 2 for i in range(4)}  # all below threshold=5
+        assignments = assign_grid_cells(
+            nodes,
+            grid_size=240.0,
+            layer_direction="vertical",
+            node_degrees=degrees,
+            high_degree_threshold=5,
+        )
+        # All 4 nodes should fit in columns 0–3 (packed, no isolation gaps)
+        cols = sorted(assignments[f"n{i}"][0] for i in range(4))
+        assert cols == [0, 1, 2, 3], f"Expected packed cols [0,1,2,3] but got {cols}"
+
+    def test_high_degree_node_not_adjacent_to_neighbor_in_same_row(self) -> None:
+        """P2-T11: high-degree node has at least 1 cell gap; its col+1 is blocked."""
+        from src.pyArchimate.view.layout.layout_engine import assign_grid_cells
+
+        nodes = [
+            mock_node("hub", "ApplicationComponent"),
+            mock_node("after", "ApplicationComponent"),
+        ]
+        degrees = {"hub": 6, "after": 1}
+        assignments = assign_grid_cells(
+            nodes,
+            grid_size=240.0,
+            layer_direction="vertical",
+            node_degrees=degrees,
+            high_degree_threshold=5,
+        )
+        hub_col = assignments["hub"][0]
+        after_col = assignments["after"][0]
+        # after must not be immediately adjacent (col+1) to hub
+        assert after_col >= hub_col + 2, (
+            f"after_col={after_col} adjacent to hub_col={hub_col}; expected gap of ≥2"
+        )

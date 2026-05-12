@@ -56,10 +56,20 @@ def auto_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
             if str(getattr(n, 'uuid', None) or getattr(n, 'id', id(n))) not in excluded
         ]
 
+        # Compute node degrees (connection count) for high-degree isolation heuristic.
+        node_degrees: dict[str, int] = {}
+        for conn in getattr(view, 'conns', []):
+            for attr in ('_source', '_target'):
+                nid = getattr(conn, attr, None)
+                if nid:
+                    node_degrees[str(nid)] = node_degrees.get(str(nid), 0) + 1
+
         cell_assignments = assign_grid_cells(
             active_nodes,
             grid_size=config.grid_size,
             layer_direction=config.layer_direction,
+            node_degrees=node_degrees,
+            high_degree_threshold=config.high_degree_threshold,
         )
         apply_node_positions(view, cell_assignments, config.grid_size, config.margin)
 

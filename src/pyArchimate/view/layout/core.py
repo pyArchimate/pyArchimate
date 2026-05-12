@@ -17,8 +17,10 @@ class LayoutConfig:
     - node_size_constraints: Dict with min/max constraints for node sizing
     - routing_style: "orthogonal" (0°/90°) or "mixed_45" (allow ±45° angles)
     - layer_priority: "mandatory" (enforce layer constraints) or "soft"
-    - grid_size: Grid cell size in pixels for coarse-grid snapping (default 120 = node width)
+    - grid_size: Grid cell size in pixels for coarse-grid snapping (default 240 = node width + gap)
     - layer_direction: "vertical" (Business top) or "horizontal" (Business left)
+    - high_degree_threshold: Nodes with connection degree >= this value get isolated to their own
+      sub-row (padded 1 cell on each side) to reduce routing bottlenecks (default 5)
     """
 
     algorithm: str = "force_directed"
@@ -29,8 +31,9 @@ class LayoutConfig:
     node_size_constraints: dict[str, Any] = field(default_factory=dict)
     routing_style: str = "orthogonal"
     layer_priority: str = "mandatory"
-    grid_size: float = 120.0
+    grid_size: float = 240.0
     layer_direction: str = "vertical"
+    high_degree_threshold: int = 5
 
     def _validate_spacing_and_margin(self) -> None:
         if self.spacing <= 0:
