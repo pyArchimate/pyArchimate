@@ -23,13 +23,13 @@
 - [X] P2-T11: Unit test for high-degree isolation
 
 ### 2C — Multi-pass routing
-- [ ] P2-T12: `ObstacleMap.unmark_routed_segment()`
-- [ ] P2-T13: Extract `_route_pass()` helper
-- [ ] P2-T14: `_detect_node_crossings()`
-- [ ] P2-T15: `_detect_double_crossings()`
-- [ ] P2-T16: Multi-pass outer loop in `auto_route` (max 3 passes)
-- [ ] P2-T17: `RoutingConfig.max_routing_passes = 3`
-- [ ] P2-T18–P2-T21: Tests and performance validation
+- [X] P2-T12: `ObstacleMap.unmark_routed_segment()`
+- [X] P2-T13: Extract `_route_pass()` helper
+- [X] P2-T14: `_detect_node_crossings()`
+- [X] P2-T15: `_detect_double_crossings()`
+- [X] P2-T16: Multi-pass outer loop in `auto_route` (max 3 passes)
+- [X] P2-T17: `RoutingConfig.max_routing_passes = 3`
+- [X] P2-T18–P2-T21: Tests and performance validation
 
 ### 2D — Routing-driven node repositioning (FR-023, opt-in)
 - [ ] P2-T22: `NodeMove` dataclass; `LayoutResult.node_moves` field

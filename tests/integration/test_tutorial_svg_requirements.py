@@ -483,8 +483,12 @@ def _is_approach_segment(
     position on the node edge.  Multiple connections sharing the same approach
     column are geometrically inseparable when the only valid BFS cell is the
     first cell immediately outside the node.
+
+    The threshold uses 15px (= anchor clearance 13px + 2px margin) rather than
+    the raw BFS cell size, so that anchor endpoints (which sit 13px outside the
+    node edge) are still classified as approach segments even after stub cleanup.
     """
-    _bfs_cell = 10.0
+    _bfs_cell = 15.0
     for pt in [p1, p2]:
         px, py = pt
         for nx, ny, nw, nh in node_rects:
@@ -689,3 +693,28 @@ class TestPathQuality:
                         f"conn {conn.uuid[:8]} pt {i}: {wps[i - 1]} → {wps[i]} → {wps[i + 1]}"
                     )
         assert violations == [], "Redundant collinear bendpoints found:\n" + "\n".join(violations)
+
+
+# ---------------------------------------------------------------------------
+# P2-T20 — Multi-pass: zero node crossings after multi-pass routing
+# ---------------------------------------------------------------------------
+
+class TestMultiPassNodeCrossingsIntegration:
+    def test_zero_node_crossings_multi_pass(self, tutorial_svgs) -> None:
+        """P2-T20: after multi-pass routing (max_routing_passes=3) no segment
+        crosses any node bbox in the tutorial topology (SC-006 always green)."""
+        root = _parse_svg(tutorial_svgs["svg_routed"])
+        node_rects = _get_node_rects(root)
+        polylines = _get_polylines(root)
+        violations = []
+        for pi, pts in enumerate(polylines):
+            for p1, p2 in _segments(pts):
+                for rx, ry, rw, rh in node_rects:
+                    if _segment_intersects_rect(p1, p2, rx, ry, rw, rh):
+                        violations.append(
+                            f"conn{pi} ({p1[0]:.0f},{p1[1]:.0f})→({p2[0]:.0f},{p2[1]:.0f})"
+                            f" through node ({rx:.0f},{ry:.0f})"
+                        )
+        assert violations == [], (
+            "Node crossings after multi-pass routing:\n" + "\n".join(violations[:10])
+        )

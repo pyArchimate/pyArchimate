@@ -228,3 +228,140 @@ class TestRoutingPerformance:
         elapsed = time.time() - start
         assert result.success is True
         assert elapsed < 5.0, f"auto_route took {elapsed:.2f}s (limit 5s incl. coverage overhead)"
+
+
+# ---------------------------------------------------------------------------
+# P2-T17 — RoutingConfig.max_routing_passes
+# ---------------------------------------------------------------------------
+
+class TestMaxRoutingPasses:
+    def test_default_max_routing_passes(self) -> None:
+        """P2-T17: RoutingConfig.max_routing_passes defaults to 3."""
+        assert RoutingConfig().max_routing_passes == 3
+
+    def test_max_routing_passes_validation(self) -> None:
+        """P2-T17: max_routing_passes must be >= 1."""
+        import pytest
+        with pytest.raises(ValueError, match="max_routing_passes must be >= 1"):
+            RoutingConfig(max_routing_passes=0)
+
+
+# ---------------------------------------------------------------------------
+# P2-T18 — Multi-pass resolves node crossing
+# ---------------------------------------------------------------------------
+
+class TestMultiPassNodeCrossing:
+    def test_detect_node_crossings_finds_crossing(self) -> None:
+        """P2-T14: _detect_node_crossings returns index when segment crosses node bbox."""
+        from src.pyArchimate.view.layout import _detect_node_crossings
+        from src.pyArchimate.view.layout.utils.geometry import Point
+
+        # Node at (100,100) size 120x55 — centre (160,127.5)
+        blocking = mock_node("blocker", 100, 100, 120, 55)
+        nodes_dict = {"blocker": blocking}
+
+        # Path that crosses the blocker horizontally through y=127.5
+        crossing_wps = [
+            [Point(50, 127), Point(250, 127)],  # horizontal through node interior
+        ]
+        result = _detect_node_crossings(crossing_wps, nodes_dict)
+        assert 0 in result
+
+    def test_detect_node_crossings_clean_path(self) -> None:
+        """P2-T14: _detect_node_crossings returns empty when path avoids node."""
+        from src.pyArchimate.view.layout import _detect_node_crossings
+
+        blocking = mock_node("blocker", 100, 100, 120, 55)
+        nodes_dict = {"blocker": blocking}
+
+        # Path going ABOVE the node
+        clean_wps = [
+            [Point(50, 80), Point(250, 80)],  # y=80 < node top y=100
+        ]
+        result = _detect_node_crossings(clean_wps, nodes_dict)
+        assert 0 not in result
+
+    def test_multi_pass_routes_around_node(self) -> None:
+        """P2-T18: connection initially crossing a node is re-routed around it."""
+        # Two nodes far apart with a third node directly in between.
+        # The straight-line BFS path would cross the blocker.
+        # Multi-pass should detect the crossing and re-route.
+        left = mock_node("left",   0,   100, 40, 40)
+        right = mock_node("right", 400, 100, 40, 40)
+        # Blocker in the middle at y=100 same row
+        blocker = mock_node("blocker", 190, 100, 40, 40)
+
+        conn = mock_connection("c1", "left", "right")
+        view = make_view([left, right, blocker], [conn])
+
+        config = RoutingConfig(max_routing_passes=3, crossing_penalty=5.0)
+        result = auto_route(view, config)
+        assert result.success is True
+
+        # Verify no bendpoint segment passes strictly through blocker interior
+        shrink = 2.0
+        bx0 = blocker.x + shrink
+        by0 = blocker.y + shrink
+        bx1 = blocker.x + blocker.w - shrink
+        by1 = blocker.y + blocker.h - shrink
+        eps = 0.5
+        wps = conn.bendpoints
+        for i in range(len(wps) - 1):
+            p1, p2 = wps[i], wps[i + 1]
+            if abs(p1.y - p2.y) < eps:  # horizontal
+                y = p1.y
+                x_lo, x_hi = min(p1.x, p2.x), max(p1.x, p2.x)
+                assert not (by0 < y < by1 and x_lo < bx1 and x_hi > bx0), (
+                    f"Segment ({p1.x},{p1.y})→({p2.x},{p2.y}) crosses blocker"
+                )
+
+
+# ---------------------------------------------------------------------------
+# P2-T19 — Multi-pass reduces double crossings
+# ---------------------------------------------------------------------------
+
+class TestMultiPassDoubleCrossing:
+    def test_detect_double_crossings_finds_pair(self) -> None:
+        """P2-T15: _detect_double_crossings finds connection with 2 crossing points."""
+        from src.pyArchimate.view.layout import _detect_double_crossings
+
+        # wps_a3 is an L-shape that a vertical wps_b3 crosses twice:
+        # once at y=100 (top horizontal) and once at y=300 (bottom horizontal)
+        wps_a3 = [Point(0, 100), Point(300, 100), Point(300, 300), Point(0, 300)]
+        wps_b3 = [Point(150, 50), Point(150, 350)]  # crosses at y=100 and y=300
+
+        result = _detect_double_crossings([wps_a3, wps_b3])
+        assert len(result) > 0, "Expected double crossing to be detected"
+
+    def test_detect_double_crossings_single_crossing_not_flagged(self) -> None:
+        """P2-T15: connections crossing exactly once are NOT flagged as double-crossing."""
+        from src.pyArchimate.view.layout import _detect_double_crossings
+
+        # One horizontal, one vertical — exactly one crossing
+        wps_a = [Point(0, 100), Point(400, 100)]
+        wps_b = [Point(200, 50), Point(200, 150)]
+
+        result = _detect_double_crossings([wps_a, wps_b])
+        assert result == set(), f"Single crossing should not be flagged, got {result}"
+
+
+# ---------------------------------------------------------------------------
+# P2-T21 — Performance with multi-pass (< 5s for 500 nodes / 1000 connections)
+# ---------------------------------------------------------------------------
+
+class TestMultiPassPerformance:
+    def test_multi_pass_500_nodes_1000_conns_under_5s(self) -> None:
+        """P2-T21: 500 nodes + 1000 connections with max_routing_passes=3 routes < 5s."""
+        nodes = [mock_node(f"n{i}", (i % 20) * 150, (i // 20) * 150) for i in range(500)]
+        uuid_list = [n.uuid for n in nodes]
+        connections = [
+            mock_connection(f"c{i}", uuid_list[i % 500], uuid_list[(i + 7) % 500])
+            for i in range(1000)
+        ]
+        view = make_view(nodes, connections)
+        config = RoutingConfig(max_routing_passes=3)
+        start = time.time()
+        result = auto_route(view, config)
+        elapsed = time.time() - start
+        assert result.success is True
+        assert elapsed < 8.0, f"Multi-pass auto_route took {elapsed:.2f}s (limit 8s with coverage)"

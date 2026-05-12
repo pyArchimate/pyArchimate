@@ -97,6 +97,7 @@ class RoutingConfig:
     corner_clearance_pct: float = 0.10
     corner_clearance_min: float = 4.0
     crossing_penalty: float = 3.0
+    max_routing_passes: int = 3
 
     def __post_init__(self) -> None:
         if self.min_segment_gap < 0:
@@ -107,6 +108,8 @@ class RoutingConfig:
             raise ValueError("corner_clearance_min must be >= 0")
         if self.crossing_penalty < 0:
             raise ValueError("crossing_penalty must be >= 0")
+        if self.max_routing_passes < 1:
+            raise ValueError("max_routing_passes must be >= 1")
 
 
 @dataclass

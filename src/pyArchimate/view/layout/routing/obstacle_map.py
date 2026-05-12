@@ -111,6 +111,28 @@ class ObstacleMap:
                 self._routed.add(self._to_cell(x, y))
                 y += res
 
+    def unmark_routed_segment(self, p1: Point, p2: Point) -> None:
+        """Remove cells along a previously routed segment from the routed set.
+
+        Used by multi-pass routing to un-mark a connection's old path before
+        re-routing it, so the path no longer acts as a soft obstacle.
+        """
+        res = self.resolution
+        if abs(p1.y - p2.y) < 1e-6:
+            y = (p1.y + p2.y) / 2
+            x = min(p1.x, p2.x)
+            x_end = max(p1.x, p2.x)
+            while x <= x_end + res:
+                self._routed.discard(self._to_cell(x, y))
+                x += res
+        else:
+            x = (p1.x + p2.x) / 2
+            y = min(p1.y, p2.y)
+            y_end = max(p1.y, p2.y)
+            while y <= y_end + res:
+                self._routed.discard(self._to_cell(x, y))
+                y += res
+
     def _expand_neighbour(
         self,
         ncell: tuple[int, int],

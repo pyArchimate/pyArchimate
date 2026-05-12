@@ -179,6 +179,56 @@ def _apply_anchor_restore_and_safety(
                 break
 
 
+_STUB_THRESHOLD = 15.0  # px — max stub length treated as BFS grid-snapping artefact
+_EPS_STUB = 0.5         # coordinate tolerance
+
+
+def _fix_endpoint_stubs(wps: list[Point]) -> list[Point]:
+    """Absorb short backward stubs at connection endpoints caused by BFS grid snapping.
+
+    BFS snaps anchors to the nearest grid cell (resolution=10px). The L-turn corner
+    is placed at (first_bfs.x, anchor.y) for a horizontal exit, where first_bfs.x
+    may be the snapped cell position — up to one grid cell behind the actual anchor.
+    This creates a tiny stub (anchor→corner) that goes backward before turning.
+    In third-party tools (Archi) that render an extra segment from the stored bendpoint
+    to the node edge, this stub produces a near-U-turn visual artefact.
+
+    Fix: move the L-turn corner so the stub is absorbed into the adjacent interior
+    segment, which _merge_collinear_adjacent then collapses.
+
+    Source end: anchor → corner (stub, same axis) → next (turn)
+        → corner becomes Point(anchor.x, next.y)  [vertical exit from anchor]
+    Target end: prev (turn) → corner (stub, same axis) → anchor
+        → corner becomes Point(anchor.x, prev.y)  [vertical approach to anchor]
+
+    Only stubs < _STUB_THRESHOLD px are fixed; longer stubs are intentional routing.
+    """
+    if len(wps) < 3:
+        return list(wps)
+
+    result = list(wps)
+
+    # ── Source end ──────────────────────────────────────────────────────────
+    a, c, n = result[0], result[1], result[2]
+    if abs(a.y - c.y) < _EPS_STUB:  # horizontal stub at source
+        if abs(c.x - a.x) < _STUB_THRESHOLD and abs(n.y - a.y) > _EPS_STUB:
+            result[1] = Point(a.x, n.y)
+    elif abs(a.x - c.x) < _EPS_STUB:  # vertical stub at source
+        if abs(c.y - a.y) < _STUB_THRESHOLD and abs(n.x - a.x) > _EPS_STUB:
+            result[1] = Point(n.x, a.y)
+
+    # ── Target end ──────────────────────────────────────────────────────────
+    at, ct, pt = result[-1], result[-2], result[-3]
+    if abs(ct.y - at.y) < _EPS_STUB:  # horizontal stub at target
+        if abs(at.x - ct.x) < _STUB_THRESHOLD and abs(pt.y - at.y) > _EPS_STUB:
+            result[-2] = Point(at.x, pt.y)
+    elif abs(ct.x - at.x) < _EPS_STUB:  # vertical stub at target
+        if abs(at.y - ct.y) < _STUB_THRESHOLD and abs(pt.x - at.x) > _EPS_STUB:
+            result[-2] = Point(pt.x, at.y)
+
+    return result
+
+
 def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
     """Recompute all connection paths as obstacle-avoiding orthogonal polylines.
 
@@ -234,8 +284,26 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
         om._canvas_w = int(max_x / _res) + 5
         om._canvas_h = int(max_y / _res) + 5
 
-        # Route each connection
+        # Pass 0: route all connections (existing penalty-based BFS routing).
         conn_refs, all_waypoints = _route_connections(conns, nodes_dict, om, config, warnings)
+
+        # Multi-pass re-routing (P2-T16): detect connections that still cross nodes
+        # or double-cross another connection, then re-route with escalating penalty.
+        # max_routing_passes ≥ 2 triggers at least one re-routing pass.
+        if config.max_routing_passes >= 2:
+            spread_anchors = _precompute_spread_anchors(conns, nodes_dict, config)
+            for pass_num in range(1, config.max_routing_passes):
+                conflicts = (
+                    _detect_node_crossings(all_waypoints, nodes_dict)
+                    | _detect_double_crossings(all_waypoints)
+                )
+                if not conflicts:
+                    break
+                penalty = config.crossing_penalty * (3.0 ** (pass_num - 1))
+                _route_pass(
+                    sorted(conflicts), conn_refs, all_waypoints,
+                    spread_anchors, nodes_dict, om, penalty, warnings,
+                )
 
         # Post-process: displace truly collinear overlaps (0px separation only).
         # Penalty-based routing already separates connections by ≥ 1 BFS cell (10px);
@@ -247,11 +315,15 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
         # segment pairs closer than min_segment_gap.
         separated = _revert_new_close_pairs(separated, all_waypoints, config.min_segment_gap)
 
-        # Write waypoints back to connections, removing any U-turns introduced
-        # by the displacement pass and collapsing redundant collinear bendpoints.
+        # Write waypoints back to connections:
+        #   1. Absorb short backward stubs at endpoints (BFS grid-snapping artefacts)
+        #   2. Remove U-turns introduced by the displacement pass
+        #   3. Collapse redundant collinear intermediate bendpoints
         for conn, wps in zip(conn_refs, separated, strict=False):
             conn.remove_all_bendpoints()
-            cleaned = _merge_collinear_adjacent(remove_uturn_waypoints(wps))
+            cleaned = _merge_collinear_adjacent(
+                remove_uturn_waypoints(_fix_endpoint_stubs(wps))
+            )
             for wp in cleaned:
                 conn.add_bendpoint(wp)
 
@@ -497,6 +569,177 @@ def _route_connections(
                 om.mark_routed_segment(path[i], path[i + 1])
         conn_refs.append(conn)
     return conn_refs, all_waypoints
+
+
+# ---------------------------------------------------------------------------
+# P2-T13: _route_pass — re-route a subset of connections on the existing map
+# ---------------------------------------------------------------------------
+
+def _route_pass(
+    conflict_indices: list[int],
+    conn_refs: list[Any],
+    all_waypoints: list[list[Point]],
+    spread_anchors: dict[tuple[str, str], Point],
+    nodes_dict: dict[str, Any],
+    om: ObstacleMap,
+    penalty: float,
+    warnings: list[str],
+) -> None:
+    """Re-route conflict_indices connections with given penalty; updates all_waypoints in-place.
+
+    Un-marks each connection's current path from the obstacle map before re-routing,
+    so the old corridor is freed for other connections. New path is marked on success.
+    """
+    for idx in conflict_indices:
+        conn = conn_refs[idx]
+        conn_uuid = getattr(conn, 'uuid', str(id(conn)))
+        src_anchor = spread_anchors.get((conn_uuid, 'src'))
+        tgt_anchor = spread_anchors.get((conn_uuid, 'tgt'))
+        if src_anchor is None or tgt_anchor is None:
+            continue
+        source_uuid = getattr(conn, '_source', None)
+        target_uuid = getattr(conn, '_target', None)
+        src_node = nodes_dict.get(source_uuid) if source_uuid else None
+        tgt_node = nodes_dict.get(target_uuid) if target_uuid else None
+        if not src_node or not tgt_node:
+            continue
+
+        # Un-mark old path so it no longer acts as a soft obstacle
+        old_wps = all_waypoints[idx]
+        for j in range(len(old_wps) - 1):
+            om.unmark_routed_segment(old_wps[j], old_wps[j + 1])
+
+        path = om.find_corridor(src_anchor, tgt_anchor, penalty)
+        if path is None:
+            warnings.append(
+                f"auto_route pass: skipped connection {conn_uuid}: "
+                "no valid orthogonal path found after multi-pass; existing waypoints preserved"
+            )
+        else:
+            exact_path = _apply_exact_anchors(path, src_anchor, tgt_anchor, src_node, tgt_node)
+            all_waypoints[idx] = exact_path
+            for j in range(len(path) - 1):
+                om.mark_routed_segment(path[j], path[j + 1])
+
+
+# ---------------------------------------------------------------------------
+# P2-T14: _detect_node_crossings — connections whose paths cross node bboxes
+# ---------------------------------------------------------------------------
+
+def _seg_crosses_rect(
+    wps: list[Point],
+    node_rects: list[tuple[float, float, float, float]],
+    eps: float,
+) -> bool:
+    """Return True if any segment in wps passes through any node rect interior."""
+    for j in range(len(wps) - 1):
+        p1, p2 = wps[j], wps[j + 1]
+        if abs(p1.y - p2.y) < eps:  # horizontal segment
+            y = p1.y
+            x_lo, x_hi = min(p1.x, p2.x), max(p1.x, p2.x)
+            for rx0, ry0, rx1, ry1 in node_rects:
+                if ry0 < y < ry1 and x_lo < rx1 and x_hi > rx0:
+                    return True
+        elif abs(p1.x - p2.x) < eps:  # vertical segment
+            x = p1.x
+            y_lo, y_hi = min(p1.y, p2.y), max(p1.y, p2.y)
+            for rx0, ry0, rx1, ry1 in node_rects:
+                if rx0 < x < rx1 and y_lo < ry1 and y_hi > ry0:
+                    return True
+    return False
+
+
+def _detect_node_crossings(
+    all_waypoints: list[list[Point]],
+    nodes_dict: dict[str, Any],
+) -> set[int]:
+    """Return indices of connections that have a segment passing through any node bbox.
+
+    A segment "crosses" a node if it intersects the node's interior (shrunk by 2px
+    on each side to avoid false positives from anchor segments that touch the edge).
+    """
+    _shrink = 2.0
+    node_rects = [
+        (float(n.x) + _shrink, float(n.y) + _shrink,
+         float(n.x) + float(n.w) - _shrink, float(n.y) + float(n.h) - _shrink)
+        for n in nodes_dict.values()
+    ]
+    if not node_rects:
+        return set()
+
+    _eps = 0.5
+    conflicts: set[int] = set()
+
+    for ci, wps in enumerate(all_waypoints):
+        if _seg_crosses_rect(wps, node_rects, _eps):
+            conflicts.add(ci)
+
+    return conflicts
+
+
+# ---------------------------------------------------------------------------
+# P2-T15: _detect_double_crossings — pairs that cross each other twice
+# ---------------------------------------------------------------------------
+
+def _dc_seg_cross_point(
+    h_y: float, hx0: float, hx1: float,
+    v_x: float, vy0: float, vy1: float,
+) -> tuple[float, float] | None:
+    """Return the crossing point of H and V segments, or None."""
+    if hx0 < v_x < hx1 and vy0 < h_y < vy1:
+        return (v_x, h_y)
+    return None
+
+
+def _count_segment_crossings(wps_a: list[Point], wps_b: list[Point], eps: float) -> int:
+    """Count distinct crossing points between two orthogonal polylines."""
+    crossings: set[tuple[float, float]] = set()
+    for i in range(len(wps_a) - 1):
+        a1, a2 = wps_a[i], wps_a[i + 1]
+        a_horiz = abs(a1.y - a2.y) < eps
+        if not a_horiz and abs(a1.x - a2.x) >= eps:
+            continue  # diagonal — skip
+        for k in range(len(wps_b) - 1):
+            b1, b2 = wps_b[k], wps_b[k + 1]
+            b_horiz = abs(b1.y - b2.y) < eps
+            if not b_horiz and abs(b1.x - b2.x) >= eps:
+                continue
+            if a_horiz == b_horiz:
+                continue  # parallel — no crossing
+            if a_horiz:
+                pt = _dc_seg_cross_point(
+                    a1.y, min(a1.x, a2.x), max(a1.x, a2.x),
+                    b1.x, min(b1.y, b2.y), max(b1.y, b2.y),
+                )
+            else:
+                pt = _dc_seg_cross_point(
+                    b1.y, min(b1.x, b2.x), max(b1.x, b2.x),
+                    a1.x, min(a1.y, a2.y), max(a1.y, a2.y),
+                )
+            if pt is not None:
+                crossings.add((round(pt[0], 1), round(pt[1], 1)))
+    return len(crossings)
+
+
+def _detect_double_crossings(all_waypoints: list[list[Point]]) -> set[int]:
+    """Return indices of connections involved in double-crossings with another connection.
+
+    A double crossing = two connections share ≥ 2 distinct crossing points.
+    When a double crossing is found, the connection with more waypoints (longer
+    detour candidate) is flagged for re-routing.
+    """
+    _eps = 0.5
+    n = len(all_waypoints)
+    conflicts: set[int] = set()
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            if _count_segment_crossings(all_waypoints[i], all_waypoints[j], _eps) >= 2:
+                # Flag the longer path (more waypoints) for re-routing
+                longer = i if len(all_waypoints[i]) >= len(all_waypoints[j]) else j
+                conflicts.add(longer)
+
+    return conflicts
 
 
 def apply_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
