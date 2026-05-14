@@ -15,8 +15,9 @@ run_quiet() {
     }
 }
 
-run_quiet "pre-commit checks"    poetry run scripts/pre_commit_checks.sh
-run_quiet "layer boundary check" poetry run scripts/check_layer_boundaries.py
+run_quiet "pre-commit checks"      poetry run scripts/pre_commit_checks.sh
+run_quiet "layer boundary check"   poetry run scripts/check_layer_boundaries.py
+run_quiet "sync requirements.txt"  poetry export --without-hashes --with docs --format=requirements.txt --output requirements.txt
 
 # --- Code Quality Checks ---
 # poetry run pysonar --sonar-token=<token> --exclude .git || true
