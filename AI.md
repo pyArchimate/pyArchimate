@@ -292,8 +292,8 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 
 | Value | Format |
 |---|---|
-| `Writers.archimate` | Archi tool `.archimate` XML (default) |
-| `Writers.archi` | OpenGroup ArchiMate Exchange XML |
+| `Writers.archi` | Archi tool `.archimate` XML (default) |
+| `Writers.archimate` | OpenGroup ArchiMate Exchange XML |
 | `Writers.csv` | CSV spreadsheet |
 
 ### Readers (enum)
@@ -518,5 +518,5 @@ Known deviations from the ArchiMate 3.x standard and Archi tool compatibility ga
 | Reader reads `modifier`; writer emits `influenceStrength` | v1.3.0 | Reader normalises both field names; round-trip fidelity restored |
 | Relationship docs parsed with `e.text` instead of `doc.text` | v1.3.0 | `_archireader_helpers.py` now extracts documentation correctly |
 | `bool("false")` always `True` for `nameVisible` | v1.3.1 | Replaced with `parse_bool()` (W3C xsd:boolean semantics) |
-| Bendpoint coordinates written as floats in OpenGroup XML | v1.4.x | Archi requires integer coordinates; bendpoints now round-tripped as integers in exchange format |
-| Connection endpoints not clipped at element boundary in SVG | v1.8.0 | Orthogonal clip applied at source/target boundary; bendpoints preserved exactly from model |
+| Bendpoint coordinates written as floats in OpenGroup XML | v1.9.0 | Archi requires integer coordinates; bendpoints round-tripped as integers (regression from v1.8.x re-fixed) |
+| Connection endpoints not clipped at element boundary in SVG | v1.9.0 | Orthogonal clip applied at source/target boundary including when bendpoints present; basic case first fixed in v1.8.0 |

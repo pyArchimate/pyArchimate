@@ -2,6 +2,11 @@
 title pyArchimate Composite Diagram (Internal Structure)
 
 object Model {
+  - _uuid : str
+  - name : str
+  - desc : str
+  - theme : str
+  - _properties : dict[str, object]
   - elems_dict : dict[str, Element]
   - rels_dict : dict[str, Relationship]
   - views_dict : dict[str, View]
@@ -124,6 +129,10 @@ object Point {
   - x : int
   - y : int
   - idx : int
+  - start_x : Optional[int]
+  - start_y : Optional[int]
+  - end_x : Optional[int]
+  - end_y : Optional[int]
 }
 
 Model *-- Element : contains

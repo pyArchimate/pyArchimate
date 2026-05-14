@@ -11,6 +11,8 @@ class Model {
   {readonly} relationships: list[Relationship]
   {readonly} views: list[View]
   {readonly} profiles: list[Profile]
+  {readonly} nodes: list[Node]
+  {readonly} conns: list[Connection]
   --
   + add(concept_type, name, ...) : Element|View
   + add_child(parent_uuid, child_uuid)
@@ -21,7 +23,7 @@ class Model {
   + write(file_path, writer)
   + merge(file_path)
   + find_elements(name, type) : list[Element]
-  + find_relationships(source, target, rel_type) : list[Relationship]
+  + find_relationships(rel_type, elem, direction='both') : list[Relationship]
   + find_views(name) : list[View]
   + filter_elements(fct) : list[Element]
   + filter_relationships(fct) : list[Relationship]
@@ -46,6 +48,7 @@ class Model {
   + expand_props(clean_doc)
   + check_invalid_conn() : list
   + check_invalid_nodes() : list
+  + check_connection(c) : bool
   + default_theme(theme)
   + prop(key, value) : any
   + remove_prop(key)
