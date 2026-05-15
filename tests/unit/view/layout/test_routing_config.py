@@ -8,7 +8,9 @@ from src.pyArchimate.view.layout.core import RoutingConfig
 class TestRoutingConfigDefaults:
     def test_defaults(self) -> None:
         config = RoutingConfig()
-        assert config.min_segment_gap == 10.0
+        assert config.node_clearance == 25  # FR-013
+        assert config.min_segment_gap == 20.0  # FR-015 updated
+        assert config.min_turn_segment == 40  # FR-024
         assert config.corner_clearance_pct == 0.10
         assert config.corner_clearance_min == 4.0
         assert config.crossing_penalty == 3.0

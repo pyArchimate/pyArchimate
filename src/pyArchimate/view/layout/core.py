@@ -99,9 +99,11 @@ class LayoutConfig:
 
 @dataclass
 class RoutingConfig:
-    """Configuration for auto_route operations.
+    """Configuration for auto_route operations (Phase 2 updated).
 
-    - min_segment_gap: Minimum separation between collinear segments of different connections (px)
+    - node_clearance: Avoidance zone around each node side (px); default 25 (FR-013)
+    - min_segment_gap: Minimum separation between collinear segments of different connections (px); default 20 (FR-015)
+    - min_turn_segment: Minimum segment length after each L-turn (px); default 40 (FR-024)
     - corner_clearance_pct: Fraction of edge length reserved at each corner (0 < pct <= 0.50)
     - corner_clearance_min: Absolute floor for corner clearance in px
     - crossing_penalty: Cost weight applied in BFS when crossing an already-routed segment
@@ -111,7 +113,9 @@ class RoutingConfig:
     - max_node_displacement: Max cells a node may be shifted per move (default 1)
     """
 
-    min_segment_gap: float = 10.0
+    node_clearance: int = 25
+    min_segment_gap: float = 20.0
+    min_turn_segment: int = 40
     corner_clearance_pct: float = 0.10
     corner_clearance_min: float = 4.0
     crossing_penalty: float = 3.0
@@ -120,8 +124,12 @@ class RoutingConfig:
     max_node_displacement: int = 1
 
     def __post_init__(self) -> None:
+        if self.node_clearance < 0:
+            raise ValueError("node_clearance must be >= 0")
         if self.min_segment_gap < 0:
             raise ValueError("min_segment_gap must be >= 0")
+        if not (0 < self.min_turn_segment <= 500):
+            raise ValueError("min_turn_segment must be in range (0, 500]")
         if not (0 < self.corner_clearance_pct <= 0.50):
             raise ValueError("corner_clearance_pct must be in range (0, 0.50]")
         if self.corner_clearance_min < 0:

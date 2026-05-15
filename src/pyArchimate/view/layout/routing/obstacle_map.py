@@ -6,9 +6,9 @@ import heapq
 from dataclasses import dataclass, field
 from typing import Any
 
+from ..core import RoutingConfig
 from ..utils.geometry import Point, Rectangle
 
-_INFLATE = 2.0  # px clearance around each node bbox
 _MAX_CANVAS = 4000  # default canvas bound when no obstacles provided
 
 
@@ -16,7 +16,7 @@ _MAX_CANVAS = 4000  # default canvas bound when no obstacles provided
 class ObstacleMap:
     """Rasterized obstacle map for orthogonal connection routing.
 
-    Nodes are inflated by a small margin, then rasterized to grid cells.
+    Nodes are inflated by config.node_clearance (default 25px), then rasterized to grid cells.
     BFS with optional crossing-cost finds shortest orthogonal paths.
     """
 
@@ -26,12 +26,18 @@ class ObstacleMap:
     _routed: set[tuple[int, int]] = field(default_factory=set, init=False, repr=False)
     _canvas_w: int = field(default=0, init=False)
     _canvas_h: int = field(default=0, init=False)
+    _node_clearance: float = field(default=25.0, init=False)
 
-    def __init__(self, obstacles: list[Rectangle], resolution: float = 10.0) -> None:
+    def __init__(
+        self, obstacles: list[Rectangle], resolution: float = 10.0, config: RoutingConfig | None = None
+    ) -> None:
         self._obstacles = obstacles
         self.resolution = resolution
         self._cells: set[tuple[int, int]] = set()
         self._routed: set[tuple[int, int]] = set()
+        if config is None:
+            config = RoutingConfig()
+        self._node_clearance = config.node_clearance
         # Default canvas; will be updated in _build() based on actual obstacle extents
         self._canvas_w = max(10, int(_MAX_CANVAS / max(resolution, 1.0)))
         self._canvas_h = max(10, int(_MAX_CANVAS / max(resolution, 1.0)))
@@ -42,12 +48,13 @@ class ObstacleMap:
 
     def _build(self, obstacles: list[Rectangle]) -> None:
         res = self.resolution
+        clearance = self._node_clearance
         max_cx = max_cy = 0
         for obs in obstacles:
-            x0 = obs.x - _INFLATE
-            y0 = obs.y - _INFLATE
-            x1 = obs.x + obs.width + _INFLATE
-            y1 = obs.y + obs.height + _INFLATE
+            x0 = obs.x - clearance
+            y0 = obs.y - clearance
+            x1 = obs.x + obs.width + clearance
+            y1 = obs.y + obs.height + clearance
             # Block every cell that physically overlaps the inflated bbox.
             # Cell cx covers [cx*res, (cx+1)*res). It overlaps obstacle if cx*res < x1.
             # Equivalently, max cx is ceil(x1/res) - 1 = int((x1-eps)/res).

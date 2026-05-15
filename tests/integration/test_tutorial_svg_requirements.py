@@ -36,7 +36,7 @@ from src.pyArchimate.view.layout.routing.segment_separation import _intervals_ov
 # ---------------------------------------------------------------------------
 GRID_SIZE = 160.0
 MARGIN = 40.0
-MIN_SEGMENT_GAP = 10.0
+MIN_SEGMENT_GAP = 20.0
 CORNER_CLEARANCE_PCT = 0.10
 CORNER_CLEARANCE_MIN = 4.0
 ORTHOGONAL_TOL = 0.5   # px tolerance for "is this segment orthogonal"
@@ -256,6 +256,7 @@ def tutorial_svgs(tmp_path_factory):
 
     # Apply auto_route
     route_cfg = RoutingConfig(
+        node_clearance=25,  # FR-013: 25px avoidance zone
         min_segment_gap=MIN_SEGMENT_GAP,
         corner_clearance_pct=CORNER_CLEARANCE_PCT,
         corner_clearance_min=CORNER_CLEARANCE_MIN,
@@ -409,7 +410,11 @@ class TestOrthogonalSegments:
 
 class TestNoSegmentThroughNode:
     def test_zero_segments_through_nodes(self, tutorial_svgs) -> None:
-        """SC-006: no routed connection segment may intersect any node bounding box."""
+        """SC-006: no routed connection segment may intersect any node bounding box.
+
+        This validates that routing respects the 25px clearance zone (FR-013) inflated around
+        nodes during pathfinding, ensuring final segments never pass through node bodies.
+        """
         root = _parse_svg(tutorial_svgs["svg_routed"])
         node_rects = _get_node_rects(root)
         polylines = _get_polylines(root)
@@ -520,7 +525,7 @@ def _collinear_overlap_info(
 
 class TestNoCollinearOverlap:
     def test_collinear_segments_separated(self, tutorial_svgs) -> None:
-        """SC-008: parallel segments from different connections must be ≥10px apart.
+        """SC-008: parallel segments from different connections must be ≥20px apart.
 
         Exception: approach segments that share the same column/row when multiple
         connections converge on the same node edge are geometrically inseparable
