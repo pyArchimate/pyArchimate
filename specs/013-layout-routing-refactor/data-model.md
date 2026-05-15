@@ -29,22 +29,38 @@ class LayoutConfig:
 
 ---
 
-### RoutingConfig (new)
+### RoutingConfig (updated — Phase 2)
 
 ```python
 @dataclass
 class RoutingConfig:
-    min_segment_gap: float = 10.0        # min px between collinear segments of diff connections
+    # Obstacle clearance (FR-013, Fix 7)
+    node_clearance: int = 25             # avoidance zone around each node side (px)
+    # Segment separation (FR-015, Fix 8)
+    min_segment_gap: float = 20.0        # min px between collinear segments of diff connections
+    # Post-L-turn floor (FR-024, Fix 9)
+    min_turn_segment: int = 40           # min segment length after each L-turn (px); not applied to terminal arrival segment
+    # Corner clearance (FR-017)
     corner_clearance_pct: float = 0.10   # fraction of edge length reserved at each corner
     corner_clearance_min: float = 4.0    # absolute floor for corner clearance (px)
-    crossing_penalty: float = 1.0        # relative weight applied to crossing count in path cost
+    # Crossing cost
+    crossing_penalty: float = 1.0        # relative weight for crossing count in path cost
+    # Multi-pass control (Fix 3)
+    max_routing_passes: int = 3          # max BFS passes; note: no corresponding FR — implementation detail
+    # Node repositioning (FR-023, Fix 6)
+    allow_node_move: bool = False        # enable routing-driven node repositioning
+    max_node_displacement: int = 1       # max grid cells a node may be shifted
 ```
 
-**Validation rules**:
+**Validation rules** (`__post_init__`):
+- `node_clearance` ≥ 0
 - `min_segment_gap` ≥ 0
-- `0.0 < corner_clearance_pct ≤ 0.50` (cannot consume more than 50% of edge per corner)
+- `0 < min_turn_segment ≤ 500`
+- `0.0 < corner_clearance_pct ≤ 0.50`
 - `corner_clearance_min` ≥ 0
 - `crossing_penalty` ≥ 0
+- `max_routing_passes` ≥ 1
+- `max_node_displacement` ≥ 1
 
 **Derived value** (computed at runtime, not stored):
 ```
@@ -76,22 +92,30 @@ class LayoutResult:
 
 ---
 
-### ObstacleMap (new internal type)
+### ObstacleMap (updated — Phase 2)
 
 ```python
 @dataclass
 class ObstacleMap:
-    cells: set[tuple[int, int]]   # blocked grid cells (col, row)
-    resolution: float             # px per cell (default 10.0)
+    cells: set[tuple[int, int]]          # static blocked cells — node AABBs inflated by node_clearance
+    _routed: set[tuple[int, int]]        # dynamic cells — paths routed in previous passes (soft obstacles)
+    resolution: float                    # px per cell (default 10.0)
     canvas_width: float
     canvas_height: float
 
     def is_blocked(self, x: float, y: float) -> bool: ...
     def segment_blocked(self, p1: Point, p2: Point) -> bool: ...
     def find_corridor(self, start: Point, end: Point) -> list[Point] | None: ...
+    def mark_routed_segment(self, p1: Point, p2: Point) -> None: ...    # add to _routed
+    def unmark_routed_segment(self, p1: Point, p2: Point) -> None: ...  # remove from _routed (needed for multi-pass re-route)
+    def rebuild_for_moved_nodes(self, nodes: list[Node], config: RoutingConfig) -> None: ...  # M3: update cells after node repositioning
 ```
 
-**Construction**: Each node bounding box inflated by 2px, rasterized to grid cells.
+**Construction**: Each node bounding box inflated by `config.node_clearance` px on all four sides, then rasterized to grid cells. `_routed` starts empty and is populated incrementally as each connection is routed.
+
+**Multi-pass usage**: Between passes, `_routed` cells from non-conflicting connections are retained as soft obstacles (higher BFS cost, not hard blocks). Conflicting connections have their segments removed from `_routed` via `unmark_routed_segment` before being re-routed.
+
+**Node-move usage** (FR-023): After a tentative node move, `rebuild_for_moved_nodes` re-inflates the AABB for moved nodes only, patching `cells` in-place before re-routing affected connections.
 
 ---
 
@@ -117,19 +141,30 @@ View (arbitrary node positions)
 View (nodes on coarse grid, layer-ordered)
 ```
 
-### auto_route flow
+### auto_route flow (Phase 2 — multi-pass)
 
 ```
 View (nodes at any positions, connections at any waypoints)
-  → build ObstacleMap from node bounding boxes
-  → compute corner clearance per edge
-  → for each connection:
-      → compute departure/arrival anchors with spread
-      → find_corridor(src_anchor, tgt_anchor, obstacle_map)
-      → if None: skip + add warning
-      → else: write waypoints to connection
-  → post-process: detect + displace collinear segment overlaps
-  → return LayoutResult (warnings for skipped connections)
+  → build ObstacleMap: inflate each node AABB by node_clearance; _routed = {}
+  → compute corner clearance per edge; assign departure/arrival anchors (FR-017)
+  → Pass 0: route all connections; mark paths in _routed
+  → for pass_num in 1..max_routing_passes:
+      → conflicts = _detect_node_crossings() ∪ _detect_double_crossings()
+      → if conflicts empty: break
+      → for each conflicted connection:
+          → unmark_routed_segment() from _routed
+          → re-route with crossing_penalty × (pass_num + 1)
+          → mark new path in _routed
+  → post-process each connection's waypoints (in order):
+      → _merge_collinear_adjacent()        # remove redundant bendpoints (RQ-02)
+      → _enforce_min_turn_segment()        # 40px floor post-L-turn; skip terminal arrival segment (FR-024/M2)
+      → _fix_u_turns()                     # eliminate backward segments (RQ-01)
+      → _enforce_min_turn_segment()        # second pass: fix any segments shortened by U-turn fix (M6)
+      → _displace_collinear_overlaps()     # separate parallel segments by min_segment_gap (FR-015)
+  → if allow_node_move and conflicts remain:
+      → attempt node moves (FR-023); rebuild_for_moved_nodes(); re-route affected connections
+  → remaining conflicts: skip + warn (FR-019)
+  → return LayoutResult
 View (connections rerouted, or preserved if unroutable)
 ```
 

@@ -142,39 +142,45 @@ When a node has connections to/from many other nodes (degree ≥ threshold), rou
 
 ### Phase 2A — Path cleanup (RQ-01, RQ-02) — low risk, no architecture change
 
+TDD order: diagnose/write failing tests first → implement fixes → verify green
+
 | ID | Task | Owner | Priority |
 |----|------|-------|----------|
-| P2-T01 | Investigate remaining ~6 U-turns: identify which connections and which cluster combination causes them; add a debug assertion in the test | — | P1 |
-| P2-T02 | Fix displacement: for connections in multiple clusters, apply only the dominant-axis displacement (skip secondary axis) or detect the double-shift and merge | — | P1 |
-| P2-T03 | Add `_merge_collinear_adjacent()` to `segment_separation.py` | — | P1 |
-| P2-T04 | Wire `_merge_collinear_adjacent()` into `auto_route` after `remove_uturn_waypoints` | — | P1 |
-| P2-T05 | Update `test_tutorial_svg_requirements.py`: add test `test_no_redundant_bendpoints` verifying zero consecutive-collinear segments | — | P2 |
-| P2-T06 | Update `test_tutorial_svg_requirements.py`: strengthen U-turn check to zero | — | P2 |
+| P2-T01 | [TEST-FIRST] Investigate remaining ~6 U-turns: identify which connections and cluster combination cause them; add a debug assertion in the test to capture the exact failing cases — confirm FAIL | — | P1 |
+| P2-T06 | [TEST-FIRST] Update `test_tutorial_svg_requirements.py`: strengthen U-turn check to zero remaining — confirm FAIL | — | P2 |
+| P2-T05 | [TEST-FIRST] Update `test_tutorial_svg_requirements.py`: add `test_no_redundant_bendpoints` verifying zero consecutive-collinear segments — confirm FAIL | — | P2 |
+| P2-T02 | Fix displacement: for connections in multiple clusters, apply only the dominant-axis displacement (skip secondary axis) or detect the double-shift and merge — P2-T01/T06 should now pass | — | P1 |
+| P2-T03 | Add `_merge_collinear_adjacent()` to `segment_separation.py` — P2-T05 should now pass | — | P1 |
+| P2-T04 | Wire `_merge_collinear_adjacent()` into `auto_route` post-processing pipeline | — | P1 |
 
 ### Phase 2B — Layout improvements (RQ-05, RQ-06) — medium risk
 
+TDD order: write failing tests → implement default change → verify green
+
 | ID | Task | Owner | Priority |
 |----|------|-------|----------|
-| P2-T07 | Change `LayoutConfig.grid_size` default from 160 to 240; update all tests | — | P1 |
+| P2-T10 | [TEST-FIRST] Write unit test: `grid_size=240` — all nodes snapped to 240px grid — confirm FAIL (current default is 160) | — | P1 |
+| P2-T11 | [TEST-FIRST] Write unit test: high-degree node (degree ≥ 5) gets at least 1 grid-cell isolation — confirm FAIL | — | P2 |
+| P2-T07 | Change `LayoutConfig.grid_size` default from 160 to 240; update all tests hardcoding 160 — P2-T10 should pass | — | P1 |
 | P2-T08 | Add `LayoutConfig.high_degree_threshold: int = 5` field | — | P2 |
-| P2-T09 | Implement high-degree node row isolation in `assign_grid_cells` | — | P2 |
-| P2-T10 | Unit test: `grid_size=240` — all nodes snapped to 240px grid | — | P1 |
-| P2-T11 | Unit test: high-degree node (degree ≥ 5) gets at least 1 grid-cell isolation | — | P2 |
+| P2-T09 | Implement high-degree node row isolation in `assign_grid_cells` — P2-T11 should pass | — | P2 |
 
 ### Phase 2C — Multi-pass routing (RQ-03, RQ-04) — high complexity
 
+TDD order: write failing tests → extract loop → add detection → implement multi-pass → verify green
+
 | ID | Task | Owner | Priority |
 |----|------|-------|----------|
-| P2-T12 | Add `ObstacleMap.unmark_routed_segment(p1, p2)` method | — | P1 |
+| P2-T18 | [TEST-FIRST] Write unit test: connection crossing a node is re-routed around it after multi-pass — confirm FAIL (single-pass may leave node crossing) | — | P1 |
+| P2-T19 | [TEST-FIRST] Write unit test: double-crossing pair resolved (one connection re-routed) — confirm FAIL | — | P2 |
+| P2-T20 | [TEST-FIRST] Write integration test: tutorial topology has zero node crossings (SC-006 always green) — confirm current state | — | P1 |
+| P2-T21 | [TEST-FIRST] Write performance test: 500 nodes / 1000 connections routes in ≤ 3s (SC-005; all passes combined) — confirm FAIL if multi-pass not yet implemented | — | P1 |
+| P2-T12 | Add `ObstacleMap.unmark_routed_segment(p1, p2)` method and `_routed` field | — | P1 |
 | P2-T13 | Extract current routing loop into `_route_pass(conns, om, config, warnings)` | — | P1 |
-| P2-T14 | Add `_detect_node_crossings(waypoints, nodes_dict) -> set[int]` | — | P1 |
+| P2-T14 | Add `_detect_node_crossings(waypoints, nodes_dict: dict[str, InflatedAABB]) -> set[int]` — MUST use inflated AABB (depends on P2-T33); `InflatedAABB = raw AABB expanded by node_clearance` | — | P1 |
 | P2-T15 | Add `_detect_double_crossings(waypoints) -> set[int]` | — | P1 |
-| P2-T16 | Implement multi-pass outer loop in `auto_route` (max 3 passes) | — | P1 |
-| P2-T17 | Add `RoutingConfig.max_routing_passes: int = 3` | — | P2 |
-| P2-T18 | Unit test: connection initially crossing a node is re-routed around it after multi-pass | — | P1 |
-| P2-T19 | Unit test: double-crossing pair is resolved (one connection re-routed) | — | P2 |
-| P2-T20 | Integration test: tutorial topology has zero node crossings after multi-pass (SC-006 always green) | — | P1 |
-| P2-T21 | Performance test: 500 nodes / 1000 connections still routes in < 5s with multi-pass | — | P1 |
+| P2-T16 | Implement multi-pass outer loop in `auto_route` (max `config.max_routing_passes` passes) — P2-T18/T19/T20/T21 should now pass | — | P1 |
+| P2-T17 | Add `RoutingConfig.max_routing_passes: int = 3` (implementation detail; no FR; see plan.md Assumptions) | — | P2 |
 
 ---
 
@@ -228,20 +234,21 @@ max_node_displacement: int = 1  # in grid cells
 
 The `LayoutResult.node_moves: list[NodeMove]` field records all moves applied.
 
-### Phase 2D task list
+### Phase 2D task list (TDD order: tests first → implementation → integration)
 
 | ID | Task | Priority |
 |----|------|----------|
+| P2-T27 | [TEST-FIRST] Write unit test: `allow_node_move=False` (default) → no node position changes; SC-010 preserved — confirm FAIL | P1 |
+| P2-T28 | [TEST-FIRST] Write unit test: single blocking node moved 1 cell to resolve corridor — confirm FAIL | P1 |
+| P2-T29 | [TEST-FIRST] Write unit test: proposed move rejected when it would cause node overlap — confirm FAIL | P2 |
+| P2-T30 | [TEST-FIRST] Write unit test: rigid block of 2 nodes moves together (same delta) — confirm FAIL | P2 |
+| P2-T31 | [TEST-FIRST] Write integration test: `NodeMove` entries appear in result with correct old/new positions — confirm FAIL | P1 |
 | P2-T22 | Add `NodeMove` dataclass to `core.py`; add `node_moves: list[NodeMove]` to `LayoutResult` | P1 |
 | P2-T23 | Add `allow_node_move: bool = False` and `max_node_displacement: int = 1` to `RoutingConfig` | P1 |
-| P2-T24 | Implement `_find_candidate_node_moves(blocked_conn, waypoints, nodes_dict, config)` — returns list of `(node_or_block, delta_x, delta_y)` candidates | P1 |
-| P2-T25 | Implement `_apply_node_move(nodes_dict, candidate, view)` — shifts node(s), checks no-overlap, returns bool success | P1 |
-| P2-T26 | Wire node-move fallback into multi-pass outer loop (after Pass 2, before final skip+warn) | P1 |
-| P2-T27 | Unit test: `allow_node_move=False` → no node position changes (SC-010 preserved) | P1 |
-| P2-T28 | Unit test: single blocking node is moved 1 cell to resolve corridor | P1 |
-| P2-T29 | Unit test: proposed move rejected when it would cause node overlap | P2 |
-| P2-T30 | Unit test: rigid block of 2 nodes moves together | P2 |
-| P2-T31 | Integration test: `NodeMove` entries appear in result with correct old/new positions | P1 |
+| P2-T55 | Implement `ObstacleMap.rebuild_for_moved_nodes(moved_nodes, config)` — patch `cells` in-place: remove old inflated AABB, add new inflated AABB for moved node(s); call before re-routing affected connections after any node repositioning | P1 |
+| P2-T24 | Implement `_find_candidate_node_moves(blocked_conn, waypoints, nodes_dict: dict[str, Node], config)` — returns `list[(node_or_block, delta_x, delta_y)]` candidates; uses inflated AABB for overlap check | P1 |
+| P2-T25 | Implement `_apply_node_move(nodes_dict, candidate, view)` — shifts node(s), calls `rebuild_for_moved_nodes`, checks no-overlap, returns bool success | P1 |
+| P2-T26 | Wire node-move fallback into multi-pass outer loop (after final pass, before skip+warn); run P2-T27–T31 to confirm green | P1 |
 
 ### Dependency
 
@@ -249,14 +256,136 @@ P2-T22 through P2-T31 depend on multi-pass routing (P2-T12–P2-T16) being in pl
 
 ---
 
-## Recommended execution order
+## Fix 7 — Node avoidance zone: 25px clearance (FR-013 updated, SC-006)
 
-1. **P2-T07** (grid_size default) — single-line change, instant improvement, unblocks routing quality
-2. **P2-T03, P2-T04** (merge collinear adjacent) — easy, eliminates RQ-02
-3. **P2-T01, P2-T02** (fix remaining U-turns) — diagnose first, then fix
-4. **P2-T12 through P2-T16** (multi-pass) — highest complexity; gate for node-move feature
-5. **P2-T08, P2-T09** (high-degree layout) — independent, can be done in parallel with multi-pass
-6. **P2-T22 through P2-T31** (node-move) — implement after multi-pass is stable
+### Description
+
+FR-013 previously required only that no segment passes through the node bounding box. The updated requirement extends this to a **25px avoidance zone** around each node side: the routing algorithm must treat the AABB inflated by 25px as impassable.
+
+### Implementation
+
+`RoutingConfig` gains `node_clearance: int = 25`. `ObstacleMap` construction inflates each node AABB by `node_clearance` px on all four sides before rasterising grid cells. This is a constructor-time change; no BFS algorithm changes required.
+
+### Phase 2E task list (TDD order: tests first → implementation → BDD)
+
+| ID | Task | Priority |
+|----|------|----------|
+| P2-T34 | [TEST-FIRST] Write unit test `tests/unit/test_node_clearance.py`: segment grazing node edge (0px gap) blocked; segment at 24px blocked; segment at 26px passes — confirm tests FAIL before implementation | P1 |
+| P2-T36 | [TEST-FIRST] Write unit test: `RoutingConfig(node_clearance=10)` produces 10px inflation (not 25px) — confirm FAIL | P2 |
+| P2-T32 | Add `node_clearance: int = 25` to `RoutingConfig` in `src/pyArchimate/layout/routing_config.py` | P1 |
+| P2-T33 | Update `ObstacleMap.__init__` in `src/pyArchimate/layout/auto_route.py` to inflate each node AABB by `config.node_clearance` on all four sides — P2-T34/T36 should now pass | P1 |
+| P2-T35 | Update SC-006 + SC-007 assertions in `tests/integration/test_tutorial_svg_requirements.py`: check inflated AABB (25px) for clearance; verify label clearance still passes after inflation | P1 |
+| P2-T37 | BDD scenario `features/routing/node_clearance.feature` — Given `node_clearance=25`, When `auto_route` called, Then 0 segments within 25px of any node side | P2 |
+
+---
+
+## Fix 8 — Increase default min_segment_gap to 20px (FR-015 updated, SC-008)
+
+### Description
+
+The default `min_segment_gap` increases from 10px to **20px** — wider separation is needed for readable diagrams at the default grid size.
+
+### Implementation
+
+Change the field default in `RoutingConfig`. The displacement post-pass already reads `config.min_segment_gap`; no algorithmic change required. Existing tests that assert 10px separation must be updated to 20px.
+
+### Phase 2F task list (TDD order: tests first → implementation → BDD)
+
+| ID | Task | Priority |
+|----|------|----------|
+| P2-T40 | [TEST-FIRST] Write unit test `tests/unit/test_segment_separation.py`: two collinear connections separate to ≥ 20px with default config — confirm FAIL (current default is 10px) | P1 |
+| P2-T41 | [TEST-FIRST] Write unit test: `RoutingConfig(min_segment_gap=5)` → separation ≥ 5px — confirm FAIL | P2 |
+| P2-T38 | Change `min_segment_gap` default from `10` to `20` in `RoutingConfig` — P2-T40/T41 should now pass | P1 |
+| P2-T39 | Update all existing unit/integration tests that hardcode `min_segment_gap=10` or assert `≥ 10px` separation to use `20px` | P1 |
+| P2-T42 | BDD scenario `features/routing/segment_gap.feature` — Given default config, When `auto_route` called, Then parallel segments ≥ 20px | P2 |
+
+---
+
+## Fix 9 — Post-L-turn minimum segment length: 40px (FR-024 new, SC-012)
+
+### Description
+
+After every 90° direction change (L-turn) in a routed connection, the immediately following segment MUST be at least `min_turn_segment` px (default 40px). This prevents cosmetically degenerate micro-steps near bends.
+
+### Implementation
+
+`RoutingConfig` gains `min_turn_segment: int = 40`. A new geometry helper `_enforce_min_turn_segment(waypoints, min_len)` post-processes each connection's waypoint list after BFS routing: if the segment after a 90° bend is shorter than `min_len`, it extends the segment by merging with the next point or inserting a push-out waypoint.
+
+### Algorithm
+
+```
+for i in range(1, len(pts) - 1):
+    prev, cur, nxt = pts[i-1], pts[i], pts[i+1]
+    if direction(prev, cur) != direction(cur, nxt):   # L-turn at cur
+        seg_len = dist(cur, nxt)
+        if seg_len < min_len:
+            # Extend nxt by (min_len - seg_len) in direction(cur, nxt)
+            pts[i+1] = push(nxt, direction(cur, nxt), min_len - seg_len)
+```
+
+Run after `_merge_collinear_adjacent` and before `_fix_u_turns` to avoid invalidating the U-turn detector.
+
+**⚠️ M6 — Second enforce pass required**: `_fix_u_turns` can shorten a post-turn segment when it reroutes a backward segment. After `_fix_u_turns` completes, run `_enforce_min_turn_segment` a second time to catch any segments that became shorter than `min_turn_segment` as a result of the U-turn fix. The full post-processing pipeline order is:
+
+```
+_merge_collinear_adjacent → _enforce_min_turn_segment (pass 1) → _fix_u_turns → _enforce_min_turn_segment (pass 2) → _displace_collinear_overlaps
+```
+
+### Phase 2G task list (TDD order: tests first → implementation → BDD)
+
+**Pipeline order** (M6 resolved): `_merge_collinear_adjacent → _enforce_min_turn_segment (pass 1) → _fix_u_turns → _enforce_min_turn_segment (pass 2) → _displace_collinear_overlaps`
+
+**Terminal arrival segment exception** (M2 resolved): `_enforce_min_turn_segment` MUST skip the final segment (the one that terminates at the target node's attachment point) to avoid displacing the endpoint.
+
+| ID | Task | Priority |
+|----|------|----------|
+| P2-T46 | [TEST-FIRST] Write unit tests `tests/unit/test_geometry.py` for `_enforce_min_turn_segment`: L-shape with 10px post-turn → extended to 40px; conforming path unchanged; two consecutive L-turns both enforced; terminal arrival segment NOT extended; single-segment no-op — confirm all FAIL | P1 |
+| P2-T47 | [TEST-FIRST] Write unit test: `min_turn_segment=20` → 20px floor applied — confirm FAIL | P2 |
+| P2-T48 | [TEST-FIRST] Write integration test `tests/integration/test_tutorial_svg_requirements.py`: SC-012 — all non-terminal post-turn segments ≥ 40px — confirm FAIL | P1 |
+| P2-T43 | Add `min_turn_segment: int = 40` to `RoutingConfig` in `src/pyArchimate/layout/routing_config.py` | P1 |
+| P2-T44 | Implement `_enforce_min_turn_segment(waypoints, min_len)` in `src/pyArchimate/layout/geometry.py`; skip terminal arrival segment (last segment); run P2-T46/T47 to confirm green | P1 |
+| P2-T45 | Wire `_enforce_min_turn_segment` twice in pipeline (pass 1: after `_merge_collinear_adjacent`; pass 2: after `_fix_u_turns`) in `src/pyArchimate/layout/auto_route.py`; run P2-T48 to confirm green | P1 |
+| P2-T49 | BDD scenario `features/routing/turn_segment.feature` — Given `min_turn_segment=60`, When `auto_route` called, Then all non-terminal post-turn segments ≥ 60px | P2 |
+
+---
+
+## Fix 10 — View.duplicate() deep copy (FR-025 new, SC-013)
+
+### Description
+
+A new method `View.duplicate(name=None)` creates an independent deep copy of a view — all nodes, connections, and waypoints — and registers the new view in the same model. The original is never modified.
+
+### Implementation
+
+Added to `src/pyArchimate/view.py`. Deep-copies all nodes and connections using `copy.deepcopy`; assigns new UUIDs to the copy and its child objects; appends the new view to `self.model.views`.
+
+### Phase 2H task list (TDD order: tests first → implementation → BDD)
+
+**M4 resolved**: `View.duplicate()` raises `ValueError` when `self.model is None`; callers with standalone views must assign the result to a model explicitly. P2-T52 covers this edge case.
+
+| ID | Task | Priority |
+|----|------|----------|
+| P2-T51 | [TEST-FIRST] Write unit tests `tests/unit/test_view_duplicate.py`: node count equality; connection count equality; waypoint deep-copy (mutate copy → original unchanged); name override; default name suffix " (copy)"; duplicate registered in model — confirm all FAIL | P1 |
+| P2-T52 | [TEST-FIRST] Write edge-case tests: duplicate of empty view; view with no connections; duplicate-of-duplicate; zero-waypoint connections; `model=None` raises `ValueError` — confirm FAIL | P2 |
+| P2-T53 | [TEST-FIRST] Write integration test `tests/integration/test_view_duplicate.py`: load `.archimate`, duplicate, save, reload — both views present with correct element counts — confirm FAIL | P1 |
+| P2-T50 | Implement `View.duplicate(self, name: str \| None = None) -> "View"` in `src/pyArchimate/view.py`: raise `ValueError` if `self.model is None`; deep-copy nodes + connections (waypoints + labels); assign new UUID; set `name` or append " (copy)"; register in `self.model.views`; run P2-T51/T52/T53 to confirm green | P1 |
+| P2-T54 | BDD scenario `features/view/view_duplicate.feature` — Given view with 5 nodes + 4 connections, When `view.duplicate("test")` called, Then new view has 5 nodes + 4 connections + name "test" | P2 |
+
+---
+
+## Recommended execution order (TDD-compliant)
+
+**Rule**: within each group, write tests (confirm FAIL) → implement → confirm tests green.
+
+1. **P2-T10, P2-T07** (layout grid_size) — write test, change default
+2. **P2-T34, P2-T36, P2-T32, P2-T33, P2-T35** (node_clearance) — test → field → inflate AABB → integration check; **prerequisite for P2-T14**
+3. **P2-T40, P2-T41, P2-T38, P2-T39** (min_segment_gap) — test → change default → update existing tests
+4. **P2-T46, P2-T47, P2-T48, P2-T43, P2-T44, P2-T45** (min_turn_segment) — test → field → implement helper → wire twice
+5. **P2-T06, P2-T05, P2-T01, P2-T02, P2-T03, P2-T04** (path cleanup: U-turns + collinear merge) — strengthen tests → diagnose → fix → wire
+6. **P2-T18–T21, P2-T12–T17** (multi-pass) — write failing tests → extract loop → detect conflicts → implement passes; **gate for node-move**
+7. **P2-T11, P2-T08, P2-T09** (high-degree layout) — independent of routing; parallel with step 6
+8. **P2-T51–T53, P2-T50, P2-T54** (View.duplicate) — fully independent; parallel with any step
+9. **P2-T27–T31, P2-T22–T26, P2-T55** (node-move) — requires multi-pass (step 6) stable first
 
 ---
 
@@ -272,3 +401,7 @@ P2-T22 through P2-T31 depend on multi-pass routing (P2-T12–P2-T16) being in pl
 | SC-P2-06 | Performance: < 5s for 500 nodes + 1000 connections | Existing perf test (limit may be raised from 3s to 5s) |
 | SC-P2-07 | `allow_node_move=False` (default): no node position changes (SC-010 preserved) | `test_allow_node_move_false` |
 | SC-P2-08 | `allow_node_move=True`: blocking node shifted ≤ 1 cell; result lists the move | `test_node_move_recorded` |
+| SC-P2-09 | No segment within 25px of any node side (default config) | SC-006 updated assertion |
+| SC-P2-10 | No collinear segment pair < 20px apart (default config) | SC-008 updated assertion |
+| SC-P2-11 | All post-L-turn segments ≥ 40px (default config) | SC-012 (new) |
+| SC-P2-12 | `View.duplicate()` returns independent deep copy; original unchanged | SC-013 (new) |

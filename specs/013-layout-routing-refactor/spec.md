@@ -80,7 +80,7 @@ A developer has a view (already laid-out or raw) with connections that cross thr
 **Acceptance Scenarios**:
 
 1. **Given** a view with connections whose paths pass through nodes, **When** `auto_route` is called, **Then** no connection segment intersects any node bounding box
-2. **Given** a view with connections that share collinear segment overlap, **When** `auto_route` is called, **Then** overlapping segments are separated by at least 10px
+2. **Given** a view with connections that share collinear segment overlap, **When** `auto_route` is called, **Then** overlapping segments are separated by at least 20px
 3. **Given** a view with connection labels, **When** `auto_route` is called, **Then** no connection segment overlaps any connection label bounding box
 4. **Given** multiple connections leaving from the same edge of a node, **When** `auto_route` is called, **Then** their departure points are evenly spread across the middle portion of that edge, never touching corners
 5. **Given** a view with no connections, **When** `auto_route` is called, **Then** the function returns without error and node positions are unchanged
@@ -169,13 +169,15 @@ A developer has a dense view where some connections cannot route around nodes wi
 - **FR-010**: The library MUST expose an `auto_route(view, config=None)` function that takes a `View` object and recomputes all connection paths
 - **FR-011**: `auto_route` MUST NOT modify node positions, sizes, or any node properties
 - **FR-012**: `auto_route` MUST generate orthogonal (rectilinear) connection paths — all segments are axis-aligned (0° or 90°)
-- **FR-013**: `auto_route` MUST ensure no connection segment intersects any node bounding box (no routing through nodes)
+- **FR-013**: `auto_route` MUST ensure no connection segment passes within `node_clearance` pixels of any node side (the avoidance zone); default `node_clearance` is 25px (measured perpendicularly from each side of the node bounding box). No routing through, or within 25px of, any node edge.
 - **FR-014**: `auto_route` MUST ensure no connection segment overlaps any connection label bounding box
-- **FR-015**: `auto_route` MUST ensure no two connection segments from different connections are collinear and overlapping; parallel collinear segments from different connections MUST be separated by at least `min_segment_gap` (default: 10px)
+- **FR-015**: `auto_route` MUST ensure no two connection segments from different connections are collinear and overlapping; parallel collinear segments from different connections MUST be separated by at least `min_segment_gap` (default: 20px)
 - **FR-016**: `auto_route` MUST minimize the total number of connection crossings across the view; when crossings are unavoidable, they MUST be clean X-intersections (not T-overlaps, not collinear overlaps)
 - **FR-017**: `auto_route` MUST spread connection start and end points across each node edge: departure/arrival points MUST be distributed across the middle portion of the edge, excluding corner zones defined as max(10% of edge length, 4px) from each corner; points are evenly spaced and never coincident
 - **FR-018**: `auto_route` MUST complete in under 3 seconds for views with up to 500 nodes and 1000 connections
 - **FR-019**: When `auto_route` cannot find any valid orthogonal path for a connection, it MUST skip that connection (preserving its existing waypoints unchanged), and MUST add a warning entry to the result object identifying the skipped connection; it MUST NOT raise an exception or roll back other successfully routed connections
+- **FR-024**: After every L-turn (90° direction change) in a routed connection, the following segment MUST be at least `min_turn_segment` px long (default: 40px); this prevents cosmetically degenerate "small steps" near corners. Exception: if the segment after the L-turn is the terminal arrival segment (the final approach to the target node's attachment point), `min_turn_segment` is NOT enforced on that segment to avoid displacing the endpoint away from the target node.
+- **FR-025**: The library MUST expose a `View.duplicate(name=None)` method that creates and returns a deep copy of the view — including all nodes, connections, and their waypoints — as a new `View` object registered in the same model; if `name` is provided it becomes the duplicate's display name; the original view is not modified. If the view is not associated with a model (`self.model is None`), `duplicate()` MUST raise `ValueError("View has no parent model; cannot register duplicate")`. Callers with standalone views must explicitly assign the duplicate to a model.
 
 **Shared**
 
@@ -199,7 +201,7 @@ A developer has a dense view where some connections cannot route around nodes wi
 - **ConnectionLabel**: Bounding box of the label rendered on a connection; must not be overlapped by any segment
 - **GridCell**: A discrete canvas position at coordinates (i × grid_size, j × grid_size); nodes snap to cell origins
 - **LayoutConfig**: Configuration object for `auto_layout` — grid_size, layer_direction, spacing, margin
-- **RoutingConfig**: Configuration object for `auto_route` — min_segment_gap (default 10px), corner_clearance_pct (default 10%, proportion of edge length), corner_clearance_min (default 4px absolute floor), crossing_penalty
+- **RoutingConfig**: Configuration object for `auto_route` — node_clearance (default 25px), min_segment_gap (default 20px), corner_clearance_pct (default 10%, proportion of edge length), corner_clearance_min (default 4px absolute floor), crossing_penalty, min_turn_segment (default 40px)
 
 ## Success Criteria *(mandatory)*
 
@@ -209,22 +211,25 @@ A developer has a dense view where some connections cannot route around nodes wi
 - **SC-002**: After `auto_layout`, 100% of nodes have origins that are multiples of the configured grid size (verified programmatically)
 - **SC-003**: After `auto_layout`, 0 pairs of nodes overlap (bounding boxes do not intersect)
 - **SC-004**: After `auto_layout`, 100% of Business-layer nodes have Y < min(Application-layer Y) and 100% of Application-layer nodes have Y < min(Technology-layer Y) (vertical mode)
-- **SC-005**: `auto_route` completes in under 3 seconds for views with up to 500 nodes and 1000 connections
-- **SC-006**: After `auto_route`, 0 connection segments intersect any node bounding box
-- **SC-007**: After `auto_route`, 0 connection segments overlap any connection label bounding box
-- **SC-008**: After `auto_route`, 0 pairs of connection segments from different connections are collinear and overlapping (separation ≥ 10px enforced)
+- **SC-005**: `auto_route` completes in under 3 seconds for views with up to 500 nodes and 1000 connections (all passes combined; multi-pass re-routes conflicted connections only, adding ≤ 20% overhead in typical diagrams)
+- **SC-006**: After `auto_route`, 0 connection segments pass within 25px of any node side (verified by expanding each node bounding box by `node_clearance` and checking zero segment intersections)
+- **SC-007**: After `auto_route`, 0 connection segments overlap any connection label bounding box (label clearance must still pass after AABB inflation; P2-T35 verifies both)
+- **SC-008**: After `auto_route`, 0 pairs of connection segments from different connections are collinear and overlapping (separation ≥ 20px enforced)
 - **SC-009**: After `auto_route`, 0 connections depart or arrive within the corner zone (max(10% of edge length, 4px) from each corner); all endpoints lie within the valid middle portion of the node edge
 - **SC-010**: When `allow_node_move = False` (default), calling `auto_route` does not alter any node position — verified by comparing view state before/after each call in isolation. Calling `auto_layout` does not alter any connection waypoints (always).
 - **SC-011**: When `allow_node_move = True`, every node moved by `auto_route` (a) remains in its original layer, (b) does not overlap any other node, (c) is snapped to the grid, and (d) is displaced by no more than `max_node_displacement` grid cells. The result object lists all moved nodes with old and new positions.
+- **SC-012**: After `auto_route`, every segment immediately following an L-turn is ≥ 40px long (or configured `min_turn_segment`); the terminal arrival segment (the final segment approaching the target node) is excluded from this rule
+- **SC-013**: `View.duplicate()` returns a new `View` with identical node count, connection count, and waypoint data; the original view's state is unchanged after the call; the new view is registered in the parent model
 
 ## Routing Rules *(mandatory)*
 
 All connections produced by `auto_route` MUST satisfy:
 
 - **Orthogonal segments only**: Every segment of every connection path is either horizontal (Δy=0) or vertical (Δx=0)
-- **Node clearance**: No segment passes within the bounding box of any node (strict containment check)
+- **Node clearance**: No segment passes within `node_clearance` (default 25px) of any node side; the avoidance zone extends ±25px perpendicularly from each edge of the node bounding box
 - **Label clearance**: No segment overlaps any connection label bounding box
-- **Segment separation**: Two segments from different connections that would be collinear MUST be displaced by at least 10px (or configured `min_segment_gap`)
+- **Segment separation**: Two segments from different connections that would be collinear MUST be displaced by at least 20px (or configured `min_segment_gap`)
+- **Minimum turn segment**: The segment immediately after each L-turn (90° bend) MUST be at least 40px (or configured `min_turn_segment`) to prevent degenerate micro-steps
 - **No collinear overlap**: Two segments may cross (X-intersection) but MUST NOT run parallel at the same coordinate (T-overlap or overlap)
 - **Crossing minimization**: The routing algorithm MUST prefer paths with fewer crossings over paths with more segments when both are feasible
 - **Endpoint spreading**: On ALL FOUR node edges (left, right, top, bottom), connection attachment points are distributed across the middle portion of each edge. No point is within `corner_clearance` of a corner, where `corner_clearance = max(10% of edge length, 4px)`. Points are equally spaced within the available zone. Never coincident. Spreading is pre-computed per (node, edge) group before routing begins.
@@ -253,5 +258,5 @@ All connections produced by `auto_route` MUST satisfy:
 - `auto_layout(view, config=None)` function in the pyArchimate view module
 - `auto_route(view, config=None)` function in the pyArchimate view module
 - `LayoutConfig` and `RoutingConfig` typed configuration dataclasses
-- Unit tests: grid snapping, layer ordering, no-overlap guarantee, endpoint spreading, segment separation
-- Integration tests: chain layout+routing on realistic views; idempotency tests
+- Unit tests: grid snapping, layer ordering, no-overlap guarantee, endpoint spreading, segment separation, node clearance zone, min-turn-segment enforcement, View.duplicate() deep copy
+- Integration tests: chain layout+routing on realistic views; idempotency tests; duplicate view round-trip

@@ -1,6 +1,6 @@
 # pyArchimate Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-05-11
+Auto-generated from all feature plans. Last updated: 2026-05-15
 
 ## Active Technologies
 - Python 3.12 + Poetry, lxml, ruff, pyright, mypy, pytest, behave, pysonar (002-sonarqube-remediation)
@@ -13,6 +13,8 @@ Auto-generated from all feature plans. Last updated: 2026-05-11
 - File I/O only (views are persisted as XML files within .archimate archives) (011-view-auto-layout)
 - Python 3.12 + lxml, xml.etree.ElementTree (stdlib), pyArchimate view model (012-enhance-svg-view)
 - File I/O only (SVG output, `.archimate`/`.xml` round-trip) (012-enhance-svg-view)
+- Python 3.12 + lxml (XML I/O), existing pyArchimate view model (`src/pyArchimate/`) (013-layout-routing-refactor)
+- File I/O only — `.archimate` archives (zip+XML) (013-layout-routing-refactor)
 
 - **Language & Package Manager**: Python 3.10+ with Poetry
 - **XML Processing**: lxml (for .archimate and OpenGroup exchange format parsing)
@@ -51,10 +53,9 @@ specs/                   # Feature specifications
 ```
 
 ## Recent Changes
+- 013-layout-routing-refactor: Added Python 3.12 + lxml (XML I/O), existing pyArchimate view model (`src/pyArchimate/`)
+- 013-layout-routing-refactor: Added Python 3.12 + lxml (XML I/O), existing pyArchimate view model (`src/pyArchimate/`)
 - 013-layout-routing-refactor: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
-
-- 012-enhance-svg-view: Added Python 3.12 + lxml, xml.etree.ElementTree (stdlib), pyArchimate view model
-- 011-view-auto-layout: Added Python 3.10+ (per pyproject.toml `requires-python = ">=3.10,<4.0"`) + lxml (ArchiMate XML parsing), existing pyArchimate view model, poetry (package manager)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
