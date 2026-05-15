@@ -304,7 +304,7 @@ def _apply_node_move_fallback(
                 Rectangle(float(n.x), float(n.y), float(n.w), float(n.h))
                 for n in nodes_dict.values()
             ]
-            om_new = ObstacleMap(new_obstacles, resolution=resolution)
+            om_new = ObstacleMap(new_obstacles, resolution=resolution, config=config)
             om_new._canvas_w = om._canvas_w
             om_new._canvas_h = om._canvas_h
             for ki, wps_k in enumerate(all_waypoints):
@@ -382,7 +382,7 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
         # Adaptive resolution: 10px for small/medium views, 20px for large views.
         # Coarser grid cuts cell count ~4x, keeping BFS tractable on dense diagrams.
         _res = 10.0 if max(max_x, max_y) < 2000.0 else 20.0
-        om = ObstacleMap(obstacles, resolution=_res)
+        om = ObstacleMap(obstacles, resolution=_res, config=config)
         om._canvas_w = int(max_x / _res) + 5
         om._canvas_h = int(max_y / _res) + 5
 
