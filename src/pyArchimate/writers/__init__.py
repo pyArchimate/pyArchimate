@@ -13,6 +13,12 @@ _default_writers_initialized = False
 
 
 def register_writer(key, writer_callable):
+    """Register a writer function for a given format key.
+
+    Args:
+        key: Writer key (typically a Writers enum value)
+        writer_callable: Callable that writes model/view to file
+    """
     if not callable(writer_callable):
         raise TypeError('writer must be callable')
     _writer_registry[key] = writer_callable

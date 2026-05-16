@@ -159,7 +159,7 @@ class Relationship:
 
     def __init__(self, rel_type='', source=None, target=None, uuid=None, name=None,
                  access_type=None, influence_strength=None, desc=None, is_directed=None, profile=None, parent=None):
-
+        """Initialize a relationship between two elements with type and optional properties."""
         if parent is not None:
             # Accept any model-like object exposing relationship storage to
             # remain compatible with legacy and modular Model instances.
@@ -369,7 +369,8 @@ class Relationship:
             p = self.model.add_profile(name=profile_name, concept=self.type)
             self._profile = p.uuid
 
-    def reset_profile(self):
+    def reset_profile(self) -> None:
+        """Clear the profile assignment."""
         self._profile = None
 
 

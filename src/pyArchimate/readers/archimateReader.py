@@ -1,3 +1,8 @@
+"""Reader for Archi (.archimate) XML format.
+
+Parses .archimate files (Archi tool format) into pyArchimate model and view objects.
+Handles color normalization, style properties, and visual formatting preservation.
+"""
 # ruff: noqa: N999  # legacy module name preserved for API compatibility
 import os
 import re

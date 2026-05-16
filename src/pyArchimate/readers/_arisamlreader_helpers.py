@@ -43,8 +43,10 @@ _FONT_SEARCH_PATHS = [
 
 
 def get_text_size(text: str, points: int, font: str) -> tuple[float, float]:
+    """Calculate text dimensions for given font and size (platform-dependent)."""
     if platform.system() == 'Windows':
         class SIZE(ctypes.Structure):
+            """Windows API SIZE structure for text dimensions."""
             _fields_ = [("cx", ctypes.c_long), ("cy", ctypes.c_long)]
 
         hdc = ctypes.windll.user32.GetDC(0)  # type: ignore[attr-defined]
@@ -73,6 +75,7 @@ def get_text_size(text: str, points: int, font: str) -> tuple[float, float]:
 
 
 def id_of(_id: str) -> str:
+    """Convert ARIS ID to normalized format."""
     if '.' in _id:
         return 'id-' + _id.split('.')[1]
     return 'id-' + _id
@@ -110,6 +113,7 @@ def _parse_objdef(o: Any, model: Model, folder: str) -> None:
 
 
 def parse_elements(group: Any, root: Any, model: Model, folder: str = '') -> None:
+    """Recursively parse and add elements from ARIS model hierarchy."""
     if group is None:
         group = root
     for g in group.findall('Group'):
@@ -160,6 +164,7 @@ def _process_objdef_rels(o: Any, model: Model) -> None:
 
 
 def parse_relationships(groups: Any, root: Any, model: Model) -> None:
+    """Recursively parse and add relationships from ARIS model hierarchy."""
     if groups is None:
         groups = root
     for g in groups.findall('Group'):
@@ -170,6 +175,7 @@ def parse_relationships(groups: Any, root: Any, model: Model) -> None:
 
 def parse_nodes(grp: Any, view: View | None, model: Model,
                 scale_x: float, scale_y: float) -> None:
+    """Parse and add visual nodes from ARIS diagram."""
     if grp is None or view is None:
         return
     if not isinstance(view, View):
@@ -227,6 +233,7 @@ def _handle_regular_conn(conn: Any, o_id: str, view: View, model: Model,
 
 def parse_connections(grp: Any, view: View | None, model: Model,
                       scale_x: float, scale_y: float) -> None:
+    """Parse and add connections between nodes in ARIS diagram."""
     if grp is None or view is None:
         return
     if not isinstance(view, View):
@@ -241,6 +248,7 @@ def parse_connections(grp: Any, view: View | None, model: Model,
 
 
 def parse_containers(grp: Any, view: View | None, scale_x: float, scale_y: float) -> None:
+    """Parse and add container/grouping shapes from ARIS diagram."""
     if grp is None or view is None:
         return
     if not isinstance(view, View):
@@ -263,6 +271,7 @@ def parse_containers(grp: Any, view: View | None, scale_x: float, scale_y: float
 
 
 def parse_labels(root: Any, model: Model) -> None:
+    """Parse and register text labels from ARIS model."""
     for o in root.findall('FFTextDef'):
         o_id = id_of(o.attrib['FFTextDef.ID'])
         if o.attrib['IsModelAttr'] == 'TEXT':
@@ -279,6 +288,7 @@ def parse_labels(root: Any, model: Model) -> None:
 
 def parse_labels_in_view(grp: Any, view: View | None, model: Model,
                          scale_x: float, scale_y: float) -> None:
+    """Parse and add label nodes to ARIS diagram view."""
     if grp is None or view is None:
         return
     if not isinstance(view, View):
@@ -326,6 +336,7 @@ def _build_view(o: Any, model: Model, folder: str, scale_x: float, scale_y: floa
 
 def parse_views(group: Any, root: Any, model: Model, scale_x: float, scale_y: float,
                 folder: str = '') -> None:
+    """Recursively parse and add views from ARIS model hierarchy."""
     if group is None:
         group = root
     for g in group.findall('Group'):
@@ -341,6 +352,7 @@ def parse_views(group: Any, root: Any, model: Model, scale_x: float, scale_y: fl
 
 
 def clean_nested_conns(model: Model) -> None:
+    """Remove connections that reference their parent node as source."""
     for c in [x for x in model.conns_dict.values()
               if x.source.uuid == x.parent.uuid and isinstance(x.parent, Node)]:
         c.delete()

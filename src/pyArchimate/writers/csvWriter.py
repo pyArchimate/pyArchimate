@@ -1,6 +1,8 @@
 # ruff: noqa: N999  # legacy module name preserved for API compatibility
-"""
+"""Writer for CSV format.
 
+Exports pyArchimate models to CSV files (separate files for elements and relationships).
+Provides tabular representation suitable for spreadsheet analysis and reporting.
 """
 
 import sys

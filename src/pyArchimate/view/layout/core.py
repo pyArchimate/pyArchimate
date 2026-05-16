@@ -82,6 +82,7 @@ class LayoutConfig:
             raise ValueError("node_size_constraints min cannot exceed max")
 
     def __post_init__(self) -> None:
+        """Validate LayoutConfig parameters after initialization."""
         if self.algorithm not in ("force_directed", "hierarchical"):
             raise ValueError(f"Unknown algorithm: {self.algorithm}")
         self._validate_spacing_and_margin()
@@ -124,6 +125,7 @@ class RoutingConfig:
     max_node_displacement: int = 1
 
     def __post_init__(self) -> None:
+        """Validate RoutingConfig parameters after initialization."""
         if self.node_clearance < 0:
             raise ValueError("node_clearance must be >= 0")
         if self.min_segment_gap < 0:

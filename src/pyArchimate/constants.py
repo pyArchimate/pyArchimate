@@ -168,6 +168,7 @@ class RGBA:
     """
 
     def __init__(self, r=0, g=0, b=0, a=100):
+        """Initialize RGBA color with RGB values (0-255) and alpha (0-100)."""
         self.r = max(0, min(255, int(r)))
         self.g = max(0, min(255, int(g)))
         self.b = max(0, min(255, int(b)))

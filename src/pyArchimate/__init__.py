@@ -1,3 +1,8 @@
+"""pyArchimate: Python library for creating and manipulating ArchiMate diagrams.
+
+Provides tools for reading/writing .archimate files, managing models and views,
+and rendering diagrams to various formats. Supports ArchiMate 3.x specification.
+"""
 # ruff: noqa: N999  # legacy module name preserved for API compatibility
 from .helpers.diagram import get_or_create_connection as get_or_create_connection  # noqa: E501
 from .helpers.diagram import get_or_create_node as get_or_create_node

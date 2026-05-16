@@ -31,6 +31,7 @@ class ObstacleMap:
     def __init__(
         self, obstacles: list[Rectangle], resolution: float = 10.0, config: RoutingConfig | None = None
     ) -> None:
+        """Initialize obstacle map with rasterized node clearance zones."""
         self._obstacles = obstacles
         self.resolution = resolution
         self._cells: set[tuple[int, int]] = set()

@@ -1,3 +1,8 @@
+"""Logging configuration for pyArchimate.
+
+Provides a shared logger instance and functions to configure logging levels,
+file handlers, and stderr output.
+"""
 import logging
 from logging.handlers import RotatingFileHandler
 
