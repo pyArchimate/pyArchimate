@@ -11,6 +11,7 @@ from .format import FormatService
 from .layout_engine import apply_node_positions, assign_grid_cells
 from .routing.obstacle_map import ObstacleMap
 from .routing.segment_separation import (
+    _enforce_min_turn_segment,
     _merge_collinear_adjacent,
     displace_collinear_segments,
     remove_uturn_waypoints,
@@ -399,7 +400,13 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
 
         for conn, wps in zip(conn_refs, separated, strict=False):
             conn.remove_all_bendpoints()
-            for wp in _merge_collinear_adjacent(remove_uturn_waypoints(_fix_endpoint_stubs(wps))):
+            # Post-processing: stub fix → merge → enforce (P1) → u-turn removal → enforce (P2)
+            wps_fixed = _fix_endpoint_stubs(wps)
+            wps_merged = _merge_collinear_adjacent(wps_fixed)
+            wps_enforced_p1 = _enforce_min_turn_segment(wps_merged, config.min_turn_segment)
+            wps_no_uturns = remove_uturn_waypoints(wps_enforced_p1)
+            wps_enforced_p2 = _enforce_min_turn_segment(wps_no_uturns, config.min_turn_segment)
+            for wp in wps_enforced_p2:
                 conn.add_bendpoint(wp)
 
         elapsed_ms = (time.time() - start_time) * 1000
