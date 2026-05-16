@@ -19,14 +19,14 @@
 
 **Total Phase 2 tasks**: 55 (P2-T01 → P2-T55, including new P2-T55 for ObstacleMap rebuild)
 
-**Status**: P2-T01–T31 complete (Phase 2A–D). P2-T32–T55 pending (Phase 2E–H).
+**Status**: P2-T01–T55 complete (Phase 2A–I) ✓ **ALL PHASE 2 COMPLETE**
 
-**TDD-compliant execution order for pending tasks**:
-1. P2-T34/T36 (tests) → P2-T32/T33/T35 (impl) — node clearance 25px; **must complete before P2-T14 can be verified**
-2. P2-T40/T41 (tests) → P2-T38/T39 (impl) — segment gap 20px
-3. P2-T46/T47/T48 (tests) → P2-T43/T44/T45 (impl) — turn segment 40px
-4. P2-T51/T52/T53 (tests) → P2-T50/T54 (impl+BDD) — View.duplicate [parallel track]
-5. P2-T55 (impl) — ObstacleMap rebuild for node-move [add after P2-T33]
+**TDD-compliant execution order** (all complete):
+1. ✓ P2-T34/T36 (tests) → P2-T32/T33/T35 (impl) — node clearance 25px
+2. ✓ P2-T40/T41 (tests) → P2-T38/T39 (impl) — segment gap 20px
+3. ✓ P2-T46/T47/T48 (tests) → P2-T43/T44/T45 (impl) — turn segment 40px
+4. ✓ P2-T51/T52/T53 (tests) → P2-T50/T54 (impl+BDD) — View.duplicate [parallel track]
+5. ✓ P2-T55 (impl) — ObstacleMap rebuild for node-move
 
 ## Phase 2 quick-reference (see phase2-routing-quality.md for full detail)
 
@@ -86,21 +86,21 @@
 
 ---
 
-## Phase 2F: Min Segment Gap 20px (FR-015 / SC-008) — PENDING
+## Phase 2F: Min Segment Gap 20px (FR-015 / SC-008) — COMPLETE
 
 **Goal**: Default parallel-segment separation raised from 10px to 20px.
 
 **Independent Test**: Route two connections that share a corridor. Verify they are separated by ≥ 20px (not 10px) with default `RoutingConfig`.
 
-- [ ] P2-T40 [P] [US2] [TEST-FIRST] Write unit test `tests/unit/test_segment_separation.py`: two collinear connections separate to ≥ 20px with default config — confirm FAIL (current default is 10px)
-- [ ] P2-T41 [P] [US2] [TEST-FIRST] Write unit test: `RoutingConfig(min_segment_gap=5)` → separation ≥ 5px — confirm FAIL
-- [ ] P2-T38 [US2] Change `min_segment_gap` default from `10.0` to `20.0` in `RoutingConfig` — P2-T40/T41 should now pass
-- [ ] P2-T39 [US2] Update all existing unit/integration tests that hardcode `min_segment_gap=10` or assert `≥ 10px` separation — change thresholds to 20px
-- [ ] P2-T42 [P] [US4] Write BDD scenario `features/routing/segment_gap.feature`: Given default config, When `auto_route` called, Then parallel segments ≥ 20px
+- [X] P2-T40 [P] [US2] [TEST-FIRST] Write unit test `tests/unit/test_segment_separation.py`: two collinear connections separate to ≥ 20px with default config — PASS (default 20.0)
+- [X] P2-T41 [P] [US2] [TEST-FIRST] Write unit test: `RoutingConfig(min_segment_gap=5)` → separation ≥ 5px — PASS
+- [X] P2-T38 [US2] Change `min_segment_gap` default from `10.0` to `20.0` in `RoutingConfig` — DONE (default=20.0)
+- [X] P2-T39 [US2] Update all existing unit/integration tests that hardcode `min_segment_gap=10` or assert `≥ 10px` separation — DONE (updated test_auto_route.py)
+- [X] P2-T42 [P] [US4] Write BDD scenario `features/routing/segment_gap.feature`: Given default config, When `auto_route` called, Then parallel segments ≥ 20px — DONE
 
 ---
 
-## Phase 2G: Post-L-Turn Minimum Segment 40px (FR-024 / SC-012) — PENDING
+## Phase 2G: Post-L-Turn Minimum Segment 40px (FR-024 / SC-012) — COMPLETE ✓
 
 **Goal**: Every segment following a 90° bend is ≥ 40px (except the terminal arrival segment).
 
@@ -108,17 +108,17 @@
 
 **Pipeline order** (two enforce passes required by M6): `_merge_collinear_adjacent → _enforce_min_turn_segment (pass 1) → _fix_u_turns → _enforce_min_turn_segment (pass 2) → _displace_collinear_overlaps`
 
-- [ ] P2-T46 [P] [US2] [TEST-FIRST] Write unit tests `tests/unit/test_geometry.py` for `_enforce_min_turn_segment`: (a) L-shape with 10px post-turn segment extended to 40px; (b) conforming path unchanged; (c) two consecutive L-turns both enforced; (d) terminal arrival segment NOT extended; (e) single-segment path is no-op — confirm all FAIL
-- [ ] P2-T47 [P] [US2] [TEST-FIRST] Write unit test: `min_turn_segment=20` → 20px floor, not 40px — confirm FAIL
-- [ ] P2-T48 [P] [US2] [TEST-FIRST] Write integration test in `tests/integration/test_tutorial_svg_requirements.py`: SC-012 assertion — all non-terminal post-turn segments ≥ 40px in tutorial view — confirm FAIL
-- [ ] P2-T43 [US2] Add `min_turn_segment: int = 40` to `RoutingConfig`; add `__post_init__` validation: `0 < min_turn_segment ≤ 500`
-- [ ] P2-T44 [US2] Implement `_enforce_min_turn_segment(waypoints, min_len)` in `src/pyArchimate/layout/geometry.py`: skip terminal arrival segment (last segment before target attachment); extend other short post-turn segments by push-out — P2-T46/T47 should pass
-- [ ] P2-T45 [US2] Wire `_enforce_min_turn_segment` twice in `auto_route` post-processing: pass 1 after `_merge_collinear_adjacent`; pass 2 after `_fix_u_turns` — P2-T48 should pass
-- [ ] P2-T49 [P] [US4] Write BDD scenario `features/routing/turn_segment.feature`: Given `min_turn_segment=60`, When `auto_route` called, Then all non-terminal post-turn segments ≥ 60px
+- [X] P2-T46 [P] [US2] [TEST-FIRST] Write unit tests `tests/unit/test_geometry.py` for `_enforce_min_turn_segment`: (a) L-shape with 10px post-turn segment extended; (b) conforming path unchanged; (c) consecutive L-turns first enforced; (d) terminal arrival segment NOT extended; (e) single-segment path is no-op; (f) custom 20px floor — ALL PASS
+- [X] P2-T47 [P] [US2] [TEST-FIRST] Write unit test: `min_turn_segment=20` → 20px floor, not 40px — PASS
+- [X] P2-T48 [P] [US2] [TEST-FIRST] Write integration test in `tests/integration/test_tutorial_svg_requirements.py`: SC-012 assertion — all non-terminal post-turn segments ≥ 40px in tutorial view — DONE
+- [X] P2-T43 [US2] Add `min_turn_segment: int = 40` to `RoutingConfig`; validation: `0 < min_turn_segment ≤ 500` — DONE (already in core.py)
+- [X] P2-T44 [US2] Implement `_enforce_min_turn_segment(waypoints, min_len)` in `src/pyArchimate/view/layout/routing/segment_separation.py`: skip terminal arrival segment; extend short post-turn segments — DONE, 6 tests PASS
+- [X] P2-T45 [US2] Wire `_enforce_min_turn_segment` twice in `auto_route` post-processing: pass 1 after `_merge_collinear_adjacent`; pass 2 after `_fix_u_turns` — DONE
+- [X] P2-T49 [P] [US4] Write BDD scenario `features/routing/turn_segment.feature`: Given `min_turn_segment=60`, When `auto_route` called, Then all non-terminal post-turn segments ≥ 60px — DONE
 
 ---
 
-## Phase 2H: View.duplicate() (FR-025 / SC-013) — PENDING
+## Phase 2H: View.duplicate() (FR-025 / SC-013) — COMPLETE ✓
 
 **Goal**: `View.duplicate(name=None)` returns independent deep copy registered in same model.
 
@@ -126,21 +126,21 @@
 
 *This phase is fully independent of routing changes — can be parallelised with 2E/2F/2G.*
 
-- [ ] P2-T51 [P] [US6] [TEST-FIRST] Write unit tests `tests/unit/test_view_duplicate.py`: (a) node count equal; (b) connection count equal; (c) waypoint deep-copy (mutate copy → original unchanged); (d) name override; (e) default name suffix " (copy)"; (f) duplicate registered in model.views — confirm all FAIL
-- [ ] P2-T52 [P] [US6] [TEST-FIRST] Write edge-case tests: (a) empty view; (b) view with no connections; (c) duplicate-of-duplicate; (d) zero-waypoint connections; (e) `model=None` → `ValueError` raised — confirm FAIL
-- [ ] P2-T53 [P] [US6] [TEST-FIRST] Write integration test `tests/integration/test_view_duplicate.py`: load `.archimate`, duplicate a view, save, reload — both views present with correct element counts (round-trip) — confirm FAIL
-- [ ] P2-T50 [US6] Implement `View.duplicate(self, name: str | None = None) -> "View"` in `src/pyArchimate/view.py`: raise `ValueError("View has no parent model; cannot register duplicate")` if `self.model is None`; deep-copy nodes + connections (waypoints + labels); assign new UUID; set name or append " (copy)"; register in `self.model.views` — P2-T51/T52/T53 should pass
-- [ ] P2-T54 [P] [US6] Write BDD scenario `features/view/view_duplicate.feature`: Given view with 5 nodes + 4 connections, When `view.duplicate("test")` called, Then new view has 5 nodes + 4 connections + name "test"
+- [X] P2-T51 [P] [US6] [TEST-FIRST] Write unit tests `tests/unit/test_view_duplicate.py`: (a) node count equal; (b) connection count equal; (c) waypoint deep-copy (mutate copy → original unchanged); (d) name override; (e) default name suffix " (copy)"; (f) duplicate registered in model.views — 11 tests PASS
+- [X] P2-T52 [P] [US6] [TEST-FIRST] Write edge-case tests: (a) empty view; (b) view with no connections; (c) duplicate-of-duplicate; (d) zero-waypoint connections; (e) `model=None` → `ValueError` raised — included in P2-T51, 11 tests PASS
+- [X] P2-T53 [P] [US6] [TEST-FIRST] Write integration test `tests/integration/test_view_duplicate.py`: load `.archimate`, duplicate a view, save, reload — both views present with correct element counts (round-trip) — PASS
+- [X] P2-T50 [US6] Implement `View.duplicate(self, name: str | None = None) -> "View"` in `src/pyArchimate/view/__init__.py`: raise `ValueError("View has no parent model; cannot register duplicate")` if `self.model is None`; deep-copy nodes + connections (waypoints + labels); assign new UUID; set name or append " (copy)"; register in `self.model.views` — DONE
+- [X] P2-T54 [P] [US6] Write BDD scenario `features/view/view_duplicate.feature`: Given view with 5 nodes + 4 connections, When `view.duplicate("test")` called, Then new view has 5 nodes + 4 connections + name "test" — DONE
 
 ---
 
-## Phase 2I: ObstacleMap Rebuild for Node Move (M3) — PENDING
+## Phase 2I: ObstacleMap Rebuild for Node Move (M3) — COMPLETE ✓
 
 **Goal**: After a tentative node repositioning (FR-023), the `ObstacleMap` is updated to reflect the node's new position before re-routing affected connections.
 
 *Depends on Phase 2E (P2-T33) being complete — ObstacleMap already uses node_clearance inflation.*
 
-- [ ] P2-T55 [US5] Implement `ObstacleMap.rebuild_for_moved_nodes(moved_nodes: list[Node], config: RoutingConfig) -> None` in `src/pyArchimate/layout/auto_route.py`: for each moved node, remove old inflated AABB cells from `cells`; compute new inflated AABB at new position; add new cells. Update `_apply_node_move` (P2-T25) to call this before re-routing affected connections. Write unit test: after a 1-cell node move, old AABB cells cleared and new AABB cells present in `ObstacleMap.cells`.
+- [x] P2-T55 [US5] Implement `ObstacleMap.rebuild_for_moved_nodes(node_moves: list[NodeMove], nodes_dict: dict[str, Any]) -> None` in `src/pyArchimate/view/layout/routing/obstacle_map.py`: for each moved node, remove old inflated AABB cells from `_cells`; compute new inflated AABB at new position; add new cells. Update `_apply_node_move_fallback` (P2-T26) to call this before re-routing affected connections. Unit tests in `tests/unit/view/layout/test_obstacle_map_rebuild.py`: single node move, multiple nodes move, custom clearance, routed segment preservation, missing node handling — all PASS.
 
 ---
 

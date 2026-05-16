@@ -133,7 +133,7 @@ class TestSegmentSeparation:
         c1 = mock_connection("c1", "s1", "t1")
         c2 = mock_connection("c2", "s2", "t2")
         view = make_view([src1, tgt1, src2, tgt2], [c1, c2])
-        config = RoutingConfig(min_segment_gap=10.0)
+        config = RoutingConfig()  # Default min_segment_gap=20.0 (FR-015)
         result = auto_route(view, config)
         assert result.success is True
 

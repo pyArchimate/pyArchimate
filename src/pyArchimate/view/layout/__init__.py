@@ -301,28 +301,33 @@ def _apply_node_move_fallback(
             records = _apply_node_move(nids, dx, dy, nodes_dict)
             if records is None:
                 continue
-            new_obstacles = [
-                Rectangle(float(n.x), float(n.y), float(n.w), float(n.h))
-                for n in nodes_dict.values()
-            ]
-            om_new = ObstacleMap(new_obstacles, resolution=resolution, config=config)
-            om_new._canvas_w = om._canvas_w
-            om_new._canvas_h = om._canvas_h
+            # P2-T55: Rebuild obstacle map after tentative node move
+            om.rebuild_for_moved_nodes(records, nodes_dict)
             for ki, wps_k in enumerate(all_waypoints):
                 if ki != ci:
                     for seg in range(len(wps_k) - 1):
-                        om_new.mark_routed_segment(wps_k[seg], wps_k[seg + 1])
+                        om.mark_routed_segment(wps_k[seg], wps_k[seg + 1])
             _route_pass(
                 [ci], conn_refs, all_waypoints,
-                spread_anchors, nodes_dict, om_new,
+                spread_anchors, nodes_dict, om,
                 config.crossing_penalty * 3.0, warnings,
             )
             if not _detect_node_crossings([all_waypoints[ci]], nodes_dict):
                 node_moves.extend(records)
-                om = om_new
                 resolved = True
                 break
+            # P2-T55: Undo node move also reverts obstacle map changes
             _undo_node_moves(records, nodes_dict)
+            om.rebuild_for_moved_nodes(
+                [NodeMove(
+                    uuid=rec.uuid,
+                    old_x=rec.new_x,  # swap to undo
+                    old_y=rec.new_y,
+                    new_x=rec.old_x,
+                    new_y=rec.old_y,
+                ) for rec in records],
+                nodes_dict,
+            )
         if not resolved and ci < len(conn_refs):
             conn_uuid = getattr(conn_refs[ci], 'uuid', str(ci))
             warnings.append(

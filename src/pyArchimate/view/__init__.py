@@ -993,6 +993,56 @@ class View:
         if _id in self.parent.views_dict:
             del self.parent.views_dict[_id]
 
+    def duplicate(self, name: str | None = None) -> "View":
+        """Create independent deep copy of this view registered in same model.
+
+        Args:
+            name: Name for duplicated view. If None, appends " (copy)" to original name.
+
+        Returns:
+            New View object with deep-copied nodes and connections.
+
+        Raises:
+            ValueError: If view has no parent model (cannot register duplicate).
+        """
+        if self.model is None:
+            raise ValueError("View has no parent model; cannot register duplicate")
+
+        # Determine name for duplicate
+        dup_name = name if name is not None else f"{self.name} (copy)"
+
+        # Create new view
+        dup_view = View(name=dup_name, parent=self.model)
+        self.model.views_dict[dup_view.uuid] = dup_view
+
+        # Map original node UUIDs to duplicated nodes (for connection recreation)
+        node_map: dict[str, Node] = {}
+
+        # Deep copy nodes
+        for node in self.nodes:
+            dup_node = dup_view.add(
+                ref=node.ref,
+                x=node.x,
+                y=node.y,
+                w=node.w,
+                h=node.h,
+                label=node.label
+            )
+            node_map[node.uuid] = dup_node
+
+        # Deep copy connections
+        for conn in self.conns:
+            src_node = node_map.get(conn.source.uuid) if conn.source else None
+            tgt_node = node_map.get(conn.target.uuid) if conn.target else None
+            if src_node and tgt_node:
+                dup_conn = dup_view.add_connection(ref=conn.ref, source=src_node, target=tgt_node)
+                # Deep copy waypoints
+                if conn.bendpoints:
+                    for bp in conn.bendpoints:
+                        dup_conn.add_bendpoint(bp)
+
+        return dup_view
+
     def add(self, ref: object = None, x: int = 0, y: int = 0, w: int = 120, h: int = 55,
             uuid: str | None = None, node_type: str = 'Element',
             label: str | None = None) -> Node:

@@ -140,6 +140,56 @@ class ObstacleMap:
                 self._routed.discard(self._to_cell(x, y))
                 y += res
 
+    def _get_obstacle_cells(self, rect: Rectangle) -> set[tuple[int, int]]:
+        """Compute inflated AABB cells for a rectangle (node).
+
+        Returns the set of grid cells that would be blocked by this rectangle
+        when inflated by node_clearance.
+        """
+        res = self.resolution
+        clearance = self._node_clearance
+        x0 = rect.x - clearance
+        y0 = rect.y - clearance
+        x1 = rect.x + rect.width + clearance
+        y1 = rect.y + rect.height + clearance
+        cx0 = int(x0 / res)
+        cy0 = int(y0 / res)
+        cx1 = int(x1 / res)
+        cy1 = int(y1 / res)
+        cells = set()
+        for cx in range(cx0, cx1 + 1):
+            for cy in range(cy0, cy1 + 1):
+                cells.add((cx, cy))
+        return cells
+
+    def rebuild_for_moved_nodes(self, node_moves: list[Any], nodes_dict: dict[str, Any]) -> None:
+        """Update obstacle map after node repositioning.
+
+        For each moved node, removes old inflated AABB cells and adds new ones.
+        Called after _apply_node_move tentatively shifts nodes, before re-routing.
+
+        Args:
+            node_moves: List of NodeMove records with old/new positions and node uuid.
+            nodes_dict: Dict mapping node uuid to node object with x, y, w, h attributes.
+        """
+        for move in node_moves:
+            node = nodes_dict.get(move.uuid)
+            if node is None:
+                continue
+
+            # Old rectangle at previous position
+            old_rect = Rectangle(move.old_x, move.old_y, float(node.w), float(node.h))
+            # New rectangle at current position
+            new_rect = Rectangle(move.new_x, move.new_y, float(node.w), float(node.h))
+
+            # Remove old cells
+            old_cells = self._get_obstacle_cells(old_rect)
+            self._cells.difference_update(old_cells)
+
+            # Add new cells
+            new_cells = self._get_obstacle_cells(new_rect)
+            self._cells.update(new_cells)
+
     def _expand_neighbour(
         self,
         ncell: tuple[int, int],
