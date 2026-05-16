@@ -184,6 +184,76 @@ _STUB_THRESHOLD = 15.0  # px — max stub length treated as BFS grid-snapping ar
 _EPS_STUB = 0.5         # coordinate tolerance
 
 
+def _remove_waypoints_inside_nodes(
+    wps: list[Point],
+    nodes_dict: dict[str, Any],
+) -> list[Point]:
+    """Remove waypoints that lie strictly inside node bounding boxes.
+
+    Keeps endpoint anchors (first and last) even if inside nodes (they're on edges).
+    Interior waypoints strictly inside nodes are removed, collapsing their segments.
+    Also removes tiny backward reversals (< 5px) on the same axis.
+    """
+    if len(wps) < 3:
+        return list(wps)
+
+    result: list[Point] = [wps[0]]
+    for i in range(1, len(wps) - 1):
+        wp = wps[i]
+
+        # Check if inside any node
+        inside_any = False
+        for node in nodes_dict.values():
+            nx, ny = float(node.x), float(node.y)
+            nw, nh = float(node.w), float(node.h)
+            if nx < wp.x < nx + nw and ny < wp.y < ny + nh:
+                inside_any = True
+                break
+
+        if inside_any:
+            continue
+
+        # Check for tiny backward reversal on same axis (< 5px)
+        prev = result[-1]
+        nxt = wps[i + 1]
+
+        # Horizontal reversal: prev→wp→nxt all at same y, but wp goes opposite direction
+        horiz_rev = (abs(prev.y - wp.y) < 0.5 and abs(wp.y - nxt.y) < 0.5 and
+                     abs(wp.x - prev.x) < 5 and (wp.x - prev.x) * (nxt.x - wp.x) < 0)
+
+        # Vertical reversal: prev→wp→nxt all at same x, but wp goes opposite direction
+        vert_rev = (abs(prev.x - wp.x) < 0.5 and abs(wp.x - nxt.x) < 0.5 and
+                    abs(wp.y - prev.y) < 5 and (wp.y - prev.y) * (nxt.y - wp.y) < 0)
+
+        if not (horiz_rev or vert_rev):
+            result.append(wp)
+
+    result.append(wps[-1])
+    return result
+
+
+def _snap_near_orthogonal_segments(wps: list[Point], threshold: float = 15.0) -> list[Point]:
+    """Snap nearly-orthogonal segments to pure orthogonal.
+
+    Only snaps small components (< threshold). Leaves balanced diagonals untouched.
+    """
+    if len(wps) < 2:
+        return list(wps)
+    result = list(wps)
+    i = 0
+    while i < len(result) - 1:
+        a, b = result[i], result[i + 1]
+        dx = abs(b.x - a.x)
+        dy = abs(b.y - a.y)
+        if dx > 0.5 and dy > 0.5:
+            if dy < threshold and dy < dx:
+                result[i + 1] = Point(b.x, a.y)
+            elif dx < threshold and dx < dy:
+                result[i + 1] = Point(a.x, b.y)
+        i += 1
+    return result
+
+
 def _fix_endpoint_stubs(wps: list[Point]) -> list[Point]:
     """Absorb short backward stubs at connection endpoints caused by BFS grid snapping.
 
@@ -403,15 +473,27 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
         # Post-processing: separation, anchor restore, cleanup.
         separated = _post_process_waypoints(all_waypoints, config)
 
+        # Collect all processed waypoints for final collinear overlap detection
+        all_final_wps = []
         for conn, wps in zip(conn_refs, separated, strict=False):
             conn.remove_all_bendpoints()
-            # Post-processing: stub fix → merge → enforce (P1) → u-turn removal → enforce (P2)
+            # Post-processing: stub fix → merge → enforce (P1) → u-turn removal → enforce (P2) → snap diagonals → remove interior waypoints
             wps_fixed = _fix_endpoint_stubs(wps)
             wps_merged = _merge_collinear_adjacent(wps_fixed)
             wps_enforced_p1 = _enforce_min_turn_segment(wps_merged, config.min_turn_segment)
             wps_no_uturns = remove_uturn_waypoints(wps_enforced_p1)
             wps_enforced_p2 = _enforce_min_turn_segment(wps_no_uturns, config.min_turn_segment)
-            for wp in wps_enforced_p2:
+            wps_snapped = _snap_near_orthogonal_segments(wps_enforced_p2)
+            wps_cleaned = _remove_waypoints_inside_nodes(wps_snapped, nodes_dict)
+            all_final_wps.append(wps_cleaned)
+
+        # Final pass: detect and separate remaining collinear overlaps
+        from .routing.segment_separation import displace_collinear_segments
+        final_separated = displace_collinear_segments(all_final_wps, config.min_segment_gap)
+
+        # Add bendpoints to connections
+        for conn, wps in zip(conn_refs, final_separated, strict=False):
+            for wp in wps:
                 conn.add_bendpoint(wp)
 
         elapsed_ms = (time.time() - start_time) * 1000

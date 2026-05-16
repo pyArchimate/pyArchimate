@@ -159,9 +159,11 @@ class SVGExportService:
         # Calculate view bounds
         bounds = self._calculate_bounds(view)
 
-        # Create SVG root element
-        svg_width = bounds["max_x"] + self.SVG_MARGIN
-        svg_height = bounds["max_y"] + self.SVG_MARGIN
+        # Create SVG root element with proper bounds and 5% margin
+        svg_min_x = bounds["min_x"]
+        svg_min_y = bounds["min_y"]
+        svg_width = bounds["max_x"] - svg_min_x
+        svg_height = bounds["max_y"] - svg_min_y
 
         svg = ET.Element(
             "svg",
@@ -170,7 +172,7 @@ class SVGExportService:
                 "xmlns:xlink": "http://www.w3.org/1999/xlink",  # NOSONAR  W3C XLink namespace URI — not an HTTP connection, spec-mandated string
                 "width": str(int(svg_width)),
                 "height": str(int(svg_height)),
-                "viewBox": f"0 0 {int(svg_width)} {int(svg_height)}",
+                "viewBox": f"{int(svg_min_x)} {int(svg_min_y)} {int(svg_width)} {int(svg_height)}",
             },
         )
 
@@ -210,6 +212,8 @@ class SVGExportService:
     def _calculate_bounds(self, view: Any) -> dict[str, float]:
         """Calculate the bounding box of all elements in the view.
 
+        Includes nodes and connection waypoints to ensure full coverage.
+
         Args:
             view: View object
 
@@ -237,6 +241,29 @@ class SVGExportService:
             bounds["min_y"] = min(bounds["min_y"], y)
             bounds["max_x"] = max(bounds["max_x"], x + w)
             bounds["max_y"] = max(bounds["max_y"], y + h)
+
+        # Include connection waypoints
+        conns = getattr(view, "conns", [])
+        for conn in conns:
+            bendpoints = getattr(conn, "bendpoints", [])
+            for bp in bendpoints:
+                bp_x = float(getattr(bp, "x", 0))
+                bp_y = float(getattr(bp, "y", 0))
+                bounds["min_x"] = min(bounds["min_x"], bp_x)
+                bounds["min_y"] = min(bounds["min_y"], bp_y)
+                bounds["max_x"] = max(bounds["max_x"], bp_x)
+                bounds["max_y"] = max(bounds["max_y"], bp_y)
+
+        # Apply 5% safety margin
+        if bounds["min_x"] != float("inf"):
+            span_x = bounds["max_x"] - bounds["min_x"]
+            span_y = bounds["max_y"] - bounds["min_y"]
+            margin_x = span_x * 0.05
+            margin_y = span_y * 0.05
+            bounds["min_x"] -= margin_x
+            bounds["min_y"] -= margin_y
+            bounds["max_x"] += margin_x
+            bounds["max_y"] += margin_y
 
         # Handle empty view
         if bounds["min_x"] == float("inf"):
