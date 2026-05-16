@@ -228,8 +228,6 @@ class SVGExportService:
         }
 
         nodes = getattr(view, "nodes", [])
-        if not nodes:
-            return bounds
 
         for node in nodes:
             x = float(getattr(node, "x", 0))

@@ -349,7 +349,7 @@ class Model:
         return 'Model'
 
     @property
-    def profiles(self):
+    def profiles(self) -> list["Profile"]:
         """
         Property to access the profiles.
 
@@ -388,7 +388,6 @@ class Model:
         for p in self.profiles:
             if p.name == name:
                 return p
-        return None
         return None
 
     @property

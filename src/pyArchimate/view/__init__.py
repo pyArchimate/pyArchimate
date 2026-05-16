@@ -358,12 +358,14 @@ class Node:
     def ref(self, ref: "str | Element | None") -> None:
         """Set element reference (updates if valid)."""
         if isinstance(ref, Element):
-            new_ref = ref.uuid
+            new_ref: str | None = ref.uuid
+        elif ref is None:
+            new_ref = None
         elif hasattr(ref, 'uuid'):
-            new_ref = ref.uuid
+            new_ref = str(ref.uuid)  # pyright: ignore[reportAttributeAccessIssue]
         else:
-            new_ref = ref
-        if new_ref in self.model.elems_dict:
+            new_ref = cast(str | None, ref)
+        if new_ref is not None and new_ref in self.model.elems_dict:
             self._ref = new_ref
 
     # --- position ---
@@ -409,9 +411,9 @@ class Node:
         if value < 0:
             value = 0
         if isinstance(self.parent, Node):
-            self.x = self.parent.x + value
+            self.x = int(self.parent.x + value)
         else:
-            self.x = value
+            self.x = int(value)
 
     @property
     def y(self) -> int:
@@ -454,9 +456,9 @@ class Node:
         if value < 0:
             value = 0
         if isinstance(self.parent, Node):
-            self.y = self.parent.y + int(value)
+            self.y = int(self.parent.y + value)
         else:
-            self.y = value
+            self.y = int(value)
 
     @property
     def w(self) -> int:
@@ -591,7 +593,7 @@ class Node:
                 if c.source is not None and c.target is not None
                 and c.type == rel_type and (c.source.uuid == self.uuid or c.target.uuid == self.uuid)]
 
-    def in_conns(self, rel_type=None) -> list["Connection"]:
+    def in_conns(self, rel_type: str | None = None) -> list["Connection"]:
         """Incoming connections (this node as target), optionally filtered by type."""
         if rel_type is None:
             return [c for c in self.view.conns_dict.values()
@@ -599,7 +601,7 @@ class Node:
         return [c for c in self.view.conns_dict.values()
                 if c.target is not None and c.type == rel_type and c.target.uuid == self.uuid]
 
-    def out_conns(self, rel_type=None) -> list["Connection"]:
+    def out_conns(self, rel_type: str | None = None) -> list["Connection"]:
         """Outgoing connections (this node as source), optionally filtered by type."""
         if rel_type is None:
             return [c for c in self.view.conns_dict.values()
@@ -873,10 +875,12 @@ class Connection:
     @ref.setter
     def ref(self, ref: "str | object") -> None:
         """Set relationship reference (updates if valid)."""
-        if hasattr(ref, 'uuid'):
-            new_ref = ref.uuid
-        else:
+        if isinstance(ref, str):
             new_ref = ref
+        elif hasattr(ref, 'uuid'):
+            new_ref = str(ref.uuid)  # pyright: ignore[reportAttributeAccessIssue]
+        else:
+            new_ref = cast(str, ref)
         if new_ref in self.model.rels_dict:
             self._ref = new_ref
 
@@ -909,10 +913,12 @@ class Connection:
         """Set source node (updates if valid)."""
         if isinstance(elem, Node):
             new_ref = elem.uuid
-        elif hasattr(elem, 'uuid'):
-            new_ref = elem.uuid
-        else:
+        elif isinstance(elem, str):
             new_ref = elem
+        elif hasattr(elem, 'uuid'):
+            new_ref = str(elem.uuid)  # pyright: ignore[reportAttributeAccessIssue]
+        else:
+            new_ref = cast(str, elem)
         if new_ref in self.model.nodes_dict:
             self._source = new_ref
 
@@ -930,27 +936,29 @@ class Connection:
         """Set target node (updates if valid)."""
         if isinstance(elem, Node):
             new_ref = elem.uuid
-        elif hasattr(elem, 'uuid'):
-            new_ref = elem.uuid
-        else:
+        elif isinstance(elem, str):
             new_ref = elem
+        elif hasattr(elem, 'uuid'):
+            new_ref = str(elem.uuid)  # pyright: ignore[reportAttributeAccessIssue]
+        else:
+            new_ref = cast(str, elem)
         if new_ref in self.model.nodes_dict:
             self._target = new_ref
 
     @property
     def access_type(self) -> str | None:
         """Access type (for Access relationships)."""
-        return self.concept.access_type
+        return cast(str | None, getattr(self.concept, 'access_type', None))
 
     @property
     def is_directed(self) -> bool:
         """Whether relationship is directed."""
-        return self.concept.is_directed
+        return cast(bool, getattr(self.concept, 'is_directed', False))
 
     @property
     def influence_strength(self) -> str | None:
         """Influence strength (for Influence relationships)."""
-        return self.concept.influence_strength
+        return cast(str | None, getattr(self.concept, 'influence_strength', None))
 
     def add_bendpoint(self, *bendpoints: Point) -> None:
         """Add one or more bendpoints to this connection."""

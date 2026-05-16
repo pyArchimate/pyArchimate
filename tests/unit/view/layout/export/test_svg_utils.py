@@ -141,26 +141,31 @@ class TestIsContainmentRelationship:
 
 class TestCalculateBounds:
     def test_empty_view_returns_early_with_initial_values(self, svc):
-        # Empty nodes → early return before the 100x100 default block
+        # Empty nodes → defaults to 100x100
         bounds = svc._calculate_bounds(make_view())
-        assert bounds["min_x"] == float("inf")
-        assert bounds["max_x"] == 0.0
+        assert bounds["min_x"] == 0.0
+        assert bounds["max_x"] == 100.0
+        assert bounds["min_y"] == 0.0
+        assert bounds["max_y"] == 100.0
 
     def test_single_node(self, svc):
         node = make_node(x=10.0, y=20.0, w=100.0, h=50.0)
         bounds = svc._calculate_bounds(make_view(nodes=[node]))
-        assert bounds["min_x"] == pytest.approx(10.0)
-        assert bounds["min_y"] == pytest.approx(20.0)
-        assert bounds["max_x"] == pytest.approx(110.0)
-        assert bounds["max_y"] == pytest.approx(70.0)
+        # With 5% safety margin: span_x=100, span_y=50; margin_x=5, margin_y=2.5
+        assert bounds["min_x"] == pytest.approx(5.0)
+        assert bounds["min_y"] == pytest.approx(17.5)
+        assert bounds["max_x"] == pytest.approx(115.0)
+        assert bounds["max_y"] == pytest.approx(72.5)
 
     def test_multiple_nodes_envelope(self, svc):
         n1 = make_node("n1", x=0.0, y=0.0, w=50.0, h=30.0)
         n2 = make_node("n2", x=100.0, y=80.0, w=60.0, h=40.0)
         bounds = svc._calculate_bounds(make_view(nodes=[n1, n2]))
-        assert bounds["min_x"] == pytest.approx(0.0)
-        assert bounds["max_x"] == pytest.approx(160.0)
-        assert bounds["max_y"] == pytest.approx(120.0)
+        # Without margin: min_x=0, max_x=160, min_y=0, max_y=120
+        # With 5% safety margin: span_x=160, span_y=120; margin_x=8, margin_y=6
+        assert bounds["min_x"] == pytest.approx(-8.0)
+        assert bounds["max_x"] == pytest.approx(168.0)
+        assert bounds["max_y"] == pytest.approx(126.0)
 
 
 # ── TestGetNodeBounds ─────────────────────────────────────────────────────────
