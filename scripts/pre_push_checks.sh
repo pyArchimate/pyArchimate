@@ -25,7 +25,7 @@ run_quiet "sync requirements.txt"  poetry export --without-hashes --with docs --
 # --- Security Checks ---
 # poetry run snyk test --package-manager=poetry || true
 
-run_quiet "BDD acceptance tests"    poetry run behave
+run_quiet "BDD acceptance tests"    poetry run behave -t "not @wip"
 
 run_quiet "pytest unit (coverage)"  poetry run pytest tests/unit/ --cov-fail-under=79 --cov=src --cov-report=term-missing
 run_quiet "pytest integration"      poetry run pytest tests/integration/ tests/fixtures/

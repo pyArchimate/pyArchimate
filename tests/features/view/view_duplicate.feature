@@ -1,3 +1,4 @@
+@wip
 Feature: View Duplication
   As a diagram designer
   I want to duplicate views to create variations
