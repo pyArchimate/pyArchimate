@@ -268,6 +268,13 @@ The following patterns ensure data fidelity when reading, modifying, and writing
 - **Automated Testing**: Integrate all automated tests (unit, integration, BDD) into the CI pipeline to run on every commit.
 - **Linting and Formatting**: Integrate `Ruff` or similar tools into the pipeline to enforce code style and quality.
 - **Deployment Strategy**: Define clear deployment strategies (e.g., blue-green, canary releases) and automate deployment processes where feasible.
+- **Behave Tag Filtering**: Configure default tag exclusions in `pyproject.toml` under `[tool.behave]` — this is the single source of truth applied to all invocations (pre-commit, CI, VS Code extension). Do not duplicate the flag in individual scripts. Scenarios tagged `@wip` signal unimplemented step definitions; running them produces `status="error"` in JUnit XML which tools like `behave-vsc` cannot parse.
+
+```toml
+[tool.behave]
+paths = ["tests/features/"]
+tags = ["not @wip"]
+```
 
 ## API Design Principles
 
@@ -297,6 +304,7 @@ The following patterns ensure data fidelity when reading, modifying, and writing
 
 - **Testing Frameworks**: `pytest`, `pytest-mock`, `behave` (for BDD)
 - **Linters/Formatters**: `Ruff`
+- **Dead Code Detection**: `vulture` (run with `--min-confidence 80`; add to pre-commit checks)
 - **Type Checkers**: `MyPy`, `PyRight`
 - **Build/Dependency Management**: This repository uses Poetry for dependency/deployment scripts, so prefer `poetry install`, `poetry run`, and pipeline scripts defined in `pyproject.toml`. Keep `requirements.txt` in sync with `pyproject.toml`. Fall back to `uv` only when Poetry lacks the needed capability or when a spec explicitly says so.
 - **Package Installation/Running**: `UV`
@@ -309,6 +317,14 @@ The following patterns ensure data fidelity when reading, modifying, and writing
 ### Python Specifics
 
 - **Dataclass Argument Order**: When defining dataclasses, ensure all non-default arguments (fields without default values) are listed before any arguments with default values. Failing to do so will result in a `TypeError`.
+- **Side-Effect Imports**: When importing a module solely for its decorator side effects (e.g., Behave step registration), use `from package import module` rather than `import package.module.path`. The latter form binds only the top-level package name, which CodeQL flags as unused. Declare `__all__` in the aggregator file to satisfy both ruff (F401) and CodeQL:
+
+```python
+from tests.features.layout import auto_format_steps, auto_layout_steps
+__all__ = ["auto_format_steps", "auto_layout_steps"]
+```
+
+- **Explicit Re-Exports**: Use `from module import Name as Name` (same-name alias) when building a public API shim. Ruff recognises this pattern as an intentional re-export and does not raise F401 — `# noqa: F401` is redundant on these lines.
 - **Avoiding Circular Imports**: Be mindful of import dependencies between modules. A common pitfall occurs when module A imports from module B, and module B simultaneously imports from module A, leading to `ImportError`. Refactor code to break these cycles, often by moving shared logic or type hints to a separate, lower-level module.
 - **Import Style for `src` Layouts**: For projects using a `src` layout (where application code resides in a `src` directory), ensure `src` is correctly added to `PYTHONPATH` (e.g., via `pyproject.toml` or build tools). Subsequently, remove redundant `src.` prefixes from import statements (e.g., use `from frictionless_architect.models.module import ...` instead of `from src.models.module import ...`) for cleaner, more idiomatic Python.
 - **Mypy Configuration for `src` Layouts**: For projects utilizing a `src` directory structure, correctly configuring `mypy` in `pyproject.toml` is crucial to avoid "Duplicate module named" or `[import-untyped]` errors.
@@ -415,11 +431,24 @@ pysonar --sonar-token=<token-from-.secrets>
 
 You can also query SonarCloud public API for the current critical issues list; the token value is stored in the project `.env` file (look for the SONAR_TOKEN key there) and should not be committed.
 
-```
+```text
 https://sonarcloud.io/api/issues/search?projectKeys=pyArchimate_pyArchimate&severities=BLOCKER,CRITICAL,MAJOR,MINOR&statuses=OPEN,CONFIRMED
 ```
 
+### Local Tool Coverage for SonarCloud Rules
+
+The table below maps common SonarCloud rules to the local tools that catch them at pre-commit time. Use this to configure tooling so issues are caught before CI rather than after.
+
+| SonarCloud Rule | Description | Local Tool | Notes |
+|---|---|---|---|
+| S1172 | Unused function parameter | ruff `ARG` | Enabled for `src/`; excluded from `tests/` (mocks, BDD steps) |
+| S1940 | Chained `startswith`/`endswith` | _(no ruff equivalent)_ | Fix manually: use tuple arg `str.startswith(("a", "b"))` |
+| S3776 | Cognitive complexity > 15 | ruff `C901` (`max-complexity=15`) | C901 measures McCabe complexity — different metric, may not flag same functions |
+| Unused global variable | Module-level dead code | `vulture --min-confidence 80` | Gap: vulture skips `_`-prefixed constants by design; CodeQL is authoritative |
+| Wildcard `import *` | Namespace pollution | ruff `F403` | Already enabled; do not suppress with `# noqa` — fix the import instead |
+
 ### SonarCloud Remediation Workflow
+
 When new SonarCloud issues appear on `main`, follow this sequence:
 
 1. Pull the latest `main` and request the open issues via the API (same URL as above); review the payload for every problem marked `OPEN`.
