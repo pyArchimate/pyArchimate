@@ -34,8 +34,8 @@ def _strip_folder_ids(root: etree._Element) -> None:
 def _canonical_from_file(path: str, strip_folder_ids: bool = False) -> bytes:
     # Handle ZIP archives (.archimate files)
     if zipfile.is_zipfile(path):
-        with zipfile.ZipFile(path, 'r') as zf:
-            xml_data = zf.read('model.xml')
+        with zipfile.ZipFile(path, "r") as zf:
+            xml_data = zf.read("model.xml")
             tree = etree.fromstring(xml_data)
     else:
         # Handle plain XML files
@@ -56,6 +56,7 @@ def _load(fixture: str) -> Model:
 # archi_writer — same model, two writes, must match (folder IDs excluded)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.parametrize("fixture", ["myModel.archimate", "test.archimate"])
 def test_archi_writer_is_deterministic(fixture, tmp_path):
     model = _load(fixture)
@@ -71,6 +72,7 @@ def test_archi_writer_is_deterministic(fixture, tmp_path):
 # ---------------------------------------------------------------------------
 # archimate_writer — same model, two writes, must match
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize("fixture", ["myModel.archimate", "test.archimate"])
 def test_archimate_writer_is_deterministic(fixture, tmp_path):

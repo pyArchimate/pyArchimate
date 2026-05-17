@@ -80,7 +80,7 @@ class MockView:
         self.id = "test-view"
         self.nodes = nodes or []
         self.conns = conns or []
-        self.nodes_dict = {getattr(n, 'id', i): n for i, n in enumerate(self.nodes)}
+        self.nodes_dict = {getattr(n, "id", i): n for i, n in enumerate(self.nodes)}
 
     def nodes_getter(self):
         return self.nodes

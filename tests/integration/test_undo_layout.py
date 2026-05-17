@@ -46,7 +46,7 @@ class MockView:
     def __init__(self, nodes=None):
         self.id = "test-view"
         self.nodes = nodes or []
-        self.nodes_dict = {getattr(n, 'id', i): n for i, n in enumerate(self.nodes)}
+        self.nodes_dict = {getattr(n, "id", i): n for i, n in enumerate(self.nodes)}
 
 
 class TestUndoLayout:

@@ -1,7 +1,8 @@
 """Setup configuration for pyArchimate package."""
+
 from setuptools import find_packages, setup
 
 setup(
-    name='pyArchimate',
+    name="pyArchimate",
     packages=find_packages(),
 )

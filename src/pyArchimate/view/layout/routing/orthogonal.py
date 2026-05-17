@@ -1,6 +1,5 @@
 """Orthogonal connection routing for layout operations."""
 
-
 from ..utils.geometry import Point, Rectangle
 from ..utils.graph import detect_crossings
 

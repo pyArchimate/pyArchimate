@@ -38,10 +38,10 @@ class AccessType(str, Enum):
     Enumeration of Access Relationship types
     """
 
-    Access = 'Access'
-    Read = 'Read'
-    Write = 'Write'
-    ReadWrite = 'ReadWrite'
+    Access = "Access"
+    Read = "Read"
+    Write = "Write"
+    ReadWrite = "ReadWrite"
 
 
 class TextPosition(str, Enum):

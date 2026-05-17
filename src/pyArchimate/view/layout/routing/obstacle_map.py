@@ -61,7 +61,7 @@ class ObstacleMap:
             # Equivalently, max cx is ceil(x1/res) - 1 = int((x1-eps)/res).
             cx0 = int(x0 / res)
             cy0 = int(y0 / res)
-            cx1 = int(x1 / res)      # last cell whose left edge is < x1
+            cx1 = int(x1 / res)  # last cell whose left edge is < x1
             cy1 = int(y1 / res)
             for cx in range(cx0, cx1 + 1):
                 for cy in range(cy0, cy1 + 1):
@@ -212,11 +212,11 @@ class ObstacleMap:
         move_cost = res
         if ncell in self._routed:
             move_cost += crossing_penalty * res
-        if direction not in ('n', ndir):
+        if direction not in ("n", ndir):
             move_cost += res * 0.1
         new_g = cost + move_cost
         nstate = (ncell, ndir)
-        inf = float('inf')
+        inf = float("inf")
         if new_g < dist.get(nstate, inf):
             dist[nstate] = new_g
             prev[nstate] = cur_state
@@ -240,7 +240,7 @@ class ObstacleMap:
         prev: dict[tuple[tuple[int, int], str], tuple[tuple[int, int], str] | None] = {}
         heap: list[Any] = []
         hx, hy = ec
-        for d in ('h', 'v', 'n'):
+        for d in ("h", "v", "n"):
             state = (sc, d)
             dist[state] = 0.0
             prev[state] = None
@@ -280,7 +280,7 @@ class ObstacleMap:
         # A* with direction state to prefer straight segments.
         # Heap entries: (f=g+h, g, cell, direction)
         # dist stores g-values; stale-entry check uses g vs dist[state].
-        inf = float('inf')
+        inf = float("inf")
         self._ec = ec  # store for heuristic access in _expand_neighbour
         dist, prev, heap = self._init_search(sc, ec, res)
 
@@ -301,8 +301,10 @@ class ObstacleMap:
 
             cx, cy = cell
             neighbours = [
-                ((cx + 1, cy), 'h'), ((cx - 1, cy), 'h'),
-                ((cx, cy + 1), 'v'), ((cx, cy - 1), 'v'),
+                ((cx + 1, cy), "h"),
+                ((cx - 1, cy), "h"),
+                ((cx, cy + 1), "v"),
+                ((cx, cy - 1), "v"),
             ]
             for ncell, ndir in neighbours:
                 self._expand_neighbour(ncell, ndir, g, direction, res, crossing_penalty, dist, prev, heap, state)

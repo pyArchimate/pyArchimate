@@ -9,6 +9,7 @@ This document outlines test scenarios for Feature 008 implementation. Tests are 
 ### Unit Tests: ZIP Detection
 
 **TC-US1-001: Detect valid ZIP file (magic bytes)**
+
 ```python
 def test_detect_zip_file_with_valid_archimate():
     file_path = "tests/fixtures/valid_model.archimate"
@@ -16,6 +17,7 @@ def test_detect_zip_file_with_valid_archimate():
 ```
 
 **TC-US1-002: Detect plain XML file (not ZIP)**
+
 ```python
 def test_detect_zip_file_with_xml():
     file_path = "tests/fixtures/valid_model.xml"
@@ -23,6 +25,7 @@ def test_detect_zip_file_with_xml():
 ```
 
 **TC-US1-003: Non-existent file returns False**
+
 ```python
 def test_detect_zip_file_missing_file():
     file_path = "tests/fixtures/nonexistent.archimate"
@@ -30,6 +33,7 @@ def test_detect_zip_file_missing_file():
 ```
 
 **TC-US1-004: Permission denied returns False**
+
 ```python
 def test_detect_zip_file_permission_denied():
     # Create file with no read permissions
@@ -42,6 +46,7 @@ def test_detect_zip_file_permission_denied():
 ### Unit Tests: ZIP Extraction
 
 **TC-US1-005: Extract model.xml from valid archive**
+
 ```python
 def test_extract_xml_from_valid_zip():
     file_path = "tests/fixtures/valid_model.archimate"
@@ -51,6 +56,7 @@ def test_extract_xml_from_valid_zip():
 ```
 
 **TC-US1-006: Error on corrupted ZIP file**
+
 ```python
 def test_extract_xml_from_corrupted_zip():
     file_path = "tests/fixtures/corrupted.archimate"
@@ -59,6 +65,7 @@ def test_extract_xml_from_corrupted_zip():
 ```
 
 **TC-US1-007: Error when model.xml missing from archive**
+
 ```python
 def test_extract_xml_missing_model_xml():
     file_path = "tests/fixtures/no_model_xml.archimate"
@@ -67,6 +74,7 @@ def test_extract_xml_missing_model_xml():
 ```
 
 **TC-US1-008: Error on non-existent file**
+
 ```python
 def test_extract_xml_file_not_found():
     file_path = "tests/fixtures/missing.archimate"
@@ -79,6 +87,7 @@ def test_extract_xml_file_not_found():
 ### Unit Tests: _load_file_contents Refactoring
 
 **TC-US2-001: Load plain XML file (unchanged behavior)**
+
 ```python
 def test_load_file_contents_xml():
     file_path = "tests/fixtures/opengroup.xml"
@@ -88,6 +97,7 @@ def test_load_file_contents_xml():
 ```
 
 **TC-US2-002: Load .archimate ZIP file (new behavior)**
+
 ```python
 def test_load_file_contents_archimate():
     file_path = "tests/fixtures/archi_native.archimate"
@@ -97,6 +107,7 @@ def test_load_file_contents_archimate():
 ```
 
 **TC-US2-003: Consistent error messages for missing files**
+
 ```python
 def test_load_file_contents_missing_file():
     m = Model('test')
@@ -105,6 +116,7 @@ def test_load_file_contents_missing_file():
 ```
 
 **TC-US2-004: Encoding error in plain XML**
+
 ```python
 def test_load_file_contents_encoding_error():
     # Create XML with non-UTF-8 bytes
@@ -119,6 +131,7 @@ def test_load_file_contents_encoding_error():
 ### Integration Tests: Round-trip with ZIP
 
 **TC-US3-001: Read .archimate file and verify structure**
+
 ```python
 def test_read_archimate_file():
     file_path = "tests/fixtures/demo_model.archimate"
@@ -131,6 +144,7 @@ def test_read_archimate_file():
 ```
 
 **TC-US3-002: Write then read .archimate file (round-trip)**
+
 ```python
 def test_archimate_round_trip():
     m1 = Model('original')
@@ -152,6 +166,7 @@ def test_archimate_round_trip():
 ```
 
 **TC-US3-003: XML file still works (backward compatibility)**
+
 ```python
 def test_xml_round_trip_still_works():
     m1 = Model('xml-test')
@@ -173,6 +188,7 @@ def test_xml_round_trip_still_works():
 ### Integration Tests: Error Cases
 
 **TC-US3-004: Helpful error for .archimate without model.xml**
+
 ```python
 def test_invalid_archimate_structure_error():
     file_path = "tests/fixtures/broken_archimate.archimate"
@@ -183,6 +199,7 @@ def test_invalid_archimate_structure_error():
 ```
 
 **TC-US3-005: Different element types round-trip correctly**
+
 ```python
 def test_multiple_element_types_archimate():
     m1 = Model('multi-element')
@@ -210,6 +227,7 @@ def test_multiple_element_types_archimate():
 ### Integration Tests: Feature 007 Compatibility
 
 **TC-US3-006: Smart format selection works with ZIP**
+
 ```python
 def test_format_selection_archimate_extension():
     # Feature 007's format selection + Feature 008's ZIP handling
@@ -225,6 +243,7 @@ def test_format_selection_archimate_extension():
 ```
 
 **TC-US3-007: All existing 737 tests still pass**
+
 ```python
 # Run: python -m pytest tests/ -v
 # Expected: 737 passed, 0 failed
@@ -233,6 +252,7 @@ def test_format_selection_archimate_extension():
 ## Test File Fixtures Required
 
 ### fixtures/
+
 ```
 valid_model.archimate        # Valid Archi .archimate ZIP with model.xml
 archi_native.archimate       # Native Archi format (test export)

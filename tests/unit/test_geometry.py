@@ -34,11 +34,9 @@ class TestEnforceMinTurnSegment40px:
         assert result[0] == Point(0, 0)
         assert result[1] == Point(100, 0)
         # First L-turn post-turn (not terminal) should extend to 40px
-        assert result[2] == Point(100, 40), \
-            f"First post-turn segment should extend to 40px, got {result[2]}"
+        assert result[2] == Point(100, 40), f"First post-turn segment should extend to 40px, got {result[2]}"
         # Second L-turn IS terminal — should NOT be extended
-        assert result[3] == Point(150, 30), \
-            f"Terminal segment should NOT be extended, got {result[3]}"
+        assert result[3] == Point(150, 30), f"Terminal segment should NOT be extended, got {result[3]}"
 
     def test_conforming_path_unchanged(self) -> None:
         """Path with post-turn segment ≥ 40px unchanged."""
@@ -95,8 +93,7 @@ class TestEnforceMinTurnSegment40px:
         result = _enforce_min_turn_segment(waypoints, min_len=40)
 
         # Terminal segment should NOT be extended
-        assert result[2] == Point(100, 30), \
-            f"Terminal segment should NOT be extended; got {result[2]}"
+        assert result[2] == Point(100, 30), f"Terminal segment should NOT be extended; got {result[2]}"
 
     def test_single_segment_path_is_noop(self) -> None:
         """Single-segment path (no bends) is no-op."""
@@ -134,8 +131,6 @@ class TestEnforceMinTurnSegmentCustom:
         result = _enforce_min_turn_segment(waypoints, min_len=20)
 
         # Should extend to 20px (not 40px) — respects custom min_len
-        assert result[2] == Point(100, 20), \
-            f"With min_len=20, should extend to 20px; got {result[2]}"
+        assert result[2] == Point(100, 20), f"With min_len=20, should extend to 20px; got {result[2]}"
         # Terminal segment: remains at original position
-        assert result[3] == Point(200, 15), \
-            f"Terminal segment should remain unchanged; got {result[3]}"
+        assert result[3] == Point(200, 15), f"Terminal segment should remain unchanged; got {result[3]}"

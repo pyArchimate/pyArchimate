@@ -11,6 +11,7 @@
 **Finding**: The file already exists with a `sonar.exclusions` entry for `_legacy.py` only. The `sonar.test.exclusions` line (`tests/legacy_*/**__init__.py`) is malformed — it is missing the glob wildcard separator and will not match legacy test files correctly. It must be replaced.
 
 **Required changes**:
+
 ```properties
 # Add to sonar.exclusions (comma-separated):
 sonar.exclusions=src/pyArchimate/_legacy.py,tests/legacy_*/**
@@ -92,10 +93,12 @@ The 4 functions in `view.py` (complexities 16–44) have geometry calculation an
 **Decision**: Use `pysonar --sonar-token=<token>` for local pre-push verification. Token is stored in `.env` (key: `SONAR_TOKEN`), not committed.
 
 **Finding**: `TECHNICAL.md` documents the exact command:
+
 ```bash
 sudo apt-get install -y default-jre
 pysonar --sonar-token=<token-from-.env>
 ```
+
 The CI/CD pipeline also triggers automatically on push (per Session 2026-04-19 clarification, SC-001).
 
 **Alternatives considered**: Manual SonarCloud UI check only — rejected as insufficient for automated gating.

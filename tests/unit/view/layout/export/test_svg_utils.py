@@ -23,11 +23,28 @@ def svc() -> SVGExportService:
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def make_node(uuid="n1", x=0.0, y=0.0, w=120.0, h=55.0, element_type="BusinessActor",
-              name="Test", nodes=None, fill_color=None, **kwargs):
+
+def make_node(
+    uuid="n1",
+    x=0.0,
+    y=0.0,
+    w=120.0,
+    h=55.0,
+    element_type="BusinessActor",
+    name="Test",
+    nodes=None,
+    fill_color=None,
+    **kwargs,
+):
     return SimpleNamespace(
-        uuid=uuid, x=x, y=y, w=w, h=h,
-        type=element_type, name=name, label=name,
+        uuid=uuid,
+        x=x,
+        y=y,
+        w=w,
+        h=h,
+        type=element_type,
+        name=name,
+        label=name,
         nodes=nodes or [],
         fill_color=fill_color,
         _ref=None,
@@ -46,6 +63,7 @@ def make_view(nodes=None, conns=None, nodes_dict=None):
 
 # ── TestZOrderDuplicateGuard ──────────────────────────────────────────────────
 
+
 class TestZOrderDuplicateGuard:
     def test_same_node_twice_in_root_list_deduped(self, svc):
         node = SimpleNamespace(uuid="n1", nodes=[])
@@ -55,6 +73,7 @@ class TestZOrderDuplicateGuard:
 
 
 # ── TestWordWrapText ──────────────────────────────────────────────────────────
+
 
 class TestWordWrapText:
     def test_empty_string_returns_singleton(self, svc):
@@ -89,6 +108,7 @@ class TestWordWrapText:
 
 
 # ── TestIsContainmentRelationship ─────────────────────────────────────────────
+
 
 class TestIsContainmentRelationship:
     def test_non_containment_type(self, svc):
@@ -139,6 +159,7 @@ class TestIsContainmentRelationship:
 
 # ── TestCalculateBounds ───────────────────────────────────────────────────────
 
+
 class TestCalculateBounds:
     def test_empty_view_returns_early_with_initial_values(self, svc):
         # Empty nodes → defaults to 100x100
@@ -170,6 +191,7 @@ class TestCalculateBounds:
 
 # ── TestGetNodeBounds ─────────────────────────────────────────────────────────
 
+
 class TestGetNodeBounds:
     def test_unknown_symbol_falls_back_to_rect(self, svc):
         node = make_node(element_type="UnknownWidget", x=10.0, y=20.0, w=80.0, h=40.0)
@@ -189,6 +211,7 @@ class TestGetNodeBounds:
 
 
 # ── TestBuildCompleteNodesDict ────────────────────────────────────────────────
+
 
 class TestBuildCompleteNodesDict:
     def test_flat_view_includes_all_root_nodes(self, svc):
@@ -213,6 +236,7 @@ class TestBuildCompleteNodesDict:
 
 # ── TestFindLongestSegment ────────────────────────────────────────────────────
 
+
 class TestFindLongestSegment:
     def test_empty_list_returns_none(self, svc):
         assert svc._find_longest_segment([]) is None
@@ -234,6 +258,7 @@ class TestFindLongestSegment:
 
 
 # ── TestGetShortTypeName ──────────────────────────────────────────────────────
+
 
 class TestGetShortTypeName:
     def test_strips_relationship_suffix(self, svc):
@@ -270,6 +295,7 @@ class TestBoundarySide:
 
 # ── TestBoundaryStub ──────────────────────────────────────────────────────────
 
+
 class TestBoundaryStub:
     def test_top_stub_moves_up(self):
         _, y = SVGExportService._boundary_stub((50.0, 20.0), "top")
@@ -296,6 +322,7 @@ class TestBoundaryStub:
 
 
 # ── TestBoundaryAnchor ────────────────────────────────────────────────────────
+
 
 class TestBoundaryAnchor:
     def test_top_side_places_y_at_y1(self, svc):
@@ -326,6 +353,7 @@ class TestBoundaryAnchor:
 
 # ── TestPreferredBoundarySide ─────────────────────────────────────────────────
 
+
 class TestPreferredBoundarySide:
     def test_point_right_exits_right(self):
         assert SVGExportService._preferred_boundary_side(BOUNDS, (500.0, 45.0)) == "right"
@@ -350,6 +378,7 @@ class TestPreferredBoundarySide:
 
 # ── TestInferBoundaryOrientation ──────────────────────────────────────────────
 
+
 class TestInferBoundaryOrientation:
     def test_left_edge_is_horizontal(self):
         assert SVGExportService._infer_boundary_orientation(BOUNDS, (10.0, 45.0)) == "horizontal"
@@ -371,6 +400,7 @@ class TestInferBoundaryOrientation:
 
 
 # ── TestCheckEdgeIntersection ─────────────────────────────────────────────────
+
 
 class TestCheckEdgeIntersection:
     def test_hits_edge_returns_t_and_coords(self):
@@ -401,6 +431,7 @@ class TestCheckEdgeIntersection:
 
 # ── TestClipPointToBoundaryDegenerate ────────────────────────────────────────
 
+
 class TestClipPointToBoundaryDegenerate:
     def test_same_from_and_to_returns_from(self):
         bounds = (0.0, 0.0, 100.0, 80.0)
@@ -409,6 +440,7 @@ class TestClipPointToBoundaryDegenerate:
 
 
 # ── TestRenderTriangleMarker ──────────────────────────────────────────────────
+
 
 class TestRenderTriangleMarker:
     def test_filled_polygon_attributes(self):
@@ -438,6 +470,7 @@ class TestRenderTriangleMarker:
 
 # ── TestRenderDiamondMarker ───────────────────────────────────────────────────
 
+
 class TestRenderDiamondMarker:
     def test_renders_polygon_with_four_points(self):
         svg = ET.Element("svg")
@@ -453,6 +486,7 @@ class TestRenderDiamondMarker:
 
 
 # ── TestRenderMarkerShape ─────────────────────────────────────────────────────
+
 
 class TestRenderMarkerShape:
     def test_zero_distance_renders_nothing(self, svc):
@@ -484,6 +518,7 @@ class TestRenderMarkerShape:
 
 # ── TestOffsetPointsForMarkers ────────────────────────────────────────────────
 
+
 class TestOffsetPointsForMarkers:
     def test_no_markers_returns_unchanged(self, svc):
         pts = [(0.0, 0.0), (100.0, 0.0)]
@@ -512,6 +547,7 @@ class TestOffsetPointsForMarkers:
 
 # ── TestResolveConnectionNodes ────────────────────────────────────────────────
 
+
 class TestResolveConnectionNodes:
     def test_missing_source_uuid_returns_none(self, svc):
         conn = SimpleNamespace(_source=None, _target="t")
@@ -531,13 +567,12 @@ class TestResolveConnectionNodes:
 
     def test_both_found_returns_pair(self, svc):
         s, t = make_node("s"), make_node("t")
-        result = svc._resolve_connection_nodes(
-            SimpleNamespace(_source="s", _target="t"), {"s": s, "t": t}
-        )
+        result = svc._resolve_connection_nodes(SimpleNamespace(_source="s", _target="t"), {"s": s, "t": t})
         assert result == (s, t)
 
 
 # ── TestBuildRelationshipLabel ────────────────────────────────────────────────
+
 
 class TestBuildRelationshipLabel:
     def test_regular_type_stripped(self, svc):
@@ -558,6 +593,7 @@ class TestBuildRelationshipLabel:
 
 
 # ── TestDistributedSpread ─────────────────────────────────────────────────────
+
 
 class TestDistributedSpread:
     def test_single_connection_returns_zero(self, svc):
@@ -580,6 +616,7 @@ class TestDistributedSpread:
 
 
 # ── TestOrthogonalizePolylinePoints ──────────────────────────────────────────
+
 
 class TestOrthogonalizePolylinePoints:
     def test_single_point_returned_as_is(self, svc):
@@ -609,6 +646,7 @@ class TestOrthogonalizePolylinePoints:
 
 
 # ── TestChooseCorner ──────────────────────────────────────────────────────────
+
 
 class TestChooseCorner:
     def test_last_segment_horizontal_target(self):
@@ -640,6 +678,7 @@ class TestChooseCorner:
 
 # ── TestLookupRelStyle ────────────────────────────────────────────────────────
 
+
 class TestLookupRelStyle:
     def test_known_short_type_returns_style(self, svc):
         rs = RelationshipStyleService()
@@ -660,6 +699,7 @@ class TestLookupRelStyle:
 
 
 # ── TestApplyAccessMarkersWithValueAttr ───────────────────────────────────────
+
 
 class TestApplyAccessMarkersWithValueAttr:
     def test_access_type_with_value_attr_read(self, svc):
@@ -683,6 +723,7 @@ class TestApplyAccessMarkersWithValueAttr:
 
 # ── TestApplyMarkerAttrsElseBranch ────────────────────────────────────────────
 
+
 class TestApplyMarkerAttrsElseBranch:
     def test_else_branch_with_marker_start_and_end(self, svc):
         # rel_type not in Access/Association/Composition/Aggregation → else branch
@@ -700,6 +741,7 @@ class TestApplyMarkerAttrsElseBranch:
 
 
 # ── TestRenderConnectionLabel ─────────────────────────────────────────────────
+
 
 class TestRenderConnectionLabel:
     def test_no_points_returns_early_no_svg_children(self, svc):
@@ -721,6 +763,7 @@ class TestRenderConnectionLabel:
 
 
 # ── TestRenderWrappedText ─────────────────────────────────────────────────────
+
 
 class TestRenderWrappedText:
     def test_single_line_no_tspan(self, svc):
@@ -752,6 +795,7 @@ class TestRenderWrappedText:
 
 
 # ── TestRenderConnection ──────────────────────────────────────────────────────
+
 
 class TestRenderConnection:
     def test_missing_source_uuid_renders_nothing(self, svc):
@@ -792,6 +836,7 @@ class TestRenderConnection:
 
 # ── TestRenderNodeGroup ───────────────────────────────────────────────────────
 
+
 class TestRenderNodeGroup:
     def test_group_element_renders_rect(self, svc):
         svg = ET.Element("svg")
@@ -804,8 +849,7 @@ class TestRenderNodeGroup:
 
     def test_group_uses_custom_fill_color(self, svc):
         svg = ET.Element("svg")
-        node = make_node(element_type="Group", x=0.0, y=0.0, w=100.0, h=50.0,
-                         name="G", fill_color="#AABBCC")
+        node = make_node(element_type="Group", x=0.0, y=0.0, w=100.0, h=50.0, name="G", fill_color="#AABBCC")
         svc._render_node_into(svg, node)
         rect = svg.find("g/rect")
         assert rect is not None
@@ -821,16 +865,25 @@ class TestRenderNodeGroup:
 
 # ── TestRenderNodeJunctionFromModel ──────────────────────────────────────────
 
+
 class TestRenderNodeJunctionFromModel:
     def test_junction_with_model_or_type(self, svc):
         svg = ET.Element("svg")
         elem = SimpleNamespace(uuid="elem1", junction_type="or")
         model = SimpleNamespace(elements=[elem])
         node = SimpleNamespace(
-            uuid="j1", x=0.0, y=0.0, w=20.0, h=20.0,
-            type="Junction", name="", label="",
-            nodes=[], fill_color=None,
-            _ref="elem1", _model=model,
+            uuid="j1",
+            x=0.0,
+            y=0.0,
+            w=20.0,
+            h=20.0,
+            type="Junction",
+            name="",
+            label="",
+            nodes=[],
+            fill_color=None,
+            _ref="elem1",
+            _model=model,
         )
         svc._render_node_into(svg, node)
         circle = svg.find("g/circle")
@@ -842,10 +895,18 @@ class TestRenderNodeJunctionFromModel:
         elem = SimpleNamespace(uuid="elem2", junction_type="and")
         model = SimpleNamespace(elements=[elem])
         node = SimpleNamespace(
-            uuid="j2", x=0.0, y=0.0, w=20.0, h=20.0,
-            type="Junction", name="", label="",
-            nodes=[], fill_color=None,
-            _ref="elem2", _model=model,
+            uuid="j2",
+            x=0.0,
+            y=0.0,
+            w=20.0,
+            h=20.0,
+            type="Junction",
+            name="",
+            label="",
+            nodes=[],
+            fill_color=None,
+            _ref="elem2",
+            _model=model,
         )
         svc._render_node_into(svg, node)
         circle = svg.find("g/circle")
@@ -855,10 +916,18 @@ class TestRenderNodeJunctionFromModel:
     def test_junction_with_missing_ref_defaults_to_and(self, svc):
         svg = ET.Element("svg")
         node = SimpleNamespace(
-            uuid="j3", x=0.0, y=0.0, w=20.0, h=20.0,
-            type="Junction", name="", label="",
-            nodes=[], fill_color=None,
-            _ref=None, _model=None,
+            uuid="j3",
+            x=0.0,
+            y=0.0,
+            w=20.0,
+            h=20.0,
+            type="Junction",
+            name="",
+            label="",
+            nodes=[],
+            fill_color=None,
+            _ref=None,
+            _model=None,
         )
         svc._render_node_into(svg, node)
         circle = svg.find("g/circle")
@@ -868,13 +937,14 @@ class TestRenderNodeJunctionFromModel:
 
 # ── TestRenderNodeWithChildren ────────────────────────────────────────────────
 
+
 class TestRenderNodeWithChildren:
     def test_container_with_name_renders_topleft_text(self, svc):
         svg = ET.Element("svg")
         child = make_node("c", x=10.0, y=10.0, w=80.0, h=40.0)
-        parent = make_node("p", x=0.0, y=0.0, w=200.0, h=150.0,
-                           element_type="BusinessFunction",
-                           name="Container Label", nodes=[child])
+        parent = make_node(
+            "p", x=0.0, y=0.0, w=200.0, h=150.0, element_type="BusinessFunction", name="Container Label", nodes=[child]
+        )
         svc._render_node_into(svg, parent)
         g = svg.find("g")
         assert g is not None
@@ -883,6 +953,7 @@ class TestRenderNodeWithChildren:
 
 
 # ── TestModuleFunctions ───────────────────────────────────────────────────────
+
 
 class TestArchimateSymbolModuleFunctions:
     def test_get_symbol_known_type(self):

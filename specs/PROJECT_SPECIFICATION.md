@@ -18,7 +18,7 @@ This document captures the buyer/super-user value that pyArchimate provides: kee
   Provide writers for Archi Tool XML, Archimate OEF, and CSV exports so modeling pipelines can round-trip, transform, or feed downstream tooling without manual XML fiddling.
 
 - **View/diagram helpers**  
-  Classes such as `View`, `Node`, and `Connection` mirror ArchiMate diagram concepts, supporting node positioning, labeling, composite views, and automatic connection creation. Helpers like `get_or_create_node` and `get_or_create_connection` simplify incremental diagram building.
+  Classes such as `View`, `Node`, and `Connection` mirror ArchiMate diagram concepts, supporting node positioning, labeling, composite views, and automatic connection creation. Helpers like `get_or_create_node` and `get_or_create_connection` simplify incremental diagram building. `auto_layout(view, LayoutConfig)` places nodes on a configurable grid with ArchiMate layer ordering (Business → Application → Technology); `auto_route(view, RoutingConfig)` computes orthogonal connection paths with node clearance and parallel-segment separation; `View.duplicate()` clones a view with all nodes and connections. Released in v1.10.0.
 
 - **Property embedding and validation utilities**  
   `Model.embed_props`/`expand_props` allow Archimate properties to be serialized into descriptions for downstream tools that lack property support, while validation helpers (`check_invalid_conn`, `check_invalid_nodes`) catch orphans before export.

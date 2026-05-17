@@ -49,9 +49,9 @@ def set_id(uuid: str | None = None) -> str:
     """
     _id = str(uuid4()) if (uuid is None) else uuid
     if _is_valid_uuid(_id):
-        _id = _id.replace('-', '')
-        if not _id.startswith('id-'):
-            _id = 'id-' + _id
+        _id = _id.replace("-", "")
+        if not _id.startswith("id-"):
+            _id = "id-" + _id
     return _id
 
 
@@ -66,8 +66,8 @@ def _normalize_color(color: str | None) -> str | None:
     if color is None:
         return None
     color = str(color).strip()
-    if color.startswith('#'):
-        if not re.match(r'^#[0-9a-fA-F]{6}$', color):
+    if color.startswith("#"):
+        if not re.match(r"^#[0-9a-fA-F]{6}$", color):
             raise ValueError(f"Invalid hex color: {color} (expected #RRGGBB)")
         return color.lower()
     named = NAMED_COLORS.get(color.lower())
@@ -147,10 +147,10 @@ class Element:
         # Check validity of arguments according to Archimate standard
         if elem_type is None or not hasattr(ArchiType, elem_type):
             raise ArchimateConceptTypeError(f"Invalid Element type '{elem_type}'")
-        if ARCHI_CATEGORY[elem_type] == 'Relationship':
+        if ARCHI_CATEGORY[elem_type] == "Relationship":
             raise ArchimateConceptTypeError(f"Element type '{elem_type}' cannot be a Relationship type")
         if parent is not None and not hasattr(parent, "elems_dict"):
-            raise ValueError('Element class parent should be a class Model instance!')
+            raise ValueError("Element class parent should be a class Model instance!")
 
         # Attribute and data structure initialization
         self._uuid: str = set_id(uuid)
@@ -247,8 +247,8 @@ class Element:
 
         """
         if value is not None:
-            if value not in ARCHI_CATEGORY or ARCHI_CATEGORY[value] == 'Relationship':
-                raise ValueError('Invalid Archimate element type')
+            if value not in ARCHI_CATEGORY or ARCHI_CATEGORY[value] == "Relationship":
+                raise ValueError("Invalid Archimate element type")
             self._type = value
 
     @property
@@ -353,7 +353,7 @@ class Element:
             if key not in self.props:
                 self.prop(key, val)
         if elem.desc != self.desc:
-            self.desc = (self.desc or '') + '\n----\n' + (elem.desc or '')
+            self.desc = (self.desc or "") + "\n----\n" + (elem.desc or "")
 
     def merge(self, elem: "Element", merge_props: bool = False) -> None:
         """
@@ -367,7 +367,7 @@ class Element:
         """
         # check if merged elem is of the same type or raise an exception
         if elem.type != self.type:
-            raise ValueError('Merged element has not the same type as target')
+            raise ValueError("Merged element has not the same type as target")
 
         # merge elem into the current one
         if merge_props:
@@ -378,10 +378,10 @@ class Element:
             n.ref = self.uuid
 
         # Re-assign other element inboud and outbound relationship references to this element
-        for r in self.model.filter_relationships(lambda x: (x.target is not None and x.target.uuid == elem.uuid)):
+        for r in self.model.filter_relationships(lambda x: x.target is not None and x.target.uuid == elem.uuid):
             r.target = self
 
-        for r in self.model.filter_relationships(lambda x: (x.source is not None and x.source.uuid == elem.uuid)):
+        for r in self.model.filter_relationships(lambda x: x.source is not None and x.source.uuid == elem.uuid):
             r.source = self
 
         # finally delete the merged element
@@ -398,13 +398,11 @@ class Element:
 
         """
         if rel_type is None:
-            return self.model.filter_relationships(lambda x: (x.target is not None and x.target.uuid == self.uuid))
+            return self.model.filter_relationships(lambda x: x.target is not None and x.target.uuid == self.uuid)
         else:
-            return self.model.filter_relationships(lambda x: (
-                    x.target is not None and x.target.uuid == self.uuid
-                    and
-                    x.type == rel_type)
-                                                   )
+            return self.model.filter_relationships(
+                lambda x: x.target is not None and x.target.uuid == self.uuid and x.type == rel_type
+            )
 
     def out_rels(self, rel_type=None):
         """
@@ -417,13 +415,11 @@ class Element:
 
         """
         if rel_type is None:
-            return self.model.filter_relationships(lambda x: (x.source is not None and x.source.uuid == self.uuid))
+            return self.model.filter_relationships(lambda x: x.source is not None and x.source.uuid == self.uuid)
         else:
-            return self.model.filter_relationships(lambda x: (
-                    x.source is not None and x.source.uuid == self.uuid
-                    and
-                    x.type == rel_type)
-                                                   )
+            return self.model.filter_relationships(
+                lambda x: x.source is not None and x.source.uuid == self.uuid and x.type == rel_type
+            )
 
     def rels(self, rel_type=None):
         """
@@ -436,17 +432,22 @@ class Element:
         :rtype: list
         """
         if rel_type is None:
-            return self.model.filter_relationships(lambda x: (
+            return self.model.filter_relationships(
+                lambda x: (
                     (x.target is not None and x.target.uuid == self.uuid)
-                    or
-                    (x.source is not None and x.source.uuid == self.uuid))
-                                                   )
+                    or (x.source is not None and x.source.uuid == self.uuid)
+                )
+            )
         else:
-            return self.model.filter_relationships(lambda x: (
-                    ((x.target is not None and x.target.uuid == self.uuid) or (x.source is not None and x.source.uuid == self.uuid))
-                    and
-                    x.type == rel_type)
-                                                   )
+            return self.model.filter_relationships(
+                lambda x: (
+                    (
+                        (x.target is not None and x.target.uuid == self.uuid)
+                        or (x.source is not None and x.source.uuid == self.uuid)
+                    )
+                    and x.type == rel_type
+                )
+            )
 
     def remove_folder(self):
         """
@@ -506,9 +507,9 @@ class Element:
         :raises ValueError: If color format is invalid
         """
         if color is None:
-            self._visual_style.pop('fillColor', None)
+            self._visual_style.pop("fillColor", None)
         else:
-            self._visual_style['fillColor'] = _normalize_color(color)
+            self._visual_style["fillColor"] = _normalize_color(color)
 
     def set_line_color(self, color: str | None) -> None:
         """Set the line/border color of this element.
@@ -518,9 +519,9 @@ class Element:
         :raises ValueError: If color format is invalid
         """
         if color is None:
-            self._visual_style.pop('lineColor', None)
+            self._visual_style.pop("lineColor", None)
         else:
-            self._visual_style['lineColor'] = _normalize_color(color)
+            self._visual_style["lineColor"] = _normalize_color(color)
 
     def set_line_width(self, width: float | None) -> None:
         """Set the line/border width of this element.
@@ -531,13 +532,13 @@ class Element:
         :raises TypeError: If width is not numeric
         """
         if width is None:
-            self._visual_style.pop('lineWidth', None)
+            self._visual_style.pop("lineWidth", None)
         else:
             if not isinstance(width, (int, float)):
                 raise TypeError(f"Line width must be number, got {type(width).__name__}")
             if width < 0:
                 raise ValueError(f"Line width must be non-negative number, got {width}")
-            self._visual_style['lineWidth'] = float(width)
+            self._visual_style["lineWidth"] = float(width)
 
     def set_transparency(self, alpha: float | None) -> None:
         """Set the transparency/opacity of this element.
@@ -548,16 +549,21 @@ class Element:
         :raises TypeError: If alpha is not numeric
         """
         if alpha is None:
-            self._visual_style.pop('transparency', None)
+            self._visual_style.pop("transparency", None)
         else:
             if not isinstance(alpha, (int, float)):
                 raise TypeError(f"Transparency must be number, got {type(alpha).__name__}")
             if alpha < 0.0 or alpha > 1.0:
                 raise ValueError(f"Transparency must be 0.0-1.0, got {alpha}")
-            self._visual_style['transparency'] = float(alpha)
+            self._visual_style["transparency"] = float(alpha)
 
-    def set_visual_style(self, fill_color: str | None = None, line_color: str | None = None,
-                        line_width: float | None = None, transparency: float | None = None) -> None:
+    def set_visual_style(
+        self,
+        fill_color: str | None = None,
+        line_color: str | None = None,
+        line_width: float | None = None,
+        transparency: float | None = None,
+    ) -> None:
         """Set multiple visual style properties at once.
 
         :param fill_color: Fill color (hex or named)
@@ -581,7 +587,7 @@ class Element:
         :return: Hex color (#rrggbb) or None if not set (use default)
         :rtype: Optional[str]
         """
-        return self._visual_style.get('fillColor')
+        return self._visual_style.get("fillColor")
 
     def get_line_color(self) -> str | None:
         """Get the line/border color of this element.
@@ -589,7 +595,7 @@ class Element:
         :return: Hex color (#rrggbb) or None if not set (use default)
         :rtype: Optional[str]
         """
-        return self._visual_style.get('lineColor')
+        return self._visual_style.get("lineColor")
 
     def get_line_width(self) -> float | None:
         """Get the line/border width of this element.
@@ -597,7 +603,7 @@ class Element:
         :return: Width in pixels or None if not set (use default)
         :rtype: Optional[float]
         """
-        return self._visual_style.get('lineWidth')
+        return self._visual_style.get("lineWidth")
 
     def get_transparency(self) -> float | None:
         """Get the transparency/opacity of this element.
@@ -605,7 +611,7 @@ class Element:
         :return: Opacity 0.0-1.0 or None if not set (use default)
         :rtype: Optional[float]
         """
-        return self._visual_style.get('transparency')
+        return self._visual_style.get("transparency")
 
     def get_visual_style(self) -> dict[str, Any]:
         """Get all visual style properties as a dictionary.
@@ -646,7 +652,6 @@ class Element:
         :rtype: Optional[str]
         """
         return self.junction_type
-
 
 
 __all__ = ["Element"]

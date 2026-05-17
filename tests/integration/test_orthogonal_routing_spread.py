@@ -58,14 +58,8 @@ class TestMultipleSourceConnections:
     def test_three_connections_from_one_source(self):
         """Three outgoing connections exercises spread distribution across edge."""
         model, view, elements, nodes = _make_view(4, 200)
-        rels = [
-            model.add_relationship(ArchiType.Serving, source=elements[0], target=elements[i])
-            for i in range(1, 4)
-        ]
-        conns = [
-            view.add_connection(ref=r.uuid, source=nodes[0], target=nodes[i + 1])
-            for i, r in enumerate(rels)
-        ]
+        rels = [model.add_relationship(ArchiType.Serving, source=elements[0], target=elements[i]) for i in range(1, 4)]
+        conns = [view.add_connection(ref=r.uuid, source=nodes[0], target=nodes[i + 1]) for i, r in enumerate(rels)]
 
         _apply_orthogonal_routing(view)
 

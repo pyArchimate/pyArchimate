@@ -52,24 +52,24 @@ class TestElementFormatRegistry:
         spec = registry.get_spec("ApplicationComponent")
         assert spec is not None
         assert spec.category == ArchiMateElementCategory.APPLICATION_COMPONENT
-        assert spec.default_width == 100   # Per BDD acceptance spec
-        assert spec.default_height == 80   # Per BDD acceptance spec
+        assert spec.default_width == 100  # Per BDD acceptance spec
+        assert spec.default_height == 80  # Per BDD acceptance spec
 
     def test_get_spec_for_business_actor(self):
         """Test getting spec for BusinessActor."""
         registry = ElementFormatRegistry()
         spec = registry.get_spec("BusinessActor")
         assert spec.category == ArchiMateElementCategory.BUSINESS_ACTOR
-        assert spec.default_width == 100   # Per BDD acceptance spec
-        assert spec.default_height == 80   # Per BDD acceptance spec
+        assert spec.default_width == 100  # Per BDD acceptance spec
+        assert spec.default_height == 80  # Per BDD acceptance spec
 
     def test_get_spec_for_application_service(self):
         """Test getting spec for ApplicationService."""
         registry = ElementFormatRegistry()
         spec = registry.get_spec("ApplicationService")
         assert spec.category == ArchiMateElementCategory.APPLICATION_SERVICE
-        assert spec.default_width == 120   # Per BDD acceptance spec
-        assert spec.default_height == 60   # Per BDD acceptance spec
+        assert spec.default_width == 120  # Per BDD acceptance spec
+        assert spec.default_height == 60  # Per BDD acceptance spec
         assert spec.font_weight == "bold"  # Services are bold per BDD spec
 
     def test_get_spec_for_technology_node(self):
@@ -84,8 +84,8 @@ class TestElementFormatRegistry:
         registry = ElementFormatRegistry()
         spec = registry.get_spec("UnknownElementType")
         assert spec.category == ArchiMateElementCategory.UNKNOWN
-        assert spec.default_width == 100   # Default per BDD spec
-        assert spec.default_height == 80   # Default per BDD spec
+        assert spec.default_width == 100  # Default per BDD spec
+        assert spec.default_height == 80  # Default per BDD spec
 
 
 class TestFormatService:
@@ -356,12 +356,8 @@ class TestFormatService:
 
             service.format_element(element)
 
-            assert (
-                element.width == expected_width
-            ), f"{elem_type} width should be {expected_width}"
-            assert (
-                element.height == expected_height
-            ), f"{elem_type} height should be {expected_height}"
+            assert element.width == expected_width, f"{elem_type} width should be {expected_width}"
+            assert element.height == expected_height, f"{elem_type} height should be {expected_height}"
 
 
 class TestFormatServiceFontHandling:
@@ -376,7 +372,7 @@ class TestFormatServiceFontHandling:
         service.format_element(
             element,
             user_size_override=(99, 80),  # Too small for min constraint
-            size_constraints=size_constraints
+            size_constraints=size_constraints,
         )
 
         # Width should be constrained to min_width
@@ -470,7 +466,7 @@ class TestFormatServiceFontHandling:
         service.format_element(
             element,
             user_size_override=(200, 200),  # Much larger than max
-            size_constraints=size_constraints
+            size_constraints=size_constraints,
         )
 
         # Width and height should be constrained to max

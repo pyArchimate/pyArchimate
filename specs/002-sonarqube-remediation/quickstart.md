@@ -70,6 +70,7 @@ Complexity grade A–C is acceptable; D–F indicates S3776 risk.
 ## Verify SonarCloud exclusions are applied
 
 After pushing to the branch, open:
+
 ```
 https://sonarcloud.io/project/issues?id=pyArchimate_pyArchimate&branch=002-sonarqube-remediation
 ```

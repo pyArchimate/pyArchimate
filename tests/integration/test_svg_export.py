@@ -17,7 +17,7 @@ def test_svg_export_with_demo_view():
 
     # Load demo model
     model = Model()
-    demo_path = Path(__file__).parent.parent.parent / 'temp' / 'auto-layout-demo-formatted.archimate'
+    demo_path = Path(__file__).parent.parent.parent / "temp" / "auto-layout-demo-formatted.archimate"
 
     if demo_path.exists():
         model.read(str(demo_path))
@@ -29,27 +29,27 @@ def test_svg_export_with_demo_view():
             svg_string = view.to_svg()
 
             # Verify SVG structure
-            assert '<svg' in svg_string or '<?xml' in svg_string
-            assert '</svg>' in svg_string
+            assert "<svg" in svg_string or "<?xml" in svg_string
+            assert "</svg>" in svg_string
 
             # Parse and verify
-            if '<?xml' in svg_string:
+            if "<?xml" in svg_string:
                 # Extract just the SVG part
-                start = svg_string.find('<svg')
-                end = svg_string.rfind('</svg>') + 6
+                start = svg_string.find("<svg")
+                end = svg_string.rfind("</svg>") + 6
                 svg_part = svg_string[start:end]
             else:
                 svg_part = svg_string
 
             root = ET.fromstring(svg_part)
-            assert root.tag == '{http://www.w3.org/2000/svg}svg'
+            assert root.tag == "{http://www.w3.org/2000/svg}svg"
 
             # Check that we have rectangles for nodes
-            rects = root.findall('.//{http://www.w3.org/2000/svg}rect')
+            rects = root.findall(".//{http://www.w3.org/2000/svg}rect")
             assert len(rects) > 0
 
             # Check that we have polylines for connections
-            polylines = root.findall('.//{http://www.w3.org/2000/svg}polyline')
+            polylines = root.findall(".//{http://www.w3.org/2000/svg}polyline")
             # May have 0 if view has no connections
 
             print(f"✓ SVG export test passed: {len(rects)} nodes, {len(polylines)} connections")
@@ -61,7 +61,7 @@ def test_svg_export_to_file():
     """Test SVG export to file."""
 
     model = Model()
-    demo_path = Path(__file__).parent.parent.parent / 'temp' / 'auto-layout-demo-formatted.archimate'
+    demo_path = Path(__file__).parent.parent.parent / "temp" / "auto-layout-demo-formatted.archimate"
 
     if demo_path.exists():
         model.read(str(demo_path))
@@ -70,7 +70,7 @@ def test_svg_export_to_file():
             view = model.views[0]
 
             # Create temporary file
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.svg', delete=False) as f:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".svg", delete=False) as f:
                 temp_path = f.name
 
             try:
@@ -83,9 +83,9 @@ def test_svg_export_to_file():
                 # Verify file contents
                 with open(temp_path) as f:
                     content = f.read()
-                    assert '<svg' in content
-                    assert '</svg>' in content
-                    assert '<?xml' in content
+                    assert "<svg" in content
+                    assert "</svg>" in content
+                    assert "<?xml" in content
 
                 print(f"✓ SVG file export test passed: {Path(temp_path).stat().st_size} bytes written")
 
@@ -106,11 +106,11 @@ def test_svg_export_empty_view():
     svg_string = view.to_svg()
 
     # Verify it's valid SVG
-    assert '<svg' in svg_string
+    assert "<svg" in svg_string
 
     # Parse and verify structure
     root = ET.fromstring(svg_string)
-    assert root.tag == '{http://www.w3.org/2000/svg}svg'
+    assert root.tag == "{http://www.w3.org/2000/svg}svg"
 
     print("✓ Empty view SVG export test passed")
 
@@ -122,11 +122,11 @@ def test_svg_export_does_not_duplicate_relationship_markers():
 
     svg_string = view.to_svg()
     root = ET.fromstring(svg_string)
-    ns = '{http://www.w3.org/2000/svg}'
+    ns = "{http://www.w3.org/2000/svg}"
 
     # Marker geometry should stay inside <defs>; the root should not contain extra endpoint polygons.
-    assert len(root.findall(f'./{ns}polygon')) == 0
-    assert len(root.findall(f'.//{ns}polyline')) > 0
+    assert len(root.findall(f"./{ns}polygon")) == 0
+    assert len(root.findall(f".//{ns}polyline")) > 0
 
 
 def test_svg_export_spreads_connection_endpoints_on_shared_nodes():
@@ -158,15 +158,15 @@ def test_svg_export_spreads_connection_endpoints_on_shared_nodes():
 
     svg_string = view.to_svg()
     root = ET.fromstring(svg_string)
-    ns = '{http://www.w3.org/2000/svg}'
-    polylines = root.findall(f'.//{ns}polyline')
+    ns = "{http://www.w3.org/2000/svg}"
+    polylines = root.findall(f".//{ns}polyline")
     assert len(polylines) == 4
 
     points = []
     for polyline in polylines:
-        raw = polyline.get('points')
+        raw = polyline.get("points")
         assert raw is not None
-        coords = [tuple(float(v) for v in pt.split(',')) for pt in raw.split(' ')]
+        coords = [tuple(float(v) for v in pt.split(",")) for pt in raw.split(" ")]
         points.append((coords[0], coords[-1]))
 
     outgoing_starts = {round(sy, 1) for (sx, sy), _ in points if sx > 250}
@@ -176,7 +176,9 @@ def test_svg_export_spreads_connection_endpoints_on_shared_nodes():
     assert len(incoming_ends) > 1
 
 
-@pytest.mark.xfail(reason="SVG connection routing orthogonalization needs investigation - bendpoint/side computation may need revision")
+@pytest.mark.xfail(
+    reason="SVG connection routing orthogonalization needs investigation - bendpoint/side computation may need revision"
+)
 def test_svg_export_uses_orthogonal_connection_segments():
     """SVG connection segments should be horizontal or vertical only."""
     model = Model("orthogonal-svg")
@@ -197,12 +199,12 @@ def test_svg_export_uses_orthogonal_connection_segments():
 
     svg_string = view.to_svg()
     root = ET.fromstring(svg_string)
-    ns = '{http://www.w3.org/2000/svg}'
+    ns = "{http://www.w3.org/2000/svg}"
 
-    for polyline in root.findall(f'.//{ns}polyline'):
-        raw = polyline.get('points')
+    for polyline in root.findall(f".//{ns}polyline"):
+        raw = polyline.get("points")
         assert raw is not None
-        coords = [tuple(float(v) for v in pt.split(',')) for pt in raw.split(' ')]
+        coords = [tuple(float(v) for v in pt.split(",")) for pt in raw.split(" ")]
         assert len(coords) >= 2
         for p1, p2 in zip(coords, coords[1:], strict=False):
             assert p1[0] == p2[0] or p1[1] == p2[1]
@@ -222,18 +224,20 @@ def test_svg_export_keeps_horizontal_target_marker_horizontal():
 
     svg_string = view.to_svg()
     root = ET.fromstring(svg_string)
-    ns = '{http://www.w3.org/2000/svg}'
-    polyline = root.find(f'.//{ns}polyline')
+    ns = "{http://www.w3.org/2000/svg}"
+    polyline = root.find(f".//{ns}polyline")
     assert polyline is not None
 
-    coords = [tuple(float(v) for v in pt.split(',')) for pt in polyline.get('points', '').split(' ')]
+    coords = [tuple(float(v) for v in pt.split(",")) for pt in polyline.get("points", "").split(" ")]
     assert len(coords) >= 2
     last = coords[-1]
     prev = coords[-2]
     assert last[1] == prev[1]
 
 
-@pytest.mark.xfail(reason="SVG connection routing orthogonalization needs investigation - source orientation logic may be incorrect")
+@pytest.mark.xfail(
+    reason="SVG connection routing orthogonalization needs investigation - source orientation logic may be incorrect"
+)
 def test_svg_export_starts_vertically_from_horizontal_source_edge():
     """A connection leaving a vertical source edge should start with a horizontal segment."""
     model = Model("source-stub")
@@ -248,11 +252,11 @@ def test_svg_export_starts_vertically_from_horizontal_source_edge():
 
     svg_string = view.to_svg()
     root = ET.fromstring(svg_string)
-    ns = '{http://www.w3.org/2000/svg}'
-    polyline = root.find(f'.//{ns}polyline')
+    ns = "{http://www.w3.org/2000/svg}"
+    polyline = root.find(f".//{ns}polyline")
     assert polyline is not None
 
-    coords = [tuple(float(v) for v in pt.split(',')) for pt in polyline.get('points', '').split(' ')]
+    coords = [tuple(float(v) for v in pt.split(",")) for pt in polyline.get("points", "").split(" ")]
     assert len(coords) >= 2
     assert coords[0][1] == coords[1][1]
 
@@ -267,23 +271,23 @@ def test_svg_export_renders_element_name_inside_rectangle():
 
     svg_string = view.to_svg()
     root = ET.fromstring(svg_string)
-    ns = '{http://www.w3.org/2000/svg}'
+    ns = "{http://www.w3.org/2000/svg}"
 
-    texts = root.findall(f'.//{ns}text')
+    texts = root.findall(f".//{ns}text")
     assert texts, "No text elements rendered"
 
     text = texts[0]
-    assert text.text == 'Inside Label'
+    assert text.text == "Inside Label"
 
-    text_y = float(text.get('y', '0'))
-    text_x = float(text.get('x', '0'))
+    text_y = float(text.get("y", "0"))
+    text_x = float(text.get("x", "0"))
 
     assert 50 < text_x < 190
     assert 60 < text_y < 130
 
 
 def _parse_polyline_points(polyline):
-    return [tuple(float(v) for v in pt.split(',')) for pt in polyline.get('points', '').split(' ') if pt]
+    return [tuple(float(v) for v in pt.split(",")) for pt in polyline.get("points", "").split(" ") if pt]
 
 
 @pytest.mark.xfail(reason="SVG connection routing needs investigation - endpoint spreading logic may need revision")
@@ -303,12 +307,12 @@ def test_svg_export_spreads_source_connection_points_away_from_corners():
         view.add_connection(ref=rel.uuid, source=source_node, target=targets[-1])
 
     root = ET.fromstring(view.to_svg())
-    ns = '{http://www.w3.org/2000/svg}'
+    ns = "{http://www.w3.org/2000/svg}"
     source_right_x = 40 + 120
     source_y_min = 80 + 12
     source_y_max = 80 + 60 - 12
 
-    polylines = root.findall(f'.//{ns}polyline')
+    polylines = root.findall(f".//{ns}polyline")
     assert len(polylines) == 5
 
     first_points = [_parse_polyline_points(polyline)[0] for polyline in polylines]
@@ -335,12 +339,12 @@ def test_svg_export_spreads_target_connection_points_away_from_corners():
         view.add_connection(ref=rel.uuid, source=sources[-1], target=target_node)
 
     root = ET.fromstring(view.to_svg())
-    ns = '{http://www.w3.org/2000/svg}'
+    ns = "{http://www.w3.org/2000/svg}"
     target_left_x = 280
     target_y_min = 120 + 12
     target_y_max = 120 + 60 - 12
 
-    polylines = root.findall(f'.//{ns}polyline')
+    polylines = root.findall(f".//{ns}polyline")
     assert len(polylines) == 5
 
     last_points = [_parse_polyline_points(polyline)[-1] for polyline in polylines]
@@ -351,6 +355,7 @@ def test_svg_export_spreads_target_connection_points_away_from_corners():
 
 
 # ── Junction rendering ────────────────────────────────────────────────────────
+
 
 def test_svg_or_junction_renders_white_circle():
     """OrJunction should produce a white-filled circle."""
@@ -382,6 +387,7 @@ def test_svg_and_junction_renders_black_circle():
 
 # ── Grouping and Group rendering ─────────────────────────────────────────────
 
+
 def test_svg_grouping_renders_dashed_path_with_label_in_tab():
     """Grouping should use a dashed L-shaped path and place label in the tab."""
     model = Model("groupings")
@@ -399,6 +405,7 @@ def test_svg_grouping_renders_dashed_path_with_label_in_tab():
 
 
 # ── Access relationship markers ───────────────────────────────────────────────
+
 
 def _make_access_view(access_type_val):
     model = Model("access")
@@ -455,6 +462,7 @@ def test_svg_access_undefined_has_no_markers():
 
 # ── Association directed / undirected ────────────────────────────────────────
 
+
 def _make_assoc_view(directed: bool):
     model = Model("assoc")
     view = model.add(ArchiType.View, "V")
@@ -488,6 +496,7 @@ def test_svg_association_undirected_has_no_markers():
 
 # ── Influence strength label ─────────────────────────────────────────────────
 
+
 def test_svg_influence_label_includes_strength():
     model = Model("influence")
     view = model.add(ArchiType.View, "V")
@@ -503,6 +512,7 @@ def test_svg_influence_label_includes_strength():
 
 
 # ── Composition / Aggregation diamond marker ─────────────────────────────────
+
 
 def test_svg_composition_has_diamond_start_marker():
     model = Model("comp")
@@ -539,6 +549,7 @@ def test_svg_aggregation_has_hollow_diamond_start_marker():
 
 # ── Realization hollow end marker ─────────────────────────────────────────────
 
+
 def test_svg_realization_has_hollow_arrow_end_marker():
     model = Model("real")
     view = model.add(ArchiType.View, "V")
@@ -557,9 +568,11 @@ def test_svg_realization_has_hollow_arrow_end_marker():
 
 # ── Orthogonal clip branches ──────────────────────────────────────────────────
 
+
 def test_orthogonal_clip_outside_x_inside_y():
     """Bendpoint left of element: exit left edge at bp.y."""
     from src.pyArchimate.view.layout.export.svg_export import SVGExportService
+
     bounds = (100.0, 50.0, 200.0, 100.0)
     bp = (50.0, 75.0)  # left of element, inside y-range
     result = SVGExportService._orthogonal_clip(bounds, bp)
@@ -569,6 +582,7 @@ def test_orthogonal_clip_outside_x_inside_y():
 def test_orthogonal_clip_inside_x_outside_y():
     """Bendpoint below element: exit bottom edge at bp.x."""
     from src.pyArchimate.view.layout.export.svg_export import SVGExportService
+
     bounds = (100.0, 50.0, 200.0, 100.0)
     bp = (150.0, 150.0)  # inside x-range, below element
     result = SVGExportService._orthogonal_clip(bounds, bp)
@@ -578,6 +592,7 @@ def test_orthogonal_clip_inside_x_outside_y():
 def test_orthogonal_clip_corner_x_dominates():
     """Bendpoint in corner with larger x-overshoot: exit the x-axis edge."""
     from src.pyArchimate.view.layout.export.svg_export import SVGExportService
+
     bounds = (100.0, 50.0, 200.0, 100.0)
     bp = (40.0, 110.0)  # left overshoot=60, bottom overshoot=10 → x dominates
     result = SVGExportService._orthogonal_clip(bounds, bp)
@@ -588,6 +603,7 @@ def test_orthogonal_clip_corner_x_dominates():
 def test_orthogonal_clip_corner_y_dominates():
     """Bendpoint in corner with larger y-overshoot: exit the y-axis edge."""
     from src.pyArchimate.view.layout.export.svg_export import SVGExportService
+
     bounds = (100.0, 50.0, 200.0, 100.0)
     bp = (210.0, 200.0)  # right overshoot=10, bottom overshoot=100 → y dominates
     result = SVGExportService._orthogonal_clip(bounds, bp)
@@ -602,6 +618,7 @@ def test_orthogonal_clip_inside_falls_back_to_center_clip():
     Result must be inside or on the element bounds.
     """
     from src.pyArchimate.view.layout.export.svg_export import SVGExportService
+
     bounds = (100.0, 50.0, 200.0, 100.0)
     x1, y1, x2, y2 = bounds
     bp = (170.0, 60.0)  # inside element, off-centre toward top-right
@@ -612,6 +629,7 @@ def test_orthogonal_clip_inside_falls_back_to_center_clip():
 
 
 # ── Connection with bendpoints (orthogonal exit) ──────────────────────────────
+
 
 def test_svg_connection_with_bendpoint_exits_orthogonally():
     """Connection with a bendpoint to the left exits at the left edge at bp.y."""
@@ -625,6 +643,7 @@ def test_svg_connection_with_bendpoint_exits_orthogonally():
     conn = view.add_connection(ref=rel.uuid, source=na, target=nb)
     # Manually add a bendpoint to the left of element A at y=90 (within A's y-range)
     from src.pyArchimate.view import Point
+
     conn.add_bendpoint(Point(30.0, 90.0))  # x=30 < 100=element left
     root = ET.fromstring(view.to_svg())
     ns = "{http://www.w3.org/2000/svg}"
@@ -638,6 +657,7 @@ def test_svg_connection_with_bendpoint_exits_orthogonally():
 
 
 # ── Short type name stripping ─────────────────────────────────────────────────
+
 
 def test_svg_export_strips_relationship_suffix_from_label():
     model = Model("label-strip")
@@ -654,6 +674,7 @@ def test_svg_export_strips_relationship_suffix_from_label():
 
 
 # ── icon size threshold ───────────────────────────────────────────────────────
+
 
 def test_svg_icon_hidden_when_element_too_small():
     """Elements smaller than threshold should not render corner icon."""
@@ -677,12 +698,11 @@ def test_svg_icon_shown_when_element_large_enough():
     view.add(elem, x=10, y=10, w=120, h=55)
     root = ET.fromstring(view.to_svg())
     ns = "{http://www.w3.org/2000/svg}"
-    icon_paths = [p for p in root.findall(f".//{ns}path")
-                  if p.get("fill") == "none" and p.get("stroke") == "black"]
+    icon_paths = [p for p in root.findall(f".//{ns}path") if p.get("fill") == "none" and p.get("stroke") == "black"]
     assert icon_paths, "Icon path expected for element above size threshold"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_svg_export_with_demo_view()
     test_svg_export_to_file()
     test_svg_export_empty_view()

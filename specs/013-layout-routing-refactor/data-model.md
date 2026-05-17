@@ -63,6 +63,7 @@ class RoutingConfig:
 - `max_node_displacement` ≥ 1
 
 **Derived value** (computed at runtime, not stored):
+
 ```
 corner_clearance(edge_length) = max(edge_length × corner_clearance_pct, corner_clearance_min)
 ```
@@ -86,6 +87,7 @@ class LayoutResult:
 ```
 
 **Warning format for skipped connections**:
+
 ```
 "auto_route: skipped connection {conn_id} ({source_label} → {target_label}): no valid orthogonal path found; existing waypoints preserved"
 ```

@@ -16,6 +16,7 @@ Represents detected file format type:
 ## Data Flow Changes
 
 ### Current Flow (Feature 007 - Broken)
+
 ```
 Model.read(file_path)
   ├─ _prepare_reader(file_path)
@@ -28,6 +29,7 @@ Model.read(file_path)
 ```
 
 ### Fixed Flow (Feature 008)
+
 ```
 Model.read(file_path)
   ├─ _prepare_reader(file_path)
@@ -61,6 +63,7 @@ Model.read(file_path)
 **Error Handling**: Return False on any I/O error (file not found, permission denied)
 
 **Example**:
+
 ```python
 _detect_zip_file("model.archimate")  # Returns: True
 _detect_zip_file("model.xml")         # Returns: False
@@ -83,6 +86,7 @@ _detect_zip_file("model.xml")         # Returns: False
 - `UnicodeDecodeError`: XML encoding issue
 
 **Example**:
+
 ```python
 xml_content = _extract_xml_from_zip("model.archimate")
 # Returns: '<?xml version="1.0"...'
@@ -96,11 +100,12 @@ xml_content = _extract_xml_from_zip("model.archimate")
 2. If ZIP: Call `_extract_xml_from_zip()` and return
 3. Else: Open as plain text UTF-8 and return
 
-**Error Handling**: 
+**Error Handling**:
 - Maintains existing error messages for backward compatibility
 - Adds informative error for invalid `.archimate` structure
 
 **Example**:
+
 ```python
 # For .archimate files (ZIP)
 content = _load_file_contents("model.archimate", "read")

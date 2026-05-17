@@ -80,10 +80,10 @@ class TestObstacleMapFindCorridor:
         """Returns None when source is surrounded by obstacles with no exit."""
         # Completely surround the start point with overlapping obstacles
         obstacles = [
-            rect(-20, -20, 40, 80),   # left wall
-            rect(20, -20, 40, 80),    # right wall
-            rect(-20, -20, 80, 40),   # top wall
-            rect(-20, 20, 80, 40),    # bottom wall
+            rect(-20, -20, 40, 80),  # left wall
+            rect(20, -20, 40, 80),  # right wall
+            rect(-20, -20, 80, 40),  # top wall
+            rect(-20, 20, 80, 40),  # bottom wall
         ]
         om = ObstacleMap(obstacles, resolution=5.0)
         path = om.find_corridor(Point(0, 0), Point(200, 200), crossing_penalty=1.0)

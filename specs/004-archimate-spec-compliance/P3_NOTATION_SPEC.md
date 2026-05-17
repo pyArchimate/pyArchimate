@@ -69,7 +69,7 @@ A developer creates a Junction element (decision point), assigns it type "xor", 
 1. Junction element creation via `Element(ArchiType.Junction, ...)` succeeds
 2. Junction.junction_type attribute supports: 'and' (default), 'or', 'xor'
 3. Incoming and outgoing relationships are allowed on junctions (no validation error)
-4. Junction type is serialized to .archimate as `<element...junctionType="and">` 
+4. Junction type is serialized to .archimate as `<element...junctionType="and">`
 5. Import from .archimate correctly reads and sets junction_type
 6. Validation can enforce allowed relationship types per junction type (AND/OR/XOR)
 7. Visual representation reflects junction type (different symbols per ArchiMate spec)
@@ -102,16 +102,17 @@ A developer creates a BusinessActor element, then sets custom visual properties:
 ### Core Class Changes
 
 **Element (src/pyArchimate/element.py)**:
+
 ```python
 class Element:
     # Existing (already present):
     junction_type: Optional[str] = None  # 'and' | 'or' | 'xor'
-    
+  
     # NEW for P3:
     _parent_uuid: Optional[str] = None    # UUID of parent element
     _children_uuids: list[str] = []       # UUIDs of child elements
     _visual_style: dict = {}              # {fill_color, line_color, line_width, transparency}
-    
+  
     # Methods:
     def add_child(self, child_elem: Element) -> None
     def remove_child(self, child_elem: Element) -> None
@@ -125,11 +126,12 @@ class Element:
 ```
 
 **Model (src/pyArchimate/model.py)**:
+
 ```python
 class Model:
     # NEW for tracking containment hierarchy:
     _element_hierarchy: dict[str, Optional[str]] = {}  # child_uuid → parent_uuid
-    
+  
     # Methods:
     def get_grouped_elements(self) -> list[Element]  # elements with children
     def get_junctions(self) -> list[Element]
@@ -139,6 +141,7 @@ class Model:
 ### XML Schema Mapping (ArchiMate 3.x)
 
 **Grouped Element (Nested Children)**:
+
 ```xml
 <element id="id-proc1" name="Main Process" xsi:type="BusinessProcess">
   <element id="id-func1" name="Sub-Process 1" xsi:type="BusinessFunction"/>
@@ -149,6 +152,7 @@ class Model:
 ```
 
 **Junction with Type**:
+
 ```xml
 <element id="id-junc1" name="Decision" xsi:type="Junction" junctionType="xor">
   <!-- Relationships link to this junction; no child elements -->
@@ -156,6 +160,7 @@ class Model:
 ```
 
 **Visual Properties (Element-Level)**:
+
 ```xml
 <element id="id-actor1" name="Customer" xsi:type="BusinessActor">
   <property key="fillColor" value="#0066FF"/>
@@ -353,7 +358,7 @@ class Model:
 5. **Backward Compat**: Property-based approach is backward compatible
 
 ### ⚠️ For User Clarification
-1. **Containment Semantics**: Should element containment affect relationship validity? 
+1. **Containment Semantics**: Should element containment affect relationship validity?
    - E.g., can child-of-A relate to sibling-of-A?
    - *Recommendation*: No restrictions; containment is structural, not semantic
 

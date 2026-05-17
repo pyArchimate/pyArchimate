@@ -12,6 +12,7 @@
 - Well-documented by Archi tool community
 
 **Evidence**:
+
 ```bash
 $ file /Users/xavier/PycharmProjects/pyArchimate/temp/export_demo.archimate
 Zip archive data, at least v2.0 to extract, compression method=deflate
@@ -63,6 +64,7 @@ Zip archive data, at least v2.0 to extract, compression method=deflate
 - Handles edge cases (corrupt archives, encryption, etc.)
 
 **Code Pattern**:
+
 ```python
 import zipfile
 

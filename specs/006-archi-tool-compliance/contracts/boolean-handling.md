@@ -8,6 +8,7 @@
 Python's `bool(string)` returns `True` for any non-empty string, including `"false"`. This breaks parsing of Archi's `nameVisible` feature.
 
 **Example**:
+
 ```python
 bool("false")  # → True (BUG!)
 bool("true")   # → True (correct)
@@ -34,10 +35,10 @@ Create `parse_bool(value: str | None) -> bool` function in `src/pyArchimate/help
 def parse_bool(value: str | None) -> bool:
     """
     Parse string to boolean per W3C xsd:boolean semantics.
-    
+  
     Args:
         value: String from XML ("true", "false", "1", "0", None, etc.)
-    
+  
     Returns:
         True if value matches "true" or "1" (case-insensitive)
         False otherwise (including None, empty, invalid)
@@ -49,6 +50,7 @@ def parse_bool(value: str | None) -> bool:
 ```
 
 **Usage in _archireader_helpers.py:116**:
+
 ```python
 # Before:
 conn.show_label = bool(ft.get('value'))

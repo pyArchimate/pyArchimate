@@ -3,6 +3,7 @@
 Exports pyArchimate models and views to .archimate files (Archi tool format).
 Handles XML structure, folder organization, elements, relationships, and views.
 """
+
 # ruff: noqa: N999  # legacy module name preserved for API compatibility
 import os
 import sys
@@ -25,33 +26,40 @@ except ImportError:
     sys.path.insert(0, "..")
     from pyArchimate import ArchiType, Model, View, archi_category, log, set_id  # type: ignore[no-redef,attr-defined]
 
-__mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
+__mod__ = __name__.split(".")[len(__name__.split(".")) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
 def _create_folders(root: _Element) -> dict[str, _Element]:
-    f_strategy = et.SubElement(root, 'folder', name="Strategy", id=set_id(), type="strategy")
-    f_business = et.SubElement(root, 'folder', name="Business", id=set_id(), type="business")
-    f_application = et.SubElement(root, 'folder', name="Application", id=set_id(), type="application")
-    f_technology = et.SubElement(root, 'folder', name="Technology", id=set_id(), type="technology")
-    f_motivation = et.SubElement(root, 'folder', name="Motivation", id=set_id(), type="motivation")
-    f_implementation = et.SubElement(root, 'folder', name="Implementation", id=set_id(),
-                                     type="implementation_migration")
-    f_other = et.SubElement(root, 'folder', name="Other", id=set_id(), type="other")
-    f_relations = et.SubElement(root, 'folder', name="Relations", id=set_id(), type="relations")
-    f_views = et.SubElement(root, 'folder', name="Views", id=set_id(), type="diagrams")
+    f_strategy = et.SubElement(root, "folder", name="Strategy", id=set_id(), type="strategy")
+    f_business = et.SubElement(root, "folder", name="Business", id=set_id(), type="business")
+    f_application = et.SubElement(root, "folder", name="Application", id=set_id(), type="application")
+    f_technology = et.SubElement(root, "folder", name="Technology", id=set_id(), type="technology")
+    f_motivation = et.SubElement(root, "folder", name="Motivation", id=set_id(), type="motivation")
+    f_implementation = et.SubElement(
+        root, "folder", name="Implementation", id=set_id(), type="implementation_migration"
+    )
+    f_other = et.SubElement(root, "folder", name="Other", id=set_id(), type="other")
+    f_relations = et.SubElement(root, "folder", name="Relations", id=set_id(), type="relations")
+    f_views = et.SubElement(root, "folder", name="Views", id=set_id(), type="diagrams")
     return {
-        "/Strategy": f_strategy, "/Business": f_business, "/Application": f_application,
-        "/Technology": f_technology, "/Motivation": f_motivation,
-        "/Implementation & Migration": f_implementation, "/Other": f_other,
-        "/Physical": f_technology, "/Technology & Physical": f_technology,
-        "/Relations": f_relations, "/Views": f_views,
-        "/Junction": f_other
+        "/Strategy": f_strategy,
+        "/Business": f_business,
+        "/Application": f_application,
+        "/Technology": f_technology,
+        "/Motivation": f_motivation,
+        "/Implementation & Migration": f_implementation,
+        "/Other": f_other,
+        "/Physical": f_technology,
+        "/Technology & Physical": f_technology,
+        "/Relations": f_relations,
+        "/Views": f_views,
+        "/Junction": f_other,
     }
 
 
 def _is_same_top_folder(folder_str: str, cat: str) -> bool:
-    top_folder = folder_str.split('/', 2)[1] if folder_str.startswith('/') else folder_str.split('/', 1)[0]
+    top_folder = folder_str.split("/", 2)[1] if folder_str.startswith("/") else folder_str.split("/", 1)[0]
     if top_folder == cat:
         return True
     if cat == "Technology" and top_folder in {"Technology & Physical", "Physical"}:
@@ -62,20 +70,20 @@ def _is_same_top_folder(folder_str: str, cat: str) -> bool:
 
 
 def _get_folder(folders: dict[str, _Element], folder_str: str) -> _Element:
-    paths = folder_str.split('/')[1:]
-    first_folder = '/' + paths[0]
+    paths = folder_str.split("/")[1:]
+    first_folder = "/" + paths[0]
     if first_folder not in folders:
         log.warning(f"Unknown folder category '{first_folder}', using /Other as parent")
-        prev_f = folders['/Other']
+        prev_f = folders["/Other"]
     else:
         prev_f = folders[first_folder]
-    cur_path = ''
+    cur_path = ""
     f = None
     for p in paths:
-        cur_path += '/' + p
+        cur_path += "/" + p
         f = folders[cur_path] if cur_path in folders else None
         if f is None:
-            f = et.SubElement(prev_f, 'folder', name=p, id=set_id())
+            f = et.SubElement(prev_f, "folder", name=p, id=set_id())
             folders[cur_path] = f
         prev_f = f
     return _cast(_Element, f)
@@ -83,275 +91,302 @@ def _get_folder(folders: dict[str, _Element], folder_str: str) -> _Element:
 
 def _resolve_folder_path(obj_folder: str | None, cat: str) -> str:
     if obj_folder is None:
-        return '/' + cat
+        return "/" + cat
     if _is_same_top_folder(obj_folder, cat):
         return obj_folder
-    return '/' + cat + obj_folder
+    return "/" + cat + obj_folder
 
 
 def _write_element_metadata(e: _Element, elem: object, elem_type: str) -> None:
-    name = getattr(elem, 'name', None)
+    name = getattr(elem, "name", None)
     if name is not None:
-        e.set('name', name)
-    desc = getattr(elem, 'desc', None)
+        e.set("name", name)
+    desc = getattr(elem, "desc", None)
     if desc is not None:
-        doc = et.SubElement(e, 'documentation')
+        doc = et.SubElement(e, "documentation")
         doc.text = desc
-    for k, v in getattr(elem, 'props', {}).items():
-        et.SubElement(e, 'property', key=k, value=str(v))
-    if elem_type == 'Junction':
-        junction_type = getattr(elem, 'junction_type', None)
+    for k, v in getattr(elem, "props", {}).items():
+        et.SubElement(e, "property", key=k, value=str(v))
+    if elem_type == "Junction":
+        junction_type = getattr(elem, "junction_type", None)
         if junction_type is not None:
-            e.set('type', junction_type)
-            et.SubElement(e, 'property', key='junctionType', value=junction_type)
-    visual_style = getattr(elem, '_visual_style', {})
-    for key in ['fillColor', 'lineColor', 'lineWidth', 'transparency']:
+            e.set("type", junction_type)
+            et.SubElement(e, "property", key="junctionType", value=junction_type)
+    visual_style = getattr(elem, "_visual_style", {})
+    for key in ["fillColor", "lineColor", "lineWidth", "transparency"]:
         if key in visual_style:
-            et.SubElement(e, 'property', key=key, value=str(visual_style[key]))
-    for slug in getattr(elem, 'viewpoints', []):
-        et.SubElement(e, 'property', key='viewpoint', value=slug)
-    profile_id = getattr(elem, 'profile_id', None)
+            et.SubElement(e, "property", key=key, value=str(visual_style[key]))
+    for slug in getattr(elem, "viewpoints", []):
+        et.SubElement(e, "property", key="viewpoint", value=slug)
+    profile_id = getattr(elem, "profile_id", None)
     if profile_id is not None:
-        e.set('profiles', profile_id)
+        e.set("profiles", profile_id)
 
 
 def _write_element(folders: dict[str, _Element], elem: object, xsi: et.QName) -> None:
-    elem_type = getattr(elem, 'type', '')
-    cat = archi_category[elem_type].split('-')[0]
+    elem_type = getattr(elem, "type", "")
+    cat = archi_category[elem_type].split("-")[0]
     if cat == "Junction":
         cat = "Other"
     elif cat == "Physical":
-        cat = 'Technology'
-    folder_path = _resolve_folder_path(getattr(elem, 'folder', None), cat)
+        cat = "Technology"
+    folder_path = _resolve_folder_path(getattr(elem, "folder", None), cat)
     folder = _get_folder(folders, folder_path)
-    attrs = {
-        str(xsi): 'archimate:' + elem_type,
-        'id': getattr(elem, 'uuid', '')
-    }
-    e = et.SubElement(folder, 'element', attrs)
-    parent_uuid = getattr(elem, '_parent_uuid', None)
+    attrs = {str(xsi): "archimate:" + elem_type, "id": getattr(elem, "uuid", "")}
+    e = et.SubElement(folder, "element", attrs)
+    parent_uuid = getattr(elem, "_parent_uuid", None)
     if parent_uuid:
-        e.set('parentId', parent_uuid)
+        e.set("parentId", parent_uuid)
     _write_element_metadata(e, elem, elem_type)
 
 
 def _write_relationship(folders: dict[str, _Element], rel: object, xsi: et.QName) -> None:
-    rel_folder = _resolve_folder_path(getattr(rel, 'folder', None), 'Relations')
+    rel_folder = _resolve_folder_path(getattr(rel, "folder", None), "Relations")
     folder = _get_folder(folders, rel_folder)
-    source = getattr(rel, 'source', None)
-    target = getattr(rel, 'target', None)
+    source = getattr(rel, "source", None)
+    target = getattr(rel, "target", None)
     assert source is not None and target is not None
-    rel_type = getattr(rel, 'type', '')
-    r = et.SubElement(folder, 'element', {
-        str(xsi): 'archimate:' + rel_type + 'Relationship',
-        'id': getattr(rel, 'uuid', ''),
-        'source': source.uuid,
-        'target': target.uuid
-    })
-    name = getattr(rel, 'name', None)
+    rel_type = getattr(rel, "type", "")
+    r = et.SubElement(
+        folder,
+        "element",
+        {
+            str(xsi): "archimate:" + rel_type + "Relationship",
+            "id": getattr(rel, "uuid", ""),
+            "source": source.uuid,
+            "target": target.uuid,
+        },
+    )
+    name = getattr(rel, "name", None)
     if name is not None:
-        r.set('name', name)
-    access_type = getattr(rel, 'access_type', None)
+        r.set("name", name)
+    access_type = getattr(rel, "access_type", None)
     if access_type == "Read":
         r.set("accessType", "1")
     elif access_type == "ReadWrite":
         r.set("accessType", "3")
     elif access_type == "Access":
         r.set("accessType", "2")
-    is_directed = getattr(rel, 'is_directed', None)
+    is_directed = getattr(rel, "is_directed", None)
     if is_directed is not None:
         r.set("directed", str(is_directed).lower())
-    influence_strength = getattr(rel, 'influence_strength', None)
+    influence_strength = getattr(rel, "influence_strength", None)
     if influence_strength is not None:
         r.set("strength", influence_strength)
-    desc = getattr(rel, 'desc', None)
+    desc = getattr(rel, "desc", None)
     if desc is not None:
-        doc = et.SubElement(r, 'documentation')
+        doc = et.SubElement(r, "documentation")
         doc.text = desc
-    for k, v in getattr(rel, 'props', {}).items():
-        et.SubElement(r, 'property', key=k, value=str(v))
-    profile_id = getattr(rel, 'profile_id', None)
+    for k, v in getattr(rel, "props", {}).items():
+        et.SubElement(r, "property", key=k, value=str(v))
+    profile_id = getattr(rel, "profile_id", None)
     if profile_id is not None:
-        r.set('profiles', profile_id)
+        r.set("profiles", profile_id)
 
 
 def _write_connection(child: _Element, conn: object, xsi: et.QName) -> None:  # noqa: C901
-    conn_source = getattr(conn, 'source', None)
-    conn_target = getattr(conn, 'target', None)
+    conn_source = getattr(conn, "source", None)
+    conn_target = getattr(conn, "target", None)
     if conn_source is None or conn_target is None:
         log.debug(f"Skipping connection {getattr(conn, 'uuid', '?')}: missing source or target node")
         return
-    c = et.SubElement(child, 'sourceConnection', {
-        str(xsi): "archimate:Connection",
-        'id': getattr(conn, 'uuid', ''),
-        'lineWidth': "1",
-        'source': conn_source.uuid,
-        'target': conn_target.uuid,
-        'archimateRelationship': getattr(conn, 'ref', '')
-    })
-    show_label = getattr(conn, 'show_label', True)
-    et.SubElement(c, 'feature', name='nameVisible',
-                  value='true' if show_label else 'false')
-    line_width = getattr(conn, 'line_width', None)
+    c = et.SubElement(
+        child,
+        "sourceConnection",
+        {
+            str(xsi): "archimate:Connection",
+            "id": getattr(conn, "uuid", ""),
+            "lineWidth": "1",
+            "source": conn_source.uuid,
+            "target": conn_target.uuid,
+            "archimateRelationship": getattr(conn, "ref", ""),
+        },
+    )
+    show_label = getattr(conn, "show_label", True)
+    et.SubElement(c, "feature", name="nameVisible", value="true" if show_label else "false")
+    line_width = getattr(conn, "line_width", None)
     if line_width is not None:
-        c.set('lineWidth', str(line_width))
-    font_name = getattr(conn, 'font_name', None)
-    font_size = getattr(conn, 'font_size', None)
+        c.set("lineWidth", str(line_width))
+    font_name = getattr(conn, "font_name", None)
+    font_size = getattr(conn, "font_size", None)
     if font_name is not None and font_size is not None:
-        c.set('font', f"1|{font_name}|{int(font_size)}|0|WINDOWS|1|0|0|0|0|0|0|0|0|1|0|0|0|0|{font_name}")
-    font_color = getattr(conn, 'font_color', None)
+        c.set("font", f"1|{font_name}|{int(font_size)}|0|WINDOWS|1|0|0|0|0|0|0|0|0|1|0|0|0|0|{font_name}")
+    font_color = getattr(conn, "font_color", None)
     if font_color is not None:
-        c.set('fontColor', font_color.lower())
-    line_color = getattr(conn, 'line_color', None)
+        c.set("fontColor", font_color.lower())
+    line_color = getattr(conn, "line_color", None)
     if line_color is not None:
-        c.set('lineColor', line_color.lower())
-    text_position = getattr(conn, 'text_position', None)
+        c.set("lineColor", line_color.lower())
+    text_position = getattr(conn, "text_position", None)
     if text_position is not None:
-        c.set('textPosition', text_position)
-    for bp in getattr(conn, 'bendpoints', []):
-        et.SubElement(c, 'bendpoint',
-                      startX=str(round(bp.x - conn_source.cx)),
-                      startY=str(round(bp.y - conn_source.cy)),
-                      endX=str(round(bp.x - conn_target.cx)),
-                      endY=str(round(bp.y - conn_target.cy)))
+        c.set("textPosition", text_position)
+    for bp in getattr(conn, "bendpoints", []):
+        et.SubElement(
+            c,
+            "bendpoint",
+            startX=str(round(bp.x - conn_source.cx)),
+            startY=str(round(bp.y - conn_source.cy)),
+            endX=str(round(bp.x - conn_target.cx)),
+            endY=str(round(bp.y - conn_target.cy)),
+        )
 
 
 def _set_node_visual_attrs(child: _Element, node: object) -> None:
-    _opacity = getattr(node, 'opacity', 100)
-    font_name = getattr(node, 'font_name', None)
-    font_size = getattr(node, 'font_size', None)
+    _opacity = getattr(node, "opacity", 100)
+    font_name = getattr(node, "font_name", None)
+    font_size = getattr(node, "font_size", None)
     if font_name is not None and font_size is not None:
         size = str(float(font_size))
-        child.set('font', f"1|{font_name}|{size}|0|WINDOWS|1|0|0|0|0|0|0|0|0|1|0|0|0|0|{font_name}")
-    font_color = getattr(node, 'font_color', None)
+        child.set("font", f"1|{font_name}|{size}|0|WINDOWS|1|0|0|0|0|0|0|0|0|1|0|0|0|0|{font_name}")
+    font_color = getattr(node, "font_color", None)
     if font_color is not None:
-        child.set('fontColor', font_color.lower())
-    line_color = getattr(node, 'line_color', None)
+        child.set("fontColor", font_color.lower())
+    line_color = getattr(node, "line_color", None)
     if line_color is not None:
-        child.set('lineColor', line_color.lower())
-    fill_color = getattr(node, 'fill_color', None)
+        child.set("lineColor", line_color.lower())
+    fill_color = getattr(node, "fill_color", None)
     if fill_color is not None:
-        child.set('fillColor', fill_color.lower())
-    if str(_opacity) != '100':
-        child.set('alpha', str(int(255 * int(_opacity) / 100)))
-    lc_opacity = getattr(node, 'lc_opacity', 100)
-    if str(lc_opacity) != '100':
-        et.SubElement(child, 'feature', name='lineAlpha', value=str(int(255 * int(lc_opacity) / 100)))
-    image_path = getattr(node, 'image_path', None)
+        child.set("fillColor", fill_color.lower())
+    if str(_opacity) != "100":
+        child.set("alpha", str(int(255 * int(_opacity) / 100)))
+    lc_opacity = getattr(node, "lc_opacity", 100)
+    if str(lc_opacity) != "100":
+        et.SubElement(child, "feature", name="lineAlpha", value=str(int(255 * int(lc_opacity) / 100)))
+    image_path = getattr(node, "image_path", None)
     if image_path is not None:
-        child.set('imagePath', image_path)
-    image_position = getattr(node, 'image_position', None)
+        child.set("imagePath", image_path)
+    image_position = getattr(node, "image_position", None)
     if image_position is not None:
-        child.set('imagePosition', str(image_position))
-    image_type = getattr(node, 'image_type', None)
+        child.set("imagePosition", str(image_position))
+    image_type = getattr(node, "image_type", None)
     if image_type is not None:
-        child.set('type', str(image_type))
+        child.set("type", str(image_type))
 
 
 def _set_node_features(child: _Element, node: object) -> None:
-    label_expression = getattr(node, 'label_expression', None)
+    label_expression = getattr(node, "label_expression", None)
     if label_expression is not None:
-        et.SubElement(child, 'feature', name='labelExpression', value=label_expression)
-    icon_color = getattr(node, 'icon_color', None)
+        et.SubElement(child, "feature", name="labelExpression", value=label_expression)
+    icon_color = getattr(node, "icon_color", None)
     if icon_color is not None:
-        et.SubElement(child, 'feature', name='iconColor', value=icon_color)
-    gradient = getattr(node, 'gradient', None)
+        et.SubElement(child, "feature", name="iconColor", value=icon_color)
+    gradient = getattr(node, "gradient", None)
     if gradient is not None:
-        et.SubElement(child, 'feature', name='gradient', value=gradient)
-    image_source = getattr(node, 'image_source', False)
+        et.SubElement(child, "feature", name="gradient", value=gradient)
+    image_source = getattr(node, "image_source", False)
     if image_source:
-        et.SubElement(child, 'feature', name='imageSource', value='1')
+        et.SubElement(child, "feature", name="imageSource", value="1")
 
 
 def _set_node_cat_content(child: _Element, node: object, xsi: et.QName) -> None:
-    cat = getattr(node, 'cat', 'Element')
-    node_ref = getattr(node, 'ref', None)
-    node_label = getattr(node, 'label', None)
-    if cat == 'Element':
-        child.set('archimateElement', node_ref or '')
+    cat = getattr(node, "cat", "Element")
+    node_ref = getattr(node, "ref", None)
+    node_label = getattr(node, "label", None)
+    if cat == "Element":
+        child.set("archimateElement", node_ref or "")
     elif cat == "Container":
-        child.set(str(xsi), 'archimate:Group')
-        child.set('name', node_label or '')
+        child.set(str(xsi), "archimate:Group")
+        child.set("name", node_label or "")
     elif cat == "Label":
-        child.set(str(xsi), 'archimate:Note')
-        content = et.SubElement(child, 'content')
+        child.set(str(xsi), "archimate:Note")
+        content = et.SubElement(child, "content")
         content.text = node_label
     elif cat == "Model":
-        child.set(str(xsi), 'archimate:DiagramModelReference')
-        child.set('model', node_ref or '')
-    text_alignment = getattr(node, 'text_alignment', None)
+        child.set(str(xsi), "archimate:DiagramModelReference")
+        child.set("model", node_ref or "")
+    text_alignment = getattr(node, "text_alignment", None)
     if text_alignment is not None:
-        child.set('textAlignment', text_alignment)
-    text_position = getattr(node, 'text_position', None)
+        child.set("textAlignment", text_alignment)
+    text_position = getattr(node, "text_position", None)
     if text_position is not None:
-        child.set('textPosition', text_position)
-    border_type = getattr(node, 'border_type', None)
+        child.set("textPosition", text_position)
+    border_type = getattr(node, "border_type", None)
     if border_type is not None:
-        child.set('borderType', border_type)
+        child.set("borderType", border_type)
 
 
 def _add_node(parent: object, parent_tag: _Element, node: object, xsi: et.QName) -> list[str]:
-    child = et.SubElement(parent_tag, 'child', {
-        str(xsi): 'archimate:DiagramObject',
-        'id': getattr(node, 'uuid', ''),
-    })
+    child = et.SubElement(
+        parent_tag,
+        "child",
+        {
+            str(xsi): "archimate:DiagramObject",
+            "id": getattr(node, "uuid", ""),
+        },
+    )
     _set_node_visual_attrs(child, node)
     _set_node_features(child, node)
     _set_node_cat_content(child, node, xsi)
-    node_type = getattr(node, 'type', None)
-    fill_color = getattr(node, 'fill_color', None)
+    node_type = getattr(node, "type", None)
+    fill_color = getattr(node, "fill_color", None)
     if node_type == ArchiType.Grouping and fill_color is None:
-        child.set('alpha', '0')
-    node_x = getattr(node, 'x', 0)
-    node_y = getattr(node, 'y', 0)
+        child.set("alpha", "0")
+    node_x = getattr(node, "x", 0)
+    node_y = getattr(node, "y", 0)
     if isinstance(parent, View):
-        et.SubElement(child, 'bounds', x=str(node_x), y=str(node_y),
-                      width=str(getattr(node, 'w', 120)), height=str(getattr(node, 'h', 55)))
+        et.SubElement(
+            child,
+            "bounds",
+            x=str(node_x),
+            y=str(node_y),
+            width=str(getattr(node, "w", 120)),
+            height=str(getattr(node, "h", 55)),
+        )
     else:
-        parent_x = getattr(parent, 'x', 0)
-        parent_y = getattr(parent, 'y', 0)
-        et.SubElement(child, 'bounds', x=str(node_x - parent_x), y=str(node_y - parent_y),
-                      width=str(getattr(node, 'w', 120)), height=str(getattr(node, 'h', 55)))
-    for conn in getattr(node, 'out_conns', lambda: [])():
+        parent_x = getattr(parent, "x", 0)
+        parent_y = getattr(parent, "y", 0)
+        et.SubElement(
+            child,
+            "bounds",
+            x=str(node_x - parent_x),
+            y=str(node_y - parent_y),
+            width=str(getattr(node, "w", 120)),
+            height=str(getattr(node, "h", 55)),
+        )
+    for conn in getattr(node, "out_conns", lambda: [])():
         _write_connection(child, conn, xsi)
-    targets: list[str] = [conn.uuid for conn in getattr(node, 'in_conns', lambda: [])()]
-    for sub_n in getattr(node, 'nodes', []):
+    targets: list[str] = [conn.uuid for conn in getattr(node, "in_conns", lambda: [])()]
+    for sub_n in getattr(node, "nodes", []):
         _add_node(node, child, sub_n, xsi)
     if targets:
         # Preserve insertion order while avoiding duplicates
-        child.set('targetConnections', ' '.join(dict.fromkeys(targets)))
+        child.set("targetConnections", " ".join(dict.fromkeys(targets)))
     return targets
 
 
 def _write_view_element(view_folder: _Element, view: object, xsi: et.QName) -> None:
-    e = et.SubElement(view_folder, 'element', {
-        str(xsi): 'archimate:ArchimateDiagramModel',
-        'name': getattr(view, 'name', ''),
-        'id': getattr(view, 'uuid', ''),
-    })
+    e = et.SubElement(
+        view_folder,
+        "element",
+        {
+            str(xsi): "archimate:ArchimateDiagramModel",
+            "name": getattr(view, "name", ""),
+            "id": getattr(view, "uuid", ""),
+        },
+    )
     # Write primary viewpoint as an XML attribute on the view element
-    primary_vp = getattr(view, 'primary_viewpoint', None)
+    primary_vp = getattr(view, "primary_viewpoint", None)
     if primary_vp is not None:
-        e.set('viewpoint', primary_vp)
-    for n in getattr(view, 'nodes', []):
+        e.set("viewpoint", primary_vp)
+    for n in getattr(view, "nodes", []):
         _add_node(view, e, n, xsi)
-    view_desc = getattr(view, 'desc', None)
+    view_desc = getattr(view, "desc", None)
     if view_desc is not None:
-        doc = et.SubElement(e, 'documentation')
+        doc = et.SubElement(e, "documentation")
         doc.text = view_desc
-    for k, v in getattr(view, 'props', {}).items():
-        et.SubElement(e, 'property', key=k, value=str(v))
+    for k, v in getattr(view, "props", {}).items():
+        et.SubElement(e, "property", key=k, value=str(v))
 
 
 def _write_model_metadata(root: _Element, model: Model) -> None:
-    root.set('name', model.name or '')
+    root.set("name", model.name or "")
     if model.desc is not None:
-        doc = et.SubElement(root, 'purpose')
+        doc = et.SubElement(root, "purpose")
         doc.text = model.desc
     for k, v in model.props.items():
-        et.SubElement(root, 'property', key=k, value=str(v))
+        et.SubElement(root, "property", key=k, value=str(v))
     for p in model.profiles:
-        et.SubElement(root, 'profile', name=p.name, id=p.uuid, conceptType=p.concept)
+        et.SubElement(root, "profile", name=p.name, id=p.uuid, conceptType=p.concept)
 
 
 def archi_writer(model: Model, file_path: str) -> str:
@@ -367,8 +402,8 @@ def archi_writer(model: Model, file_path: str) -> str:
     """
 
     root = et.fromstring(xml)
-    xsi_url = 'http://www.w3.org/2001/XMLSchema-instance' # NOSONAR
-    xsi = et.QName(xsi_url, 'type')
+    xsi_url = "http://www.w3.org/2001/XMLSchema-instance"  # NOSONAR
+    xsi = et.QName(xsi_url, "type")
     folders = _create_folders(root)
 
     for elem in model.elements:
@@ -376,27 +411,27 @@ def archi_writer(model: Model, file_path: str) -> str:
     for rel in model.relationships:
         _write_relationship(folders, rel, xsi)
     for view in model.views:
-        view_folder = _get_folder(folders, _resolve_folder_path(view.folder, 'Views'))
+        view_folder = _get_folder(folders, _resolve_folder_path(view.folder, "Views"))
         _write_view_element(view_folder, view, xsi)
 
     _write_model_metadata(root, model)
 
-    xml_str = et.tostring(root, encoding='UTF-8', pretty_print=True)
+    xml_str = et.tostring(root, encoding="UTF-8", pretty_print=True)
 
     if file_path is not None:
         try:
             # Check if writing to .archimate format (ZIP archive)
-            if file_path.endswith('.archimate'):
+            if file_path.endswith(".archimate"):
                 # Create ZIP archive with model.xml + images
-                with zipfile.ZipFile(file_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+                with zipfile.ZipFile(file_path, "w", zipfile.ZIP_DEFLATED) as zf:
                     # Write XML at root of archive
-                    zf.writestr('model.xml', xml_str)
+                    zf.writestr("model.xml", xml_str)
                     # Write images if they exist
                     for img_filename, img_bytes in model._images_dict.items():
                         zf.writestr(img_filename, img_bytes)
             else:
                 # Write plain XML for .xml format
-                with open(file_path, 'wb') as fd:
+                with open(file_path, "wb") as fd:
                     fd.write(xml_str)
         except OSError:
             log.error(f'{__mod__}.write: Cannot write to file "{file_path}')

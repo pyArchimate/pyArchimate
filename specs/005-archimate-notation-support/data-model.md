@@ -15,6 +15,7 @@ P3 adds hierarchy tracking and visual properties to existing Element and Model e
 ## Entity: Element
 
 ### Existing Attributes (from audit)
+
 ```python
 _uuid: str                          # Immutable identifier (generated UUID)
 parent: Model                       # Reference to parent model
@@ -50,6 +51,7 @@ def parent_uuid(self) -> Optional[str]:
 ### NEW: P3 Visual Style API
 
 #### Setters (validate on set; raise ValueError on invalid)
+
 ```python
 def set_fill_color(self, color: Optional[str]) -> None:
     """Set fill color (hex #RRGGBB or named color). Normalizes to lowercase hex."""
@@ -76,6 +78,7 @@ def set_visual_style(self,
 ```
 
 #### Getters (return stored value or None)
+
 ```python
 def get_fill_color(self) -> Optional[str]:
     """Return fill color (hex) or None (use default)."""
@@ -94,6 +97,7 @@ def get_visual_style(self) -> dict[str, Any]:
 ```
 
 #### Reset
+
 ```python
 def reset_visual_style(self) -> None:
     """Clear all custom visual styles; use defaults."""
@@ -104,6 +108,7 @@ def reset_visual_style(self) -> None:
 **Existing Behavior**: Delete from model, remove visual nodes, delete relationships
 
 **New Behavior (P3)**: Also orphan children
+
 ```python
 def delete(self) -> None:
     """
@@ -120,6 +125,7 @@ def delete(self) -> None:
 ## Entity: Model
 
 ### Existing Attributes (from audit)
+
 ```python
 _uuid: str                          # Model identifier
 name: Optional[str]                 # Model name
@@ -162,17 +168,17 @@ _viewpoint_views: dict[str, str]          # View UUID → viewpoint slug (P2)
 def add_child(self, parent_uuid: str, child_uuid: str) -> None:
     """
     Assign parent_uuid as parent of child_uuid.
-    
+  
     Validations:
     - Parent and child UUIDs must exist in model
     - Child must not already have a parent
     - No cycles allowed (checked via _would_create_cycle)
     - Max depth not exceeded (checked via _get_depth)
-    
+  
     Raises:
     - KeyError: If UUID not in model
     - ValueError: If validation fails (parent exists, cycle, depth)
-    
+  
     Updates:
     - Element._parent_uuid = parent_uuid
     - Model._element_hierarchy[child_uuid] = parent_uuid
@@ -182,15 +188,15 @@ def add_child(self, parent_uuid: str, child_uuid: str) -> None:
 def remove_child(self, parent_uuid: str, child_uuid: str) -> None:
     """
     Remove parent-child relationship. Child becomes root.
-    
+  
     Validations:
     - Both UUIDs must exist in model
     - Relationship must exist (child is actually child of parent)
-    
+  
     Raises:
     - KeyError: If UUID not in model
     - ValueError: If relationship doesn't exist
-    
+  
     Updates:
     - Element._parent_uuid = None
     - Delete from _element_hierarchy[child_uuid]
@@ -204,21 +210,21 @@ def remove_child(self, parent_uuid: str, child_uuid: str) -> None:
 def get_parent(self, elem_uuid: str) -> Optional[Element]:
     """
     Return parent element of elem_uuid, or None if root.
-    
+  
     O(1) lookup via _element_hierarchy
     """
 
 def get_children(self, elem_uuid: str) -> list[Element]:
     """
     Return all direct children of elem_uuid.
-    
+  
     O(n) where n = number of children
     """
 
 def get_ancestors(self, elem_uuid: str) -> list[Element]:
     """
     Return all ancestors from elem_uuid up to root (inclusive).
-    
+  
     O(depth), max depth 5 → O(1) practical
     Returns: [elem_uuid, parent, grandparent, ..., root]
     """
@@ -226,7 +232,7 @@ def get_ancestors(self, elem_uuid: str) -> list[Element]:
 def get_descendants(self, elem_uuid: str) -> list[Element]:
     """
     Return all descendants of elem_uuid (breadth-first).
-    
+  
     O(subtree_size) traversal
     Returns: [child1, child2, grandchild1, ...] (excludes elem_uuid)
     """
@@ -234,21 +240,21 @@ def get_descendants(self, elem_uuid: str) -> list[Element]:
 def get_depth(self, elem_uuid: str) -> int:
     """
     Get nesting depth of elem_uuid (0 = root, 1 = direct child, ...).
-    
+  
     O(depth), max depth 5 → O(1) practical
     """
 
 def get_root_elements(self) -> list[Element]:
     """
     Return all elements with no parent (depth = 0).
-    
+  
     O(n) scan of _element_hierarchy
     """
 
 def get_leaf_elements(self) -> list[Element]:
     """
     Return all elements with no children.
-    
+  
     O(n) scan of _element_children
     """
 ```
@@ -259,9 +265,9 @@ def get_leaf_elements(self) -> list[Element]:
 def _would_create_cycle(self, parent_uuid: str, child_uuid: str) -> bool:
     """
     Check if adding parent→child link would create cycle.
-    
+  
     Algorithm: Walk up from parent_uuid; if we reach child_uuid, cycle detected.
-    
+  
     O(depth), max depth 5 → O(1) practical
     Returns: True if cycle would occur, False if safe
     """
@@ -269,7 +275,7 @@ def _would_create_cycle(self, parent_uuid: str, child_uuid: str) -> bool:
 def _get_depth(self, elem_uuid: str) -> int:
     """
     Get nesting depth of elem_uuid.
-    
+  
     Used internally by add_child() to enforce max depth.
     O(depth), max depth 5 → O(1) practical
     """
@@ -462,12 +468,12 @@ MAX_DEPTH = 5
 def _normalize_color(color: Optional[str]) -> Optional[str]:
     """
     Normalize color to lowercase hex (#rrggbb).
-    
+  
     Accepts:
     - Hex: #RRGGBB (any case) → lowercase
     - Named: 'red', 'blue', etc. → hex conversion
     - None: → None (use defaults)
-    
+  
     Raises: ValueError if invalid format
     """
 ```
@@ -541,4 +547,3 @@ _visual_style = {} (back to defaults)
 ---
 
 **Status**: Complete and ready for Phase 2 implementation
-

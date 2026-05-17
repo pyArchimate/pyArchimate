@@ -6,8 +6,9 @@ from src.pyArchimate.view.layout import auto_layout, auto_route
 from src.pyArchimate.view.layout.utils.geometry import Point
 
 
-def mock_node(uuid: str, element_type: str = "BusinessActor",
-              x: float = 0, y: float = 0, w: float = 120, h: float = 55) -> MagicMock:
+def mock_node(
+    uuid: str, element_type: str = "BusinessActor", x: float = 0, y: float = 0, w: float = 120, h: float = 55
+) -> MagicMock:
     n = MagicMock()
     n.uuid = uuid
     n.type = element_type
@@ -64,8 +65,7 @@ class TestLayoutDoesNotTouchWaypoints:
         auto_layout(view)
 
         after_bps = [(p.x, p.y) for p in conn.bendpoints]
-        assert after_bps == original_bps, \
-            "auto_layout must not modify connection bendpoints"
+        assert after_bps == original_bps, "auto_layout must not modify connection bendpoints"
 
 
 class TestRoutingDoesNotTouchNodePositions:
@@ -83,21 +83,17 @@ class TestRoutingDoesNotTouchNodePositions:
         auto_route(view)
 
         for n in nodes:
-            assert (n.x, n.y) == original_positions[n.uuid], \
-                f"auto_route changed position of node {n.uuid}"
+            assert (n.x, n.y) == original_positions[n.uuid], f"auto_route changed position of node {n.uuid}"
 
 
 class TestIdempotentLayout:
     """T047 — calling auto_layout twice gives identical node positions."""
 
     def test_auto_layout_is_idempotent(self) -> None:  # [P]
-        nodes = [
-            mock_node(f"n{i}", "BusinessActor") for i in range(10)
-        ]
+        nodes = [mock_node(f"n{i}", "BusinessActor") for i in range(10)]
         view = make_view(nodes)
         auto_layout(view)
         positions_first = {n.uuid: (n.x, n.y) for n in nodes}
         auto_layout(view)
         positions_second = {n.uuid: (n.x, n.y) for n in nodes}
-        assert positions_first == positions_second, \
-            "auto_layout is not idempotent — positions differ on second call"
+        assert positions_first == positions_second, "auto_layout is not idempotent — positions differ on second call"

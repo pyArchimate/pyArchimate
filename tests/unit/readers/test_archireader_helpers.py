@@ -1,4 +1,5 @@
 """Unit tests for _archireader_helpers module."""
+
 from lxml import etree
 
 from src.pyArchimate import ArchiType
@@ -14,6 +15,7 @@ from src.pyArchimate.readers.archiReader import archi_reader
 # =============================================================================
 # _parse_rel_attributes — direct tests
 # =============================================================================
+
 
 def _fresh_rel(rel_type=ArchiType.Access):
     m = Model("t")
@@ -76,6 +78,7 @@ def test_parse_rel_attributes_documentation():
 # _resolve_rel_endpoints — direct tests
 # =============================================================================
 
+
 def test_resolve_rel_endpoints_invalid_src():
     m = Model("t")
     m.add(ArchiType.BusinessActor, "D", uuid="dst-1")
@@ -105,6 +108,7 @@ def test_resolve_rel_endpoints_valid():
 # =============================================================================
 # _resolve_bp_coords — direct tests
 # =============================================================================
+
 
 class _N:
     cx = 50
@@ -149,7 +153,7 @@ def test_resolve_bp_coords_start_only_uses_source_centre():
     # scoring heuristic that was rejected; we always use cx/cy as basis.
     bp = etree.Element("bendpoint", startX="0", startY="40")
     x, y = _resolve_bp_coords(bp, _EdgeN(), _EdgeN())
-    assert x == 50   # 0 + source.cx (50)
+    assert x == 50  # 0 + source.cx (50)
     assert y == 140  # 40 + source.cy (100)
 
 
@@ -304,7 +308,6 @@ def test_merge_flag_reuses_existing_element():
     assert model.elems_dict["elem-1"] is elem_before
 
 
-
 # =============================================================================
 # get_folders_rel — None endpoints branch (line 216)
 # =============================================================================
@@ -380,7 +383,7 @@ def test_get_folders_view_valid_viewpoint_assigned():
     model = Model("view-vp")
     archi_reader(model, root)
     view = model.views_dict["view-vp-ok"]
-    assert hasattr(view, 'viewpoint') or "view-vp-ok" in model.views_dict
+    assert hasattr(view, "viewpoint") or "view-vp-ok" in model.views_dict
 
 
 def test_get_folders_view_unknown_viewpoint_does_not_raise():

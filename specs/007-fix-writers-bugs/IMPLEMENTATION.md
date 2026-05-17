@@ -20,6 +20,7 @@ The writer was generating XML that violated the OpenGroup Exchange format specif
 ### File: src/pyArchimate/writers/archimateWriter.py
 
 #### Change 1: XML Template (Line 381)
+
 ```python
 # BEFORE (BROKEN)
 xml = b"""<?xml version="1.0" encoding="utf-8"?>
@@ -43,6 +44,7 @@ The rest of the code remains unchanged - model name stays as child element.
 ## Validation
 
 ### Generated File Structure (Before vs After)
+
 ```xml
 <!-- BEFORE (INVALID) -->
 <?xml version="1.0" encoding="utf-8"?>

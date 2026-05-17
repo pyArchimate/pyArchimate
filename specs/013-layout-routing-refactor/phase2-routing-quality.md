@@ -87,9 +87,10 @@ After each pass, classify each connection:
 2. Add `_detect_node_crossings(waypoints, nodes_dict) -> set[int]` (connection indices).
 3. Add `_detect_double_crossings(waypoints) -> set[int]` (connection indices to re-route).
 4. Add outer loop in `auto_route`:
+  
    ```python
    for pass_num in range(max_passes):
-       waypoints = _route_pass(conflict_conns, om, config, warnings)
+    waypoints = _route_pass(conflict_conns, om, config, warnings)
        conflicts = _detect_node_crossings(...) | _detect_double_crossings(...)
        if not conflicts:
            break

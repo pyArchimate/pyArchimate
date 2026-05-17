@@ -260,6 +260,7 @@ Tasks organized by phase and user story. Each task is independently specific and
 ## Parallel Execution Opportunities
 
 ### Phase 2 Parallel Teams
+
 ```
 Team A (Grouping):     T001-T010, T021, T025-T033
 Team B (Visual):       T011-T019, T023, T034-T036
@@ -268,6 +269,7 @@ Team C (Tests):        T024, T037-T039, T046-T047
 ```
 
 ### Phase 3-4 Parallel Strategy
+
 ```
 Reader Team:           T025-T033 (extract + validate)
 Writer Team:           T034-T039 (emit + verify)
@@ -390,4 +392,3 @@ Test Team:             T031-T032, T037-T038 (round-trip tests)
 - **Total: 97 tests across all phases** ✅
 
 **Phase 4 Status**: Ready for Phase 5 (Junction Semantics)
-

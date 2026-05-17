@@ -109,6 +109,7 @@ class TestObstacleMapRebuild:
 
         # Mark a routed segment
         from src.pyArchimate.view.layout.utils.geometry import Point
+
         om.mark_routed_segment(Point(500.0, 500.0), Point(600.0, 500.0))
         routed_before = len(om._routed)
         assert routed_before > 0, "Should have marked routed cells"

@@ -348,77 +348,50 @@ Unit tests live under `tests/unit/...`, so there is one `test_<module>.py` file 
 
 ## Dependency Installation
 
-To set up `uv`, run:
-
-```bash
-sudo apt-get update
-pip install --upgrade uv
-```
-
-- Initialize a project
-  Use this when starting a new Python project.
-  - Create a new project with a pyproject.toml.
-  `uv init`
-  `uv init my-project`
-  `uv init --package`
-  `uv init --app`
-
-- Env / venv management (uv venv namespace)
-  - List venvs: `uv venv list`
-  - Create venv: `uv venv create [--python <python>] [--path <path>]`
-  - Use/select venv: `uv venv use <name-or-path>`
-  - Remove venv: `uv venv remove <name>`
-  - Show venv info: `uv venv show <name>`
-  - Activate shell for specific venv: `uv venv shell <name>`
+This project uses [Poetry](https://python-poetry.org/) for dependency management.
 
 - Add dependency
-  - uv: `uv add <package> [--group <group>] [--dev] [--version <constraint>]`
-  - examples: `uv add requests`, `uv add pytest --group dev`
+  - `poetry add <package>`
+  - `poetry add <package> --group dev`
+  - examples: `poetry add requests`, `poetry add pytest --group dev`
 
 - Remove dependency
-  - uv: `uv remove <package>`
+  - `poetry remove <package>`
 
-- Install / sync including all groups / extras
-  - uv: `poetry update`
-  - or to include specific groups: `uv sync --upgrade --groups dev,tests,lint,docs`
+- Install all groups
+  - `poetry install --with dev,testing,lint,docs`
+  - or just the default groups: `poetry install`
 
 - Update dependencies
-  - Upgrade one package:
-  `uv lock --upgrade-package requests`
-  - Upgrade all packages:
-  `uv lock --upgrade`
-  - Then sync:
-  `uv sync`
+  - Upgrade one package: `poetry add <package>@latest`
+  - Upgrade all packages: `poetry update`
 
-- Lock dependencies / generate lockfile
-  - uv: `uv lock [--no-update]`
+- Lock dependencies / regenerate lockfile
+  - `poetry lock`
 
 - Show dependencies / tree
-  - uv: `uv show [--tree] [<package>]`
+  - `poetry show`
+  - `poetry show --tree`
 
-- Run a command in the venv, run scripts / entry points defined in pyproject
-  - uv: `poetry run -- <command>` or `poetry run <command> [args...]`
-  - example: `poetry run python`, `poetry run pytest`
-  - uv: `poetry run <script-name>` (scripts exposed via project config)
+- Run a command in the venv
+  - `poetry run <command> [args...]`
+  - examples: `poetry run python`, `poetry run pytest`
 
 - Spawn a shell in the venv
-  - uv: `uv shell`
+  - `poetry shell`
 
 - Build package
-  - uv: `uv build [--format wheel,sdist]`
+  - `poetry build`
 
 - Publish package
-  - uv: `uv publish [--repository <repo>]`
+  - `poetry publish [--repository <repo>]`
 
 - Show project info / metadata
-  - uv: `uv info`
-
-- Security audit
-  - uv: `uv audit`
+  - `poetry env info`
 
 Notes:
 
-- Flags/option names above follow the uv CLI documented patterns (e.g., `--all`, `--groups`, `--python`). Use `uv <command> --help` for full option lists and exact formatting for your uv version.
+- All dependency groups are defined in `[dependency-groups]` in `pyproject.toml`. Use `poetry <command> --help` for full option lists.
 
 ## SonarQube
 
@@ -453,7 +426,8 @@ When new SonarCloud issues appear on `main`, follow this sequence:
 
 1. Pull the latest `main` and request the open issues via the API (same URL as above); review the payload for every problem marked `OPEN`.
 2. Implement fixes in the repo so each rule is satisfied (document FastAPI exceptions, tighten validators, simplify routers, adjust services, etc.).
-3. Run the full pre-commit suite via `scripts/pre_commit_checks.sh` (this already executes markdown/ruff/pyright/mypy/snyk/behave/pytest).
+3. Run the full pre-commit suite via `pre-commit run --all-files --hook-stage pre-push` (executes
+   pyright, mypy, layer boundaries, behave, pytest unit/integration/legacy).
 4. Stage the modified files and commit with a conventional summary such as `fix: resolve SonarCloud issues`.
 5. Push the updated commit to `origin/main` so SonarCloud can re-scan.
 

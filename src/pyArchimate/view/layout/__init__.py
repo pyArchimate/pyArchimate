@@ -39,11 +39,11 @@ def auto_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
     warnings: list[str] = []
 
     try:
-        nodes = getattr(view, 'nodes', [])
+        nodes = getattr(view, "nodes", [])
         if not nodes:
             return LayoutResult(
                 success=True,
-                view_id=getattr(view, 'uuid', 'unknown'),
+                view_id=getattr(view, "uuid", "unknown"),
                 algorithm_used="auto_layout",
                 elements_processed=0,
                 connections_processed=0,
@@ -52,15 +52,12 @@ def auto_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
             )
 
         excluded = {str(e) for e in config.excluded_element_ids}
-        active_nodes = [
-            n for n in nodes
-            if str(getattr(n, 'uuid', None) or getattr(n, 'id', id(n))) not in excluded
-        ]
+        active_nodes = [n for n in nodes if str(getattr(n, "uuid", None) or getattr(n, "id", id(n))) not in excluded]
 
         # Compute node degrees (connection count) for high-degree isolation heuristic.
         node_degrees: dict[str, int] = {}
-        for conn in getattr(view, 'conns', []):
-            for attr in ('_source', '_target'):
+        for conn in getattr(view, "conns", []):
+            for attr in ("_source", "_target"):
                 nid = getattr(conn, attr, None)
                 if nid:
                     node_degrees[str(nid)] = node_degrees.get(str(nid), 0) + 1
@@ -76,7 +73,7 @@ def auto_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
         elapsed_ms = (time.time() - start_time) * 1000
         return LayoutResult(
             success=True,
-            view_id=getattr(view, 'uuid', 'unknown'),
+            view_id=getattr(view, "uuid", "unknown"),
             algorithm_used="auto_layout",
             elements_processed=len(active_nodes),
             connections_processed=0,
@@ -87,7 +84,7 @@ def auto_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
         elapsed_ms = (time.time() - start_time) * 1000
         return LayoutResult(
             success=False,
-            view_id=getattr(view, 'uuid', 'unknown'),
+            view_id=getattr(view, "uuid", "unknown"),
             algorithm_used="auto_layout",
             elements_processed=0,
             connections_processed=0,
@@ -104,13 +101,20 @@ def _seg_pair_close(pa1: Any, pa2: Any, pb1: Any, pb2: Any, gap: float) -> bool:
         _seg_is_horizontal,
         _seg_is_vertical,
     )
-    if (_seg_is_horizontal(pa1, pa2) and _seg_is_horizontal(pb1, pb2)
-            and abs(pa1.y - pb1.y) < gap
-            and _ivl_overlap(pa1.x, pa2.x, pb1.x, pb2.x)):
+
+    if (
+        _seg_is_horizontal(pa1, pa2)
+        and _seg_is_horizontal(pb1, pb2)
+        and abs(pa1.y - pb1.y) < gap
+        and _ivl_overlap(pa1.x, pa2.x, pb1.x, pb2.x)
+    ):
         return True
-    if (_seg_is_vertical(pa1, pa2) and _seg_is_vertical(pb1, pb2)
-            and abs(pa1.x - pb1.x) < gap
-            and _ivl_overlap(pa1.y, pa2.y, pb1.y, pb2.y)):
+    if (
+        _seg_is_vertical(pa1, pa2)
+        and _seg_is_vertical(pb1, pb2)
+        and abs(pa1.x - pb1.x) < gap
+        and _ivl_overlap(pa1.y, pa2.y, pb1.y, pb2.y)
+    ):
         return True
     return False
 
@@ -122,10 +126,8 @@ def _has_new_close_pair(
     n_j = len(wps_j) - 1
     for ia in range(n_i):
         for ib in range(n_j):
-            if _seg_pair_close(disp_i[ia], disp_i[ia + 1],
-                               wps_j[ib], wps_j[ib + 1], gap):
-                if not _seg_pair_close(orig_i[ia], orig_i[ia + 1],
-                                       orig_j[ib], orig_j[ib + 1], gap):
+            if _seg_pair_close(disp_i[ia], disp_i[ia + 1], wps_j[ib], wps_j[ib + 1], gap):
+                if not _seg_pair_close(orig_i[ia], orig_i[ia + 1], orig_j[ib], orig_j[ib + 1], gap):
                     return True
     return False
 
@@ -137,10 +139,7 @@ def _revert_new_close_pairs(
 ) -> list[list[Point]]:
     """Revert displaced connections that introduce new near-close segment pairs."""
     _gap = min_segment_gap - 0.5
-    displaced_indices = {
-        ci for ci in range(len(separated))
-        if separated[ci] != all_waypoints[ci]
-    }
+    displaced_indices = {ci for ci in range(len(separated)) if separated[ci] != all_waypoints[ci]}
     if not displaced_indices:
         return separated
 
@@ -180,7 +179,7 @@ def _apply_anchor_restore_and_safety(
 
 
 _STUB_THRESHOLD = 15.0  # px — max stub length treated as BFS grid-snapping artefact
-_EPS_STUB = 0.5         # coordinate tolerance
+_EPS_STUB = 0.5  # coordinate tolerance
 
 
 def _remove_waypoints_inside_nodes(
@@ -217,12 +216,20 @@ def _remove_waypoints_inside_nodes(
         nxt = wps[i + 1]
 
         # Horizontal reversal: prev→wp→nxt all at same y, but wp goes opposite direction
-        horiz_rev = (abs(prev.y - wp.y) < 0.5 and abs(wp.y - nxt.y) < 0.5 and
-                     abs(wp.x - prev.x) < 5 and (wp.x - prev.x) * (nxt.x - wp.x) < 0)
+        horiz_rev = (
+            abs(prev.y - wp.y) < 0.5
+            and abs(wp.y - nxt.y) < 0.5
+            and abs(wp.x - prev.x) < 5
+            and (wp.x - prev.x) * (nxt.x - wp.x) < 0
+        )
 
         # Vertical reversal: prev→wp→nxt all at same x, but wp goes opposite direction
-        vert_rev = (abs(prev.x - wp.x) < 0.5 and abs(wp.x - nxt.x) < 0.5 and
-                    abs(wp.y - prev.y) < 5 and (wp.y - prev.y) * (nxt.y - wp.y) < 0)
+        vert_rev = (
+            abs(prev.x - wp.x) < 0.5
+            and abs(wp.x - nxt.x) < 0.5
+            and abs(wp.y - prev.y) < 5
+            and (wp.y - prev.y) * (nxt.y - wp.y) < 0
+        )
 
         if not (horiz_rev or vert_rev):
             result.append(wp)
@@ -315,20 +322,22 @@ def _multi_pass_route(
 
     spread_anchors = _precompute_spread_anchors(conns, nodes_dict, config)
     for pass_num in range(1, config.max_routing_passes):
-        conflicts = (
-            _detect_node_crossings(all_waypoints, nodes_dict)
-            | _detect_double_crossings(all_waypoints)
-        )
+        conflicts = _detect_node_crossings(all_waypoints, nodes_dict) | _detect_double_crossings(all_waypoints)
         if not conflicts:
             break
         penalty = config.crossing_penalty * (3.0 ** (pass_num - 1))
-        _route_pass(sorted(conflicts), conn_refs, all_waypoints,
-                    spread_anchors, nodes_dict, om, penalty, warnings)
+        _route_pass(sorted(conflicts), conn_refs, all_waypoints, spread_anchors, nodes_dict, om, penalty, warnings)
 
     if config.allow_node_move:
         om, node_moves = _apply_node_move_fallback(
-            all_waypoints, conn_refs, nodes_dict, spread_anchors,
-            om, config, warnings, node_moves,
+            all_waypoints,
+            conn_refs,
+            nodes_dict,
+            spread_anchors,
+            om,
+            config,
+            warnings,
+            node_moves,
         )
     return node_moves, om
 
@@ -375,9 +384,14 @@ def _apply_node_move_fallback(
                     for seg in range(len(wps_k) - 1):
                         om.mark_routed_segment(wps_k[seg], wps_k[seg + 1])
             _route_pass(
-                [ci], conn_refs, all_waypoints,
-                spread_anchors, nodes_dict, om,
-                config.crossing_penalty * 3.0, warnings,
+                [ci],
+                conn_refs,
+                all_waypoints,
+                spread_anchors,
+                nodes_dict,
+                om,
+                config.crossing_penalty * 3.0,
+                warnings,
             )
             if not _detect_node_crossings([all_waypoints[ci]], nodes_dict):
                 node_moves.extend(records)
@@ -386,17 +400,20 @@ def _apply_node_move_fallback(
             # P2-T55: Undo node move also reverts obstacle map changes
             _undo_node_moves(records, nodes_dict)
             om.rebuild_for_moved_nodes(
-                [NodeMove(
-                    uuid=rec.uuid,
-                    old_x=rec.new_x,  # swap to undo
-                    old_y=rec.new_y,
-                    new_x=rec.old_x,
-                    new_y=rec.old_y,
-                ) for rec in records],
+                [
+                    NodeMove(
+                        uuid=rec.uuid,
+                        old_x=rec.new_x,  # swap to undo
+                        old_y=rec.new_y,
+                        new_x=rec.old_x,
+                        new_y=rec.old_y,
+                    )
+                    for rec in records
+                ],
                 nodes_dict,
             )
         if not resolved and ci < len(conn_refs):
-            conn_uuid = getattr(conn_refs[ci], 'uuid', str(ci))
+            conn_uuid = getattr(conn_refs[ci], "uuid", str(ci))
             warnings.append(
                 f"auto_route: connection {conn_uuid} still crosses a node "
                 "after all routing passes and node-move attempts"
@@ -424,13 +441,13 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
     warnings: list[str] = []
 
     try:
-        nodes = getattr(view, 'nodes', [])
-        conns = getattr(view, 'conns', [])
+        nodes = getattr(view, "nodes", [])
+        conns = getattr(view, "conns", [])
 
         if not conns:
             return LayoutResult(
                 success=True,
-                view_id=getattr(view, 'uuid', 'unknown'),
+                view_id=getattr(view, "uuid", "unknown"),
                 algorithm_used="auto_route",
                 elements_processed=len(nodes),
                 connections_processed=0,
@@ -438,14 +455,11 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
                 warnings=[],
             )
 
-        nodes_dict = _collect_all_nodes(getattr(view, 'nodes_dict', {}))
+        nodes_dict = _collect_all_nodes(getattr(view, "nodes_dict", {}))
 
         # Build obstacle map from node bounding boxes.
         # Canvas is sized to actual view extent + 200px margin for routing corridors.
-        obstacles = [
-            Rectangle(float(n.x), float(n.y), float(n.w), float(n.h))
-            for n in nodes_dict.values()
-        ]
+        obstacles = [Rectangle(float(n.x), float(n.y), float(n.w), float(n.h)) for n in nodes_dict.values()]
         canvas_margin = 200.0
         if nodes_dict:
             max_x = max(float(n.x) + float(n.w) for n in nodes_dict.values()) + canvas_margin
@@ -464,7 +478,13 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
 
         # Multi-pass conflict resolution + node-move fallback (P2-T16/T26).
         node_moves, om = _multi_pass_route(
-            conns, conn_refs, all_waypoints, nodes_dict, om, config, warnings,
+            conns,
+            conn_refs,
+            all_waypoints,
+            nodes_dict,
+            om,
+            config,
+            warnings,
         )
 
         # Post-processing: separation, anchor restore, cleanup.
@@ -486,6 +506,7 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
 
         # Final pass: detect and separate remaining collinear overlaps
         from .routing.segment_separation import displace_collinear_segments
+
         final_separated = displace_collinear_segments(all_final_wps, config.min_segment_gap)
 
         # Add bendpoints to connections
@@ -496,7 +517,7 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
         elapsed_ms = (time.time() - start_time) * 1000
         return LayoutResult(
             success=True,
-            view_id=getattr(view, 'uuid', 'unknown'),
+            view_id=getattr(view, "uuid", "unknown"),
             algorithm_used="auto_route",
             elements_processed=len(nodes),
             connections_processed=len(conn_refs),
@@ -509,7 +530,7 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
         elapsed_ms = (time.time() - start_time) * 1000
         return LayoutResult(
             success=False,
-            view_id=getattr(view, 'uuid', 'unknown'),
+            view_id=getattr(view, "uuid", "unknown"),
             algorithm_used="auto_route",
             elements_processed=0,
             connections_processed=0,
@@ -521,13 +542,13 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
 def _exit_edge(node: Any, other_node: Any) -> str:
     """Return which edge of node faces other_node: 'left', 'right', 'top', 'bottom'."""
     nx, ny, nw, nh = float(node.x), float(node.y), float(node.w), float(node.h)
-    ox = float(getattr(other_node, 'cx', 0))
-    oy = float(getattr(other_node, 'cy', 0))
+    ox = float(getattr(other_node, "cx", 0))
+    oy = float(getattr(other_node, "cy", 0))
     dx = ox - (nx + nw / 2)
     dy = oy - (ny + nh / 2)
     if abs(dx) >= abs(dy):
-        return 'right' if dx >= 0 else 'left'
-    return 'bottom' if dy >= 0 else 'top'
+        return "right" if dx >= 0 else "left"
+    return "bottom" if dy >= 0 else "top"
 
 
 def _spread_positions(
@@ -552,7 +573,7 @@ def _spread_positions(
     # Keep 1px back from the hard boundary so SVG float rounding doesn't push into corner zone
     _margin = 1.0
 
-    if edge in ('left', 'right'):
+    if edge in ("left", "right"):
         # Spread along the y-axis of the vertical edge
         usable = nh - 2 * cy - 2 * _margin
         if count > 1:
@@ -563,7 +584,7 @@ def _spread_positions(
         y = max(ny + cy + _margin, min(ny + nh - cy - _margin, y))
         # _out must clear the inflated obstacle zone (2px inflate + resolution + 1px).
         # Use 13px — safe for both 10px and 20px BFS resolutions without overshooting gaps.
-        x = (nx + nw + _out) if edge == 'right' else (nx - _out)
+        x = (nx + nw + _out) if edge == "right" else (nx - _out)
         return x, y
     else:
         # 'top' or 'bottom' — spread along the x-axis of the horizontal edge
@@ -574,7 +595,7 @@ def _spread_positions(
         else:
             x = nx + nw / 2
         x = max(nx + cx + _margin, min(nx + nw - cx - _margin, x))
-        y = (ny + nh + _out) if edge == 'bottom' else (ny - _out)
+        y = (ny + nh + _out) if edge == "bottom" else (ny - _out)
         return x, y
 
 
@@ -596,8 +617,8 @@ def _precompute_spread_anchors(
     # Collect (node_uuid, edge) → [(conn, role)] groups
     groups: dict[tuple[str, str], list[tuple[Any, str]]] = defaultdict(list)
     for conn in conns:
-        src_uuid = getattr(conn, '_source', None)
-        tgt_uuid = getattr(conn, '_target', None)
+        src_uuid = getattr(conn, "_source", None)
+        tgt_uuid = getattr(conn, "_target", None)
         if not src_uuid or not tgt_uuid:
             continue
         src_node = nodes_dict.get(src_uuid)
@@ -606,8 +627,8 @@ def _precompute_spread_anchors(
             continue
         src_edge = _exit_edge(src_node, tgt_node)
         tgt_edge = _exit_edge(tgt_node, src_node)
-        groups[(src_uuid, src_edge)].append((conn, 'src'))
-        groups[(tgt_uuid, tgt_edge)].append((conn, 'tgt'))
+        groups[(src_uuid, src_edge)].append((conn, "src"))
+        groups[(tgt_uuid, tgt_edge)].append((conn, "tgt"))
 
     anchors: dict[tuple[str, str], Point] = {}
     for (node_uuid, edge), members in groups.items():
@@ -616,7 +637,7 @@ def _precompute_spread_anchors(
             continue
         n = len(members)
         for i, (conn, role) in enumerate(members):
-            conn_uuid = getattr(conn, 'uuid', str(id(conn)))
+            conn_uuid = getattr(conn, "uuid", str(id(conn)))
             x, y = _spread_positions(node, edge, n, i, config)
             anchors[(conn_uuid, role)] = Point(x, y)
 
@@ -703,17 +724,17 @@ def _route_connections(
     conn_refs: list[Any] = []
     all_waypoints: list[list[Point]] = []
     for conn in conns:
-        source_uuid = getattr(conn, '_source', None)
-        target_uuid = getattr(conn, '_target', None)
+        source_uuid = getattr(conn, "_source", None)
+        target_uuid = getattr(conn, "_target", None)
         if not source_uuid or not target_uuid:
             continue
         src_node = nodes_dict.get(source_uuid)
         tgt_node = nodes_dict.get(target_uuid)
         if not src_node or not tgt_node:
             continue
-        conn_uuid = getattr(conn, 'uuid', str(id(conn)))
-        src_anchor = spread_anchors.get((conn_uuid, 'src'))
-        tgt_anchor = spread_anchors.get((conn_uuid, 'tgt'))
+        conn_uuid = getattr(conn, "uuid", str(id(conn)))
+        src_anchor = spread_anchors.get((conn_uuid, "src"))
+        tgt_anchor = spread_anchors.get((conn_uuid, "tgt"))
         if src_anchor is None or tgt_anchor is None:
             continue
         # Use configured crossing_penalty so subsequent connections prefer different corridors.
@@ -742,6 +763,7 @@ def _route_connections(
 # P2-T13: _route_pass — re-route a subset of connections on the existing map
 # ---------------------------------------------------------------------------
 
+
 def _route_pass(
     conflict_indices: list[int],
     conn_refs: list[Any],
@@ -759,13 +781,13 @@ def _route_pass(
     """
     for idx in conflict_indices:
         conn = conn_refs[idx]
-        conn_uuid = getattr(conn, 'uuid', str(id(conn)))
-        src_anchor = spread_anchors.get((conn_uuid, 'src'))
-        tgt_anchor = spread_anchors.get((conn_uuid, 'tgt'))
+        conn_uuid = getattr(conn, "uuid", str(id(conn)))
+        src_anchor = spread_anchors.get((conn_uuid, "src"))
+        tgt_anchor = spread_anchors.get((conn_uuid, "tgt"))
         if src_anchor is None or tgt_anchor is None:
             continue
-        source_uuid = getattr(conn, '_source', None)
-        target_uuid = getattr(conn, '_target', None)
+        source_uuid = getattr(conn, "_source", None)
+        target_uuid = getattr(conn, "_target", None)
         src_node = nodes_dict.get(source_uuid) if source_uuid else None
         tgt_node = nodes_dict.get(target_uuid) if target_uuid else None
         if not src_node or not tgt_node:
@@ -792,6 +814,7 @@ def _route_pass(
 # ---------------------------------------------------------------------------
 # P2-T14: _detect_node_crossings — connections whose paths cross node bboxes
 # ---------------------------------------------------------------------------
+
 
 def _seg_crosses_rect(
     wps: list[Point],
@@ -827,8 +850,12 @@ def _detect_node_crossings(
     """
     _shrink = 2.0
     node_rects = [
-        (float(n.x) + _shrink, float(n.y) + _shrink,
-         float(n.x) + float(n.w) - _shrink, float(n.y) + float(n.h) - _shrink)
+        (
+            float(n.x) + _shrink,
+            float(n.y) + _shrink,
+            float(n.x) + float(n.w) - _shrink,
+            float(n.y) + float(n.h) - _shrink,
+        )
         for n in nodes_dict.values()
     ]
     if not node_rects:
@@ -848,9 +875,14 @@ def _detect_node_crossings(
 # P2-T15: _detect_double_crossings — pairs that cross each other twice
 # ---------------------------------------------------------------------------
 
+
 def _dc_seg_cross_point(
-    h_y: float, hx0: float, hx1: float,
-    v_x: float, vy0: float, vy1: float,
+    h_y: float,
+    hx0: float,
+    hx1: float,
+    v_x: float,
+    vy0: float,
+    vy1: float,
 ) -> tuple[float, float] | None:
     """Return the crossing point of H and V segments, or None."""
     if hx0 < v_x < hx1 and vy0 < h_y < vy1:
@@ -875,13 +907,21 @@ def _count_segment_crossings(wps_a: list[Point], wps_b: list[Point], eps: float)
                 continue  # parallel — no crossing
             if a_horiz:
                 pt = _dc_seg_cross_point(
-                    a1.y, min(a1.x, a2.x), max(a1.x, a2.x),
-                    b1.x, min(b1.y, b2.y), max(b1.y, b2.y),
+                    a1.y,
+                    min(a1.x, a2.x),
+                    max(a1.x, a2.x),
+                    b1.x,
+                    min(b1.y, b2.y),
+                    max(b1.y, b2.y),
                 )
             else:
                 pt = _dc_seg_cross_point(
-                    b1.y, min(b1.x, b2.x), max(b1.x, b2.x),
-                    a1.x, min(a1.y, a2.y), max(a1.y, a2.y),
+                    b1.y,
+                    min(b1.x, b2.x),
+                    max(b1.x, b2.x),
+                    a1.x,
+                    min(a1.y, a2.y),
+                    max(a1.y, a2.y),
                 )
             if pt is not None:
                 crossings.add((round(pt[0], 1), round(pt[1], 1)))
@@ -912,6 +952,7 @@ def _detect_double_crossings(all_waypoints: list[list[Point]]) -> set[int]:
 # ---------------------------------------------------------------------------
 # P2-T24: _find_candidate_node_moves
 # ---------------------------------------------------------------------------
+
 
 def _find_candidate_node_moves(
     conn_idx: int,
@@ -947,9 +988,8 @@ def _find_candidate_node_moves(
                 continue
             nx, ny, nw, nh = float(node.x), float(node.y), float(node.w), float(node.h)
             rx0, ry0, rx1, ry1 = nx + _shrink, ny + _shrink, nx + nw - _shrink, ny + nh - _shrink
-            crosses = (
-                (horizontal and ry0 < p1.y < ry1 and x_lo < rx1 and x_hi > rx0) or
-                (not horizontal and rx0 < p1.x < rx1 and y_lo < ry1 and y_hi > ry0)
+            crosses = (horizontal and ry0 < p1.y < ry1 and x_lo < rx1 and x_hi > rx0) or (
+                not horizontal and rx0 < p1.x < rx1 and y_lo < ry1 and y_hi > ry0
             )
             if not crosses:
                 continue
@@ -970,6 +1010,7 @@ def _find_candidate_node_moves(
 # ---------------------------------------------------------------------------
 # P2-T25: _apply_node_move
 # ---------------------------------------------------------------------------
+
 
 def _apply_node_move(
     nids: list[str],
@@ -998,10 +1039,12 @@ def _apply_node_move(
     for i, ni in enumerate(all_nodes):
         for j in range(i + 1, len(all_nodes)):
             nj = all_nodes[j]
-            if (float(ni.x) < float(nj.x) + float(nj.w) and
-                    float(nj.x) < float(ni.x) + float(ni.w) and
-                    float(ni.y) < float(nj.y) + float(nj.h) and
-                    float(nj.y) < float(ni.y) + float(ni.h)):
+            if (
+                float(ni.x) < float(nj.x) + float(nj.w)
+                and float(nj.x) < float(ni.x) + float(ni.w)
+                and float(ni.y) < float(nj.y) + float(nj.h)
+                and float(nj.y) < float(ni.y) + float(ni.h)
+            ):
                 # Overlap detected — undo
                 for node_obj, old_x, old_y in moved:
                     node_obj.x = old_x
@@ -1010,14 +1053,16 @@ def _apply_node_move(
 
     # Commit: build NodeMove records
     for node_obj, old_x, old_y in moved:
-        nid_val = getattr(node_obj, 'uuid', None) or getattr(node_obj, 'id', str(id(node_obj)))
-        records.append(NodeMove(
-            uuid=str(nid_val),
-            old_x=old_x,
-            old_y=old_y,
-            new_x=float(node_obj.x),
-            new_y=float(node_obj.y),
-        ))
+        nid_val = getattr(node_obj, "uuid", None) or getattr(node_obj, "id", str(id(node_obj)))
+        records.append(
+            NodeMove(
+                uuid=str(nid_val),
+                old_x=old_x,
+                old_y=old_y,
+                new_x=float(node_obj.x),
+                new_y=float(node_obj.y),
+            )
+        )
 
     return records
 
@@ -1065,16 +1110,16 @@ def apply_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
     start_time = time.time()
 
     try:
-        nodes = getattr(view, 'nodes', [])
+        nodes = getattr(view, "nodes", [])
         if nodes:
             first_node = nodes[0]
-            if not any(hasattr(first_node, attr) for attr in ('x', 'width', 'w')):
+            if not any(hasattr(first_node, attr) for attr in ("x", "width", "w")):
                 return LayoutResult(
                     success=True,
                     view_id=getattr(view, "id", "unknown"),
                     algorithm_used=config.algorithm,
                     elements_processed=len(nodes),
-                    connections_processed=len(getattr(view, 'edges', [])),
+                    connections_processed=len(getattr(view, "edges", [])),
                     layout_time_ms=0.0,
                 )
 
@@ -1151,10 +1196,10 @@ def apply_format(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
     start_time = time.time()
 
     try:
-        nodes = getattr(view, 'nodes', [])
+        nodes = getattr(view, "nodes", [])
         if nodes:
             first_node = nodes[0]
-            if not any(hasattr(first_node, attr) for attr in ('width', 'w', 'height', 'h')):
+            if not any(hasattr(first_node, attr) for attr in ("width", "w", "height", "h")):
                 total = len(nodes)
                 return LayoutResult(
                     success=True,
@@ -1285,9 +1330,7 @@ def _collect_all_nodes(node_dict: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
-def _cluster_ranges(
-    values: list[tuple[float, float]], tol: float = 20.0
-) -> list[tuple[float, float]]:
+def _cluster_ranges(values: list[tuple[float, float]], tol: float = 20.0) -> list[tuple[float, float]]:
     if not values:
         return []
     merged: list[tuple[float, float]] = []
@@ -1445,10 +1488,13 @@ def _assign_group_offsets(
     if n <= 1:
         return
     companions = [nodes_dict.get(getattr(c, companion_attr, None) or "") for c in group]
-    sorted_g = [c for c, _ in sorted(
-        zip(group, companions, strict=False),
-        key=lambda p: float(getattr(p[1], "cx", 0)) if p[1] else 0,
-    )]
+    sorted_g = [
+        c
+        for c, _ in sorted(
+            zip(group, companions, strict=False),
+            key=lambda p: float(getattr(p[1], "cx", 0)) if p[1] else 0,
+        )
+    ]
     for i, conn in enumerate(sorted_g):
         offsets[id(conn)] = (i - (n - 1) / 2.0) * _ORTHO_SPREAD_STEP
 
@@ -1459,6 +1505,7 @@ def _build_direction_groups(
     direction: str,
 ) -> tuple[dict[str, list[Any]], dict[str, list[Any]]]:
     from collections import defaultdict
+
     tgt_groups: dict[str, list[Any]] = defaultdict(list)
     src_groups: dict[str, list[Any]] = defaultdict(list)
     for conn in conns:
@@ -1560,7 +1607,19 @@ def _place_bendpoints(
         conn.add_bendpoint(Point(int(round(sx + src_spread_x)), int(round(gap_y))))
         conn.add_bendpoint(Point(int(round(tx + tgt_spread_x)), int(round(gap_y))))
     else:
-        _route_multi_row(conn, sx, sy, tx, ty, (sh_half, th_half), (src_spread_x, tgt_spread_x), row_gaps, col_gaps, (src_dy, tgt_dy), going_down)
+        _route_multi_row(
+            conn,
+            sx,
+            sy,
+            tx,
+            ty,
+            (sh_half, th_half),
+            (src_spread_x, tgt_spread_x),
+            row_gaps,
+            col_gaps,
+            (src_dy, tgt_dy),
+            going_down,
+        )
 
 
 def _route_single_connection(
@@ -1593,12 +1652,16 @@ def _route_single_connection(
     th_half = float(target_node.h) / 2.0
 
     source_bounds = (
-        float(source_node.x), float(source_node.y),
-        float(source_node.x + source_node.w), float(source_node.y + source_node.h),
+        float(source_node.x),
+        float(source_node.y),
+        float(source_node.x + source_node.w),
+        float(source_node.y + source_node.h),
     )
     target_bounds = (
-        float(target_node.x), float(target_node.y),
-        float(target_node.x + target_node.w), float(target_node.y + target_node.h),
+        float(target_node.x),
+        float(target_node.y),
+        float(target_node.x + target_node.w),
+        float(target_node.y + target_node.h),
     )
 
     source_side = _preferred_boundary_side(source_bounds, (tx, ty))
@@ -1610,11 +1673,18 @@ def _route_single_connection(
     src_dy = src_offsets.get(id(conn), 0.0)
 
     _place_bendpoints(
-        conn, sx, sy, tx, ty,
+        conn,
+        sx,
+        sy,
+        tx,
+        ty,
         (sh_half, th_half),
-        source_anchor, target_anchor,
+        source_anchor,
+        target_anchor,
         (src_spread_x, tgt_spread_x),
-        rows, row_gaps, col_gaps,
+        rows,
+        row_gaps,
+        col_gaps,
         (tgt_dy, src_dy),
     )
 

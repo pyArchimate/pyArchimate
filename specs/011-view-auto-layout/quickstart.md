@@ -36,6 +36,7 @@ if result.layout_quality in ["good", "acceptable"]:
 ```
 
 **Output**:
+
 ```
 Layout quality: good
 Layout time: 245.5ms
@@ -175,6 +176,7 @@ if result1.layout_quality == "poor":
 - Conflicting constraints (e.g., tight spacing + many large elements)
 
 **Solutions**:
+
 ```python
 # Increase spacing
 config = LayoutConfig(spacing=100)
@@ -198,6 +200,7 @@ config = LayoutConfig(layer_priority=False)  # Allow crossing reduction to overr
 - max_iterations is too high
 
 **Solutions**:
+
 ```python
 # Reduce iterations (may sacrifice quality)
 config = LayoutConfig(max_iterations=100, convergence_threshold=0.5)
@@ -218,6 +221,7 @@ config = LayoutConfig(algorithm="hierarchical")
 - Conflicting constraints
 
 **Solutions**:
+
 ```python
 # Increase spacing
 config = LayoutConfig(spacing=120)
@@ -238,6 +242,7 @@ config = LayoutConfig(algorithm="hierarchical")
 - Labels positioned by fallback strategy
 
 **Solutions**:
+
 ```python
 # Increase spacing to give labels more room
 config = LayoutConfig(spacing=80, margin=40)

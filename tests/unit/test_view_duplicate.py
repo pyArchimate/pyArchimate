@@ -1,4 +1,5 @@
 """Unit tests for View.duplicate() method."""
+
 import pytest
 
 from src.pyArchimate import ArchiType, Model

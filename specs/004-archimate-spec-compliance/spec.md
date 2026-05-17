@@ -185,7 +185,7 @@ All three P1 user stories have been successfully implemented with full round-tri
 - **Status**: ✅ Complete with 100% acceptance criteria coverage
 
 #### User Story 2: Influence Strength Round-Trip (T020-T033)
-- **Code Changes**: 
+- **Code Changes**:
   - Updated `archimateReader.py` (line 85) to read `influenceStrength` with fallback to legacy `modifier` field
   - Updated `archiWriter.py` (line 125) to write canonical `influenceStrength` field name
   - Enhanced `relationship.py` class documentation
@@ -206,7 +206,7 @@ All three P1 user stories have been successfully implemented with full round-tri
 - **Test Coverage**: 94% (target: 90%+)
 - **Total Tests**: 453 (unit, integration, and BDD)
 - **Test Scenarios**: 25 BDD acceptance scenarios (all passing)
-- **Code Quality**: 
+- **Code Quality**:
   - Linting: 0 errors (ruff)
   - Type checking: 0 errors (mypy/pyright)
   - No regressions detected in existing test suite

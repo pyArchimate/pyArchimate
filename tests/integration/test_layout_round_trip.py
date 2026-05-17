@@ -203,9 +203,9 @@ def test_auto_format_different_element_types() -> None:
     assert result.success is True
 
     # Verify all types use per-type standard sizes per BDD spec
-    assert view.nodes[0].width == 100 and view.nodes[0].height == 80   # ApplicationComponent
-    assert view.nodes[1].width == 120 and view.nodes[1].height == 60   # ApplicationService
-    assert view.nodes[2].width == 80 and view.nodes[2].height == 80    # DataObject
+    assert view.nodes[0].width == 100 and view.nodes[0].height == 80  # ApplicationComponent
+    assert view.nodes[1].width == 120 and view.nodes[1].height == 60  # ApplicationService
+    assert view.nodes[2].width == 80 and view.nodes[2].height == 80  # DataObject
 
 
 def test_auto_format_with_excluded_elements() -> None:
@@ -254,6 +254,7 @@ def test_auto_format_reduces_size_variance() -> None:
 
     # Variance should be high before formatting
     from src.pyArchimate.view.layout.format import FormatService
+
     service = FormatService()
     variance_before = service.calculate_size_variance(view)
 

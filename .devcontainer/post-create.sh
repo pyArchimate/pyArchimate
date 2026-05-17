@@ -73,10 +73,22 @@ echo -e "\n🔒 Installing Snyk CLI..."
 run_command "npm install -g snyk@latest"
 echo "✅ Done"
 
+# Installing Claude Code Skills
+echo -e "\n🧠 Installing Claude Code Skills..."
+mkdir -p .claude/skills/caveman
+curl -fsSL "https://raw.githubusercontent.com/JuliusBrussee/caveman/refs/heads/main/SKILL.md" \
+  -o ".claude/skills/caveman/SKILL.md" \
+  || echo "⚠️  caveman download failed — using repo version"
+mkdir -p .claude/skills/session-handoff
+curl -fsSL "https://raw.githubusercontent.com/REMvisual/claude-handoff/refs/heads/main/SKILL.md" \
+  -o ".claude/skills/session-handoff/SKILL.md" \
+  || echo "⚠️  session-handoff download failed — using repo version"
+echo "✅ Done"
+
 # Installing Git Hooks
 echo -e "\n🪝 Installing Git Hooks..."
-run_command "ln -sf ../../scripts/pre_commit_checks.sh .git/hooks/pre-commit"
-run_command "ln -sf ../../scripts/pre_push_checks.sh .git/hooks/pre-push"
+run_command "pip install pre-commit"
+run_command "pre-commit install --hook-type pre-commit --hook-type pre-push"
 echo "✅ Done"
 
 echo -e "\n🧹 Cleaning cache..."

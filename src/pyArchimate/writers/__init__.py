@@ -20,7 +20,7 @@ def register_writer(key, writer_callable):
         writer_callable: Callable that writes model/view to file
     """
     if not callable(writer_callable):
-        raise TypeError('writer must be callable')
+        raise TypeError("writer must be callable")
     _writer_registry[key] = writer_callable
 
 
@@ -54,9 +54,9 @@ def _detect_writer_from_extension(file_path):
         return Writers.archimate
 
     file_path_lower = str(file_path).lower()
-    if file_path_lower.endswith('.archimate'):
+    if file_path_lower.endswith(".archimate"):
         return Writers.archi
-    elif file_path_lower.endswith('.xml'):
+    elif file_path_lower.endswith(".xml"):
         return Writers.archimate
 
     return Writers.archimate

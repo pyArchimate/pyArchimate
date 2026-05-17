@@ -137,8 +137,6 @@ def test_apply_barycentric_preserves_count() -> None:
     node_positions = {i: (i * 50, i * 30) for i in range(10)}
     connections = [(i, (i + 1) % 10) for i in range(10)]
 
-    new_positions = apply_barycentric_crossing_reduction(
-        node_positions, connections, iterations=3
-    )
+    new_positions = apply_barycentric_crossing_reduction(node_positions, connections, iterations=3)
 
     assert len(new_positions) == len(node_positions)

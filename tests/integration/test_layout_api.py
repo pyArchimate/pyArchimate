@@ -50,6 +50,7 @@ def test_apply_layout_with_custom_config() -> None:
 
 def test_apply_layout_error_handling() -> None:
     """Test apply_layout error handling with view that raises exception."""
+
     # Create a mock view that will cause an error when accessed
     class BadView:
         id = "bad_view"

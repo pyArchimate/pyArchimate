@@ -146,6 +146,7 @@ Custom sizes can be set via `node.w` and `node.h` properties or through `node_si
 ### 4.2 Bendpoint Management
 
 Connections store bendpoints as intermediate coordinates. Example:
+
 ```python
 connection.add_bendpoint(Point(100, 150))
 connection.add_bendpoint(Point(100, 200))
@@ -201,6 +202,7 @@ All 30+ ArchiMate element types have dedicated SVG symbol definitions:
 ### 5.3 Color Overrides
 
 Per-element colors can override standard palette:
+
 ```python
 node.fill_color = "#FF0000"  # Red
 node.line_color = "#000000"  # Black border

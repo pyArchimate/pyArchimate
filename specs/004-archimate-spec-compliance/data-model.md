@@ -33,6 +33,7 @@
 4. Import: Deserialize from external files
 
 **Example Usage**:
+
 ```python
 from pyArchimate.element import Element
 from pyArchimate.enums import ArchiType
@@ -70,6 +71,7 @@ model.add_element(interaction)
 - Optional field (relationships may not have strength metadata)
 
 **Round-Trip Behavior**:
+
 ```
 Create: Relationship(influence_strength='high')
   ↓ (export to .archimate)
@@ -87,6 +89,7 @@ Write: <Relationship ... influenceStrength="high" /> ✓ Preserved
 - On export, always writes as `influenceStrength` (canonical form)
 
 **Example Usage**:
+
 ```python
 from pyArchimate.relationship import Relationship
 from pyArchimate.enums import ArchiType
@@ -126,6 +129,7 @@ model.add_relationship(influence)
 - Support long documentation (no truncation)
 
 **Import Logic**:
+
 ```python
 # In _archireader_helpers.py, relationship parser:
 documentation_element = relationship_xml.find('documentation')
@@ -134,6 +138,7 @@ if documentation_element is not None:
 ```
 
 **Export Logic**:
+
 ```python
 # In writers:
 if relationship.description:
@@ -142,6 +147,7 @@ if relationship.description:
 ```
 
 **Round-Trip Behavior**:
+
 ```
 Import: <Relationship><documentation>Handles data flow between systems</documentation></Relationship>
   ↓ (store)
@@ -157,6 +163,7 @@ Write: <Relationship><documentation>Handles data flow between systems</documenta
 - Very long text: Support arbitrary length (no truncation)
 
 **Example Usage**:
+
 ```python
 relationship = Relationship(
     source_id='process1',
@@ -194,11 +201,13 @@ model.add_relationship(relationship)
 No new state transitions introduced. All entities follow existing ArchiMate element/relationship lifecycles.
 
 **Element Lifecycle** (BusinessInteraction):
+
 ```
 NEW → CREATED → RELATED → EXPORTED → IMPORTED → (cycle repeats)
 ```
 
 **Relationship Lifecycle** (with metadata):
+
 ```
 NEW → CREATED → (with properties) → EXPORTED → IMPORTED → (properties preserved)
 ```

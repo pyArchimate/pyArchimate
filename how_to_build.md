@@ -1,5 +1,33 @@
 - [how to build a python package] (https://packaging.python.org/en/latest/tutorials/packaging-projects/)
 
+## Pre-commit hooks
+
+Pre-commit hooks run `ruff check` (lint + complexity gate) and `ruff format --check` (format gate)
+on every staged file before a commit is accepted. Hooks are defined in `.pre-commit-config.yaml`
+and configured via `pyproject.toml`.
+
+One-time setup per clone:
+
+```bash
+pip install pre-commit
+pre-commit install --hook-type pre-commit --hook-type pre-push
+```
+
+This wires two gates:
+
+- **pre-commit**: ruff lint + format, pymarkdown, vulture — runs on staged files only, fast
+- **pre-push**: pyright, mypy, layer boundaries, behave, full pytest suite — runs on every push
+
+To run either gate manually against the entire codebase:
+
+```bash
+pre-commit run --all-files                        # commit-stage hooks
+pre-commit run --all-files --hook-stage pre-push  # push-stage hooks
+```
+
+Any commit that introduces a function exceeding McCabe complexity 15 (`C901`) or
+a formatting violation will be blocked with a descriptive error.
+
 ## build the doc
 - cd docs
 - poetry run make html
@@ -45,14 +73,20 @@ bash scripts/render_diagrams.sh
 claude -p "Review @AI.md for accuracy since the last release tag version." --dangerously-skip-permissions
 ```
 
-### 5. Build Sphinx documentation
+### 5. Review spec documents for accuracy
+
+```bash
+claude -p "Review @specs/PROJECT_CONSTITUTION.md @specs/PROJECT_SPECIFICATION.md @specs/TECHNICAL.md @specs/NONFUNCTIONALS.md against changes since the last release tag and recommend any updates needed." --dangerously-skip-permissions
+```
+
+### 6. Build Sphinx documentation
 
 ```bash
 poetry run scripts/create_documentation.sh
 # or: cd docs && poetry run make html
 ```
 
-### 6. Commit any regenerated artefacts
+### 7. Commit any regenerated artefacts
 
 ```bash
 # Check whether anything changed (includes untracked new files)
@@ -63,13 +97,13 @@ git add docs/diagrams/ AI.md docs/
 git commit -m "docs: regenerate diagrams, AI.md, and Sphinx docs pre-release"
 ```
 
-### 7. Run the full test suite
+### 8. Run the full test suite
 
 ```bash
-poetry run scripts/pre_push_checks.sh
+pre-commit run --all-files --hook-stage pre-push
 ```
 
-### 8. Regenerate requirements files
+### 9. Regenerate requirements files
 
 `poetry export` requires the export plugin (one-time install):
 
@@ -85,19 +119,19 @@ git add requirements.txt
 git diff --cached --quiet || git commit -m "chore: regenerate requirements files"
 ```
 
-### 9. Bump version and update changelog
+### 10. Bump version and update changelog
 
 ```bash
 poetry run cz bump        # bumps [project] version, updates CHANGELOG.md, creates a git tag
 ```
 
-### 10. Push master and the new tag
+### 11. Push master and the new tag
 
 ```bash
 git push origin master --tags
 ```
 
-### 11. Create GitHub release
+### 12. Create GitHub release
 
 Ask Claude to draft release notes based on the v1.8.0 release as a template:
 
@@ -116,7 +150,7 @@ gh release create v<NEW_VERSION> --title "v<NEW_VERSION>" --notes "<PASTE NOTES>
 Or create directly on GitHub at https://github.com/pyArchimate/pyArchimate/releases/new,
 selecting the version tag and pasting the draft.
 
-### 12. Merge master back into develop
+### 13. Merge master back into develop
 
 ```bash
 git checkout develop
@@ -128,5 +162,5 @@ git push origin develop
 ## build the package and publish to PyPI
 
 These steps are automated by the `Release` GitHub Actions workflow (`.github/workflows/release.yml`).
-Pushing a version tag (step 10 above) triggers the workflow, which builds the sdist/wheel and
+Pushing a version tag (step 11 above) triggers the workflow, which builds the sdist/wheel and
 publishes to PyPI via OIDC trusted publishing — no API token required.

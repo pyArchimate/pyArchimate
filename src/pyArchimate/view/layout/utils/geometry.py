@@ -64,10 +64,7 @@ class Rectangle:
 
     def contains_point(self, point: Point) -> bool:
         """Check if rectangle contains a point."""
-        return (
-            self.x <= point.x <= self.x + self.width
-            and self.y <= point.y <= self.y + self.height
-        )
+        return self.x <= point.x <= self.x + self.width and self.y <= point.y <= self.y + self.height
 
     def intersects(self, other: "Rectangle") -> bool:
         """Check if this rectangle intersects with another."""

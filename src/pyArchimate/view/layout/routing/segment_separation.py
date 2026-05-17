@@ -34,11 +34,11 @@ def _check_pair(p1a: Point, p2a: Point, p1b: Point, p2b: Point) -> str | None:
     if _seg_is_horizontal(p1a, p2a) and _seg_is_horizontal(p1b, p2b):
         if abs(p1a.y - p1b.y) < _EPSILON:
             if _intervals_overlap(p1a.x, p2a.x, p1b.x, p2b.x):
-                return 'h'
+                return "h"
     elif _seg_is_vertical(p1a, p2a) and _seg_is_vertical(p1b, p2b):
         if abs(p1a.x - p1b.x) < _EPSILON:
             if _intervals_overlap(p1a.y, p2a.y, p1b.y, p2b.y):
-                return 'v'
+                return "v"
     return None
 
 
@@ -253,20 +253,18 @@ def _enforce_min_turn_segment(waypoints: list[Point], min_len: float) -> list[Po
         p1, p2, p3 = result[i], result[i + 1], result[i + 2]
 
         # Detect 90° bend: segments are perpendicular (h→v or v→h)
-        seg_h_then_v = (abs(p1.y - p2.y) < _EPSILON and abs(p2.x - p3.x) < _EPSILON)
-        seg_v_then_h = (abs(p1.x - p2.x) < _EPSILON and abs(p2.y - p3.y) < _EPSILON)
+        seg_h_then_v = abs(p1.y - p2.y) < _EPSILON and abs(p2.x - p3.x) < _EPSILON
+        seg_v_then_h = abs(p1.x - p2.x) < _EPSILON and abs(p2.y - p3.y) < _EPSILON
 
         if seg_h_then_v or seg_v_then_h:
             # Skip terminal segment (last segment before target attachment)
-            is_terminal = (i + 2 == len(result) - 1)
+            is_terminal = i + 2 == len(result) - 1
             if is_terminal:
                 i += 1
                 continue
 
             # Measure post-turn segment length (p2→p3)
-            curr_len = (
-                abs(p3.y - p2.y) if seg_h_then_v else abs(p3.x - p2.x)
-            )
+            curr_len = abs(p3.y - p2.y) if seg_h_then_v else abs(p3.x - p2.x)
 
             if curr_len < min_len:
                 # Extend p3 along post-turn axis to enforce min_len

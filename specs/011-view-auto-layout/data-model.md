@@ -293,4 +293,3 @@ LabelPlacement
 2. **Routing Strategies**: New routing algorithms (e.g., spline, free-form) can be added
 3. **Constraint Handlers**: Custom constraint types can be added (e.g., group constraints, alignment zones)
 4. **Quality Metrics**: New quality assessment heuristics can be plugged into LayoutResult
-

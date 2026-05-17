@@ -21,6 +21,7 @@
 **Implementation Location**: `src/pyArchimate/helpers.py` (new helper module or existing)
 
 **Usage**:
+
 ```python
 conn.show_label = parse_bool(ft.get('value'))
 ```
@@ -53,6 +54,7 @@ if doc is not None:
 - ❌ Line 237: Views in `get_folders_view()` — uses `e.text` (wrong)
 
 **Fix**: Replace line 237:
+
 ```python
 # Current (WRONG):
 elem.desc = e.text
