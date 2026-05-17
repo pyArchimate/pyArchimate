@@ -17,3 +17,10 @@ The PlantUML assets under `docs/diagrams` mirror the architecture, so they must 
 
 - **Rules**: Regenerate diagrams with `scripts/render_diagrams.sh` whenever the architecture changes, keep the PNG outputs under version control, and describe new diagrams in `docs/diagrams.rst`. Always run `scripts/create_documentation.sh` before publishing so the generated site matches the code.
 - **Rationale**: High‑quality visuals and docs lower onboarding friction, help reviewers understand refactors (especially around readers/writers), and keep the project trustworthy for integrators who depend on the ArchiMate model semantics.
+
+### III. `pyproject.toml` is the single source of truth for all tool configuration
+
+All code-quality, linting, type-checking, test, and formatter settings must be declared in `pyproject.toml`. CI workflows, pre-push/pre-commit scripts, and IDE extensions must read from that file rather than duplicate or override its values.
+
+- **Rules**: Add every new tool under its `[tool.<name>]` section in `pyproject.toml`. Never add tool flags directly to CI YAML, shell scripts, or editor settings files (`.vscode/settings.json`, `setup.cfg`, `.flake8`, etc.) that would diverge from `pyproject.toml`. If a tool does not support `pyproject.toml` natively, use the smallest possible wrapper that delegates to the file (e.g., a one-line `[tool.behave]` section). Confirm that ruff, mypy, pyright, vulture, behave, and pytest all source their configuration from `pyproject.toml` before each release.
+- **Rationale**: Duplicated configuration across CI, scripts, and IDE caused quality-gate mismatches (e.g., `@wip` BDD scenarios passing locally but failing CI, CodeQL catching unused globals that vulture missed). A single authoritative file ensures every environment enforces the same rules and that new rules added during a feature land everywhere simultaneously.
