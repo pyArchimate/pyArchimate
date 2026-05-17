@@ -846,7 +846,7 @@ def validate_symbols() -> tuple[int, int]:
     for element_type, symbol in ARCHIMATE_SYMBOLS.items():
         try:
             assert symbol.svg_path and len(symbol.svg_path) > 0
-            assert symbol.viewBox.startswith("0 0") or symbol.viewBox.startswith("-")
+            assert symbol.viewBox.startswith(("0 0", "-"))
             assert len(symbol.bounding_box) == 4
             assert symbol.default_color.startswith("#") and len(symbol.default_color) == 7 or symbol.default_color == "none"
             valid += 1
