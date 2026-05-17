@@ -1,3 +1,39 @@
+## v1.10.0 (2026-05-17)
+
+### Feat
+
+- implement view duplication BDD step definitions
+- P2-T55 ObstacleMap rebuild for node-move (Phase 2I complete)
+- Phase 2E — Node Avoidance Zone 25px (FR-013, SC-006)
+- Phase 2D — routing-driven node repositioning (FR-023, opt-in)
+- Phase 2A+2B — collinear merge, 240px grid, high-degree isolation
+- implement auto_layout and auto_route as independent functions (013)
+
+### Fix
+
+- remove --no-root option from poetry install command
+- declare __all__ in layout_steps to satisfy CodeQL unused import
+- use 'from package import module' for side-effect imports (CodeQL)
+- remove unused _ROWS_PER_LAYER; replace wildcard imports in layout_steps
+- remove unused _LAYER_PRIORITY global variable
+- default behave to skip @wip scenarios via pyproject.toml
+- replace chained startswith with tuple arg (S1940)
+- remove unused resolution param from _multi_pass_route (S1172)
+- remove unused function parameters (SonarCloud S1172)
+- skip @wip BDD scenarios in CI (match pre-push filter)
+- skip incomplete BDD tests in pre-push checks
+- resolve type errors and SVG export bug
+- orthogonal routing — eliminate diagonals, U-turns, and collinear overlaps
+- enforce post-turn minimum segment length (40px default) with waypoint extension
+- Pass routing config to ObstacleMap in auto_route
+- Phase 2C multi-pass routing + eliminate backward endpoint stubs
+- eliminate U-turns and redundant collinear bendpoints in routing
+- improve routing quality — U-turn removal, penalty routing, collinear separation
+- insert L-turn connectors to eliminate diagonal segments at connection endpoints
+- stop trimming BFS anchor legs — prevents diagonal connection endings
+- address three routing quality issues (segment proximity, edge spreading, overlap)
+- correct obstacle rasterization, anchors, and add adaptive routing resolution
+
 ## v1.9.1 (2026-05-14)
 
 ## v1.9.0 (2026-05-10)
