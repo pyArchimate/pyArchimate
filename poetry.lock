@@ -3979,6 +3979,21 @@ socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
 
 [[package]]
+name = "vulture"
+version = "2.16"
+description = "Find dead code"
+optional = false
+python-versions = ">=3.9"
+groups = ["dev"]
+files = [
+    {file = "vulture-2.16-py3-none-any.whl", hash = "sha256:6e0f1c312cef1c87856957e5c2ca9608834a7c794c2180477f30bf0e4cc58eee"},
+    {file = "vulture-2.16.tar.gz", hash = "sha256:f8d9f6e2af03011664a3c6c240c9765b3f392917d3135fddca6d6a68d359f717"},
+]
+
+[package.dependencies]
+tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
+
+[[package]]
 name = "wcwidth"
 version = "0.7.0"
 description = "Measures the displayed width of unicode strings in a terminal"
@@ -4212,4 +4227,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "42b4dd3e0f32a1afa1ca7195eea7f738516e16df9d2a9da97cacc3019ad73d31"
+content-hash = "5346f6c75c8a591016b9bcd326ba41eda5ecb14956aef183b4dec64175351546"
