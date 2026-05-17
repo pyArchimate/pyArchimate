@@ -6,8 +6,6 @@ from typing import Any
 
 from .routing.layer_constraints import ArchiMateLayer
 
-_ROWS_PER_LAYER = 3  # max nodes per row within a layer band before wrapping
-
 
 def get_layer_priority(element_type: str) -> int:
     """Return layer priority (0=topmost) for an ArchiMate element type string."""
