@@ -113,10 +113,10 @@ After merging this feature, the project maintainer opens the SonarCloud dashboar
 - **SC-004**: A commit containing a function exceeding the complexity threshold is blocked within 5 seconds of the `git commit` invocation.
 - **SC-005**: A commit containing only compliant code completes the pre-commit stage in under 10 seconds on a standard developer machine.
 - **SC-006**: Full unit test and BDD acceptance test suite passes with no new failures after all refactoring is complete.
-- **SC-010**: Line coverage for each of the 6 files at 84%+ before this feature does not drop below its pre-refactor baseline after refactoring is complete.
+- **SC-007**: A new contributor can activate the pre-commit hooks with a single documented command after cloning.
 - **SC-008**: Line coverage for `view/layout/__init__.py` reaches ≥ 80% before refactoring begins.
 - **SC-009**: Line coverage for `view/layout/routing/segment_separation.py` reaches ≥ 80% before refactoring begins.
-- **SC-007**: A new contributor can activate the pre-commit hooks with a single documented command after cloning.
+- **SC-010**: Line coverage for each of the 6 files at 73%+ before this feature does not drop below its pre-refactor baseline after refactoring is complete.
 
 ## Clarifications
 
@@ -129,7 +129,7 @@ After merging this feature, the project maintainer opens the SonarCloud dashboar
 ## Assumptions
 
 - The 8 files identified in the SonarCloud report are the complete set of violations; no additional files exceed the threshold at the time of implementation.
-- `view/layout/__init__.py` is at 43% line coverage and `view/layout/routing/segment_separation.py` is at 71% — both require coverage uplift before refactoring. All other affected files are at 84%+.
+- `view/layout/__init__.py` is at 43% line coverage and `view/layout/routing/segment_separation.py` is at 71% — both require coverage uplift before refactoring. Other affected files range from 73% (`view/layout/export/svg_export.py`) to 98% (`readers/archimateReader.py`); all are safe to refactor without a P0 uplift step.
 - Coverage data is from the most recent `build/coverage.xml` report; actual figures should be verified before implementation begins.
 - All affected functions are internal implementation details; no public API changes are required to achieve compliant complexity.
 - The linter's McCabe complexity (C901) and the cloud scanner's cognitive complexity (S3776) use different algorithms — passing the local linting check is a necessary but not sufficient condition for clearing the cloud violations. Manual verification via the cloud scanner remains required after merging.
