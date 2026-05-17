@@ -143,7 +143,7 @@ class Element:
     """
 
     def __init__(self, elem_type=None, name=None, uuid=None, desc=None, folder=None, parent=None, profile=None):
-
+        """Initialize an ArchiMate element with type, name, and parent model."""
         # Check validity of arguments according to Archimate standard
         if elem_type is None or not hasattr(ArchiType, elem_type):
             raise ArchimateConceptTypeError(f"Invalid Element type '{elem_type}'")
@@ -306,7 +306,8 @@ class Element:
             p = self.model.add_profile(name=profile_name, concept=self.type)
             self._profile = p.uuid
 
-    def reset_profile(self):
+    def reset_profile(self) -> None:
+        """Clear the profile assignment."""
         self._profile = None
 
     @property

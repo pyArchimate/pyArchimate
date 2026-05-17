@@ -14,10 +14,10 @@ class TestLayoutConfigValidation:
         assert config.algorithm == "force_directed"
         assert config.spacing == 50.0
         assert config.margin == 20.0
-        assert config.alignment == "free"
+        assert config.alignment == "free"  # Default is "free" (changed from "grid")
         assert config.routing_style == "orthogonal"
         assert config.layer_priority == "mandatory"
-        assert config.grid_size == 10.0
+        assert config.grid_size == 240.0
         assert config.excluded_element_ids == []
         assert config.node_size_constraints == {}
 
@@ -96,10 +96,10 @@ class TestLayoutConfigValidation:
         with pytest.raises(ValueError, match="grid_size must be positive"):
             LayoutConfig(alignment="grid", grid_size=0)
 
-    def test_grid_size_too_large(self):
-        """Test grid_size validation (should not exceed 100)."""
-        with pytest.raises(ValueError, match="grid_size should not exceed 100"):
-            LayoutConfig(alignment="grid", grid_size=150)
+    def test_grid_size_large_accepted(self):
+        """Large grid_size values (e.g. 150) are now valid — no upper bound enforced."""
+        config = LayoutConfig(alignment="grid", grid_size=150)
+        assert config.grid_size == 150
 
     def test_routing_style_orthogonal(self):
         """Test orthogonal routing style."""

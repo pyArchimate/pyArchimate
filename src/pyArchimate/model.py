@@ -247,7 +247,7 @@ class Model:
     """
 
     def __init__(self, name=None, uuid=None, desc=None):
-
+        """Initialize an ArchiMate model with name and description."""
         self._uuid = set_id(uuid)
         self.name = name
         self.desc = desc
@@ -349,7 +349,7 @@ class Model:
         return 'Model'
 
     @property
-    def profiles(self):
+    def profiles(self) -> list["Profile"]:
         """
         Property to access the profiles.
 
@@ -383,7 +383,8 @@ class Model:
         self._profiles_dict[p.uuid] = p
         return p
 
-    def get_profile(self, name):
+    def get_profile(self, name: str) -> "Profile | None":
+        """Get a profile by name."""
         for p in self.profiles:
             if p.name == name:
                 return p

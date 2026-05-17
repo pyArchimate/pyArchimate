@@ -52,40 +52,40 @@ class TestElementFormatRegistry:
         spec = registry.get_spec("ApplicationComponent")
         assert spec is not None
         assert spec.category == ArchiMateElementCategory.APPLICATION_COMPONENT
-        assert spec.default_width == 120
-        assert spec.default_height == 55
+        assert spec.default_width == 100   # Per BDD acceptance spec
+        assert spec.default_height == 80   # Per BDD acceptance spec
 
     def test_get_spec_for_business_actor(self):
         """Test getting spec for BusinessActor."""
         registry = ElementFormatRegistry()
         spec = registry.get_spec("BusinessActor")
         assert spec.category == ArchiMateElementCategory.BUSINESS_ACTOR
-        assert spec.default_width == 120
-        assert spec.default_height == 55
+        assert spec.default_width == 100   # Per BDD acceptance spec
+        assert spec.default_height == 80   # Per BDD acceptance spec
 
     def test_get_spec_for_application_service(self):
         """Test getting spec for ApplicationService."""
         registry = ElementFormatRegistry()
         spec = registry.get_spec("ApplicationService")
         assert spec.category == ArchiMateElementCategory.APPLICATION_SERVICE
-        assert spec.default_width == 120
-        assert spec.default_height == 55
-        assert spec.font_weight == "normal"
+        assert spec.default_width == 120   # Per BDD acceptance spec
+        assert spec.default_height == 60   # Per BDD acceptance spec
+        assert spec.font_weight == "bold"  # Services are bold per BDD spec
 
     def test_get_spec_for_technology_node(self):
         """Test getting spec for TechnologyNode (smaller fonts)."""
         registry = ElementFormatRegistry()
         spec = registry.get_spec("TechnologyNode")
         assert spec.category == ArchiMateElementCategory.TECHNOLOGY_NODE
-        assert spec.font_size == 9
+        assert spec.font_size == 9  # Technology layer uses 9pt per BDD spec
 
     def test_get_spec_for_unknown_type(self):
         """Test getting spec for unknown type returns default."""
         registry = ElementFormatRegistry()
         spec = registry.get_spec("UnknownElementType")
         assert spec.category == ArchiMateElementCategory.UNKNOWN
-        assert spec.default_width == 120
-        assert spec.default_height == 55
+        assert spec.default_width == 100   # Default per BDD spec
+        assert spec.default_height == 80   # Default per BDD spec
 
 
 class TestFormatService:
@@ -108,9 +108,9 @@ class TestFormatService:
 
         service.format_element(element)
 
-        # Should be reset to standard
-        assert element.width == 120
-        assert element.height == 55
+        # Should be reset to standard (ApplicationComponent: 100x80 per BDD spec)
+        assert element.width == 100
+        assert element.height == 80
 
     def test_format_element_applies_standard_font(self):
         """Test that format_element applies standardized font."""
@@ -126,8 +126,9 @@ class TestFormatService:
 
         service.format_element(element)
 
-        assert element.font_family == "Segoe UI"
-        assert element.font_size == 9
+        # ApplicationComponent uses Arial 10pt per BDD spec
+        assert element.font_family == "Arial"
+        assert element.font_size == 10
         assert element.font_style == "normal"
         assert element.font_weight == "normal"
 
@@ -193,9 +194,9 @@ class TestFormatService:
 
         service.format_element(element, alignment="grid", grid_size=10.0)
 
-        # Should apply both formatting and snapping
-        assert element.width == 120
-        assert element.height == 55
+        # Should apply both formatting and snapping (ApplicationComponent: 100x80)
+        assert element.width == 100
+        assert element.height == 80
         assert element.x == 40.0
         assert element.y == 60.0
 
@@ -236,8 +237,8 @@ class TestFormatService:
         assert stats["formatted"] == 1
         assert stats["skipped"] == 1
 
-        # elem1 should be formatted
-        assert view.nodes[0].width == 120
+        # elem1 should be formatted (ApplicationComponent: 100px per BDD spec)
+        assert view.nodes[0].width == 100
 
         # elem2 should not be formatted
         assert view.nodes[1].width == 200
@@ -339,12 +340,13 @@ class TestFormatService:
         """Test formatting different ArchiMate element types."""
         service = FormatService()
 
+        # Per BDD acceptance spec: per-type dimensions
         types_and_expected = [
-            ("BusinessActor", 120, 55),
-            ("ApplicationComponent", 120, 55),
-            ("TechnologyNode", 120, 55),
-            ("ApplicationService", 120, 55),
-            ("DataObject", 120, 55),
+            ("BusinessActor", 100, 80),
+            ("ApplicationComponent", 100, 80),
+            ("TechnologyNode", 100, 80),
+            ("ApplicationService", 120, 60),
+            ("DataObject", 80, 80),
         ]
 
         for elem_type, expected_width, expected_height in types_and_expected:

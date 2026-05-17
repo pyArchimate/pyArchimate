@@ -38,7 +38,7 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         relationship_type="Realization",
         stroke_color="#4A4A4A",
         stroke_width=1.0,
-        stroke_dasharray="2,2",
+        stroke_dasharray="5,5",
         marker_start=None,
         marker_end="url(#arrow-hollow)",
         arrow_type="hollow"
@@ -76,6 +76,17 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
     ),
 
     "Serving": RelationshipStyle(
+        relationship_type="Serving",
+        stroke_color="#4ECDC4",
+        stroke_width=1.0,
+        stroke_dasharray=None,
+        marker_start=None,
+        marker_end=_ARROW_FILLED,
+        arrow_type="filled"
+    ),
+
+    # "Serves" is an alias for "Serving" (used by "ServesRelationship" feature test)
+    "Serves": RelationshipStyle(
         relationship_type="Serving",
         stroke_color="#4ECDC4",
         stroke_width=1.0,

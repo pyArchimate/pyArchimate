@@ -218,6 +218,11 @@ def step_create_view_with_excluded(context):
     context.view.add_element("elem1", "ApplicationComponent", width=150, height=150)
     context.view.add_element("elem2", "ApplicationComponent", width=150, height=150)
     context.excluded_ids = {"elem1"}
+    # Set non-standard fonts on the excluded element so we can verify it's NOT changed
+    context.view.nodes[0].font_family = "Times New Roman"
+    context.view.nodes[0].font_size = 14
+    context.view.nodes[1].font_family = "Courier"
+    context.view.nodes[1].font_size = 8
 
 
 @when("I apply auto-format with excluded_element_ids set")
@@ -225,6 +230,7 @@ def step_apply_format_with_excluded(context):
     """Apply format with excluded elements."""
     config = LayoutConfig(excluded_element_ids=list(context.excluded_ids))
     context.result = apply_format(context.view, config)
+    context.format_service = FormatService()
 
 
 @then("the excluded elements should retain their original size")
@@ -319,8 +325,14 @@ def step_create_unaligned_elements(context):
 def step_apply_format_with_grid(context):
     """Apply format with grid alignment."""
     context.grid_size = 10
-    config = LayoutConfig(alignment="grid", node_size_constraints={"grid_size": context.grid_size})
+    config = LayoutConfig(alignment="grid", grid_size=context.grid_size)
     context.result = apply_format(context.view, config)
+
+
+@when("grid size is 10 pixels")
+def step_verify_grid_size_10(context):
+    """Verify grid size is 10."""
+    assert context.grid_size == 10
 
 
 @then("elements should be snapped to the 10-pixel grid")
@@ -483,7 +495,7 @@ def step_verify_unknown_default_font(context):
         assert element.font_size == 10
 
 
-@given("an empty view with no elements")
+@given("an empty mock view with no elements")
 def step_create_empty_view(context):
     """Create empty view."""
     context.view = MockView()
@@ -518,7 +530,7 @@ def step_create_10_element_view(context):
 @given("2 elements are marked as excluded")
 def step_mark_excluded(context):
     """Mark 2 elements as excluded."""
-    context.excluded = [0, 1]
+    context.excluded = ["elem0", "elem1"]
 
 
 @then("the result should report 8 elements formatted")
@@ -587,7 +599,7 @@ def step_apply_format_free(context):
 @when("I apply auto-format with alignment=\"grid\" and grid_size=10")
 def step_apply_format_grid(context):
     """Apply format with grid alignment."""
-    config = LayoutConfig(alignment="grid", node_size_constraints={"grid_size": 10})
+    config = LayoutConfig(alignment="grid", grid_size=10)
     context.result = apply_format(context.view, config)
 
 
@@ -652,14 +664,6 @@ def step_verify_sc_004(context):
     variance = service.calculate_size_variance(context.view)
     assert variance["std_dev"] == 0  # 100% reduction
 
-
-@given("a view with elements from Business, Application, and Technology layers")
-def step_create_mixed_layer_view(context):
-    """Create view with mixed layers."""
-    context.view = MockView()
-    context.view.add_element("ba1", "BusinessActor", width=150)
-    context.view.add_element("ac1", "ApplicationComponent", width=150)
-    context.view.add_element("tn1", "TechnologyNode", width=150)
 
 
 @then("Business layer elements should use standard sizes and fonts")

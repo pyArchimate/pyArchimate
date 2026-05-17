@@ -1,3 +1,8 @@
+"""Writer for ArchiMate Exchange format (.archimate).
+
+Exports pyArchimate models and views to exchange-compatible .archimate files.
+Supports ArchiMate 3.x specification and standard exchange metadata.
+"""
 # ruff: noqa: N999  # legacy module name preserved for API compatibility
 import os
 import sys

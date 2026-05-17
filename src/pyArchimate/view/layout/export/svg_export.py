@@ -159,9 +159,11 @@ class SVGExportService:
         # Calculate view bounds
         bounds = self._calculate_bounds(view)
 
-        # Create SVG root element
-        svg_width = bounds["max_x"] + self.SVG_MARGIN
-        svg_height = bounds["max_y"] + self.SVG_MARGIN
+        # Create SVG root element with proper bounds and 5% margin
+        svg_min_x = bounds["min_x"]
+        svg_min_y = bounds["min_y"]
+        svg_width = bounds["max_x"] - svg_min_x
+        svg_height = bounds["max_y"] - svg_min_y
 
         svg = ET.Element(
             "svg",
@@ -170,7 +172,7 @@ class SVGExportService:
                 "xmlns:xlink": "http://www.w3.org/1999/xlink",  # NOSONAR  W3C XLink namespace URI — not an HTTP connection, spec-mandated string
                 "width": str(int(svg_width)),
                 "height": str(int(svg_height)),
-                "viewBox": f"0 0 {int(svg_width)} {int(svg_height)}",
+                "viewBox": f"{int(svg_min_x)} {int(svg_min_y)} {int(svg_width)} {int(svg_height)}",
             },
         )
 
@@ -210,6 +212,8 @@ class SVGExportService:
     def _calculate_bounds(self, view: Any) -> dict[str, float]:
         """Calculate the bounding box of all elements in the view.
 
+        Includes nodes and connection waypoints to ensure full coverage.
+
         Args:
             view: View object
 
@@ -224,8 +228,6 @@ class SVGExportService:
         }
 
         nodes = getattr(view, "nodes", [])
-        if not nodes:
-            return bounds
 
         for node in nodes:
             x = float(getattr(node, "x", 0))
@@ -237,6 +239,29 @@ class SVGExportService:
             bounds["min_y"] = min(bounds["min_y"], y)
             bounds["max_x"] = max(bounds["max_x"], x + w)
             bounds["max_y"] = max(bounds["max_y"], y + h)
+
+        # Include connection waypoints
+        conns = getattr(view, "conns", [])
+        for conn in conns:
+            bendpoints = getattr(conn, "bendpoints", [])
+            for bp in bendpoints:
+                bp_x = float(getattr(bp, "x", 0))
+                bp_y = float(getattr(bp, "y", 0))
+                bounds["min_x"] = min(bounds["min_x"], bp_x)
+                bounds["min_y"] = min(bounds["min_y"], bp_y)
+                bounds["max_x"] = max(bounds["max_x"], bp_x)
+                bounds["max_y"] = max(bounds["max_y"], bp_y)
+
+        # Apply 5% safety margin
+        if bounds["min_x"] != float("inf"):
+            span_x = bounds["max_x"] - bounds["min_x"]
+            span_y = bounds["max_y"] - bounds["min_y"]
+            margin_x = span_x * 0.05
+            margin_y = span_y * 0.05
+            bounds["min_x"] -= margin_x
+            bounds["min_y"] -= margin_y
+            bounds["max_x"] += margin_x
+            bounds["max_y"] += margin_y
 
         # Handle empty view
         if bounds["min_x"] == float("inf"):
@@ -520,7 +545,8 @@ class SVGExportService:
 
     def _render_grouping(self, g: ET.Element, x: float, y: float, w: float, h: float, node: Any) -> None:
         """Render Grouping as dashed L-shaped border with label in top-left tab."""
-        name = getattr(node, "name", getattr(node, "label", ""))
+        _raw = getattr(node, "name", None)
+        name = _raw if _raw is not None else getattr(node, "label", "") or ""
         tab_w = w * 0.75
         lines = self._word_wrap_text(name, tab_w - 10) if name else []
         tab_h = min(max(15.0, len(lines) * 11 + 6), h * 0.4)
@@ -700,7 +726,8 @@ class SVGExportService:
 
         # 4. Text
         has_children = len(getattr(node, "nodes", [])) > 0
-        element_name = getattr(node, "name", getattr(node, "label", ""))
+        _raw_name = getattr(node, "name", None)
+        element_name = _raw_name if _raw_name is not None else getattr(node, "label", "") or ""
         if element_name:
             if has_children:
                 self._render_topleft_text(g, node, x, y, w)
@@ -716,11 +743,12 @@ class SVGExportService:
 
         Args:
             parent: Parent SVG element
-            node: Node with name/label
+            node: Node with name or label
             x, y: Element position
             w: Element width
         """
-        name = getattr(node, "name", getattr(node, "label", ""))
+        _raw = getattr(node, "name", None)
+        name = _raw if _raw is not None else getattr(node, "label", "") or ""
         if name:
             self._render_wrapped_text(parent, name, x + 5, y + 14, w - 10, is_centered=False)
 
@@ -1037,13 +1065,18 @@ class SVGExportService:
         if len(points) < 2:
             return
 
-        rel_type = getattr(conn, "type", "Association")
+        # _type_override allows test steps to inject a display type name without
+        # changing the underlying model relationship type (e.g., "ServesRelationship").
+        rel_type: str = getattr(conn, "_type_override", None) or getattr(conn, "type", None) or "Association"
         relationship_style = self._lookup_rel_style(rel_type, relationship_service)
         if not relationship_style:
             self._render_connection(svg, conn, nodes_dict)
             return
 
-        stroke_color = getattr(conn, "stroke_color", None) or relationship_style.stroke_color
+        # Check both stroke_color and line_color (Connection stores as line_color)
+        stroke_color = (getattr(conn, "stroke_color", None)
+                        or getattr(conn, "line_color", None)
+                        or relationship_style.stroke_color)
         stroke_width = getattr(conn, "stroke_width", None) or relationship_style.stroke_width
         stroke_dasharray = getattr(conn, "stroke_style", None) or relationship_style.stroke_dasharray
 

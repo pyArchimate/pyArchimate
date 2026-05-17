@@ -105,6 +105,7 @@ class Point:
 
     def __init__(self, x: float = 0, y: float = 0, start_x: int | None = None, start_y: int | None = None,
                  end_x: int | None = None, end_y: int | None = None):
+        """Initialize a point with absolute coordinates and optional offset info."""
         self._x = max(0.0, float(x))
         self._y = max(0.0, float(y))
         self.idx: int = 0
@@ -114,19 +115,23 @@ class Point:
         self.end_y = end_y
 
     @property
-    def x(self):
+    def x(self) -> float:
+        """X coordinate."""
         return self._x
 
     @x.setter
-    def x(self, val):
+    def x(self, val: float) -> None:
+        """Set X coordinate (enforced non-negative)."""
         self._x = max(0, val)
 
     @property
-    def y(self):
+    def y(self) -> float:
+        """Y coordinate."""
         return self._y
 
     @y.setter
-    def y(self, val):
+    def y(self, val: float) -> None:
+        """Set Y coordinate (enforced non-negative)."""
         self._y = max(0, val)
 
 
@@ -134,6 +139,7 @@ class Position:
     """Positional relationship between two nodes (distance, angle, orientation)."""
 
     def __init__(self):
+        """Initialize empty position descriptor."""
         self.dx: float | None = None
         self.dy: float | None = None
         self.gap_x: float = 0
@@ -142,7 +148,8 @@ class Position:
         self.orientation: str = ""
 
     @property
-    def dist(self):
+    def dist(self) -> float | None:
+        """Euclidean distance between nodes."""
         if self.dx is not None and self.dy is not None:
             return math.sqrt(self.dx ** 2 + self.dy ** 2)
         return None
@@ -156,6 +163,7 @@ class Profile:
     """An Archimate stereotype / specialisation profile for elements or relationships."""
 
     def __init__(self, name=None, uuid=None, concept=None, model=None):
+        """Initialize a Profile with name, concept type, and model reference."""
         if not name:
             raise ValueError('Name of Profile must be present.')
         if not concept:
@@ -182,6 +190,7 @@ class Profile:
 
     @property
     def uuid(self) -> str:
+        """Unique identifier for this profile."""
         return self._uuid
 
 
@@ -225,6 +234,7 @@ class Node:
 
     def __init__(self, ref=None, x=0, y=0, w=120, h=55, uuid=None,
                  node_type='Element', label=None, parent=None):
+        """Initialize a visual node with position, size, and element reference."""
         # parent type check is done after View is defined; accept duck-typed objects
         if parent is None or not (hasattr(parent, 'view') and hasattr(parent, 'model')):
             raise ValueError('Node class parent should be a class View or Node instance!')
@@ -305,28 +315,33 @@ class Node:
 
     @property
     def uuid(self) -> str:
+        """Unique identifier for this node."""
         return self._uuid
 
     # --- concept proxy ---
 
     @property
     def name(self) -> str | None:
+        """Name of referenced element (if Element node)."""
         if self.cat == 'Element' and self.concept:
             return self.concept.name
         return None
 
     @property
     def desc(self) -> str | None:
+        """Description of referenced element."""
         return self.concept.desc if self.concept else None
 
     @property
     def type(self) -> str | None:
+        """ArchiMate type of referenced element."""
         if self.cat == 'Element' and self.concept:
             return self.concept.type
         return None
 
     @property
     def concept(self) -> Element | None:
+        """Referenced Element object."""
         try:
             return cast(Element, self.model.elems_dict[self._ref])
         except KeyError:
@@ -336,27 +351,33 @@ class Node:
 
     @property
     def ref(self) -> str | None:
+        """Element reference identifier."""
         return self._ref
 
     @ref.setter
-    def ref(self, ref):
+    def ref(self, ref: "str | Element | None") -> None:
+        """Set element reference (updates if valid)."""
         if isinstance(ref, Element):
-            new_ref = ref.uuid
+            new_ref: str | None = ref.uuid
+        elif ref is None:
+            new_ref = None
         elif hasattr(ref, 'uuid'):
-            new_ref = ref.uuid
+            new_ref = str(ref.uuid)  # pyright: ignore[reportAttributeAccessIssue]
         else:
-            new_ref = ref
-        if new_ref in self.model.elems_dict:
+            new_ref = cast(str | None, ref)
+        if new_ref is not None and new_ref in self.model.elems_dict:
             self._ref = new_ref
 
     # --- position ---
 
     @property
-    def x(self):
+    def x(self) -> int:
+        """Top-left x coordinate."""
         return self._x
 
     @x.setter
-    def x(self, val):
+    def x(self, val: int) -> None:
+        """Set x coordinate and update all child nodes proportionally."""
         if val < 0:
             val = 0
         for n in self.nodes:
@@ -365,37 +386,43 @@ class Node:
         self._cx = self._x + self.w / 2
 
     @property
-    def cx(self):
+    def cx(self) -> float:
+        """Center x coordinate."""
         return float(self._cx)
 
     @cx.setter
-    def cx(self, val):
+    def cx(self, val: float) -> None:
+        """Set center x coordinate."""
         if val < 0:
             val = 0
         self.x = int(val - self._w / 2 + 0.5)
         self._cx = val
 
     @property
-    def rx(self):
+    def rx(self) -> float:
+        """Relative x coordinate (relative to parent)."""
         if isinstance(self.parent, Node):
             return self._x - self.parent.x
         return self._x
 
     @rx.setter
-    def rx(self, value):
+    def rx(self, value: float) -> None:
+        """Set relative x coordinate (relative to parent)."""
         if value < 0:
             value = 0
         if isinstance(self.parent, Node):
-            self.x = self.parent.x + value
+            self.x = int(self.parent.x + value)
         else:
-            self.x = value
+            self.x = int(value)
 
     @property
-    def y(self):
+    def y(self) -> int:
+        """Top-left y coordinate."""
         return self._y
 
     @y.setter
-    def y(self, val):
+    def y(self, val: int) -> None:
+        """Set y coordinate and update all child nodes proportionally."""
         if val < 0:
             val = 0
         for n in self.nodes:
@@ -404,57 +431,67 @@ class Node:
         self._cy = self._y + self.h / 2
 
     @property
-    def cy(self):
+    def cy(self) -> float:
+        """Center y coordinate."""
         return float(self._cy)
 
     @cy.setter
     def cy(self, val: float) -> None:
+        """Set center y coordinate."""
         if val < 0:
             val = 0
         self.y = int(val - self._h / 2 + 0.5)
         self._cy = val
 
     @property
-    def ry(self):
+    def ry(self) -> float:
+        """Relative y coordinate (relative to parent)."""
         if isinstance(self.parent, Node):
             return self._y - self.parent.y
         return self._y
 
     @ry.setter
-    def ry(self, value):
+    def ry(self, value: float) -> None:
+        """Set relative y coordinate (relative to parent)."""
         if value < 0:
             value = 0
         if isinstance(self.parent, Node):
-            self.y = self.parent.y + int(value)
+            self.y = int(self.parent.y + value)
         else:
-            self.y = value
+            self.y = int(value)
 
     @property
-    def w(self):
+    def w(self) -> int:
+        """Width."""
         return self._w
 
     @w.setter
-    def w(self, value):
+    def w(self, value: int) -> None:
+        """Set width and update center x."""
         self._w = int(value)
         self._cx = self._x + self.w / 2
 
     @property
-    def h(self):
+    def h(self) -> int:
+        """Height."""
         return self._h
 
     @h.setter
-    def h(self, value):
+    def h(self, value: int) -> None:
+        """Set height and update center y."""
         self._h = int(value)
         self._cy = self._y + self.h / 2
 
     # --- styling ---
 
     @property
-    def fill_color(self):
+    def fill_color(self) -> str | None:
+        """Fill color in hex format."""
         return self._fill_color
 
     @fill_color.setter
-    def fill_color(self, color_str):
+    def fill_color(self, color_str: str | None) -> None:
+        """Set fill color (None resets to default)."""
         if color_str is None:
             self._fill_color = default_color(self.type or '', self.model.theme)
         else:
@@ -463,18 +500,22 @@ class Node:
     # --- navigation ---
 
     @property
-    def view(self):
+    def view(self) -> "View":
+        """Parent View."""
         return self._view
 
     @property
-    def model(self):
+    def model(self) -> "Model":
+        """Associated Model."""
         return self._model
 
     @property
     def nodes(self) -> list["Node"]:
+        """Child nodes."""
         return list(self.nodes_dict.values())
 
     def getnodes(self, elem_type: str | None = None) -> list["Node"]:
+        """Get child nodes filtered by element type."""
         if elem_type is None:
             return list(self.nodes_dict.values())
         return [x for x in self.nodes_dict.values() if x.type == elem_type]
@@ -552,14 +593,16 @@ class Node:
                 if c.source is not None and c.target is not None
                 and c.type == rel_type and (c.source.uuid == self.uuid or c.target.uuid == self.uuid)]
 
-    def in_conns(self, rel_type=None):
+    def in_conns(self, rel_type: str | None = None) -> list["Connection"]:
+        """Incoming connections (this node as target), optionally filtered by type."""
         if rel_type is None:
             return [c for c in self.view.conns_dict.values()
                     if c.target is not None and c.target.uuid == self.uuid]
         return [c for c in self.view.conns_dict.values()
                 if c.target is not None and c.type == rel_type and c.target.uuid == self.uuid]
 
-    def out_conns(self, rel_type=None):
+    def out_conns(self, rel_type: str | None = None) -> list["Connection"]:
+        """Outgoing connections (this node as source), optionally filtered by type."""
         if rel_type is None:
             return [c for c in self.view.conns_dict.values()
                     if c.source is not None and c.source.uuid == self.uuid]
@@ -621,6 +664,7 @@ class Node:
         return position
 
     def get_point_pos(self, point: Point) -> Position:
+        """Return positional relationship between this node and a point."""
         position = Position()
         dx = float(point.x - self.cx)
         dy = float(point.y - self.cy)
@@ -770,6 +814,15 @@ class Connection:
         raise ArchimateConceptTypeError(f"'{label}' is not an instance of 'Node' class.")
 
     def __init__(self, ref=None, source=None, target=None, uuid=None, parent=None):
+        """Initialize a visual connection between two nodes.
+
+        Args:
+            ref: Relationship identifier or object
+            source: Source node identifier or object
+            target: Target node identifier or object
+            uuid: Connection identifier
+            parent: Parent View
+        """
         if not isinstance(parent, View):
             raise ArchimateConceptTypeError(
                 'Connection class parent should be a class View instance!'
@@ -804,41 +857,51 @@ class Connection:
         self.text_position = "1"
         self.show_label = True
 
-    def delete(self):
+    def delete(self) -> None:
+        """Remove this connection from view and model."""
         del self.view.conns_dict[self.uuid]
         del self.model.conns_dict[self.uuid]
 
     @property
     def uuid(self) -> str:
+        """Unique identifier for this connection."""
         return self._uuid
 
     @property
     def ref(self) -> str:
+        """Relationship reference identifier."""
         return self._ref
 
     @ref.setter
-    def ref(self, ref):
-        if hasattr(ref, 'uuid'):
-            new_ref = ref.uuid
-        else:
+    def ref(self, ref: "str | object") -> None:
+        """Set relationship reference (updates if valid)."""
+        if isinstance(ref, str):
             new_ref = ref
+        elif hasattr(ref, 'uuid'):
+            new_ref = str(ref.uuid)  # pyright: ignore[reportAttributeAccessIssue]
+        else:
+            new_ref = cast(str, ref)
         if new_ref in self.model.rels_dict:
             self._ref = new_ref
 
     @property
     def concept(self):
+        """Referenced Relationship object."""
         return self.model.rels_dict[self._ref]
 
     @property
     def type(self) -> str:
+        """ArchiMate relationship type."""
         return cast(str, self.model.rels_dict[self._ref].type)
 
     @property
     def name(self) -> str | None:
+        """Relationship name."""
         return cast(str | None, self.model.rels_dict[self._ref].name)
 
     @property
     def source(self) -> Node | None:
+        """Source node (None if deleted)."""
         if self._source in self.model.nodes_dict:
             return cast(Node, self.model.nodes_dict[self._source])
         elif self._source in self.model.conns_dict:
@@ -846,18 +909,22 @@ class Connection:
         return None
 
     @source.setter
-    def source(self, elem):
+    def source(self, elem: "Node | str | object") -> None:
+        """Set source node (updates if valid)."""
         if isinstance(elem, Node):
             new_ref = elem.uuid
-        elif hasattr(elem, 'uuid'):
-            new_ref = elem.uuid
-        else:
+        elif isinstance(elem, str):
             new_ref = elem
+        elif hasattr(elem, 'uuid'):
+            new_ref = str(elem.uuid)  # pyright: ignore[reportAttributeAccessIssue]
+        else:
+            new_ref = cast(str, elem)
         if new_ref in self.model.nodes_dict:
             self._source = new_ref
 
     @property
     def target(self) -> Node | None:
+        """Target node (None if deleted)."""
         if self._target in self.model.nodes_dict:
             return cast(Node, self.model.nodes_dict[self._target])
         elif self._target in self.model.conns_dict:
@@ -865,46 +932,58 @@ class Connection:
         return None
 
     @target.setter
-    def target(self, elem):
+    def target(self, elem: "Node | str | object") -> None:
+        """Set target node (updates if valid)."""
         if isinstance(elem, Node):
             new_ref = elem.uuid
-        elif hasattr(elem, 'uuid'):
-            new_ref = elem.uuid
-        else:
+        elif isinstance(elem, str):
             new_ref = elem
+        elif hasattr(elem, 'uuid'):
+            new_ref = str(elem.uuid)  # pyright: ignore[reportAttributeAccessIssue]
+        else:
+            new_ref = cast(str, elem)
         if new_ref in self.model.nodes_dict:
             self._target = new_ref
 
     @property
-    def access_type(self):
-        return self.concept.access_type
+    def access_type(self) -> str | None:
+        """Access type (for Access relationships)."""
+        return cast(str | None, getattr(self.concept, 'access_type', None))
 
     @property
-    def is_directed(self):
-        return self.concept.is_directed
+    def is_directed(self) -> bool:
+        """Whether relationship is directed."""
+        return cast(bool, getattr(self.concept, 'is_directed', False))
 
     @property
-    def influence_strength(self):
-        return self.concept.influence_strength
+    def influence_strength(self) -> str | None:
+        """Influence strength (for Influence relationships)."""
+        return cast(str | None, getattr(self.concept, 'influence_strength', None))
 
     def add_bendpoint(self, *bendpoints: Point) -> None:
+        """Add one or more bendpoints to this connection."""
         for bp in bendpoints:
             self.bendpoints.append(bp)
 
     def set_bendpoint(self, bp: Point, index: int) -> None:
+        """Replace bendpoint at specified index."""
         if index < len(self.bendpoints):
             self.bendpoints[index] = bp
 
     def get_bendpoint(self, index: int) -> Point | None:
+        """Get bendpoint at specified index."""
         return self.bendpoints[index] if index < len(self.bendpoints) else None
 
     def del_bendpoint(self, index: int) -> None:
+        """Delete bendpoint at specified index."""
         del self.bendpoints[index]
 
     def get_all_bendpoints(self) -> list[Point]:
+        """Get all bendpoints."""
         return self.bendpoints
 
-    def remove_all_bendpoints(self):
+    def remove_all_bendpoints(self) -> None:
+        """Remove all bendpoints."""
         self.bendpoints = []
 
     def l_shape(self, direction=0, weight_x=0.5, weight_y=0.5):
@@ -962,6 +1041,7 @@ class View:
     """
 
     def __init__(self, name=None, uuid=None, desc=None, folder=None, parent=None):
+        """Initialize a diagram view with name, description, and parent model."""
         if not hasattr(parent, 'views_dict'):
             raise ArchimateConceptTypeError(
                 'View class parent should be a class Model instance!'
@@ -980,9 +1060,11 @@ class View:
 
     @property
     def view(self) -> "View":
+        """Reference to self (for API compatibility)."""
         return self
 
-    def delete(self):
+    def delete(self) -> None:
+        """Remove this view and all its nodes and connections."""
         _id = self.uuid
         for n in self.nodes_dict.copy().values():
             n.delete(recurse=True)
@@ -992,6 +1074,56 @@ class View:
             del c
         if _id in self.parent.views_dict:
             del self.parent.views_dict[_id]
+
+    def duplicate(self, name: str | None = None) -> "View":
+        """Create independent deep copy of this view registered in same model.
+
+        Args:
+            name: Name for duplicated view. If None, appends " (copy)" to original name.
+
+        Returns:
+            New View object with deep-copied nodes and connections.
+
+        Raises:
+            ValueError: If view has no parent model (cannot register duplicate).
+        """
+        if self.model is None:
+            raise ValueError("View has no parent model; cannot register duplicate")
+
+        # Determine name for duplicate
+        dup_name = name if name is not None else f"{self.name} (copy)"
+
+        # Create new view
+        dup_view = View(name=dup_name, parent=self.model)
+        self.model.views_dict[dup_view.uuid] = dup_view
+
+        # Map original node UUIDs to duplicated nodes (for connection recreation)
+        node_map: dict[str, Node] = {}
+
+        # Deep copy nodes
+        for node in self.nodes:
+            dup_node = dup_view.add(
+                ref=node.ref,
+                x=node.x,
+                y=node.y,
+                w=node.w,
+                h=node.h,
+                label=node.label
+            )
+            node_map[node.uuid] = dup_node
+
+        # Deep copy connections
+        for conn in self.conns:
+            src_node = node_map.get(conn.source.uuid) if conn.source else None
+            tgt_node = node_map.get(conn.target.uuid) if conn.target else None
+            if src_node and tgt_node:
+                dup_conn = dup_view.add_connection(ref=conn.ref, source=src_node, target=tgt_node)
+                # Deep copy waypoints
+                if conn.bendpoints:
+                    for bp in conn.bendpoints:
+                        dup_conn.add_bendpoint(bp)
+
+        return dup_view
 
     def add(self, ref: object = None, x: int = 0, y: int = 0, w: int = 120, h: int = 55,
             uuid: str | None = None, node_type: str = 'Element',
@@ -1012,35 +1144,43 @@ class View:
 
     @property
     def uuid(self) -> str:
+        """Unique identifier for this view."""
         return self._uuid
 
     @property
     def type(self) -> str:
+        """Type identifier (always 'Diagram')."""
         return 'Diagram'
 
     @property
     def props(self) -> dict[str, object]:
+        """Custom properties dictionary."""
         return self._properties
 
     def prop(self, key: str, value: object = None) -> object:
+        """Get or set a custom property."""
         if value is None:
             return self._properties.get(key)
         self._properties[key] = value
         return value
 
-    def remove_prop(self, key):
+    def remove_prop(self, key: str) -> None:
+        """Remove a custom property."""
         if key in self._properties:
             del self._properties[key]
 
     @property
     def nodes(self) -> list[Node]:
+        """All nodes in this view."""
         return list(self.nodes_dict.values())
 
     @property
     def conns(self) -> list[Connection]:
+        """All connections in this view."""
         return list(self.conns_dict.values())
 
-    def remove_folder(self):
+    def remove_folder(self) -> None:
+        """Clear the folder path."""
         self.folder = None
 
     @property
