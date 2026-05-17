@@ -15,6 +15,7 @@ Author: X. Mayeur
 Date: October 2022
 Version 0.9
 """
+
 import sys
 from typing import Any
 
@@ -45,11 +46,10 @@ except ImportError:
 
 # Re-export for backward compatibility
 _id_of = id_of
-__all__ = ['aris_reader', 'get_text_size', '_id_of', 'id_of']
+__all__ = ["aris_reader", "get_text_size", "_id_of", "id_of"]
 
 
-def aris_reader(model: Model, root: Any,
-                scale_x: float = 0.3, scale_y: float = 0.3, no_view: bool = False) -> None:
+def aris_reader(model: Model, root: Any, scale_x: float = 0.3, scale_y: float = 0.3, no_view: bool = False) -> None:
     """
     Class to perform the parsing of ARIS AML data and to generate an Archimate model
 
@@ -62,27 +62,27 @@ def aris_reader(model: Model, root: Any,
     :type scale_y:      float
     :param no_view:     if true do not generate views
     """
-    if root.tag != 'AML':
-        log.fatal(' Input file is not an ARIS AML file - Aborting')
+    if root.tag != "AML":
+        log.fatal(" Input file is not an ARIS AML file - Aborting")
         sys.exit(1)
 
     scale_x = float(scale_x)
     scale_y = float(scale_y)
 
-    log.info('Parsing elements')
+    log.info("Parsing elements")
     parse_elements(None, root, model)
-    log.info('Parsing relationships')
+    log.info("Parsing relationships")
     parse_relationships(None, root, model)
 
     if not no_view:
-        log.info('Parsing Labels')
+        log.info("Parsing Labels")
         parse_labels(root, model)
-        log.info('Parsing Views')
+        log.info("Parsing Views")
         parse_views(None, root, model, scale_x, scale_y)
         clean_nested_conns(model)
 
     model.expand_props(clean_doc=True)
-    log.info('Performing final model validation checks')
+    log.info("Performing final model validation checks")
     inv_c = model.check_invalid_conn()
     inv_n = model.check_invalid_nodes()
     if len(inv_n) > 0 or len(inv_c) > 0:

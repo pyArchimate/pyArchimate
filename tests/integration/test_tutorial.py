@@ -4,6 +4,7 @@ Extracts all Python fenced code blocks from the tutorial and executes each
 one, asserting that none raise an exception. Blocks run in isolated namespaces
 so they do not share state.
 """
+
 import re
 import sys
 from pathlib import Path

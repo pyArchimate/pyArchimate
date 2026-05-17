@@ -23,10 +23,10 @@
 
 This document is complemented by several other key files. Consult the following living documents when you need deeper implementation or operational detail:
 
-* **`specs/TECHNICAL.md`**: This file provides Implementation-level guidance, coding standards, process expectations, detailed guidelines, best practices, and preferred standards that dictate how all requirements (functional and non-functional) should be implemented.
-* **`specs/NONFUNCTIONALS.md`**: This file contains the abstracted, high-level non-functional solution specific requirements, quality attribute requirements such as performance, reliability, security, and compliance, derived from the feature specification and other sources. These define what the system must achieve in terms of quality attributes.
-* **`specs/PROJECT_CONSTITUTION.md`**: This document outlines additional principles specific to the project's domain, complementing the core SpecKit guidelines.
-* **`specs/PROJECT_SPECIFICATION.md`**: This document outlines the business requirements of the solution. Business and domain requirements derived from user needs. View it as a historical reference that should be used as input when deriving user stories, requirements, and acceptance criteria for new specs.
+- **`specs/TECHNICAL.md`**: This file provides Implementation-level guidance, coding standards, process expectations, detailed guidelines, best practices, and preferred standards that dictate how all requirements (functional and non-functional) should be implemented.
+- **`specs/NONFUNCTIONALS.md`**: This file contains the abstracted, high-level non-functional solution specific requirements, quality attribute requirements such as performance, reliability, security, and compliance, derived from the feature specification and other sources. These define what the system must achieve in terms of quality attributes.
+- **`specs/PROJECT_CONSTITUTION.md`**: This document outlines additional principles specific to the project's domain, complementing the core SpecKit guidelines.
+- **`specs/PROJECT_SPECIFICATION.md`**: This document outlines the business requirements of the solution. Business and domain requirements derived from user needs. View it as a historical reference that should be used as input when deriving user stories, requirements, and acceptance criteria for new specs.
 
 Mark those files as for deeper detail and link back here whenever you need quick orientation.
 
@@ -43,11 +43,11 @@ Logic must be self-documenting, modular, and adhere to SOLID principles. We prio
 
 Automated tests are non-negotiable. Every feature must include unit and integration tests. Test coverage MUST prioritize critical paths and edge cases. We follow the Red-Green-Refactor cycle, embracing **Test-Driven Development (TDD)** principles.
 
-* **Rules**:
-  * 100% coverage on core business logic; tests must be isolated and reproducible.
-  * Implementation should begin by writing tests first, checking the tests fail, stubbing out the code, confirming the tests pass, and then beginning implementation.
-  * For detailed testing practices and framework choices, see `specs/TECHNICAL.md`'s "Patterns and Practices > Testing" section.
-* **Rationale**: Tests provide the confidence to refactor and ensure regressions are caught early.
+- **Rules**:
+  - 100% coverage on core business logic; tests must be isolated and reproducible.
+  - Implementation should begin by writing tests first, checking the tests fail, stubbing out the code, confirming the tests pass, and then beginning implementation.
+  - For detailed testing practices and framework choices, see `specs/TECHNICAL.md`'s "Patterns and Practices > Testing" section.
+- **Rationale**: Tests provide the confidence to refactor and ensure regressions are caught early.
 
 ### III. User Experience Consistency (Unified Interface)
 
@@ -112,10 +112,10 @@ Our workflow is designed to ensure that every change is intentional and verified
 
 Before any feature is considered "Done," it must pass these gates:
 
-* **Linting & Formatting**: Must pass all project-standard style checks, as detailed in `specs/TECHNICAL.md`.
-* **Test Suite Pass**: All new and existing tests must pass without failure after the implementation of every user story, adhering to the standards in `specs/TECHNICAL.md`.
-* **Documentation**: READMEs, specs, and inline comments must be updated.
-* **Constitution Check**: Implementation must be reviewed against these core principles.
+- **Linting & Formatting**: Must pass all project-standard style checks, as detailed in `specs/TECHNICAL.md`.
+- **Test Suite Pass**: All new and existing tests must pass without failure after the implementation of every user story, adhering to the standards in `specs/TECHNICAL.md`.
+- **Documentation**: READMEs, specs, and inline comments must be updated.
+- **Constitution Check**: Implementation must be reviewed against these core principles.
 
 ## Governance
 

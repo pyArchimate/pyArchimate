@@ -125,7 +125,7 @@ A developer or maintainer needs detailed API references, internal design decisio
 - **Scope of Restructuring**: This feature focuses on documentation organization, content, and navigation—not on changing underlying Sphinx configuration, theme, or deployment infrastructure (those are separate concerns)
 - **API Stability**: Current public API is stable enough to document; private/internal APIs can be marked as "not part of public API"
 - **Example Coverage**: Code examples will focus on common use cases; exhaustive coverage of every edge case is out of scope (but examples should be representative)
-- **Audience Assumptions**: 
+- **Audience Assumptions**:
   - Basic users: Python developers new to ArchiMate and architecture modeling
   - Intermediate users: Python developers wanting to extend or integrate pyArchimate
   - Advanced users: Contributors and library maintainers

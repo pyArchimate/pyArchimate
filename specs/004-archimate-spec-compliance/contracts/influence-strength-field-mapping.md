@@ -25,6 +25,7 @@ Defines the canonical field name and cross-format mapping for relationship influ
 ## Read Logic (Readers)
 
 ### OpenGroup Reader: archimateReader.py
+
 ```python
 # Current (line 85):
 influence_strength=r.get('modifier')  # ❌ Wrong field
@@ -41,6 +42,7 @@ influence_strength = (
 **Compatibility**: Accepts both new and legacy field names
 
 ### Archi Reader: _archireader_helpers.py
+
 ```python
 # Existing reader likely uses similar pattern
 # Ensure it reads from correct field (not documented in gap analysis)
@@ -54,6 +56,7 @@ influence_strength = (
 ## Write Logic (Writers)
 
 ### Archi Writer: archiWriter.py
+
 ```python
 # Current (line 123-125):
 influence_strength = getattr(rel, 'influence_strength', None)
@@ -71,6 +74,7 @@ if influence_strength is not None:
 **Consistency**: Now matches archimateWriter.py output
 
 ### OpenGroup Writer: archimateWriter.py
+
 ```python
 # Current (lines 85-86):
 if e.influence_strength is not None and e.type == ArchiType.Influence:
@@ -156,24 +160,28 @@ class Relationship:
 ## Testing Criteria
 
 **Canonical Name Test**:
+
 ```python
 rel = Relationship(influence_strength='high')
 assert rel.influence_strength == 'high'
 ```
 
 **Write to Archi Test**:
+
 ```python
 model.export_to_file('test.archimate', Writers.archi)
 # Verify XML contains influenceStrength="high" (not strength="high")
 ```
 
 **Read from Legacy Archi Test**:
+
 ```python
 # Create test file with modifier="high" attribute
 # Import and verify: rel.influence_strength == 'high'
 ```
 
 **Round-Trip Test**:
+
 ```python
 rel1 = Relationship(influence_strength='high')
 model.add_relationship(rel1)
@@ -188,28 +196,32 @@ assert rel1.influence_strength == rel2.influence_strength  # ✓ Preserved
 ### ✅ Completed
 
 - **`src/pyArchimate/readers/archimateReader.py` (line 85)**: ✓ Implemented fallback logic
+
   ```python
   influence_strength=r.get('influenceStrength') or r.get('modifier'),
   ```
+
   - Reads canonical `influenceStrength` first
   - Falls back to legacy `modifier` for backward compatibility
   - Transparent field mapping to Python property
 
 - **`src/pyArchimate/writers/archiWriter.py` (line 125)**: ✓ Writes canonical field name
-  ```python
+  
+```python
   r.set("influenceStrength", influence_strength)
   ```
+
   - Now uses correct canonical field name instead of "strength"
   - Ensures consistency with OpenGroup format and reader expectations
 
-- **`src/pyArchimate/relationship.py`**: ✓ Property fully documented
+  - **`src/pyArchimate/relationship.py`**: ✓ Property fully documented
   - Class docstring updated with detailed field description (lines 130-145)
   - Property getter/setter properly implemented (lines 459-480)
   - Stores as `_influence_strength` internal attribute
   - Setter validates only writes for Influence relationship type
 
-- **Test files**: ✓ Comprehensive test coverage
-  - Unit tests for round-trip fidelity
+  - **Test files**: ✓ Comprehensive test coverage
+-   Unit tests for round-trip fidelity
   - Integration tests for all format combinations
   - Legacy modifier fallback tests
   - BDD acceptance scenarios

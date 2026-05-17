@@ -74,7 +74,7 @@ def assign_grid_cells(
     # Group nodes by layer priority
     groups: dict[int, list[Any]] = {}
     for node in nodes:
-        prio = get_layer_priority(getattr(node, 'type', '') or '')
+        prio = get_layer_priority(getattr(node, "type", "") or "")
         groups.setdefault(prio, []).append(node)
 
     assignments: dict[str, tuple[int, int]] = {}
@@ -89,10 +89,16 @@ def assign_grid_cells(
             band_start_row = current_row
             band_max_row = band_start_row
             for node in layer_nodes:
-                nid = getattr(node, 'uuid', None) or getattr(node, 'id', None) or str(id(node))
+                nid = getattr(node, "uuid", None) or getattr(node, "id", None) or str(id(node))
                 is_high = _degrees.get(nid, 0) >= high_degree_threshold
                 col, current_row, row = _place_node_vertical(
-                    nid, is_high, col, current_row, occupied, assignments, max_cols,
+                    nid,
+                    is_high,
+                    col,
+                    current_row,
+                    occupied,
+                    assignments,
+                    max_cols,
                 )
                 band_max_row = max(band_max_row, row)
             current_row = band_max_row + 2  # leave one empty row between layers
@@ -105,7 +111,7 @@ def assign_grid_cells(
             band_start_col = current_col
             band_max_col = band_start_col
             for node in layer_nodes:
-                nid = getattr(node, 'uuid', None) or getattr(node, 'id', None) or str(id(node))
+                nid = getattr(node, "uuid", None) or getattr(node, "id", None) or str(id(node))
                 cell = _next_free_cell_col_major(current_col, row, occupied, max_cols)
                 assignments[nid] = cell
                 occupied.add(cell)
@@ -166,7 +172,7 @@ def apply_node_positions(
     Only modifies x and y. Width and height are never changed (FR-006).
     """
     for node in view.nodes:
-        nid = getattr(node, 'uuid', None) or getattr(node, 'id', None) or str(id(node))
+        nid = getattr(node, "uuid", None) or getattr(node, "id", None) or str(id(node))
         cell = cell_assignments.get(nid)
         if cell is None:
             continue

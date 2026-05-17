@@ -9,8 +9,8 @@ from src.pyArchimate.view.layout import LayoutConfig, auto_layout
 # Helpers
 # ---------------------------------------------------------------------------
 
-def mock_node(uuid: str, element_type: str, x: float = 0, y: float = 0,
-              w: float = 120, h: float = 55) -> MagicMock:
+
+def mock_node(uuid: str, element_type: str, x: float = 0, y: float = 0, w: float = 120, h: float = 55) -> MagicMock:
     n = MagicMock()
     n.uuid = uuid
     n.type = element_type
@@ -23,8 +23,7 @@ def mock_node(uuid: str, element_type: str, x: float = 0, y: float = 0,
     return n
 
 
-def mock_connection(uuid: str, source_uuid: str, target_uuid: str,
-                    bendpoints: list | None = None) -> MagicMock:
+def mock_connection(uuid: str, source_uuid: str, target_uuid: str, bendpoints: list | None = None) -> MagicMock:
     c = MagicMock()
     c.uuid = uuid
     c._source = source_uuid
@@ -46,6 +45,7 @@ def make_view(nodes: list, connections: list | None = None) -> MagicMock:
 # ---------------------------------------------------------------------------
 # T021 — Grid snapping
 # ---------------------------------------------------------------------------
+
 
 class TestGridSnapping:
     def test_all_nodes_snap_to_grid(self) -> None:
@@ -75,6 +75,7 @@ class TestGridSnapping:
 # T022 — Vertical layer ordering
 # ---------------------------------------------------------------------------
 
+
 class TestVerticalLayerOrdering:
     def test_business_above_application_above_technology(self) -> None:
         business = [mock_node(f"b{i}", "BusinessActor") for i in range(3)]
@@ -94,6 +95,7 @@ class TestVerticalLayerOrdering:
 # T023 — Horizontal layer ordering
 # ---------------------------------------------------------------------------
 
+
 class TestHorizontalLayerOrdering:
     def test_business_left_of_application_left_of_technology(self) -> None:
         business = [mock_node(f"b{i}", "BusinessActor") for i in range(2)]
@@ -112,6 +114,7 @@ class TestHorizontalLayerOrdering:
 # ---------------------------------------------------------------------------
 # T024 — No overlapping nodes
 # ---------------------------------------------------------------------------
+
 
 class TestNoNodeOverlap:
     def test_no_two_nodes_overlap(self) -> None:
@@ -136,10 +139,12 @@ class TestNoNodeOverlap:
 # T025 — Waypoints unchanged (SC-010)
 # ---------------------------------------------------------------------------
 
+
 class TestWaypointsUnchanged:
     def test_auto_layout_does_not_modify_connection_bendpoints(self) -> None:
         """auto_layout must not touch any connection waypoints."""
         from src.pyArchimate.view.__init__ import Point as ViewPoint
+
         nodes = [
             mock_node("n1", "BusinessActor"),
             mock_node("n2", "ApplicationComponent"),
@@ -149,13 +154,13 @@ class TestWaypointsUnchanged:
         original_bendpoints = list(conn.bendpoints)
         view = make_view(nodes, [conn])
         auto_layout(view)
-        assert conn.bendpoints == original_bendpoints, \
-            "auto_layout must not modify connection bendpoints"
+        assert conn.bendpoints == original_bendpoints, "auto_layout must not modify connection bendpoints"
 
 
 # ---------------------------------------------------------------------------
 # T030 — Idempotency
 # ---------------------------------------------------------------------------
+
 
 class TestIdempotency:
     def test_calling_twice_produces_same_positions(self) -> None:
@@ -172,6 +177,7 @@ class TestIdempotency:
 # T031 — Empty view
 # ---------------------------------------------------------------------------
 
+
 class TestEmptyView:
     def test_empty_view_returns_success(self) -> None:
         view = make_view([])
@@ -184,6 +190,7 @@ class TestEmptyView:
 # ---------------------------------------------------------------------------
 # T032 — Performance smoke test (SC-001: < 2s for 500 nodes)
 # ---------------------------------------------------------------------------
+
 
 class TestPerformance:
     def test_500_nodes_completes_under_2s(self) -> None:
@@ -199,6 +206,7 @@ class TestPerformance:
 # ---------------------------------------------------------------------------
 # P2-T10 — Default grid_size=240 snapping
 # ---------------------------------------------------------------------------
+
 
 class TestDefaultGridSize:
     def test_default_grid_size_is_240(self) -> None:
@@ -224,6 +232,7 @@ class TestDefaultGridSize:
 # P2-T11 — High-degree node row isolation
 # ---------------------------------------------------------------------------
 
+
 class TestHighDegreeIsolation:
     def test_high_degree_node_gets_isolation_gap(self) -> None:
         """P2-T11: high-degree node (degree >= 5) has at least 1 grid-cell gap to neighbors."""
@@ -232,8 +241,8 @@ class TestHighDegreeIsolation:
         # 1 high-degree node + 2 normal nodes in same layer
         nodes = [
             mock_node("hub", "ApplicationComponent"),
-            mock_node("n1",  "ApplicationComponent"),
-            mock_node("n2",  "ApplicationComponent"),
+            mock_node("n1", "ApplicationComponent"),
+            mock_node("n2", "ApplicationComponent"),
         ]
         # hub has degree 5 (high), others have degree 1
         degrees = {"hub": 5, "n1": 1, "n2": 1}
@@ -244,11 +253,11 @@ class TestHighDegreeIsolation:
             high_degree_threshold=5,
         )
         hub_col = assignments["hub"][0]
-        n1_col  = assignments["n1"][0]
-        n2_col  = assignments["n2"][0]
+        n1_col = assignments["n1"][0]
+        n2_col = assignments["n2"][0]
         # hub must have at least 1 empty cell between it and any neighbor in same row
         for neighbor_col in (n1_col, n2_col):
-            if assignments["hub"][1] == assignments[list({"n1","n2"} - {list({"n1","n2"})[0]})[0]][1]:
+            if assignments["hub"][1] == assignments[list({"n1", "n2"} - {list({"n1", "n2"})[0]})[0]][1]:
                 # same row: check gap
                 assert abs(hub_col - neighbor_col) >= 2, (
                     f"hub col={hub_col} too close to neighbor col={neighbor_col} (gap < 2 cells)"
@@ -292,6 +301,4 @@ class TestHighDegreeIsolation:
         hub_col = assignments["hub"][0]
         after_col = assignments["after"][0]
         # after must not be immediately adjacent (col+1) to hub
-        assert after_col >= hub_col + 2, (
-            f"after_col={after_col} adjacent to hub_col={hub_col}; expected gap of ≥2"
-        )
+        assert after_col >= hub_col + 2, f"after_col={after_col} adjacent to hub_col={hub_col}; expected gap of ≥2"

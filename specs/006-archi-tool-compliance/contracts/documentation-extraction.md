@@ -86,6 +86,7 @@ if doc is not None:
 **Status**: ❌ Wrong — uses `e.text`
 
 **Current Code**:
+
 ```python
 doc = e.find('documentation')
 if doc is not None:
@@ -93,6 +94,7 @@ if doc is not None:
 ```
 
 **Fixed Code**:
+
 ```python
 doc = e.find('documentation')
 if doc is not None:

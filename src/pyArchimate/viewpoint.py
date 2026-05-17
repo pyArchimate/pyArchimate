@@ -1,4 +1,5 @@
 """Viewpoint entity and association classes."""
+
 from dataclasses import dataclass
 
 
@@ -16,4 +17,4 @@ class Viewpoint:
     description: str
 
 
-__all__ = ['Viewpoint']
+__all__ = ["Viewpoint"]

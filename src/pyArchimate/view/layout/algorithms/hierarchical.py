@@ -31,6 +31,7 @@ class HierarchicalLayout(LayoutAlgorithm):
             LayoutResult with layout metrics
         """
         import time
+
         start_time = time.time()
 
         try:
@@ -116,9 +117,7 @@ class HierarchicalLayout(LayoutAlgorithm):
 
         return graph
 
-    def _has_unassigned_predecessor(
-        self, node_id: int, assigned: set[int], graph: dict[int, list[int]]
-    ) -> bool:
+    def _has_unassigned_predecessor(self, node_id: int, assigned: set[int], graph: dict[int, list[int]]) -> bool:
         for source in graph:
             if node_id in graph[source] and source not in assigned:
                 return True
@@ -178,9 +177,7 @@ class HierarchicalLayout(LayoutAlgorithm):
         current_layer = 0
 
         while len(assigned) < len(nodes):
-            layer_nodes = self._collect_layer_candidates(
-                nodes, assigned, graph, current_layer, layer_constraint
-            )
+            layer_nodes = self._collect_layer_candidates(nodes, assigned, graph, current_layer, layer_constraint)
             if not layer_nodes:
                 layer_nodes = self._force_one_assignment(nodes, assigned)
             if layer_nodes:
@@ -216,9 +213,7 @@ class HierarchicalLayout(LayoutAlgorithm):
         # Allow assignment to any layer for now to avoid blocking
         return True
 
-    def _minimize_crossings(
-        self, layers: list[list[int]], graph: dict[int, list[int]]
-    ) -> list[list[int]]:
+    def _minimize_crossings(self, layers: list[list[int]], graph: dict[int, list[int]]) -> list[list[int]]:
         """Minimize edge crossings using barycentric method.
 
         Args:
@@ -251,14 +246,13 @@ class HierarchicalLayout(LayoutAlgorithm):
 
             # Sort by barycenter
             reordered_layers[layer_idx] = sorted(
-                current_layer, key=lambda x, _b=barycenters: _b.get(x, 0)  # type: ignore[misc]
+                current_layer,
+                key=lambda x, _b=barycenters: _b.get(x, 0),  # type: ignore[misc]
             )
 
         return reordered_layers
 
-    def _assign_positions(
-        self, layers: list[list[int]], config: LayoutConfig, nodes: list[Any]
-    ) -> dict[int, Point]:
+    def _assign_positions(self, layers: list[list[int]], config: LayoutConfig, nodes: list[Any]) -> dict[int, Point]:
         """Assign x,y coordinates to nodes based on layer structure.
 
         Args:
@@ -287,7 +281,7 @@ class HierarchicalLayout(LayoutAlgorithm):
             max_width = 0
             for node_id in layer:
                 if node_id < len(nodes):
-                    w = getattr(nodes[node_id], 'w', 100)
+                    w = getattr(nodes[node_id], "w", 100)
                     max_width = max(max_width, w)
 
             # Add padding for visibility
@@ -299,9 +293,7 @@ class HierarchicalLayout(LayoutAlgorithm):
 
         return positions
 
-    def _count_crossings(
-        self, positions: dict[int, Point], edges: list[tuple[int, int]]
-    ) -> int:
+    def _count_crossings(self, positions: dict[int, Point], edges: list[tuple[int, int]]) -> int:
         """Count edge crossings in the layout.
 
         Args:
@@ -323,9 +315,7 @@ class HierarchicalLayout(LayoutAlgorithm):
                     x2_end = positions[t2].x
 
                     # Check if edges cross (simplified)
-                    if (x1_start < x2_start < x1_end < x2_end) or (
-                        x2_start < x1_start < x2_end < x1_end
-                    ):
+                    if (x1_start < x2_start < x1_end < x2_end) or (x2_start < x1_start < x2_end < x1_end):
                         crossings += 1
 
         return crossings

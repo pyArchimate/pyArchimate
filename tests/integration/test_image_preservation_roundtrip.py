@@ -1,4 +1,5 @@
 """Integration tests for image preservation in Archi file round-trip."""
+
 import sys
 from pathlib import Path
 
@@ -22,7 +23,10 @@ class TestSingleImageRoundTrip:
         """Test extraction of single image from fixture."""
         images = extract_images_from_archimate(self.root)
         assert len(images) == 1
-        assert images[0] == "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        assert (
+            images[0]
+            == "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        )
 
     def test_single_image_serialization_roundtrip(self):
         """Test that single image survives XML serialization."""
@@ -31,7 +35,7 @@ class TestSingleImageRoundTrip:
         assert len(images_orig) == 1
 
         # Serialize to string
-        xml_string = lxml_etree.tostring(self.root, encoding='unicode')
+        xml_string = lxml_etree.tostring(self.root, encoding="unicode")
 
         # Parse back
         tree_reimp = lxml_etree.fromstring(xml_string)
@@ -50,11 +54,12 @@ class TestSingleImageRoundTrip:
 
         # Verify it's valid base64 (can be decoded)
         import base64
+
         try:
             decoded = base64.b64decode(img_data)
             assert len(decoded) > 0  # Should decode to something
             # This is actually a 1x1 PNG, verify minimal PNG structure
-            assert decoded[:8] == b'\x89PNG\r\n\x1a\n'  # PNG magic number
+            assert decoded[:8] == b"\x89PNG\r\n\x1a\n"  # PNG magic number
         except Exception as e:
             raise AssertionError(f"Invalid base64 image data: {e}") from e
 
@@ -88,8 +93,14 @@ class TestMultipleImagesRoundTrip:
         """Test extraction of multiple images from fixture."""
         images = extract_images_from_archimate(self.root)
         assert len(images) == 2
-        assert images[0] == "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-        assert images[1] == "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAE0lEQVQI12P4z8DwHwMx+FAOBgAXnAL9Z8sOKQAAAABJRU5ErkJggg=="
+        assert (
+            images[0]
+            == "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        )
+        assert (
+            images[1]
+            == "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAE0lEQVQI12P4z8DwHwMx+FAOBgAXnAL9Z8sOKQAAAABJRU5ErkJggg=="
+        )
 
     def test_multiple_images_serialization_roundtrip(self):
         """Test that multiple images survive XML serialization."""
@@ -98,7 +109,7 @@ class TestMultipleImagesRoundTrip:
         assert len(images_orig) == 2
 
         # Serialize to string
-        xml_string = lxml_etree.tostring(self.root, encoding='unicode')
+        xml_string = lxml_etree.tostring(self.root, encoding="unicode")
 
         # Parse back
         tree_reimp = lxml_etree.fromstring(xml_string)
@@ -116,7 +127,7 @@ class TestMultipleImagesRoundTrip:
 
         # Serialize and re-parse multiple times
         for _ in range(3):
-            xml_string = lxml_etree.tostring(self.root, encoding='unicode')
+            xml_string = lxml_etree.tostring(self.root, encoding="unicode")
             tree = lxml_etree.fromstring(xml_string)
             images = extract_images_from_archimate(tree)
 
@@ -135,7 +146,7 @@ class TestMultipleImagesRoundTrip:
                 decoded = base64.b64decode(img_data)
                 assert len(decoded) > 0
                 # Both are PNG files
-                assert decoded[:8] == b'\x89PNG\r\n\x1a\n', f"Image {i} is not a valid PNG"
+                assert decoded[:8] == b"\x89PNG\r\n\x1a\n", f"Image {i} is not a valid PNG"
             except Exception as e:
                 raise AssertionError(f"Image {i} has invalid base64 data: {e}") from e
 

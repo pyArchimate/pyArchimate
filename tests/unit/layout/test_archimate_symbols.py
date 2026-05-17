@@ -165,8 +165,28 @@ class TestSymbolDefinitions:
 
     def test_symbol_svg_paths_are_valid_format(self):
         """Verify SVG paths have valid format (start with M or other command)."""
-        valid_commands = {'M', 'L', 'H', 'V', 'C', 'S', 'Q', 'T', 'A', 'Z',
-                          'm', 'l', 'h', 'v', 'c', 's', 'q', 't', 'a', 'z'}
+        valid_commands = {
+            "M",
+            "L",
+            "H",
+            "V",
+            "C",
+            "S",
+            "Q",
+            "T",
+            "A",
+            "Z",
+            "m",
+            "l",
+            "h",
+            "v",
+            "c",
+            "s",
+            "q",
+            "t",
+            "a",
+            "z",
+        }
         for symbol in ARCHIMATE_SYMBOLS.values():
             path = symbol.svg_path.strip()
             assert len(path) > 0
@@ -235,11 +255,11 @@ class TestColorPalette:
 
         # Invalid formats
         assert not palette.validate_color("FFD700")  # Missing #
-        assert not palette.validate_color("#FFF")     # Too short
+        assert not palette.validate_color("#FFF")  # Too short
         assert not palette.validate_color("#FFFF000")  # Too long
-        assert not palette.validate_color("red")      # Not hex
-        assert not palette.validate_color(None)       # Not a string
-        assert not palette.validate_color(123)        # Not a string
+        assert not palette.validate_color("red")  # Not hex
+        assert not palette.validate_color(None)  # Not a string
+        assert not palette.validate_color(123)  # Not a string
 
     def test_default_palette_singleton(self):
         """Test default palette singleton."""
@@ -270,8 +290,9 @@ class TestColorPalette:
 
             if palette_color:
                 # Colors should match exactly
-                assert palette_color == symbol_color, \
+                assert palette_color == symbol_color, (
                     f"{element_type}: palette {palette_color} != symbol {symbol_color}"
+                )
 
     def test_all_symbols_have_palette_colors(self):
         """Verify symbols with palette entries have valid colors."""
@@ -304,7 +325,7 @@ class TestColorLayering:
         """Verify Application layer uses blue color tones."""
         app_colors = [
             ARCHIMATE_PALETTE["ApplicationComponent"],  # Sky blue
-            ARCHIMATE_PALETTE["ApplicationService"],    # Light blue
+            ARCHIMATE_PALETTE["ApplicationService"],  # Light blue
             ARCHIMATE_PALETTE["ApplicationInterface"],  # Blue
         ]
         # All should have significant blue component
@@ -316,8 +337,8 @@ class TestColorLayering:
     def test_technology_layer_uses_green_tones(self):
         """Verify Technology layer uses green color tones."""
         tech_colors = [
-            ARCHIMATE_PALETTE["Node"],          # Light green
-            ARCHIMATE_PALETTE["Device"],        # Green
+            ARCHIMATE_PALETTE["Node"],  # Light green
+            ARCHIMATE_PALETTE["Device"],  # Green
             ARCHIMATE_PALETTE["SystemSoftware"],  # Green
         ]
         # All should have green component

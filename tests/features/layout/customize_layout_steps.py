@@ -32,13 +32,14 @@ class MockView:
         self.id = "test-view"
         self.nodes = nodes or []
         self.conns = conns or []
-        self.nodes_dict = {str(getattr(n, 'id', i)): n for i, n in enumerate(self.nodes)}
+        self.nodes_dict = {str(getattr(n, "id", i)): n for i, n in enumerate(self.nodes)}
 
 
 @given("a view with {count:d} scattered elements")
 def step_view_with_scattered_elements(context, count):
     """Create a view with scattered elements."""
     import random
+
     nodes = []
     for i in range(count):
         x = random.randint(0, 1000)
@@ -68,11 +69,13 @@ def step_lock_element(context, element_id, x, y):
 @given("a view with 3 elements at arbitrary positions")
 def step_view_arbitrary_positions(context):
     """Create view with arbitrary positions."""
-    context.view = MockView(nodes=[
-        MockNode(0, x=123, y=456),
-        MockNode(1, x=789, y=234),
-        MockNode(2, x=567, y=891),
-    ])
+    context.view = MockView(
+        nodes=[
+            MockNode(0, x=123, y=456),
+            MockNode(1, x=789, y=234),
+            MockNode(2, x=567, y=891),
+        ]
+    )
 
 
 @given("a view with elements of varying sizes ({min_w:d}-{max_w:d} width)")
@@ -88,13 +91,15 @@ def step_view_varying_sizes(context, min_w, max_w):
 @given("a view with mixed Business/Application/Technology elements")
 def step_view_mixed_layers(context):
     """Create view with mixed layer elements."""
-    context.view = MockView(nodes=[
-        MockNode(0, element_type="BusinessActor"),
-        MockNode(1, element_type="BusinessProcess"),
-        MockNode(2, element_type="ApplicationComponent"),
-        MockNode(3, element_type="ApplicationService"),
-        MockNode(4, element_type="TechnologyNode"),
-    ])
+    context.view = MockView(
+        nodes=[
+            MockNode(0, element_type="BusinessActor"),
+            MockNode(1, element_type="BusinessProcess"),
+            MockNode(2, element_type="ApplicationComponent"),
+            MockNode(3, element_type="ApplicationService"),
+            MockNode(4, element_type="TechnologyNode"),
+        ]
+    )
 
 
 @given("a view with 4 connected elements")
@@ -130,7 +135,7 @@ def step_view_diagonal(context):
 @given("a view with 6 elements and 8 connections")
 def step_view_complex(context):
     """Create complex view."""
-    nodes = [MockNode(i, x=i*100, y=i*100) for i in range(6)]
+    nodes = [MockNode(i, x=i * 100, y=i * 100) for i in range(6)]
     context.view = MockView(nodes=nodes)
 
 
@@ -181,7 +186,7 @@ def step_apply_layout_excluded(context, ids):
     context.result = apply_layout(context.view, config)
 
 
-@when("I apply format with alignment=\"{alignment}\" and grid_size={grid_size:d}")
+@when('I apply format with alignment="{alignment}" and grid_size={grid_size:d}')
 def step_apply_format_grid(context, alignment, grid_size):
     """Apply format with grid alignment."""
     config = LayoutConfig(alignment=alignment, grid_size=float(grid_size))
@@ -193,21 +198,22 @@ def step_apply_format_constraints(context, constraints):
     """Apply format with size constraints."""
     # Parse {min_width: 100, max_width: 200} - keys may not be quoted
     import re
+
     constraint_dict = {}
-    for m in re.finditer(r'(\w+)\s*:\s*(\d+(?:\.\d+)?)', constraints):
+    for m in re.finditer(r"(\w+)\s*:\s*(\d+(?:\.\d+)?)", constraints):
         constraint_dict[m.group(1)] = float(m.group(2))
     config = LayoutConfig(node_size_constraints=constraint_dict)
     context.result = apply_format(context.view, config)
 
 
-@when("I apply layout with layer_priority=\"{priority}\"")
+@when('I apply layout with layer_priority="{priority}"')
 def step_apply_layout_layer_priority(context, priority):
     """Apply layout with layer priority."""
     config = LayoutConfig(layer_priority=priority)
     context.result = apply_layout(context.view, config)
 
 
-@when("I apply layout with routing_style=\"{style}\"")
+@when('I apply layout with routing_style="{style}"')
 def step_apply_layout_routing(context, style):
     """Apply layout with routing style."""
     config = LayoutConfig(routing_style=style)
@@ -219,23 +225,24 @@ def step_apply_layout_multiple(context):
     """Apply layout with multiple configuration parameters."""
     config_dict = {}
     for row in context.table:
-        param = row['parameter']
-        value = row['value']
+        param = row["parameter"]
+        value = row["value"]
 
         # Parse different value types
-        if param == 'excluded_element_ids':
+        if param == "excluded_element_ids":
             # Parse [0] format
             config_dict[param] = [int(c) for c in value if c.isdigit()]
-        elif param == 'node_size_constraints':
+        elif param == "node_size_constraints":
             # Parse {min_width: 80, max_width: 200} format — keys may not be quoted
             import re
+
             d = {}
-            for m in re.finditer(r'(\w+)\s*:\s*(\d+(?:\.\d+)?)', value):
+            for m in re.finditer(r"(\w+)\s*:\s*(\d+(?:\.\d+)?)", value):
                 d[m.group(1)] = float(m.group(2))
             config_dict[param] = d
-        elif param == 'grid_size':
+        elif param == "grid_size":
             config_dict[param] = float(value)
-        elif param in ('spacing', 'margin'):
+        elif param in ("spacing", "margin"):
             config_dict[param] = float(value)
         else:
             config_dict[param] = value
@@ -247,7 +254,7 @@ def step_apply_layout_multiple(context):
 @when("I create layout configuration")
 def step_create_config(context):
     """Create layout configuration (for validation tests)."""
-    if hasattr(context, 'invalid_param'):
+    if hasattr(context, "invalid_param"):
         try:
             # Convert numeric string values to appropriate types
             value = context.invalid_value
@@ -261,7 +268,7 @@ def step_create_config(context):
         except ValueError as e:
             context.config_valid = False
             context.validation_error = str(e)
-    elif hasattr(context, 'invalid_constraints'):
+    elif hasattr(context, "invalid_constraints"):
         try:
             LayoutConfig(node_size_constraints=context.invalid_constraints)
             context.config_valid = True
@@ -283,14 +290,14 @@ def step_apply_layout_then_format(context):
 @then("layout should complete successfully")
 def step_layout_success(context):
     """Verify layout completed successfully."""
-    assert hasattr(context, 'result'), "No layout result"
+    assert hasattr(context, "result"), "No layout result"
     assert context.result.success, f"Layout failed: {context.result.error_message}"
 
 
 @then("format should complete successfully")
 def step_format_success(context):
     """Verify format completed successfully."""
-    assert hasattr(context, 'result'), "No format result"
+    assert hasattr(context, "result"), "No format result"
     assert context.result.success, f"Format failed: {context.result.error_message}"
 
 
@@ -314,10 +321,9 @@ def step_verify_repositioned(context):
     """Verify other elements were moved."""
     # At least one non-excluded element should have moved
     initial = getattr(context, "initial_positions", {})
-    assert any(
-        (n.x, n.y) != initial.get(i, (n.x, n.y))
-        for i, n in enumerate(context.view.nodes)
-    ), "Elements not repositioned"
+    assert any((n.x, n.y) != initial.get(i, (n.x, n.y)) for i, n in enumerate(context.view.nodes)), (
+        "Elements not repositioned"
+    )
 
 
 @then("all elements should snap to {grid_size:d}-pixel grid")
@@ -398,7 +404,7 @@ def step_verify_mandatory_layers(context):
     assert context.result.success
 
 
-@then("validation should fail with error \"{error_msg}\"")
+@then('validation should fail with error "{error_msg}"')
 def step_verify_validation_error(context, error_msg):
     """Verify validation error occurred."""
     assert not context.config_valid, "Configuration should be invalid"
@@ -457,11 +463,11 @@ def step_apply_format_excluded_1_3(context):
     context.result = apply_format(context.view, config)
 
 
-
 @given("a view with scattered element positions")
 def step_view_scattered_positions(context):
     """Create a view with scattered element positions."""
     import random
+
     nodes = []
     for i in range(5):
         x = random.randint(10, 900)

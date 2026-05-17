@@ -3,11 +3,8 @@
 ## Environment Setup
 
 ```bash
-# Install lint/type-checking tools
-pip install ruff pyright lxml-stubs types-setuptools types-Pillow
-
-# Or via the project's lint group (if uv is available)
-uv sync --group lint
+# Install all groups including lint/type-checking tools
+poetry install --with lint
 ```
 
 ## Running the Tools

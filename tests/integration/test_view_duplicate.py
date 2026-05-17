@@ -1,4 +1,5 @@
 """Integration tests for View.duplicate() round-trip."""
+
 import tempfile
 from pathlib import Path
 

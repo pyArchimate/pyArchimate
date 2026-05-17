@@ -17,7 +17,7 @@ This task list covers the implementation of three complete ArchiMate notation fe
 2. **P3.2: Junction Semantics** (Type validation for AND/OR/XOR)
 3. **P3.3: Visual Properties** (Fill color, line color, line width, transparency)
 
-**Scope**: 
+**Scope**:
 - 68 tasks across 8 implementation phases
 - 22–30 dev days estimated effort
 - 90%+ test coverage maintained
@@ -204,7 +204,7 @@ This task list covers the implementation of three complete ArchiMate notation fe
 Phase 1: Foundation (T121-T127)
     ↓
 Phase 2: Grouping Core (T128-T137)
-    ↓ 
+    ↓
 Phase 3: Serialization (T138-T144) ← → Phase 4: Junctions (T145-T154) ← → Phase 5: Visual (T155-T164) [Parallel]
     ↓
 Phase 6: Testing (T165-T171)

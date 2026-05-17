@@ -15,14 +15,14 @@ The SVG export contract defines the interface and expected behavior for exportin
 ```python
 def to_svg(self, filepath: Optional[str] = None) -> str:
     """Export view to SVG string and optionally write to file.
-    
+  
     Args:
-        filepath (Optional[str]): Path to write SVG file. If provided, SVG is 
+        filepath (Optional[str]): Path to write SVG file. If provided, SVG is
                                   written to this path in addition to being returned.
-        
+  
     Returns:
         str: Valid SVG 1.1 XML string with <svg> root element.
-        
+  
     Raises:
         IOError: If filepath is provided but file cannot be written.
     """
@@ -69,6 +69,7 @@ Each node in the view renders with an **element-type-specific ArchiMate symbol**
   - Vertically centered relative to node height
 
 **Example**:
+
 ```xml
 <defs>
   <symbol id="archimate_actor" viewBox="0 0 100 100">
@@ -152,6 +153,7 @@ Each connection renders as:
 - Intermediate bendpoints are used as-is (no clipping)
 
 **Example**:
+
 ```xml
 <defs>
   <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
@@ -188,6 +190,7 @@ Each connection with a relationship type renders a label:
 3. Position label at midpoint with white background
 
 **Example**:
+
 ```xml
 <g class="connection-label">
   <rect x="145" y="193" width="48" height="12" fill="white" stroke="none"/>
@@ -210,6 +213,7 @@ Each connection with a relationship type renders a label:
   - Height attribute: Integer pixels
 
 **Example**:
+
 ```xml
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="640" height="480" viewBox="0 0 640 480">
   <rect x="0" y="0" width="640" height="480" fill="white" stroke="none"/>

@@ -1,4 +1,5 @@
 """Integration tests for view documentation round-trip fidelity."""
+
 import sys
 from pathlib import Path
 
@@ -49,7 +50,7 @@ def test_view_documentation_roundtrip_with_text():
     view_orig = create_minimal_view_element(original_text)
 
     # Serialize to XML
-    xml_string = lxml_etree.tostring(view_orig, encoding='unicode')
+    xml_string = lxml_etree.tostring(view_orig, encoding="unicode")
 
     # Parse back from string
     view_reimp = lxml_etree.fromstring(xml_string)
@@ -73,7 +74,7 @@ def test_view_documentation_roundtrip_empty():
     view_orig = create_minimal_view_element("")
 
     # Serialize to XML
-    xml_string = lxml_etree.tostring(view_orig, encoding='unicode')
+    xml_string = lxml_etree.tostring(view_orig, encoding="unicode")
 
     # Parse back from string
     view_reimp = lxml_etree.fromstring(xml_string)
@@ -94,7 +95,7 @@ def test_view_documentation_with_special_characters():
     view_orig = create_minimal_view_element(special_text)
 
     # Serialize to XML
-    xml_string = lxml_etree.tostring(view_orig, encoding='unicode')
+    xml_string = lxml_etree.tostring(view_orig, encoding="unicode")
 
     # Parse back from string
     view_reimp = lxml_etree.fromstring(xml_string)
@@ -115,7 +116,7 @@ def test_view_documentation_multiline():
     view_orig = create_minimal_view_element(multiline_text)
 
     # Serialize to XML
-    xml_string = lxml_etree.tostring(view_orig, encoding='unicode')
+    xml_string = lxml_etree.tostring(view_orig, encoding="unicode")
 
     # Parse back from string
     view_reimp = lxml_etree.fromstring(xml_string)
@@ -137,7 +138,7 @@ def test_view_documentation_long_text():
     view_orig = create_minimal_view_element(long_text)
 
     # Serialize to XML
-    xml_string = lxml_etree.tostring(view_orig, encoding='unicode')
+    xml_string = lxml_etree.tostring(view_orig, encoding="unicode")
 
     # Parse back from string
     view_reimp = lxml_etree.fromstring(xml_string)

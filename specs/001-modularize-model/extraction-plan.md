@@ -164,6 +164,7 @@ Connection (Tier 2) → depends on Relationship, Node, Point, Font, RGBA
 ## Import Dependencies by Class
 
 ### Model
+
 ```python
 from . import Element, Relationship, View
 from .constants import *
@@ -174,6 +175,7 @@ from uuid import UUID
 ```
 
 ### Element
+
 ```python
 from .constants import *
 from .enums import ArchiType, AccessType
@@ -182,6 +184,7 @@ from dataclasses import dataclass
 ```
 
 ### Relationship
+
 ```python
 from .constants import *
 from .enums import ArchiType, AccessType
@@ -189,6 +192,7 @@ from .exceptions import ArchimateRelationshipError
 ```
 
 ### View
+
 ```python
 from . import Node, Connection, Element
 from .enums import TextPosition
@@ -196,6 +200,7 @@ from typing import Optional, List
 ```
 
 ### Node
+
 ```python
 from . import Element
 from .value_objects import Point, Position, Font, RGBA
@@ -203,6 +208,7 @@ from typing import Optional
 ```
 
 ### Connection
+
 ```python
 from . import Relationship, Node
 from .value_objects import Point, Font

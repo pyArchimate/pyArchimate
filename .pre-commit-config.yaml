@@ -1,0 +1,85 @@
+repos:
+  # ── Commit-stage hooks (run on staged files only, must be fast) ────────────
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.13
+    hooks:
+      - id: ruff        # lint + complexity gate — auto-fixes where possible
+      - id: ruff-format # formatter — auto-reformats staged files
+
+  - repo: local
+    hooks:
+      - id: pymarkdown
+        name: pymarkdown lint
+        entry: poetry run pymarkdownlnt fix
+        language: system
+        types: [markdown]
+        exclude: ^specs/
+        stages: [pre-commit]
+
+      - id: vulture
+        name: vulture dead code
+        entry: poetry run vulture src/ --min-confidence 80
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+  # ── Push-stage hooks (thorough suite, run on git push) ────────────────────
+
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright type check
+        entry: poetry run pyright src/ tests/
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: mypy
+        name: mypy type check
+        entry: poetry run mypy src/
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: check-layer-boundaries
+        name: check layer boundaries
+        entry: poetry run python scripts/check_layer_boundaries.py
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: requirements-sync
+        name: sync requirements.txt
+        entry: poetry export --without-hashes --with docs --format=requirements.txt --output requirements.txt
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: behave
+        name: BDD acceptance tests
+        entry: poetry run behave
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: pytest-unit
+        name: pytest unit (coverage)
+        entry: poetry run pytest tests/unit/ --cov-fail-under=79 --cov=src --cov-report=term-missing
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: pytest-integration
+        name: pytest integration
+        entry: poetry run pytest tests/integration/ tests/fixtures/
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: pytest-legacy
+        name: pytest legacy
+        entry: poetry run pytest tests/legacy_unit/ tests/legacy_integration/ tests/legacy_examples/
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

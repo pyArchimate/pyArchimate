@@ -10,13 +10,14 @@ from typing import NamedTuple
 
 class RelationshipStyle(NamedTuple):
     """SVG rendering style for an ArchiMate relationship type."""
-    relationship_type: str              # e.g., "ServingRelationship"
-    stroke_color: str                   # HEX color code (e.g., "#4A90E2")
-    stroke_width: float                 # Line width in pixels (1.0, 1.5, 2.0)
-    stroke_dasharray: str | None     # Pattern for dashed/dotted (e.g., "5,5" or "2,4")
-    marker_start: str | None         # Start marker (e.g., "url(#diamond-hollow)")
-    marker_end: str                     # End marker (e.g., _ARROW_FILLED)
-    arrow_type: str                     # "filled", "hollow", "double", "diamond", "circle"
+
+    relationship_type: str  # e.g., "ServingRelationship"
+    stroke_color: str  # HEX color code (e.g., "#4A90E2")
+    stroke_width: float  # Line width in pixels (1.0, 1.5, 2.0)
+    stroke_dasharray: str | None  # Pattern for dashed/dotted (e.g., "5,5" or "2,4")
+    marker_start: str | None  # Start marker (e.g., "url(#diamond-hollow)")
+    marker_end: str  # End marker (e.g., _ARROW_FILLED)
+    arrow_type: str  # "filled", "hollow", "double", "diamond", "circle"
 
 
 _ARROW_FILLED = "url(#arrow-filled)"
@@ -31,9 +32,8 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray=None,
         marker_start=None,
         marker_end=_ARROW_FILLED,
-        arrow_type="filled"
+        arrow_type="filled",
     ),
-
     "Realization": RelationshipStyle(
         relationship_type="Realization",
         stroke_color="#4A4A4A",
@@ -41,9 +41,8 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray="5,5",
         marker_start=None,
         marker_end="url(#arrow-hollow)",
-        arrow_type="hollow"
+        arrow_type="hollow",
     ),
-
     "Aggregation": RelationshipStyle(
         relationship_type="Aggregation",
         stroke_color="#4A4A4A",
@@ -51,9 +50,8 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray=None,
         marker_start="url(#diamond-hollow)",
         marker_end=_ARROW_FILLED,
-        arrow_type="diamond"
+        arrow_type="diamond",
     ),
-
     "Composition": RelationshipStyle(
         relationship_type="Composition",
         stroke_color="#4A4A4A",
@@ -61,9 +59,8 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray=None,
         marker_start="url(#diamond-filled)",
         marker_end=_ARROW_FILLED,
-        arrow_type="diamond"
+        arrow_type="diamond",
     ),
-
     # ===== DEPENDENCY RELATIONSHIPS =====
     "Access": RelationshipStyle(
         relationship_type="Access",
@@ -72,9 +69,8 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray="2,4",
         marker_start=None,
         marker_end=_ARROW_FILLED,
-        arrow_type="filled"
+        arrow_type="filled",
     ),
-
     "Serving": RelationshipStyle(
         relationship_type="Serving",
         stroke_color="#4ECDC4",
@@ -82,9 +78,8 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray=None,
         marker_start=None,
         marker_end=_ARROW_FILLED,
-        arrow_type="filled"
+        arrow_type="filled",
     ),
-
     # "Serves" is an alias for "Serving" (used by "ServesRelationship" feature test)
     "Serves": RelationshipStyle(
         relationship_type="Serving",
@@ -93,9 +88,8 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray=None,
         marker_start=None,
         marker_end=_ARROW_FILLED,
-        arrow_type="filled"
+        arrow_type="filled",
     ),
-
     "Implementation": RelationshipStyle(
         relationship_type="Implementation",
         stroke_color="#FFB347",
@@ -103,9 +97,8 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray="5,5",
         marker_start=None,
         marker_end="url(#arrow-hollow)",
-        arrow_type="hollow"
+        arrow_type="hollow",
     ),
-
     "Assignment": RelationshipStyle(
         relationship_type="Assignment",
         stroke_color="#9B59B6",
@@ -113,9 +106,8 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray="5,5",
         marker_start=None,
         marker_end=_ARROW_FILLED,
-        arrow_type="filled"
+        arrow_type="filled",
     ),
-
     "Used By": RelationshipStyle(
         relationship_type="Used By",
         stroke_color="#3498DB",
@@ -123,9 +115,8 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray="2,4",
         marker_start=None,
         marker_end=_ARROW_FILLED,
-        arrow_type="filled"
+        arrow_type="filled",
     ),
-
     # ===== DYNAMIC RELATIONSHIPS =====
     "Influence": RelationshipStyle(
         relationship_type="Influence",
@@ -134,9 +125,8 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray="2,4",
         marker_start=None,
         marker_end=_ARROW_FILLED,
-        arrow_type="filled"
+        arrow_type="filled",
     ),
-
     "Triggering": RelationshipStyle(
         relationship_type="Triggering",
         stroke_color="#16A085",
@@ -144,9 +134,8 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray=None,
         marker_start=None,
         marker_end=_ARROW_FILLED,
-        arrow_type="filled"
+        arrow_type="filled",
     ),
-
     "Flow": RelationshipStyle(
         relationship_type="Flow",
         stroke_color="#2980B9",
@@ -154,7 +143,7 @@ ARCHIMATE_RELATIONSHIP_STYLES = {
         stroke_dasharray="2,4",
         marker_start=None,
         marker_end=_ARROW_FILLED,
-        arrow_type="filled"
+        arrow_type="filled",
     ),
 }
 

@@ -48,6 +48,7 @@ The Element Grouping API enables semantic parent-child containment relationships
   - Message: `"Max nesting depth 5 exceeded: child would be at level {depth + 1}"`
 
 **Example**:
+
 ```python
 model = Model('MyModel')
 parent = model.add(ArchiType.BusinessProcess, 'Parent Process')
@@ -98,6 +99,7 @@ model.add_child(parent.uuid, child.uuid)
   - Message: `"{child_uuid} is not a child of {parent_uuid}"`
 
 **Example**:
+
 ```python
 model.remove_child(parent.uuid, child.uuid)
 # Now: child.parent_uuid == None (child becomes root)
@@ -130,6 +132,7 @@ model.remove_child(parent.uuid, child.uuid)
 **Complexity**: O(1) dict lookup
 
 **Example**:
+
 ```python
 parent = model.get_parent(child.uuid)
 # Returns: parent Element or None
@@ -161,6 +164,7 @@ parent = model.get_parent(child.uuid)
 **Complexity**: O(n) where n = number of children (usually small)
 
 **Example**:
+
 ```python
 children = model.get_children(parent.uuid)
 # Returns: [child1, child2, ...] or []
@@ -192,6 +196,7 @@ children = model.get_children(parent.uuid)
 **Complexity**: O(depth), max depth 5
 
 **Example**:
+
 ```python
 # Hierarchy: Root → P1 → P2 → P3
 ancestors = model.get_ancestors(p3.uuid)
@@ -225,6 +230,7 @@ ancestors = model.get_ancestors(p3.uuid)
 **Complexity**: O(subtree_size)
 
 **Example**:
+
 ```python
 # Hierarchy: Parent → [Child1, Child2] → [GrandChild1, GrandChild2]
 descendants = model.get_descendants(parent.uuid)
@@ -256,6 +262,7 @@ descendants = model.get_descendants(parent.uuid)
 **Complexity**: O(depth), max 5
 
 **Example**:
+
 ```python
 # Hierarchy: Root → P1 → P2
 depth = model.get_depth(p2.uuid)
@@ -282,6 +289,7 @@ depth = model.get_depth(p2.uuid)
 **Complexity**: O(n) where n = total elements
 
 **Example**:
+
 ```python
 roots = model.get_root_elements()
 # Returns: [proc1, proc2, ...] all with parent_uuid = None
@@ -301,6 +309,7 @@ roots = model.get_root_elements()
 **Complexity**: O(n) where n = total elements
 
 **Example**:
+
 ```python
 leaves = model.get_leaf_elements()
 # Returns: [leaf1, leaf2, ...] all with no children
@@ -335,9 +344,10 @@ leaves = model.get_leaf_elements()
 ## XML Serialization Contract
 
 ### Write (Export)
+
 ```xml
-<element id="id-func123" 
-         name="Validate Order" 
+<element id="id-func123"
+         name="Validate Order"
          xsi:type="archimate:BusinessFunction"
          parentId="id-proc001">
   <documentation>Validates order details</documentation>
@@ -377,4 +387,3 @@ leaves = model.get_leaf_elements()
 ---
 
 **Contract Status**: Ready for Phase 2 Implementation
-

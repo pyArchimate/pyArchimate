@@ -1,4 +1,5 @@
 """Unit tests for scripts/generate_ai_docs.py (T003, T004, T010, T015)."""
+
 import os
 import sys
 from pathlib import Path
@@ -95,9 +96,7 @@ class TestGenerateAiMd:
 
     @patch("generate_ai_docs.run_claude", side_effect=RuntimeError("fail"))
     @patch("generate_ai_docs.build_context", return_value="ctx")
-    def test_exits_on_claude_failure(
-        self, mock_ctx: MagicMock, mock_claude: MagicMock
-    ) -> None:
+    def test_exits_on_claude_failure(self, mock_ctx: MagicMock, mock_claude: MagicMock) -> None:
         with pytest.raises(SystemExit):
             gen.generate_ai_md()
 

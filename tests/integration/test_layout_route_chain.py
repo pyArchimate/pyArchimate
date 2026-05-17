@@ -6,8 +6,9 @@ from src.pyArchimate.view.layout import LayoutConfig, RoutingConfig, auto_layout
 from src.pyArchimate.view.layout.utils.geometry import Point
 
 
-def mock_node(uuid: str, element_type: str = "BusinessActor",
-              x: float = 0, y: float = 0, w: float = 120, h: float = 55) -> MagicMock:
+def mock_node(
+    uuid: str, element_type: str = "BusinessActor", x: float = 0, y: float = 0, w: float = 120, h: float = 55
+) -> MagicMock:
     n = MagicMock()
     n.uuid = uuid
     n.type = element_type
@@ -59,10 +60,7 @@ class TestChainLayoutAndRouting:
         tech = [mock_node(f"t{i}", "TechnologyService") for i in range(5)]
         nodes = business + app + tech
 
-        connections = [
-            mock_connection(f"c{i}", business[i % 5].uuid, app[i % 5].uuid)
-            for i in range(5)
-        ]
+        connections = [mock_connection(f"c{i}", business[i % 5].uuid, app[i % 5].uuid) for i in range(5)]
         view = make_view(nodes, connections)
 
         # Chain layout then routing
@@ -85,8 +83,7 @@ class TestChainLayoutAndRouting:
                     continue
                 overlap_x = n1.x < n2.x + n2.w and n2.x < n1.x + n1.w
                 overlap_y = n1.y < n2.y + n2.h and n2.y < n1.y + n1.h
-                assert not (overlap_x and overlap_y), \
-                    f"Nodes {n1.uuid} and {n2.uuid} overlap after layout"
+                assert not (overlap_x and overlap_y), f"Nodes {n1.uuid} and {n2.uuid} overlap after layout"
 
         # SC-004: Business Y < Application Y < Technology Y
         max_biz_y = max(n.y for n in business)

@@ -98,7 +98,7 @@ All features are designed for 100% round-trip XML fidelity and backward compatib
 - ✅ Existing models load correctly
 
 ### SC5: Code Quality
-**Measurable**: 
+**Measurable**:
 - ✅ 100+ new unit tests for grouping and visual styles
 - ✅ 30+ integration tests for round-trip fidelity
 - ✅ 15+ BDD acceptance tests
@@ -111,12 +111,14 @@ All features are designed for 100% round-trip XML fidelity and backward compatib
 ### Storage Design (Hybrid Approach)
 
 **Element Additions**:
+
 ```python
 Element._parent_uuid: Optional[str] = None        # Parent reference
 Element._visual_style: dict[str, Any] = {}        # Visual properties
 ```
 
 **Model Additions**:
+
 ```python
 Model._element_hierarchy: dict[str, Optional[str]]  # child → parent mapping
 Model._element_children: dict[str, set[str]]       # parent → children mapping
@@ -259,4 +261,3 @@ Model._element_children: dict[str, set[str]]       # parent → children mapping
 
 **Status**: Phase 1 Design Complete  
 **Next**: Phase 2 Implementation (2026-05-04)
-

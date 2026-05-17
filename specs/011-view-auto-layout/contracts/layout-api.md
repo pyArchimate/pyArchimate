@@ -98,6 +98,7 @@ Apply auto-layout to a view.
 - `RuntimeError`: If layout fails to converge within iteration limits
 
 **Example**:
+
 ```python
 from pyArchimate.view import View
 from pyArchimate.view.layout import LayoutConfig, apply_layout
@@ -140,6 +141,7 @@ Apply auto-format (element standardization) to a view without repositioning elem
 - `ValueError`: If view is invalid
 
 **Example**:
+
 ```python
 from pyArchimate.view import View
 from pyArchimate.view.layout import apply_format
@@ -168,6 +170,7 @@ Revert a view to its state before the last layout operation.
 - `RuntimeError`: If no previous layout transaction exists
 
 **Example**:
+
 ```python
 from pyArchimate.view.layout import apply_layout, undo_layout
 

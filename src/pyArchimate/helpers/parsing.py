@@ -1,4 +1,5 @@
 """Parsing utilities for Archi XML and data type conversions."""
+
 from typing import Any
 
 
@@ -65,7 +66,7 @@ def extract_images_from_archimate(element: Any) -> list[str]:
             seen.add(data)
 
     # Check for embedded image data in properties (various key names)
-    image_property_keys = ['image', 'image-data', 'image_data']
+    image_property_keys = ["image", "image-data", "image_data"]
     for key in image_property_keys:
         for prop_elem in element.findall(f".//property[@key='{key}']"):
             data = prop_elem.get("value")

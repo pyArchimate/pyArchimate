@@ -14,6 +14,7 @@ This feature enhances internal file loading behavior without modifying the publi
 **Error Handling**: Improved error messages for invalid files
 
 **Example**:
+
 ```python
 from src.pyArchimate import Model
 
@@ -35,7 +36,7 @@ m.read('model.archimate')  # No longer throws UnicodeDecodeError
 ## Internal Methods (Private, Not Part of Contract)
 
 The following private methods are added/refactored:
-- `Model._detect_zip_file(file_path: str) → bool` 
+- `Model._detect_zip_file(file_path: str) → bool`
 - `Model._extract_xml_from_zip(file_path: str) → str`
 - `Model._load_file_contents(file_path: str, operation: str) → str` (refactored)
 
@@ -46,18 +47,21 @@ The following private methods are added/refactored:
 ### New/Improved Error Messages
 
 **Corrupted .archimate file**:
+
 ```
 ERROR: Invalid .archimate file - ZIP archive is corrupted
 File: /path/to/model.archimate
 ```
 
 **Missing model.xml in archive**:
+
 ```
 ERROR: Invalid .archimate file - model.xml not found in archive
 File: /path/to/model.archimate
 ```
 
 **Encoding error in extracted XML**:
+
 ```
 ERROR: File encoding error - unable to decode XML as UTF-8
 File: /path/to/model.archimate

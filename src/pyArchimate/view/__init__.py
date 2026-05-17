@@ -20,11 +20,12 @@ if TYPE_CHECKING:
 # Module-level helpers
 # ---------------------------------------------------------------------------
 
+
 def _sort_nodes(nodes: list[Any], sort: str) -> list[Any]:
     s = sort.lower()
-    if 'asc' in s:
+    if "asc" in s:
         return sorted(nodes, key=lambda x: x.w * x.h)
-    if 'desc' in s:
+    if "desc" in s:
         return sorted(nodes, key=lambda x: x.w * x.h, reverse=True)
     return nodes
 
@@ -42,56 +43,70 @@ def _apply_justify_right(nodes: list[Any], max_in_row: int, max_w: float, gap_x:
 
 
 def _next_row_x(justify: str, row: int, elem_w: float, gap_x: float) -> int:
-    if justify == 'center':
+    if justify == "center":
         return 40 if row % 2 == 0 else 40 + int((elem_w + gap_x) / 2)
     return 40
 
 
 def _classify_outer_quadrant(angle: float) -> str:
     if 135 <= angle < 225:
-        return 'R'
+        return "R"
     if 225 <= angle < 315:
-        return 'B'
+        return "B"
     if angle >= 315 or angle < 45:
-        return 'L'
-    return 'T'
+        return "L"
+    return "T"
 
 
 # ---------------------------------------------------------------------------
 # Colour helper
 # ---------------------------------------------------------------------------
 
+
 def default_color(elem_type: str, theme: "str | dict[str, str] | None" = DEFAULT_THEME) -> str:
     """Return the default fill colour for a node, keyed by Archimate element type."""
     _archi_colors = {
-        'strategy': '#F5DEAA', 'business': "#FFFFB5", 'application': "#B5FFFF",
-        'technology': "#C9E7B7", 'physical': "#C9E7B7", 'migration': "#FFE0E0",
-        'motivation': "#CCCCFF", 'relationship': "#DDDDDD", 'other': '#FFFFFF',
-        'junction': '#000000',
+        "strategy": "#F5DEAA",
+        "business": "#FFFFB5",
+        "application": "#B5FFFF",
+        "technology": "#C9E7B7",
+        "physical": "#C9E7B7",
+        "migration": "#FFE0E0",
+        "motivation": "#CCCCFF",
+        "relationship": "#DDDDDD",
+        "other": "#FFFFFF",
+        "junction": "#000000",
     }
     _aris_colors = {
-        'strategy': '#D38300', 'business': "#F5C800", 'application': "#00A0FF",
-        'technology': "#6BA50E", 'physical': "#6BA50E", 'migration': "#FFE0E0",
-        'motivation': "#F099FF", 'relationship': "#DDDDDD", 'other': '#FFFFFF',
-        'junction': '#000000',
+        "strategy": "#D38300",
+        "business": "#F5C800",
+        "application": "#00A0FF",
+        "technology": "#6BA50E",
+        "physical": "#6BA50E",
+        "migration": "#FFE0E0",
+        "motivation": "#F099FF",
+        "relationship": "#DDDDDD",
+        "other": "#FFFFFF",
+        "junction": "#000000",
     }
     if elem_type in ARCHI_CATEGORY:
         cat = ARCHI_CATEGORY[elem_type].lower()
-        if theme == 'archi' or theme is None:
-            return _archi_colors.get(cat, '#FFFFFF')
-        if theme == 'aris':
-            return _aris_colors.get(cat, '#FFFFFF')
+        if theme == "archi" or theme is None:
+            return _archi_colors.get(cat, "#FFFFFF")
+        if theme == "aris":
+            return _aris_colors.get(cat, "#FFFFFF")
         try:
             theme_dict = cast("dict[str, str]", theme)
             return str(theme_dict[cat])
         except (KeyError, TypeError):
-            return _archi_colors.get(cat, '#FFFFFF')
-    return '#FFFFFF'
+            return _archi_colors.get(cat, "#FFFFFF")
+    return "#FFFFFF"
 
 
 # ---------------------------------------------------------------------------
 # Geometry helpers
 # ---------------------------------------------------------------------------
+
 
 class Point:
     """A simple (x, y) coordinate pair stored as floats for lossless round-trips.
@@ -103,8 +118,15 @@ class Point:
     integer offset exactly during export.
     """
 
-    def __init__(self, x: float = 0, y: float = 0, start_x: int | None = None, start_y: int | None = None,
-                 end_x: int | None = None, end_y: int | None = None):
+    def __init__(
+        self,
+        x: float = 0,
+        y: float = 0,
+        start_x: int | None = None,
+        start_y: int | None = None,
+        end_x: int | None = None,
+        end_y: int | None = None,
+    ):
         """Initialize a point with absolute coordinates and optional offset info."""
         self._x = max(0.0, float(x))
         self._y = max(0.0, float(y))
@@ -151,7 +173,7 @@ class Position:
     def dist(self) -> float | None:
         """Euclidean distance between nodes."""
         if self.dx is not None and self.dy is not None:
-            return math.sqrt(self.dx ** 2 + self.dy ** 2)
+            return math.sqrt(self.dx**2 + self.dy**2)
         return None
 
 
@@ -159,20 +181,19 @@ class Position:
 # Profile
 # ---------------------------------------------------------------------------
 
+
 class Profile:
     """An Archimate stereotype / specialisation profile for elements or relationships."""
 
     def __init__(self, name=None, uuid=None, concept=None, model=None):
         """Initialize a Profile with name, concept type, and model reference."""
         if not name:
-            raise ValueError('Name of Profile must be present.')
+            raise ValueError("Name of Profile must be present.")
         if not concept:
-            raise ValueError('concept of Profile must be specified as a class of type: Element')
+            raise ValueError("concept of Profile must be specified as a class of type: Element")
         if not hasattr(ArchiType, concept):
-            raise ArchimateConceptTypeError(
-                "'concept' argument is not an instance of 'ArchiType' class."
-            )
-        if concept == 'View':
+            raise ArchimateConceptTypeError("'concept' argument is not an instance of 'ArchiType' class.")
+        if concept == "View":
             raise ValueError("The concept type cannot be a View for a Profile")
         self.name = name
         self._uuid = set_id(uuid)
@@ -198,6 +219,7 @@ class Profile:
 # Node  (forward-references View in isinstance checks — defined below)
 # ---------------------------------------------------------------------------
 
+
 class Node:
     """A visual node in a View, representing an Element concept.
 
@@ -220,24 +242,27 @@ class Node:
             return ref
         if isinstance(ref, Element):
             return ref.uuid
-        if hasattr(ref, 'uuid'):
+        if hasattr(ref, "uuid"):
             return str(ref.uuid)  # pyright: ignore[reportAttributeAccessIssue]
         raise ValueError("'ref' is not an instance of 'Element' class.")
 
     def _validate_ref(self, node_type: str, ref: "str | None") -> None:
-        if node_type == 'Element' and ref is not None and ref not in self.model.elems_dict:
+        if node_type == "Element" and ref is not None and ref not in self.model.elems_dict:
             from ..logger import log
-            log.debug(f'Element reference "{ref}" not found in model (may be from deleted element or external reference)')
-        if node_type == 'Label' and ref is not None and ref not in self.model.labels_dict:
+
+            log.debug(
+                f'Element reference "{ref}" not found in model (may be from deleted element or external reference)'
+            )
+        if node_type == "Label" and ref is not None and ref not in self.model.labels_dict:
             from ..logger import log
+
             log.debug(f'Label reference "{ref}" not found in model')
 
-    def __init__(self, ref=None, x=0, y=0, w=120, h=55, uuid=None,
-                 node_type='Element', label=None, parent=None):
+    def __init__(self, ref=None, x=0, y=0, w=120, h=55, uuid=None, node_type="Element", label=None, parent=None):
         """Initialize a visual node with position, size, and element reference."""
         # parent type check is done after View is defined; accept duck-typed objects
-        if parent is None or not (hasattr(parent, 'view') and hasattr(parent, 'model')):
-            raise ValueError('Node class parent should be a class View or Node instance!')
+        if parent is None or not (hasattr(parent, "view") and hasattr(parent, "model")):
+            raise ValueError("Node class parent should be a class View or Node instance!")
 
         self.parent: View | Node = parent
         self._view: View = cast("View", parent.view)
@@ -263,7 +288,7 @@ class Node:
         self.opacity: int | float = 100
         self.lc_opacity: int | float = 100
         self.font_color: str | None = None
-        self.font_name = 'Segoe UI'
+        self.font_name = "Segoe UI"
         self.font_size: int | float = 9
         self.text_alignment: str | None = None
         self.text_position = None
@@ -300,15 +325,13 @@ class Node:
                     n.delete(recurse)
                 e.delete()
 
-    def add(self, ref=None, x=0, y=0, w=120, h=55, uuid=None,
-            node_type='Element', label=None, nested_rel_type=None):
+    def add(self, ref=None, x=0, y=0, w=120, h=55, uuid=None, node_type="Element", label=None, nested_rel_type=None):
         """Create and return a child node embedded in this node."""
         n = Node(ref, x, y, w, h, uuid, node_type, label, parent=self)
         self.nodes_dict[n.uuid] = n
         self.model.nodes_dict[n.uuid] = n
         if nested_rel_type is not None:
-            self.model.add_relationship(rel_type=nested_rel_type,
-                                        source=self.concept, target=n.concept)
+            self.model.add_relationship(rel_type=nested_rel_type, source=self.concept, target=n.concept)
         return n
 
     # --- identity ---
@@ -323,7 +346,7 @@ class Node:
     @property
     def name(self) -> str | None:
         """Name of referenced element (if Element node)."""
-        if self.cat == 'Element' and self.concept:
+        if self.cat == "Element" and self.concept:
             return self.concept.name
         return None
 
@@ -335,7 +358,7 @@ class Node:
     @property
     def type(self) -> str | None:
         """ArchiMate type of referenced element."""
-        if self.cat == 'Element' and self.concept:
+        if self.cat == "Element" and self.concept:
             return self.concept.type
         return None
 
@@ -346,6 +369,7 @@ class Node:
             return cast(Element, self.model.elems_dict[self._ref])
         except KeyError:
             from ..logger import log
+
             log.debug(f'Element reference "{self._ref}" not found in model')
             return None
 
@@ -361,7 +385,7 @@ class Node:
             new_ref: str | None = ref.uuid
         elif ref is None:
             new_ref = None
-        elif hasattr(ref, 'uuid'):
+        elif hasattr(ref, "uuid"):
             new_ref = str(ref.uuid)  # pyright: ignore[reportAttributeAccessIssue]
         else:
             new_ref = cast(str | None, ref)
@@ -493,7 +517,7 @@ class Node:
     def fill_color(self, color_str: str | None) -> None:
         """Set fill color (None resets to default)."""
         if color_str is None:
-            self._fill_color = default_color(self.type or '', self.model.theme)
+            self._fill_color = default_color(self.type or "", self.model.theme)
         else:
             self._fill_color = color_str
 
@@ -520,8 +544,18 @@ class Node:
             return list(self.nodes_dict.values())
         return [x for x in self.nodes_dict.values() if x.type == elem_type]
 
-    def get_or_create_node(self, elem=None, elem_type=None, x=0, y=0, w=120, h=55,
-                           create_elem=False, create_node=False, nested_rel_type=None):
+    def get_or_create_node(
+        self,
+        elem=None,
+        elem_type=None,
+        x=0,
+        y=0,
+        w=120,
+        h=55,
+        create_elem=False,
+        create_node=False,
+        nested_rel_type=None,
+    ):
         """Return an existing child node or create one if requested."""
         _e = None
         if not isinstance(elem, Element):
@@ -546,11 +580,20 @@ class Node:
         if point is not None:
             x = float(point.x)
             y = float(point.y)
-        return bool(self.cx - self.w / 2 < x < self.cx + self.w / 2
-                    and self.cy - self.h / 2 < y < self.cy + self.h / 2)
+        return bool(self.cx - self.w / 2 < x < self.cx + self.w / 2 and self.cy - self.h / 2 < y < self.cy + self.h / 2)
 
-    def resize(self, max_in_row=3, keep_kids_size=True, w=120, h=55,
-               gap_x=20, gap_y=20, justify='left', recurse=False, sort="asc"):
+    def resize(
+        self,
+        max_in_row=3,
+        keep_kids_size=True,
+        w=120,
+        h=55,
+        gap_x=20,
+        gap_y=20,
+        justify="left",
+        recurse=False,
+        sort="asc",
+    ):
         """Resize this node to fit all embedded children."""
         max_w = w
         max_h = h
@@ -561,8 +604,16 @@ class Node:
         nodes = _sort_nodes(self.nodes, sort)
         for _e in nodes:
             if recurse:
-                _e.resize(max_in_row=max_in_row, keep_kids_size=keep_kids_size,
-                          w=w, h=h, gap_x=gap_x, gap_y=gap_y, justify=justify, sort=sort)
+                _e.resize(
+                    max_in_row=max_in_row,
+                    keep_kids_size=keep_kids_size,
+                    w=w,
+                    h=h,
+                    gap_x=gap_x,
+                    gap_y=gap_y,
+                    justify=justify,
+                    sort=sort,
+                )
             min_w = _e.w if (w == -1 or keep_kids_size) else w
             min_h = _e.h if (h == -1 or keep_kids_size) else h
             _e.rx = ba_x
@@ -580,34 +631,47 @@ class Node:
             max_h = max(max_h, _e.ry + _e.h + gap_y)
         self.w = max_w
         self.h = max_h
-        if justify == 'right':
+        if justify == "right":
             _apply_justify_right(nodes, max_in_row, max_w, gap_x)
 
     def conns(self, rel_type=None):
         """Return connections to/from this node, optionally filtered by type."""
         if rel_type is None:
-            return [c for c in self.view.conns_dict.values()
-                    if c.source is not None and c.target is not None
-                    and (c.source.uuid == self.uuid or c.target.uuid == self.uuid)]
-        return [c for c in self.view.conns_dict.values()
-                if c.source is not None and c.target is not None
-                and c.type == rel_type and (c.source.uuid == self.uuid or c.target.uuid == self.uuid)]
+            return [
+                c
+                for c in self.view.conns_dict.values()
+                if c.source is not None
+                and c.target is not None
+                and (c.source.uuid == self.uuid or c.target.uuid == self.uuid)
+            ]
+        return [
+            c
+            for c in self.view.conns_dict.values()
+            if c.source is not None
+            and c.target is not None
+            and c.type == rel_type
+            and (c.source.uuid == self.uuid or c.target.uuid == self.uuid)
+        ]
 
     def in_conns(self, rel_type: str | None = None) -> list["Connection"]:
         """Incoming connections (this node as target), optionally filtered by type."""
         if rel_type is None:
-            return [c for c in self.view.conns_dict.values()
-                    if c.target is not None and c.target.uuid == self.uuid]
-        return [c for c in self.view.conns_dict.values()
-                if c.target is not None and c.type == rel_type and c.target.uuid == self.uuid]
+            return [c for c in self.view.conns_dict.values() if c.target is not None and c.target.uuid == self.uuid]
+        return [
+            c
+            for c in self.view.conns_dict.values()
+            if c.target is not None and c.type == rel_type and c.target.uuid == self.uuid
+        ]
 
     def out_conns(self, rel_type: str | None = None) -> list["Connection"]:
         """Outgoing connections (this node as source), optionally filtered by type."""
         if rel_type is None:
-            return [c for c in self.view.conns_dict.values()
-                    if c.source is not None and c.source.uuid == self.uuid]
-        return [c for c in self.view.conns_dict.values()
-                if c.source is not None and c.type == rel_type and c.source.uuid == self.uuid]
+            return [c for c in self.view.conns_dict.values() if c.source is not None and c.source.uuid == self.uuid]
+        return [
+            c
+            for c in self.view.conns_dict.values()
+            if c.source is not None and c.type == rel_type and c.source.uuid == self.uuid
+        ]
 
     def _compute_gap_x(self, other_node: "Node") -> float:
         ocx, ow = float(other_node.cx), float(other_node.w)
@@ -651,13 +715,13 @@ class Node:
         angle = (360 - angle) % 360
         position.angle = angle
         if angle < 45 or angle > 315:
-            position.orientation = 'R'
+            position.orientation = "R"
         elif 45 <= angle < 135:
-            position.orientation = 'T'
+            position.orientation = "T"
         elif 135 <= angle < 225:
-            position.orientation = 'L'
+            position.orientation = "L"
         else:
-            position.orientation = 'B'
+            position.orientation = "B"
         position.gap_x = self._compute_gap_x(other_node)
         position.gap_y = self._compute_gap_y(other_node)
         self._refine_gap_orientation(position)
@@ -682,15 +746,15 @@ class Node:
         if not in_y_band and not in_x_band:
             pos = _classify_outer_quadrant(angle)
         elif (angle > 270 or angle < 90) and in_y_band:
-            pos = 'L!'
+            pos = "L!"
         elif angle > 180 and in_x_band:
-            pos = 'B!'
+            pos = "B!"
         elif angle < 180 and in_x_band:
-            pos = 'T!'
+            pos = "T!"
         elif in_y_band:
-            pos = 'R!'
+            pos = "R!"
         else:
-            pos = '*'
+            pos = "*"
         position.orientation = pos
         return position
 
@@ -700,19 +764,26 @@ class Node:
         cx1, cy1 = float(obj1.cx), float(obj1.cy)
         cx2, cy2 = float(obj2.cx), float(obj2.cy)
         w1, h1 = float(obj1.w), float(obj1.h)
-        if p == 'L!':
+        if p == "L!":
             return cx1 - w1 / 2 + pos.gap_x / 2, cy1
-        if p == 'R!':
+        if p == "R!":
             return cx1 + w1 / 2 + pos.gap_x / 2, cy1
-        if p == 'B!':
+        if p == "B!":
             return cx1, cy1 + h1 / 2 + pos.gap_y / 2
-        if p == 'T!':
+        if p == "T!":
             return cx1, cy2 + float(obj2.h) / 2 - pos.gap_y / 2
         return (cx2 + cx1) / 2, (cy2 + cy1) / 2
 
-    def _queue_connection_bp(self, r: "Connection", obj1: "Node", obj2: "Node",
-                              top: "list[dict[str, Any]]", bottom: "list[dict[str, Any]]",
-                              left: "list[dict[str, Any]]", right: "list[dict[str, Any]]") -> None:
+    def _queue_connection_bp(
+        self,
+        r: "Connection",
+        obj1: "Node",
+        obj2: "Node",
+        top: "list[dict[str, Any]]",
+        bottom: "list[dict[str, Any]]",
+        left: "list[dict[str, Any]]",
+        right: "list[dict[str, Any]]",
+    ) -> None:
         bps = r.get_all_bendpoints()
         pos = obj1.get_obj_pos(obj2)
         angle: float = pos.angle or 0.0
@@ -729,24 +800,24 @@ class Node:
             bp = bps[0]
             bp.idx = 0
         bp_pos = obj1.get_point_pos(bp)
-        if 'R' in bp_pos.orientation:
-            right.append({'order': angle, 'bp': bp, 'r': r})
-        if 'L' in bp_pos.orientation:
-            left.append({'order': -((angle + 180) % 360), 'bp': bp, 'r': r})
-        if 'T' in bp_pos.orientation:
-            top.append({'order': -angle, 'bp': bp, 'r': r})
-        if 'B' in bp_pos.orientation:
-            bottom.append({'order': angle, 'bp': bp, 'r': r})
+        if "R" in bp_pos.orientation:
+            right.append({"order": angle, "bp": bp, "r": r})
+        if "L" in bp_pos.orientation:
+            left.append({"order": -((angle + 180) % 360), "bp": bp, "r": r})
+        if "T" in bp_pos.orientation:
+            top.append({"order": -angle, "bp": bp, "r": r})
+        if "B" in bp_pos.orientation:
+            bottom.append({"order": angle, "bp": bp, "r": r})
 
     @staticmethod
     def _spread_connections_along_edge(obj1: "Node", items: "list[dict[str, Any]]", axis: str) -> None:
         n = len(items)
-        for i, entry in enumerate(sorted(items, key=lambda d: d['order']), start=1):
-            if axis == 'y':
-                entry['bp'].y = obj1.cy - obj1.h * (0.5 - (i / (n + 1)))
+        for i, entry in enumerate(sorted(items, key=lambda d: d["order"]), start=1):
+            if axis == "y":
+                entry["bp"].y = obj1.cy - obj1.h * (0.5 - (i / (n + 1)))
             else:
-                entry['bp'].x = obj1.cx - obj1.w * (0.5 - (i / (n + 1)))
-            entry['r'].set_bendpoint(Point(entry['bp'].x, entry['bp'].y), entry['bp'].idx)
+                entry["bp"].x = obj1.cx - obj1.w * (0.5 - (i / (n + 1)))
+            entry["r"].set_bendpoint(Point(entry["bp"].x, entry["bp"].y), entry["bp"].idx)
 
     def distribute_connections(self):
         """Redistribute all connections evenly along each edge of this node."""
@@ -765,14 +836,14 @@ class Node:
             self._queue_connection_bp(r, obj1, obj2, top, bottom, left, right)
         if obj1 is None:
             return
-        self._spread_connections_along_edge(obj1, right, 'y')
-        self._spread_connections_along_edge(obj1, left, 'y')
-        self._spread_connections_along_edge(obj1, top, 'x')
-        self._spread_connections_along_edge(obj1, bottom, 'x')
+        self._spread_connections_along_edge(obj1, right, "y")
+        self._spread_connections_along_edge(obj1, left, "y")
+        self._spread_connections_along_edge(obj1, top, "x")
+        self._spread_connections_along_edge(obj1, bottom, "x")
 
     def move(self, new_parent):
         """Reparent this node to a different Node or View within the same diagram."""
-        if not (hasattr(new_parent, 'view') and hasattr(new_parent, 'model')):
+        if not (hasattr(new_parent, "view") and hasattr(new_parent, "model")):
             log.error("Invalid target to move the node to. Expecting a View or a Node")
             return
         if new_parent.view.uuid != self.view.uuid:
@@ -786,6 +857,7 @@ class Node:
 # ---------------------------------------------------------------------------
 # Connection
 # ---------------------------------------------------------------------------
+
 
 class Connection:
     """A visual connection between two Nodes, backed by a Relationship.
@@ -801,7 +873,7 @@ class Connection:
     def _resolve_conn_ref(ref: object) -> str:
         if isinstance(ref, str):
             return ref
-        if ref is not None and hasattr(ref, 'uuid'):
+        if ref is not None and hasattr(ref, "uuid"):
             return str(ref.uuid)  # pyright: ignore[reportAttributeAccessIssue]
         raise ArchimateConceptTypeError("'ref' is not an instance of 'Relationship' class.")
 
@@ -824,9 +896,7 @@ class Connection:
             parent: Parent View
         """
         if not isinstance(parent, View):
-            raise ArchimateConceptTypeError(
-                'Connection class parent should be a class View instance!'
-            )
+            raise ArchimateConceptTypeError("Connection class parent should be a class View instance!")
         self.parent: View = parent
         self.view = self.parent
         self._uuid = set_id(uuid)
@@ -835,23 +905,26 @@ class Connection:
         self._ref = self._resolve_conn_ref(ref)
         if self._ref not in self.model.rels_dict:
             from ..logger import log
+
             log.debug(f'Relationship reference "{self._ref}" not found in model')
 
-        self._source = self._resolve_node_uuid(source, 'source')
+        self._source = self._resolve_node_uuid(source, "source")
         if self._source not in self.model.nodes_dict and self._source not in self.model.conns_dict:
             from ..logger import log
+
             log.debug(f'Source node reference "{self._source}" not found in model')
 
-        self._target = self._resolve_node_uuid(target, 'target')
+        self._target = self._resolve_node_uuid(target, "target")
         if self._target not in self.model.nodes_dict and self._target not in self.model.conns_dict:
             from ..logger import log
+
             log.debug(f'Target node reference "{self._target}" not found in model')
 
         self._uuid = set_id(uuid)
         self.bendpoints: list[Point] = []
         self.line_color = None
         self.font_color = None
-        self.font_name = 'Segoe UI'
+        self.font_name = "Segoe UI"
         self.font_size = 9
         self.line_width = 1
         self.text_position = "1"
@@ -877,7 +950,7 @@ class Connection:
         """Set relationship reference (updates if valid)."""
         if isinstance(ref, str):
             new_ref = ref
-        elif hasattr(ref, 'uuid'):
+        elif hasattr(ref, "uuid"):
             new_ref = str(ref.uuid)  # pyright: ignore[reportAttributeAccessIssue]
         else:
             new_ref = cast(str, ref)
@@ -915,7 +988,7 @@ class Connection:
             new_ref = elem.uuid
         elif isinstance(elem, str):
             new_ref = elem
-        elif hasattr(elem, 'uuid'):
+        elif hasattr(elem, "uuid"):
             new_ref = str(elem.uuid)  # pyright: ignore[reportAttributeAccessIssue]
         else:
             new_ref = cast(str, elem)
@@ -938,7 +1011,7 @@ class Connection:
             new_ref = elem.uuid
         elif isinstance(elem, str):
             new_ref = elem
-        elif hasattr(elem, 'uuid'):
+        elif hasattr(elem, "uuid"):
             new_ref = str(elem.uuid)  # pyright: ignore[reportAttributeAccessIssue]
         else:
             new_ref = cast(str, elem)
@@ -948,17 +1021,17 @@ class Connection:
     @property
     def access_type(self) -> str | None:
         """Access type (for Access relationships)."""
-        return cast(str | None, getattr(self.concept, 'access_type', None))
+        return cast(str | None, getattr(self.concept, "access_type", None))
 
     @property
     def is_directed(self) -> bool:
         """Whether relationship is directed."""
-        return cast(bool, getattr(self.concept, 'is_directed', False))
+        return cast(bool, getattr(self.concept, "is_directed", False))
 
     @property
     def influence_strength(self) -> str | None:
         """Influence strength (for Influence relationships)."""
-        return cast(str | None, getattr(self.concept, 'influence_strength', None))
+        return cast(str | None, getattr(self.concept, "influence_strength", None))
 
     def add_bendpoint(self, *bendpoints: Point) -> None:
         """Add one or more bendpoints to this connection."""
@@ -992,18 +1065,10 @@ class Connection:
         self.remove_all_bendpoints()
         s_cx, s_cy = self.source.cx, self.source.cy
         t_cx, t_cy = self.target.cx, self.target.cy
-        if direction == 0 and not self.source.is_inside(t_cx, s_cy) \
-                and not self.target.is_inside(t_cx, s_cy):
-            self.add_bendpoint(
-                Point(t_cx + self.target.w * (0.5 - weight_x),
-                      s_cy + self.source.h * (0.5 - weight_y))
-            )
-        elif direction == 1 and not self.source.is_inside(s_cx, t_cy) \
-                and not self.target.is_inside(s_cx, t_cy):
-            self.add_bendpoint(
-                Point(s_cx - self.source.w * (0.5 - weight_x),
-                      t_cy + self.target.h * (0.5 - weight_y))
-            )
+        if direction == 0 and not self.source.is_inside(t_cx, s_cy) and not self.target.is_inside(t_cx, s_cy):
+            self.add_bendpoint(Point(t_cx + self.target.w * (0.5 - weight_x), s_cy + self.source.h * (0.5 - weight_y)))
+        elif direction == 1 and not self.source.is_inside(s_cx, t_cy) and not self.target.is_inside(s_cx, t_cy):
+            self.add_bendpoint(Point(s_cx - self.source.w * (0.5 - weight_x), t_cy + self.target.h * (0.5 - weight_y)))
 
     def s_shape(self, direction=0, weight_x=0.5, weight_y=0.5, weight2=0.5):
         """Shape the connection as an S (two bendpoints)."""
@@ -1019,9 +1084,11 @@ class Connection:
         else:
             bp1 = Point(s_xy.x - self.source.w * (0.5 - weight_x), s_xy.y + dy * weight_y)
             bp2 = Point(t_xy.x - self.target.w * (0.5 - weight2), bp1.y)
-        if (not self.source.is_inside(point=bp1)
-                and not self.target.is_inside(point=bp1)
-                and not self.target.is_inside(point=bp2)):
+        if (
+            not self.source.is_inside(point=bp1)
+            and not self.target.is_inside(point=bp1)
+            and not self.target.is_inside(point=bp2)
+        ):
             self.add_bendpoint(bp1)
             self.add_bendpoint(bp2)
 
@@ -1029,6 +1096,7 @@ class Connection:
 # ---------------------------------------------------------------------------
 # View
 # ---------------------------------------------------------------------------
+
 
 class View:
     """A diagram (view) in an Archimate model containing Nodes and Connections.
@@ -1042,10 +1110,8 @@ class View:
 
     def __init__(self, name=None, uuid=None, desc=None, folder=None, parent=None):
         """Initialize a diagram view with name, description, and parent model."""
-        if not hasattr(parent, 'views_dict'):
-            raise ArchimateConceptTypeError(
-                'View class parent should be a class Model instance!'
-            )
+        if not hasattr(parent, "views_dict"):
+            raise ArchimateConceptTypeError("View class parent should be a class Model instance!")
         self.parent: Model = cast("Model", parent)
         self.model: Model = cast("Model", parent)
         self._uuid = set_id(uuid)
@@ -1102,14 +1168,7 @@ class View:
 
         # Deep copy nodes
         for node in self.nodes:
-            dup_node = dup_view.add(
-                ref=node.ref,
-                x=node.x,
-                y=node.y,
-                w=node.w,
-                h=node.h,
-                label=node.label
-            )
+            dup_node = dup_view.add(ref=node.ref, x=node.x, y=node.y, w=node.w, h=node.h, label=node.label)
             node_map[node.uuid] = dup_node
 
         # Deep copy connections
@@ -1125,17 +1184,26 @@ class View:
 
         return dup_view
 
-    def add(self, ref: object = None, x: int = 0, y: int = 0, w: int = 120, h: int = 55,
-            uuid: str | None = None, node_type: str = 'Element',
-            label: str | None = None) -> Node:
+    def add(
+        self,
+        ref: object = None,
+        x: int = 0,
+        y: int = 0,
+        w: int = 120,
+        h: int = 55,
+        uuid: str | None = None,
+        node_type: str = "Element",
+        label: str | None = None,
+    ) -> Node:
         """Add and return a Node in this view."""
         n = Node(ref, x, y, w, h, uuid, node_type, label, self)
         self.nodes_dict[n.uuid] = n
         self.model.nodes_dict[n.uuid] = n
         return n
 
-    def add_connection(self, ref: object = None, source: object = None,
-                       target: object = None, uuid: str | None = None) -> Connection:
+    def add_connection(
+        self, ref: object = None, source: object = None, target: object = None, uuid: str | None = None
+    ) -> Connection:
         """Add and return a Connection between two Nodes."""
         c = Connection(ref, source, target, uuid, self)
         self.conns_dict[c.uuid] = c
@@ -1150,7 +1218,7 @@ class View:
     @property
     def type(self) -> str:
         """Type identifier (always 'Diagram')."""
-        return 'Diagram'
+        return "Diagram"
 
     @property
     def props(self) -> dict[str, object]:
@@ -1202,14 +1270,23 @@ class View:
         from ..viewpoint_registry import (
             validate_viewpoint_slug,  # noqa: PLC0415  # deferred: avoids circular import at module load time
         )
+
         validate_viewpoint_slug(viewpoint_id)
         self._primary_viewpoint = viewpoint_id
         if self.model is not None:
             self.model._viewpoint_views[self._uuid] = viewpoint_id
 
-    def get_or_create_node(self, elem: object = None, elem_type: str | None = None,
-                           x: int = 0, y: int = 0, w: int = 120, h: int = 55,
-                           create_elem: bool = False, create_node: bool = False) -> Node | None:
+    def get_or_create_node(
+        self,
+        elem: object = None,
+        elem_type: str | None = None,
+        x: int = 0,
+        y: int = 0,
+        w: int = 120,
+        h: int = 55,
+        create_elem: bool = False,
+        create_node: bool = False,
+    ) -> Node | None:
         """Return an existing node for the element, or create one if requested."""
         _e = None
         if not isinstance(elem, Element):
@@ -1229,39 +1306,49 @@ class View:
             return self.add(ref=_e, x=x, y=y, w=w, h=h)
         return None
 
-    def _find_or_create_rel(self, source: "Node", target: "Node",
-                             rel_type: str | None, name: str | None) -> "Any | None":
+    def _find_or_create_rel(
+        self, source: "Node", target: "Node", rel_type: str | None, name: str | None
+    ) -> "Any | None":
         if source.concept is None or target.concept is None:
             return None
         src_uuid = source.concept.uuid
         tgt_uuid = target.concept.uuid
         if name is None:
             matches = self.model.filter_relationships(
-                lambda x: (rel_type == x.type
-                            and x.source is not None and x.target is not None
-                            and src_uuid == x.source.uuid
-                            and tgt_uuid == x.target.uuid)
+                lambda x: (
+                    rel_type == x.type
+                    and x.source is not None
+                    and x.target is not None
+                    and src_uuid == x.source.uuid
+                    and tgt_uuid == x.target.uuid
+                )
             )
         else:
             matches = self.model.filter_relationships(
-                lambda x: (rel_type == x.type
-                            and x.source is not None and x.target is not None
-                            and src_uuid == x.source.uuid
-                            and tgt_uuid == x.target.uuid
-                            and x.name == name)
+                lambda x: (
+                    rel_type == x.type
+                    and x.source is not None
+                    and x.target is not None
+                    and src_uuid == x.source.uuid
+                    and tgt_uuid == x.target.uuid
+                    and x.name == name
+                )
             )
         if matches:
             return matches[0]
         if rel_type is None:
             return None
-        return self.model.add_relationship(
-            source=source.ref, target=target.ref, rel_type=rel_type, name=name
-        )
+        return self.model.add_relationship(source=source.ref, target=target.ref, rel_type=rel_type, name=name)
 
-    def get_or_create_connection(self, rel: object = None, source: Optional["Node"] = None,
-                                 target: Optional["Node"] = None,
-                                 rel_type: str | None = None, name: str | None = None,
-                                 create_conn: bool = False) -> Optional["Connection"]:
+    def get_or_create_connection(
+        self,
+        rel: object = None,
+        source: Optional["Node"] = None,
+        target: Optional["Node"] = None,
+        rel_type: str | None = None,
+        name: str | None = None,
+        create_conn: bool = False,
+    ) -> Optional["Connection"]:
         """Return an existing connection or create one if requested."""
         if rel is None:
             if source is None or target is None:
@@ -1269,7 +1356,7 @@ class View:
             r = self._find_or_create_rel(source, target, rel_type, name)
             if r is None:
                 return None
-        elif hasattr(rel, 'type'):  # duck-typed Relationship
+        elif hasattr(rel, "type"):  # duck-typed Relationship
             r = cast(Any, rel)
             rel_type = r.type
         else:

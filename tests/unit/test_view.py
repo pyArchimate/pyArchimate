@@ -1,4 +1,5 @@
 """Tests for View/Node/Connection/Profile implementations."""
+
 from typing import cast
 
 import pytest
@@ -20,6 +21,7 @@ from src.pyArchimate.view import (
 # Basic import tests
 # ---------------------------------------------------------------------------
 
+
 def test_view_importable():
     """View, Node, Connection, Profile are importable from src.pyArchimate.view."""
     assert View
@@ -32,35 +34,37 @@ def test_view_importable():
 # default_color (view module version)
 # ---------------------------------------------------------------------------
 
+
 def test_view_default_color_archi_theme():
-    assert default_color('ApplicationComponent', 'archi') == '#B5FFFF'
+    assert default_color("ApplicationComponent", "archi") == "#B5FFFF"
 
 
 def test_view_default_color_none_theme():
-    result = default_color('ApplicationComponent', None)
-    assert result.startswith('#')
+    result = default_color("ApplicationComponent", None)
+    assert result.startswith("#")
 
 
 def test_view_default_color_aris_theme():
-    assert default_color('ApplicationComponent', 'aris') == '#00A0FF'
+    assert default_color("ApplicationComponent", "aris") == "#00A0FF"
 
 
 def test_view_default_color_custom_dict():
-    assert default_color('ApplicationComponent', {'application': '#AABB00'}) == '#AABB00'
+    assert default_color("ApplicationComponent", {"application": "#AABB00"}) == "#AABB00"
 
 
 def test_view_default_color_custom_dict_missing_key():
-    result = default_color('ApplicationComponent', {})
-    assert result.startswith('#')
+    result = default_color("ApplicationComponent", {})
+    assert result.startswith("#")
 
 
 def test_view_default_color_unknown_type():
-    assert default_color('NotAType') == '#FFFFFF'
+    assert default_color("NotAType") == "#FFFFFF"
 
 
 # ---------------------------------------------------------------------------
 # Point
 # ---------------------------------------------------------------------------
+
 
 def test_point_x_setter():
     p = Point(10, 20)
@@ -85,6 +89,7 @@ def test_point_negative_clamped():
 # ---------------------------------------------------------------------------
 # Position
 # ---------------------------------------------------------------------------
+
 
 def test_position_init():
     pos = Position()
@@ -114,32 +119,34 @@ def test_position_dist_computed():
 # Profile
 # ---------------------------------------------------------------------------
 
+
 def test_profile_missing_name_raises():
     with pytest.raises(ValueError):
-        Profile(name=None, concept='ApplicationComponent')
+        Profile(name=None, concept="ApplicationComponent")
 
 
 def test_profile_missing_concept_raises():
     with pytest.raises(ValueError):
-        Profile(name='P', concept=None)
+        Profile(name="P", concept=None)
 
 
 def test_profile_invalid_concept_raises():
     from src.pyArchimate.exceptions import ArchimateConceptTypeError
+
     with pytest.raises(ArchimateConceptTypeError):
-        Profile(name='P', concept='NotAType')
+        Profile(name="P", concept="NotAType")
 
 
 def test_profile_view_concept_raises():
     with pytest.raises(ValueError):
-        Profile(name='P', concept='View')
+        Profile(name="P", concept="View")
 
 
 def test_profile_delete_clears_references():
-    m = Model('prof-test')
-    e = m.add(ArchiType.ApplicationComponent, 'App')
-    e.set_profile('ToDelete')
-    profile = m.get_profile('ToDelete')
+    m = Model("prof-test")
+    e = m.add(ArchiType.ApplicationComponent, "App")
+    e.set_profile("ToDelete")
+    profile = m.get_profile("ToDelete")
     assert profile is not None
     profile_id = profile.uuid
     profile.delete()
@@ -151,14 +158,15 @@ def test_profile_delete_clears_references():
 # Fixtures for View/Node/Connection tests
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def simple_view():
     """A model with two elements and a view containing two connected nodes."""
-    m = Model('view-test')
-    a = m.add(ArchiType.ApplicationComponent, 'CompA')
-    b = m.add(ArchiType.ApplicationService, 'SvcB')
+    m = Model("view-test")
+    a = m.add(ArchiType.ApplicationComponent, "CompA")
+    b = m.add(ArchiType.ApplicationService, "SvcB")
     rel = m.add_relationship(ArchiType.Serving, source=a, target=b)
-    v = cast(View, m.add(ArchiType.View, 'TestView'))
+    v = cast(View, m.add(ArchiType.View, "TestView"))
     na = v.add(ref=a.uuid, x=10, y=10, w=120, h=55)
     nb = v.add(ref=b.uuid, x=200, y=10, w=120, h=55)
     conn = v.add_connection(ref=rel.uuid, source=na, target=nb)
@@ -169,32 +177,33 @@ def simple_view():
 # View operations
 # ---------------------------------------------------------------------------
 
+
 def test_view_type_is_diagram(simple_view):
     _, v, *_ = simple_view
-    assert v.type == 'Diagram'
+    assert v.type == "Diagram"
 
 
 def test_view_prop_set_get(simple_view):
     _, v, *_ = simple_view
-    v.prop('color', 'blue')
-    assert v.prop('color') == 'blue'
+    v.prop("color", "blue")
+    assert v.prop("color") == "blue"
 
 
 def test_view_prop_missing_returns_none(simple_view):
     _, v, *_ = simple_view
-    assert v.prop('ghost') is None
+    assert v.prop("ghost") is None
 
 
 def test_view_remove_prop(simple_view):
     _, v, *_ = simple_view
-    v.prop('tmp', '1')
-    v.remove_prop('tmp')
-    assert v.prop('tmp') is None
+    v.prop("tmp", "1")
+    v.remove_prop("tmp")
+    assert v.prop("tmp") is None
 
 
 def test_view_remove_folder(simple_view):
     _, v, *_ = simple_view
-    v.folder = '/Views'
+    v.folder = "/Views"
     v.remove_folder()
     assert v.folder is None
 
@@ -220,14 +229,14 @@ def test_view_get_or_create_node_found(simple_view):
 
 def test_view_get_or_create_node_not_found_no_create(simple_view):
     _, v, *_ = simple_view
-    result = v.get_or_create_node(elem='Ghost', elem_type=ArchiType.ApplicationComponent)
+    result = v.get_or_create_node(elem="Ghost", elem_type=ArchiType.ApplicationComponent)
     assert result is None
 
 
 def test_view_get_or_create_node_create_elem_and_node(simple_view):
     _, v, *_ = simple_view
     node = v.get_or_create_node(
-        elem='NewComp',
+        elem="NewComp",
         elem_type=ArchiType.ApplicationComponent,
         create_elem=True,
         create_node=True,
@@ -251,19 +260,18 @@ def test_view_get_or_create_connection_found(simple_view):
 
 
 def test_view_get_or_create_connection_none_rel_none_source():
-    m = Model('gc-test')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("gc-test")
+    v = cast(View, m.add(ArchiType.View, "V"))
     result = v.get_or_create_connection(rel=None, source=None, target=None)
     assert result is None
 
 
 def test_view_get_or_create_connection_create(simple_view):
     m, v, a, _, _, na, _, _ = simple_view
-    c2 = m.add(ArchiType.ApplicationFunction, 'FuncC')
+    c2 = m.add(ArchiType.ApplicationFunction, "FuncC")
     m.add_relationship(ArchiType.Serving, source=a, target=c2)
     nc = v.add(ref=c2.uuid, x=400, y=10, w=120, h=55)
-    result = v.get_or_create_connection(rel=None, source=na, target=nc,
-                                        rel_type=ArchiType.Serving, create_conn=True)
+    result = v.get_or_create_connection(rel=None, source=na, target=nc, rel_type=ArchiType.Serving, create_conn=True)
     assert result is not None
 
 
@@ -277,6 +285,7 @@ def test_view_get_or_create_connection_no_rel_type_returns_none(simple_view):
 # Node operations
 # ---------------------------------------------------------------------------
 
+
 def test_node_name_for_element(simple_view):
     _, _, a, _, _, na, *_ = simple_view
     assert na.name == a.name
@@ -284,7 +293,7 @@ def test_node_name_for_element(simple_view):
 
 def test_node_name_for_container(simple_view):
     _, v, *_ = simple_view
-    container = v.add(ref=None, node_type='Container', label='MyGroup')
+    container = v.add(ref=None, node_type="Container", label="MyGroup")
     assert container.name is None
 
 
@@ -295,19 +304,19 @@ def test_node_type_for_element(simple_view):
 
 def test_node_type_for_container(simple_view):
     _, v, *_ = simple_view
-    container = v.add(ref=None, node_type='Container', label='C')
+    container = v.add(ref=None, node_type="Container", label="C")
     assert container.type is None
 
 
 def test_node_desc(simple_view):
     _, _, a, _, _, na, *_ = simple_view
-    a.desc = 'test desc'
-    assert na.desc == 'test desc'
+    a.desc = "test desc"
+    assert na.desc == "test desc"
 
 
 def test_node_ref_setter_with_element(simple_view):
     m, v, a, _, *_ = simple_view
-    c = m.add(ArchiType.ApplicationComponent, 'Another')
+    c = m.add(ArchiType.ApplicationComponent, "Another")
     na = v.add(ref=a.uuid, x=0, y=0)
     na.ref = c
     assert na.ref == c.uuid
@@ -315,7 +324,7 @@ def test_node_ref_setter_with_element(simple_view):
 
 def test_node_ref_setter_with_uuid_string(simple_view):
     m, v, a, _, *_ = simple_view
-    c = m.add(ArchiType.ApplicationComponent, 'Another2')
+    c = m.add(ArchiType.ApplicationComponent, "Another2")
     na = v.add(ref=a.uuid, x=0, y=0)
     na.ref = c.uuid
     assert na.ref == c.uuid
@@ -399,6 +408,7 @@ def test_node_delete_removes_connection(simple_view):
 # Connection operations
 # ---------------------------------------------------------------------------
 
+
 def test_connection_name(simple_view):
     _, _, _, _, rel, _, _, conn = simple_view
     assert conn.name == rel.name
@@ -411,17 +421,17 @@ def test_connection_type(simple_view):
 
 def test_connection_access_type(simple_view):
     m, v, a, _, _, na, _, _ = simple_view
-    data = m.add(ArchiType.DataObject, 'D')
+    data = m.add(ArchiType.DataObject, "D")
     access_rel = m.add_relationship(ArchiType.Access, source=a, target=data)
     nd = v.add(ref=data.uuid, x=350, y=10, w=120, h=55)
     c = v.add_connection(ref=access_rel.uuid, source=na, target=nd)
-    access_rel.access_type = 'Read'
-    assert c.access_type == 'Read'
+    access_rel.access_type = "Read"
+    assert c.access_type == "Read"
 
 
 def test_connection_is_directed(simple_view):
     m, v, a, _, _, na, _, _ = simple_view
-    c2 = m.add(ArchiType.ApplicationFunction, 'F')
+    c2 = m.add(ArchiType.ApplicationFunction, "F")
     assoc = m.add_relationship(ArchiType.Association, source=a, target=c2)
     nf = v.add(ref=c2.uuid, x=350, y=10, w=120, h=55)
     conn = v.add_connection(ref=assoc.uuid, source=na, target=nf)
@@ -431,17 +441,17 @@ def test_connection_is_directed(simple_view):
 
 def test_connection_influence_strength(simple_view):
     m, v, _, b, _, _, nb, _ = simple_view
-    c3 = m.add(ArchiType.ApplicationFunction, 'G')
+    c3 = m.add(ArchiType.ApplicationFunction, "G")
     inf_rel = m.add_relationship(ArchiType.Influence, source=b, target=c3)
     ng = v.add(ref=c3.uuid, x=350, y=10, w=120, h=55)
     conn = v.add_connection(ref=inf_rel.uuid, source=nb, target=ng)
-    inf_rel.influence_strength = '7'
-    assert conn.influence_strength == '7'
+    inf_rel.influence_strength = "7"
+    assert conn.influence_strength == "7"
 
 
 def test_connection_ref_setter(simple_view):
     m, _, a, _, _, _, _, conn = simple_view
-    c = m.add(ArchiType.ApplicationFunction, 'H')
+    c = m.add(ArchiType.ApplicationFunction, "H")
     rel2 = m.add_relationship(ArchiType.Serving, source=a, target=c)
     conn.ref = rel2.uuid
     assert conn.ref == rel2.uuid
@@ -449,7 +459,7 @@ def test_connection_ref_setter(simple_view):
 
 def test_connection_source_setter_with_node(simple_view):
     m, v, _, _, _, _, _, conn = simple_view
-    c = m.add(ArchiType.ApplicationComponent, 'Cx')
+    c = m.add(ArchiType.ApplicationComponent, "Cx")
     nc = v.add(ref=c.uuid, x=0, y=100, w=120, h=55)
     conn.source = nc
     assert conn._source == nc.uuid
@@ -457,7 +467,7 @@ def test_connection_source_setter_with_node(simple_view):
 
 def test_connection_target_setter_with_node(simple_view):
     m, v, _, _, _, _, _, conn = simple_view
-    c = m.add(ArchiType.ApplicationService, 'Cy')
+    c = m.add(ArchiType.ApplicationService, "Cy")
     nc = v.add(ref=c.uuid, x=0, y=200, w=120, h=55)
     conn.target = nc
     assert conn._target == nc.uuid
@@ -517,6 +527,7 @@ def test_connection_delete(simple_view):
 # Node geometry setters — negative clamping and child propagation
 # ---------------------------------------------------------------------------
 
+
 def test_node_x_setter_negative_clamped(simple_view):
     _, _, _, _, _, na, *_ = simple_view
     na.x = -10
@@ -557,20 +568,21 @@ def test_node_fill_color_none_uses_default(simple_view):
     _, _, _, _, _, na, *_ = simple_view
     na.fill_color = None
     # Should set a default color string
-    assert na.fill_color is not None and na.fill_color.startswith('#')
+    assert na.fill_color is not None and na.fill_color.startswith("#")
 
 
 # ---------------------------------------------------------------------------
 # Nested nodes — rx, ry, x/y child propagation
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def view_with_nested_node():
     """A view containing a parent node with one embedded child."""
-    m = Model('nested-test')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationComponent, 'Child')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("nested-test")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationComponent, "Child")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_node = v.add(ref=a.uuid, x=100, y=100, w=300, h=200)
     child_node = parent_node.add(ref=b.uuid, x=120, y=120, w=100, h=55)
     return m, v, a, b, parent_node, child_node
@@ -626,7 +638,7 @@ def test_parent_node_y_setter_propagates_to_child(view_with_nested_node):
 
 def test_node_add_with_nested_rel_type(view_with_nested_node):
     m, _, _, _, parent_node, _ = view_with_nested_node
-    c = m.add(ArchiType.ApplicationComponent, 'Another')
+    c = m.add(ArchiType.ApplicationComponent, "Another")
     child2 = parent_node.add(ref=c.uuid, x=10, y=10, nested_rel_type=ArchiType.Composition)
     assert child2 is not None
     # A composition relationship should have been created
@@ -643,6 +655,7 @@ def test_node_delete_with_children(view_with_nested_node):
 # ---------------------------------------------------------------------------
 # Connection shape methods
 # ---------------------------------------------------------------------------
+
 
 def test_connection_l_shape(simple_view):
     *_, conn = simple_view
@@ -673,9 +686,10 @@ def test_connection_s_shape_direction1(simple_view):
 # Connection ref/source/target setter — object (hasattr) paths
 # ---------------------------------------------------------------------------
 
+
 def test_connection_ref_setter_with_relationship_object(simple_view):
     m, _, a, _, _, _, _, conn = simple_view
-    c = m.add(ArchiType.ApplicationFunction, 'F')
+    c = m.add(ArchiType.ApplicationFunction, "F")
     rel2 = m.add_relationship(ArchiType.Serving, source=a, target=c)
     conn.ref = rel2  # pass Relationship object (has .uuid)
     assert conn.ref == rel2.uuid
@@ -683,7 +697,7 @@ def test_connection_ref_setter_with_relationship_object(simple_view):
 
 def test_connection_source_setter_with_string(simple_view):
     m, v, _, _, _, _, _, conn = simple_view
-    c = m.add(ArchiType.ApplicationComponent, 'Cx')
+    c = m.add(ArchiType.ApplicationComponent, "Cx")
     nc = v.add(ref=c.uuid, x=0, y=100, w=120, h=55)
     conn.source = nc.uuid  # plain string — falls through to else
     assert conn._source == nc.uuid
@@ -691,7 +705,7 @@ def test_connection_source_setter_with_string(simple_view):
 
 def test_connection_target_setter_with_string(simple_view):
     m, v, _, _, _, _, _, conn = simple_view
-    c = m.add(ArchiType.ApplicationService, 'Cy')
+    c = m.add(ArchiType.ApplicationService, "Cy")
     nc = v.add(ref=c.uuid, x=0, y=200, w=120, h=55)
     conn.target = nc.uuid  # plain string — falls through to else
     assert conn._target == nc.uuid
@@ -705,7 +719,7 @@ def test_connection_source_setter_with_uuid_object(simple_view):
         def __init__(self, uuid):
             self.uuid = uuid
 
-    c = m.add(ArchiType.ApplicationComponent, 'Cz')
+    c = m.add(ArchiType.ApplicationComponent, "Cz")
     nc = v.add(ref=c.uuid, x=0, y=300, w=120, h=55)
     conn.source = FakeNode(nc.uuid)
     assert conn._source == nc.uuid
@@ -719,7 +733,7 @@ def test_connection_target_setter_with_uuid_object(simple_view):
         def __init__(self, uuid):
             self.uuid = uuid
 
-    c = m.add(ArchiType.ApplicationService, 'Cw')
+    c = m.add(ArchiType.ApplicationService, "Cw")
     nc = v.add(ref=c.uuid, x=0, y=400, w=120, h=55)
     conn.target = FakeNode(nc.uuid)
     assert conn._target == nc.uuid
@@ -729,14 +743,15 @@ def test_connection_target_setter_with_uuid_object(simple_view):
 # Profile.delete — covers relationship-profile loop (line 126)
 # ---------------------------------------------------------------------------
 
+
 def test_profile_delete_clears_relationship_profile():
     """Covers the relationship-loop body in Profile.delete (line 126)."""
-    m = Model('prof-rel-test')
-    a = m.add(ArchiType.ApplicationComponent, 'App')
-    b = m.add(ArchiType.ApplicationService, 'Svc')
+    m = Model("prof-rel-test")
+    a = m.add(ArchiType.ApplicationComponent, "App")
+    b = m.add(ArchiType.ApplicationService, "Svc")
     rel = m.add_relationship(ArchiType.Serving, source=a, target=b)
-    rel.set_profile('ByeProfile')
-    profile = m.get_profile('ByeProfile')
+    rel.set_profile("ByeProfile")
+    profile = m.get_profile("ByeProfile")
     assert profile is not None
     profile.delete()
     assert rel.profile_name is None
@@ -746,6 +761,7 @@ def test_profile_delete_clears_relationship_profile():
 # Node.__init__ error paths
 # ---------------------------------------------------------------------------
 
+
 def test_node_invalid_parent_raises():
     """Node requires a View/Node parent; plain string raises ValueError."""
     with pytest.raises(ValueError):
@@ -754,9 +770,9 @@ def test_node_invalid_parent_raises():
 
 def test_node_init_with_hasattr_ref():
     """Covers the hasattr(ref, 'uuid') branch in Node.__init__ (lines 169-170)."""
-    m = Model('fake-ref-test')
-    a = m.add(ArchiType.ApplicationComponent, 'App')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("fake-ref-test")
+    a = m.add(ArchiType.ApplicationComponent, "App")
+    v = cast(View, m.add(ArchiType.View, "V"))
 
     class FakeRef:
         uuid = a.uuid
@@ -767,31 +783,32 @@ def test_node_init_with_hasattr_ref():
 
 def test_node_init_with_invalid_ref_type_raises():
     """Covers the else: raise branch (line 172) when ref is not str/Element/has-uuid."""
-    m = Model('bad-ref-test')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("bad-ref-test")
+    v = cast(View, m.add(ArchiType.View, "V"))
     with pytest.raises(ValueError):
         v.add(ref=42, x=0, y=0)  # int has no .uuid attribute
 
 
 def test_node_init_elem_ref_not_in_model_raises():
     """Covers line 176: node_type='Element' but ref uuid not registered in model."""
-    m = Model('bad-elem-ref')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("bad-elem-ref")
+    v = cast(View, m.add(ArchiType.View, "V"))
     # Should not raise - logs a debug message instead
-    n = v.add(ref='nonexistent-uuid', x=0, y=0)
+    n = v.add(ref="nonexistent-uuid", x=0, y=0)
     assert n is not None
-    assert n.ref == 'nonexistent-uuid'
+    assert n.ref == "nonexistent-uuid"
 
 
 # ---------------------------------------------------------------------------
 # Node.delete(delete_from_model=True) — lines 219, 224-228
 # ---------------------------------------------------------------------------
 
+
 def test_node_delete_from_model_removes_element():
     """delete_from_model=True also removes the underlying Element (lines 219, 224-228)."""
-    m = Model('del-model-test')
-    a = m.add(ArchiType.ApplicationComponent, 'App')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("del-model-test")
+    a = m.add(ArchiType.ApplicationComponent, "App")
+    v = cast(View, m.add(ArchiType.View, "V"))
     n = v.add(ref=a.uuid, x=0, y=0)
     a_uuid = a.uuid
     n_uuid = n.uuid
@@ -804,13 +821,14 @@ def test_node_delete_from_model_removes_element():
 # Node.concept property — KeyError path (lines 269-270)
 # ---------------------------------------------------------------------------
 
+
 def test_node_concept_invalid_ref_raises():
     """Covers returning None when _ref is no longer in elems_dict."""
-    m = Model('bad-concept-test')
-    a = m.add(ArchiType.ApplicationComponent, 'App')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("bad-concept-test")
+    a = m.add(ArchiType.ApplicationComponent, "App")
+    v = cast(View, m.add(ArchiType.View, "V"))
     n = v.add(ref=a.uuid, x=0, y=0)
-    n._ref = 'dangling-uuid'  # corrupt the reference
+    n._ref = "dangling-uuid"  # corrupt the reference
     # Should return None and log debug message instead of raising
     assert n.concept is None
 
@@ -819,12 +837,13 @@ def test_node_concept_invalid_ref_raises():
 # Node.ref setter — hasattr(ref, 'uuid') branch (line 281)
 # ---------------------------------------------------------------------------
 
+
 def test_node_ref_setter_with_hasattr_obj():
     """Covers the hasattr(ref, 'uuid') branch in Node.ref setter (line 281)."""
-    m = Model('ref-setter-test')
-    a = m.add(ArchiType.ApplicationComponent, 'App')
-    b = m.add(ArchiType.ApplicationComponent, 'App2')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("ref-setter-test")
+    a = m.add(ArchiType.ApplicationComponent, "App")
+    b = m.add(ArchiType.ApplicationComponent, "App2")
+    v = cast(View, m.add(ArchiType.View, "V"))
     n = v.add(ref=a.uuid, x=0, y=0)
 
     class FakeElem:
@@ -838,20 +857,21 @@ def test_node_ref_setter_with_hasattr_obj():
 # Node.rx / Node.ry — View parent (non-Node parent) paths
 # ---------------------------------------------------------------------------
 
+
 def test_node_rx_view_parent_returns_x():
     """Covers line 317: rx returns _x when parent is a View (not Node)."""
-    m = Model('rx-view-test')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("rx-view-test")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
     n = v.add(ref=a.uuid, x=50, y=10)
     assert n.rx == 50  # parent is View → rx == x
 
 
 def test_node_rx_setter_view_parent():
     """Covers line 326: rx setter sets x directly when parent is a View."""
-    m = Model('rx-set-view-test')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("rx-set-view-test")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
     n = v.add(ref=a.uuid, x=50, y=10)
     n.rx = 100
     assert n.x == 100
@@ -859,18 +879,18 @@ def test_node_rx_setter_view_parent():
 
 def test_node_ry_view_parent_returns_y():
     """Covers line 356: ry returns _y when parent is a View (not Node)."""
-    m = Model('ry-view-test')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("ry-view-test")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
     n = v.add(ref=a.uuid, x=10, y=70)
     assert n.ry == 70
 
 
 def test_node_ry_setter_view_parent():
     """Covers line 365: ry setter sets y directly when parent is a View."""
-    m = Model('ry-set-view-test')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("ry-set-view-test")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
     n = v.add(ref=a.uuid, x=10, y=70)
     n.ry = 200
     assert n.y == 200
@@ -880,38 +900,37 @@ def test_node_ry_setter_view_parent():
 # Node.get_or_create_node (Node method) — lines 420-436
 # ---------------------------------------------------------------------------
 
+
 def test_node_get_or_create_node_by_name_found():
     """String elem found → covers lines 422-424."""
-    m = Model('gocn-found')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationComponent, 'Child')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("gocn-found")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationComponent, "Child")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=300, h=200)
     child_n = parent_n.add(ref=b.uuid, x=10, y=10)
-    result = parent_n.get_or_create_node(
-        elem='Child', elem_type=ArchiType.ApplicationComponent
-    )
+    result = parent_n.get_or_create_node(elem="Child", elem_type=ArchiType.ApplicationComponent)
     assert result is child_n
 
 
 def test_node_get_or_create_node_not_found_no_create():
     """String elem not found, create_elem=False → returns None (line 428)."""
-    m = Model('gocn-none')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("gocn-none")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=300, h=200)
-    result = parent_n.get_or_create_node(elem='Ghost', elem_type=ArchiType.ApplicationComponent)
+    result = parent_n.get_or_create_node(elem="Ghost", elem_type=ArchiType.ApplicationComponent)
     assert result is None
 
 
 def test_node_get_or_create_node_create_elem_and_node():
     """create_elem=True creates element and child node (lines 425-426, 434-435)."""
-    m = Model('gocn-create')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("gocn-create")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=300, h=200)
     result = parent_n.get_or_create_node(
-        elem='NewChild',
+        elem="NewChild",
         elem_type=ArchiType.ApplicationComponent,
         create_elem=True,
         create_node=True,
@@ -921,10 +940,10 @@ def test_node_get_or_create_node_create_elem_and_node():
 
 def test_node_get_or_create_node_existing_child():
     """Elem object passed directly, node exists → returns it (lines 430, 432-433)."""
-    m = Model('gocn-existing')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationComponent, 'Child')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("gocn-existing")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationComponent, "Child")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=300, h=200)
     child_n = parent_n.add(ref=b.uuid, x=10, y=10)
     result = parent_n.get_or_create_node(elem=b)
@@ -933,10 +952,10 @@ def test_node_get_or_create_node_existing_child():
 
 def test_node_get_or_create_node_create_node_only():
     """Elem object passed, no existing child node, create_node=True (line 434-435)."""
-    m = Model('gocn-create-node')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationComponent, 'Child')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("gocn-create-node")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationComponent, "Child")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=300, h=200)
     result = parent_n.get_or_create_node(elem=b, create_node=True)
     assert result is not None
@@ -946,13 +965,14 @@ def test_node_get_or_create_node_create_node_only():
 # Node.resize — lines 449-493
 # ---------------------------------------------------------------------------
 
+
 def test_node_resize_default():
     """resize() with default args (justify='left', sort='asc') — lines 449-485."""
-    m = Model('resize-default')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationService, 'Child1')
-    c = m.add(ArchiType.ApplicationComponent, 'Child2')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("resize-default")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationService, "Child1")
+    c = m.add(ArchiType.ApplicationComponent, "Child2")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=400, h=300)
     parent_n.add(ref=b.uuid, x=10, y=10)
     parent_n.add(ref=c.uuid, x=150, y=10)
@@ -962,67 +982,67 @@ def test_node_resize_default():
 
 def test_node_resize_desc_sort():
     """resize() with sort='desc' — covers the 'desc' branch (line 458)."""
-    m = Model('resize-desc')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationService, 'Child1')
-    c = m.add(ArchiType.ApplicationComponent, 'Child2')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("resize-desc")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationService, "Child1")
+    c = m.add(ArchiType.ApplicationComponent, "Child2")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=400, h=300)
     parent_n.add(ref=b.uuid, x=10, y=10)
     parent_n.add(ref=c.uuid, x=150, y=10)
-    parent_n.resize(sort='desc')
+    parent_n.resize(sort="desc")
     assert parent_n.w > 0
 
 
 def test_node_resize_no_sort():
     """resize() with unrecognised sort value — covers the else branch (line 460)."""
-    m = Model('resize-none')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationService, 'Child1')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("resize-none")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationService, "Child1")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=400, h=300)
     parent_n.add(ref=b.uuid, x=10, y=10)
-    parent_n.resize(sort='none')
+    parent_n.resize(sort="none")
     assert parent_n.w > 0
 
 
 def test_node_resize_justify_center():
     """resize() with justify='center' — covers lines 475-476."""
-    m = Model('resize-center')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationService, 'C1')
-    c = m.add(ArchiType.ApplicationComponent, 'C2')
-    d = m.add(ArchiType.ApplicationComponent, 'C3')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("resize-center")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationService, "C1")
+    c = m.add(ArchiType.ApplicationComponent, "C2")
+    d = m.add(ArchiType.ApplicationComponent, "C3")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=500, h=300)
     parent_n.add(ref=b.uuid, x=10, y=10)
     parent_n.add(ref=c.uuid, x=150, y=10)
     parent_n.add(ref=d.uuid, x=290, y=10)
-    parent_n.resize(max_in_row=2, justify='center')
+    parent_n.resize(max_in_row=2, justify="center")
     assert parent_n.w > 0
 
 
 def test_node_resize_justify_right():
     """resize() with justify='right' — covers lines 486-493."""
-    m = Model('resize-right')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationService, 'C1')
-    c = m.add(ArchiType.ApplicationComponent, 'C2')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("resize-right")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationService, "C1")
+    c = m.add(ArchiType.ApplicationComponent, "C2")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=400, h=300)
     parent_n.add(ref=b.uuid, x=10, y=10)
     parent_n.add(ref=c.uuid, x=150, y=10)
-    parent_n.resize(max_in_row=2, justify='right')
+    parent_n.resize(max_in_row=2, justify="right")
     assert parent_n.w > 0
 
 
 def test_node_resize_with_recurse():
     """resize(recurse=True) — covers the recurse branch (line 463)."""
-    m = Model('resize-recurse')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationService, 'Child')
-    c = m.add(ArchiType.ApplicationComponent, 'GrandChild')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("resize-recurse")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationService, "Child")
+    c = m.add(ArchiType.ApplicationComponent, "GrandChild")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=400, h=300)
     child_n = parent_n.add(ref=b.uuid, x=10, y=10, w=200, h=150)
     child_n.add(ref=c.uuid, x=20, y=20)
@@ -1034,13 +1054,14 @@ def test_node_resize_with_recurse():
 # Node.get_obj_pos — lines 521-560
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def two_spaced_nodes():
     """Two nodes far apart to exercise get_obj_pos orientations."""
-    m = Model('obj-pos-test')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    b = m.add(ArchiType.ApplicationService, 'B')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("obj-pos-test")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    v = cast(View, m.add(ArchiType.View, "V"))
     # A to the left, B to the right, vertically aligned
     na = v.add(ref=a.uuid, x=0, y=200, w=120, h=55)
     nb = v.add(ref=b.uuid, x=300, y=200, w=120, h=55)
@@ -1051,46 +1072,46 @@ def test_get_obj_pos_right(two_spaced_nodes):
     """B is to the right of A → orientation 'R'."""
     _, _, na, nb = two_spaced_nodes
     pos = na.get_obj_pos(nb)
-    assert 'R' in pos.orientation or pos.orientation in ('R', 'R!')
+    assert "R" in pos.orientation or pos.orientation in ("R", "R!")
 
 
 def test_get_obj_pos_left(two_spaced_nodes):
     """A is to the left of B → orientation 'L' from B's perspective."""
     _, _, na, nb = two_spaced_nodes
     pos = nb.get_obj_pos(na)
-    assert 'L' in pos.orientation
+    assert "L" in pos.orientation
 
 
 def test_get_obj_pos_below():
     """B is directly below A → orientation 'B'."""
-    m = Model('obj-pos-below')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    b = m.add(ArchiType.ApplicationService, 'B')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("obj-pos-below")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    v = cast(View, m.add(ArchiType.View, "V"))
     na = v.add(ref=a.uuid, x=200, y=0, w=120, h=55)
     nb = v.add(ref=b.uuid, x=200, y=300, w=120, h=55)
     pos = na.get_obj_pos(nb)
-    assert 'B' in pos.orientation
+    assert "B" in pos.orientation
 
 
 def test_get_obj_pos_above():
     """B is directly above A → orientation 'T'."""
-    m = Model('obj-pos-above')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    b = m.add(ArchiType.ApplicationService, 'B')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("obj-pos-above")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    v = cast(View, m.add(ArchiType.View, "V"))
     na = v.add(ref=a.uuid, x=200, y=300, w=120, h=55)
     nb = v.add(ref=b.uuid, x=200, y=0, w=120, h=55)
     pos = na.get_obj_pos(nb)
-    assert 'T' in pos.orientation
+    assert "T" in pos.orientation
 
 
 def test_get_obj_pos_gap_x():
     """Nodes with horizontal gap → pos.gap_x is set."""
-    m = Model('obj-pos-gapx')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    b = m.add(ArchiType.ApplicationService, 'B')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("obj-pos-gapx")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    v = cast(View, m.add(ArchiType.View, "V"))
     na = v.add(ref=a.uuid, x=0, y=0, w=100, h=50)
     nb = v.add(ref=b.uuid, x=250, y=0, w=100, h=50)
     pos = na.get_obj_pos(nb)
@@ -1099,10 +1120,10 @@ def test_get_obj_pos_gap_x():
 
 def test_get_obj_pos_gap_y():
     """Nodes with vertical gap → pos.gap_y is set."""
-    m = Model('obj-pos-gapy')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    b = m.add(ArchiType.ApplicationService, 'B')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("obj-pos-gapy")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    v = cast(View, m.add(ArchiType.View, "V"))
     na = v.add(ref=a.uuid, x=0, y=0, w=100, h=50)
     nb = v.add(ref=b.uuid, x=0, y=200, w=100, h=50)
     pos = na.get_obj_pos(nb)
@@ -1113,13 +1134,14 @@ def test_get_obj_pos_gap_y():
 # Node.move — lines 674-682
 # ---------------------------------------------------------------------------
 
+
 def test_node_move_between_parents():
     """Move a child node from one parent to another (lines 674-682)."""
-    m = Model('move-test')
-    a = m.add(ArchiType.ApplicationComponent, 'ParentA')
-    b = m.add(ArchiType.ApplicationComponent, 'ParentB')
-    c = m.add(ArchiType.ApplicationComponent, 'Child')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("move-test")
+    a = m.add(ArchiType.ApplicationComponent, "ParentA")
+    b = m.add(ArchiType.ApplicationComponent, "ParentB")
+    c = m.add(ArchiType.ApplicationComponent, "Child")
+    v = cast(View, m.add(ArchiType.View, "V"))
     p1 = v.add(ref=a.uuid, x=0, y=0, w=300, h=200)
     p2 = v.add(ref=b.uuid, x=400, y=0, w=300, h=200)
     child_n = p1.add(ref=c.uuid, x=10, y=10)
@@ -1131,10 +1153,11 @@ def test_node_move_between_parents():
 def test_node_move_invalid_target_logs(caplog):
     """Moving to an invalid target logs an error and returns early."""
     import logging
-    m = Model('move-invalid')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    b = m.add(ArchiType.ApplicationComponent, 'B')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+
+    m = Model("move-invalid")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationComponent, "B")
+    v = cast(View, m.add(ArchiType.View, "V"))
     p1 = v.add(ref=a.uuid, x=0, y=0, w=300, h=200)
     child_n = p1.add(ref=b.uuid, x=10, y=10)
     with caplog.at_level(logging.ERROR):
@@ -1147,42 +1170,47 @@ def test_node_move_invalid_target_logs(caplog):
 # Connection.__init__ error paths — lines 701, 715, 725, 735
 # ---------------------------------------------------------------------------
 
+
 def test_connection_invalid_parent_raises():
     """Connection requires a View parent; string raises ArchimateConceptTypeError."""
     from src.pyArchimate.exceptions import ArchimateConceptTypeError
+
     with pytest.raises(ArchimateConceptTypeError):
-        Connection(ref='any', source='s', target='t', parent="not_a_view")
+        Connection(ref="any", source="s", target="t", parent="not_a_view")
 
 
 def test_connection_invalid_ref_raises():
     """ref that is not str and has no .uuid raises ArchimateConceptTypeError."""
     from src.pyArchimate.exceptions import ArchimateConceptTypeError
-    m = Model('conn-bad-ref')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+
+    m = Model("conn-bad-ref")
+    v = cast(View, m.add(ArchiType.View, "V"))
     with pytest.raises(ArchimateConceptTypeError):
-        Connection(ref=None, source='s', target='t', parent=v)
+        Connection(ref=None, source="s", target="t", parent=v)
 
 
 def test_connection_invalid_source_raises():
     """source that is not a Node or str raises ArchimateConceptTypeError."""
     from src.pyArchimate.exceptions import ArchimateConceptTypeError
-    m = Model('conn-bad-src')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    b = m.add(ArchiType.ApplicationService, 'B')
+
+    m = Model("conn-bad-src")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
     rel = m.add_relationship(ArchiType.Serving, source=a, target=b)
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    v = cast(View, m.add(ArchiType.View, "V"))
     with pytest.raises(ArchimateConceptTypeError):
-        Connection(ref=rel.uuid, source=None, target='t', parent=v)
+        Connection(ref=rel.uuid, source=None, target="t", parent=v)
 
 
 def test_connection_invalid_target_raises():
     """target that is not a Node or str raises ArchimateConceptTypeError."""
     from src.pyArchimate.exceptions import ArchimateConceptTypeError
-    m = Model('conn-bad-tgt')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    b = m.add(ArchiType.ApplicationService, 'B')
+
+    m = Model("conn-bad-tgt")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
     rel = m.add_relationship(ArchiType.Serving, source=a, target=b)
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    v = cast(View, m.add(ArchiType.View, "V"))
     na = v.add(ref=a.uuid, x=0, y=0)
     with pytest.raises(ArchimateConceptTypeError):
         Connection(ref=rel.uuid, source=na, target=None, parent=v)
@@ -1192,25 +1220,28 @@ def test_connection_invalid_target_raises():
 # View.__init__ invalid parent (line 908)
 # ---------------------------------------------------------------------------
 
+
 def test_view_invalid_parent_raises():
     """View requires a parent with views_dict; string raises ArchimateConceptTypeError."""
     from src.pyArchimate.exceptions import ArchimateConceptTypeError
+
     with pytest.raises(ArchimateConceptTypeError):
-        View(name='V', parent="not_a_model")
+        View(name="V", parent="not_a_model")
 
 
 # ---------------------------------------------------------------------------
 # l_shape / s_shape — adds bendpoints with vertically separated nodes
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def vertical_view():
     """A view with source/target nodes far apart vertically (enables l/s shape)."""
-    m = Model('vertical-test')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    b = m.add(ArchiType.ApplicationService, 'B')
+    m = Model("vertical-test")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
     rel = m.add_relationship(ArchiType.Serving, source=a, target=b)
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    v = cast(View, m.add(ArchiType.View, "V"))
     na = v.add(ref=a.uuid, x=0, y=0, w=120, h=55)
     nb = v.add(ref=b.uuid, x=200, y=500, w=120, h=55)
     conn = v.add_connection(ref=rel.uuid, source=na, target=nb)
@@ -1249,22 +1280,23 @@ def test_connection_s_shape_direction1_adds_bendpoints(vertical_view):
 # Additional Node.__init__ and Node.delete paths
 # ---------------------------------------------------------------------------
 
+
 def test_node_init_label_ref_not_in_model_raises():
     """Covers line 179: Label node with ref not in labels_dict logs debug message."""
-    m = Model('label-bad-ref')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("label-bad-ref")
+    v = cast(View, m.add(ArchiType.View, "V"))
     # Should not raise - logs a debug message instead
-    n = v.add(ref='nonexistent-label-uuid', node_type='Label', x=0, y=0)
+    n = v.add(ref="nonexistent-label-uuid", node_type="Label", x=0, y=0)
     assert n is not None
-    assert n.ref == 'nonexistent-label-uuid'
+    assert n.ref == "nonexistent-label-uuid"
 
 
 def test_node_delete_recurse_false_moves_children():
     """Node.delete(recurse=False) moves children to parent (line 219: n.move)."""
-    m = Model('delete-no-recurse')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationComponent, 'Child')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("delete-no-recurse")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationComponent, "Child")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=300, h=200)
     child_n = parent_n.add(ref=b.uuid, x=10, y=10)
     parent_n.delete(recurse=False)
@@ -1274,12 +1306,12 @@ def test_node_delete_recurse_false_moves_children():
 
 def test_node_delete_from_model_with_related_nodes():
     """delete_from_model=True with another node referencing the same elem (line 227)."""
-    m = Model('del-related')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    b = m.add(ArchiType.ApplicationService, 'B')
+    m = Model("del-related")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
     m.add_relationship(ArchiType.Serving, source=a, target=b)
-    v1 = cast(View, m.add(ArchiType.View, 'V1'))
-    v2 = cast(View, m.add(ArchiType.View, 'V2'))
+    v1 = cast(View, m.add(ArchiType.View, "V1"))
+    v2 = cast(View, m.add(ArchiType.View, "V2"))
     n1 = v1.add(ref=a.uuid, x=0, y=0)
     n2 = v2.add(ref=a.uuid, x=100, y=100)  # same element in another view
     # delete n1 with delete_from_model=True; n2 (related_node) is also deleted
@@ -1292,12 +1324,13 @@ def test_node_delete_from_model_with_related_nodes():
 # Node.get_or_create_node — Element obj, no child, create_node=False → None
 # ---------------------------------------------------------------------------
 
+
 def test_node_get_or_create_node_no_child_no_create():
     """Element passed directly, no existing child, create_node=False → None (line 436)."""
-    m = Model('gocn-no-create')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationComponent, 'Child')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("gocn-no-create")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationComponent, "Child")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=300, h=200)
     # b has no node inside parent_n, create_node=False
     result = parent_n.get_or_create_node(elem=b, create_node=False)
@@ -1308,33 +1341,34 @@ def test_node_get_or_create_node_no_child_no_create():
 # Node.resize — fix justify='right' to cover lines 488-490, 492-493
 # ---------------------------------------------------------------------------
 
+
 def test_node_resize_justify_right_odd_children():
     """justify='right' with 3 nodes and max_in_row=2 → covers lines 488-490."""
-    m = Model('resize-right-odd')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationService, 'C1')
-    c = m.add(ArchiType.ApplicationComponent, 'C2')
-    d = m.add(ArchiType.ApplicationComponent, 'C3')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("resize-right-odd")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationService, "C1")
+    c = m.add(ArchiType.ApplicationComponent, "C2")
+    d = m.add(ArchiType.ApplicationComponent, "C3")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=500, h=300)
     parent_n.add(ref=b.uuid, x=10, y=10)
     parent_n.add(ref=c.uuid, x=150, y=10)
     parent_n.add(ref=d.uuid, x=290, y=10)
-    parent_n.resize(max_in_row=2, justify='right')
+    parent_n.resize(max_in_row=2, justify="right")
     assert parent_n.w > 0
 
 
 def test_node_resize_justify_right_max_in_row_1():
     """justify='right' with max_in_row=1 — covers lines 491-493."""
-    m = Model('resize-right-1')
-    a = m.add(ArchiType.ApplicationComponent, 'Parent')
-    b = m.add(ArchiType.ApplicationService, 'C1')
-    c = m.add(ArchiType.ApplicationComponent, 'C2')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("resize-right-1")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationService, "C1")
+    c = m.add(ArchiType.ApplicationComponent, "C2")
+    v = cast(View, m.add(ArchiType.View, "V"))
     parent_n = v.add(ref=a.uuid, x=0, y=0, w=400, h=300)
     parent_n.add(ref=b.uuid, x=10, y=10)
     parent_n.add(ref=c.uuid, x=150, y=100)
-    parent_n.resize(max_in_row=1, justify='right')
+    parent_n.resize(max_in_row=1, justify="right")
     assert parent_n.w > 0
 
 
@@ -1342,15 +1376,17 @@ def test_node_resize_justify_right_max_in_row_1():
 # Node.move — wrong view (lines 678-679)
 # ---------------------------------------------------------------------------
 
+
 def test_node_move_wrong_view_logs(caplog):
     """Moving to a node in a different view logs an error (lines 678-679)."""
     import logging
-    m = Model('move-wrong-view')
-    a = m.add(ArchiType.ApplicationComponent, 'A')
-    b = m.add(ArchiType.ApplicationComponent, 'B')
-    c = m.add(ArchiType.ApplicationComponent, 'C')
-    v1 = cast(View, m.add(ArchiType.View, 'V1'))
-    v2 = cast(View, m.add(ArchiType.View, 'V2'))
+
+    m = Model("move-wrong-view")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationComponent, "B")
+    c = m.add(ArchiType.ApplicationComponent, "C")
+    v1 = cast(View, m.add(ArchiType.View, "V1"))
+    v2 = cast(View, m.add(ArchiType.View, "V2"))
     p1 = v1.add(ref=a.uuid, x=0, y=0, w=300, h=200)
     p2 = v2.add(ref=b.uuid, x=0, y=0, w=300, h=200)
     child_n = p1.add(ref=c.uuid, x=10, y=10)
@@ -1364,70 +1400,70 @@ def test_node_move_wrong_view_logs(caplog):
 # Connection.__init__ — valid ref/source/target not found in model (717, 727, 737)
 # ---------------------------------------------------------------------------
 
+
 def test_connection_valid_ref_not_in_rels_dict_raises(simple_view):
     """Covers line 717: ref is a valid string but not in rels_dict."""
     m, v, *_ = simple_view
-    a = m.add(ArchiType.ApplicationComponent, 'X1')
-    b = m.add(ArchiType.ApplicationService, 'X2')
+    a = m.add(ArchiType.ApplicationComponent, "X1")
+    b = m.add(ArchiType.ApplicationService, "X2")
     na = v.add(ref=a.uuid, x=0, y=600)
     nb = v.add(ref=b.uuid, x=200, y=600)
     # Should not raise - logs a debug message instead
-    c = Connection(ref='nonexistent-rel-uuid', source=na, target=nb, parent=v)
+    c = Connection(ref="nonexistent-rel-uuid", source=na, target=nb, parent=v)
     assert c is not None
-    assert c.ref == 'nonexistent-rel-uuid'
+    assert c.ref == "nonexistent-rel-uuid"
 
 
 def test_connection_valid_source_not_in_nodes_dict_raises(simple_view):
     """Covers line 727: source is a valid string but not in nodes_dict."""
     _, v, _, _, rel, _, nb, _ = simple_view
     # Should not raise - logs a debug message instead
-    c = Connection(ref=rel.uuid, source='nonexistent-node-uuid', target=nb, parent=v)
+    c = Connection(ref=rel.uuid, source="nonexistent-node-uuid", target=nb, parent=v)
     assert c is not None
-    assert c._source == 'nonexistent-node-uuid'
+    assert c._source == "nonexistent-node-uuid"
 
 
 def test_connection_valid_target_not_in_nodes_dict_raises(simple_view):
     """Covers line 737: target is a valid string but not in nodes_dict."""
     _, v, _, _, rel, na, _, _ = simple_view
     # Should not raise - logs a debug message instead
-    c = Connection(ref=rel.uuid, source=na, target='nonexistent-node-uuid', parent=v)
+    c = Connection(ref=rel.uuid, source=na, target="nonexistent-node-uuid", parent=v)
     assert c is not None
-    assert c._target == 'nonexistent-node-uuid'
+    assert c._target == "nonexistent-node-uuid"
 
 
 # ---------------------------------------------------------------------------
 # View.get_or_create_node — string elem paths (lines 992, 1004)
 # ---------------------------------------------------------------------------
 
+
 def test_view_get_or_create_node_string_found():
     """String elem that exists in model → covers line 992 (_e = _e[0])."""
-    m = Model('gocn-str-found')
-    a = m.add(ArchiType.ApplicationComponent, 'CompA')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("gocn-str-found")
+    a = m.add(ArchiType.ApplicationComponent, "CompA")
+    v = cast(View, m.add(ArchiType.View, "V"))
     n = v.add(ref=a.uuid, x=0, y=0)
-    result = v.get_or_create_node(elem='CompA', elem_type=ArchiType.ApplicationComponent)
+    result = v.get_or_create_node(elem="CompA", elem_type=ArchiType.ApplicationComponent)
     assert result is n
 
 
 def test_view_get_or_create_node_string_create_node():
     """String elem found, no existing node, create_node=True → covers line 1003."""
-    m = Model('gocn-str-create')
-    m.add(ArchiType.ApplicationComponent, 'CompB')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("gocn-str-create")
+    m.add(ArchiType.ApplicationComponent, "CompB")
+    v = cast(View, m.add(ArchiType.View, "V"))
     # No node added yet for CompB
-    result = v.get_or_create_node(
-        elem='CompB', elem_type=ArchiType.ApplicationComponent, create_node=True
-    )
+    result = v.get_or_create_node(elem="CompB", elem_type=ArchiType.ApplicationComponent, create_node=True)
     assert result is not None
 
 
 def test_view_get_or_create_node_no_node_no_create():
     """String elem found, no existing node, create_node=False → covers line 1004 (return None)."""
-    m = Model('gocn-no-create-view')
-    m.add(ArchiType.ApplicationComponent, 'CompC')
-    v = cast(View, m.add(ArchiType.View, 'V'))
+    m = Model("gocn-no-create-view")
+    m.add(ArchiType.ApplicationComponent, "CompC")
+    v = cast(View, m.add(ArchiType.View, "V"))
     # Element exists but no node in this view; create_node defaults to False
-    result = v.get_or_create_node(elem='CompC', elem_type=ArchiType.ApplicationComponent)
+    result = v.get_or_create_node(elem="CompC", elem_type=ArchiType.ApplicationComponent)
     assert result is None
 
 
@@ -1435,15 +1471,14 @@ def test_view_get_or_create_node_no_node_no_create():
 # View.get_or_create_connection — lines 1023, 1035, 1043, 1050
 # ---------------------------------------------------------------------------
 
+
 def test_view_get_or_create_connection_with_name_creates_rel(simple_view):
     """Named lookup finds no match, creates new rel → covers lines 1023, 1035."""
     m, v, _, _, _, na, _, _ = simple_view
-    new_svc = m.add(ArchiType.ApplicationService, 'NewS')
+    new_svc = m.add(ArchiType.ApplicationService, "NewS")
     nn = v.add(ref=new_svc.uuid, x=400, y=10)
     result = v.get_or_create_connection(
-        rel=None, source=na, target=nn,
-        rel_type=ArchiType.Serving, name='new-conn',
-        create_conn=True
+        rel=None, source=na, target=nn, rel_type=ArchiType.Serving, name="new-conn", create_conn=True
     )
     assert result is not None
 
@@ -1471,63 +1506,66 @@ def test_view_get_or_create_connection_no_conn_create_false(simple_view):
 # _classify_outer_quadrant — lines 46 ('R'), 48 ('B'), 51 ('T')
 # ---------------------------------------------------------------------------
 
+
 def test_classify_outer_quadrant_right():
     """Angle in [135, 225) → 'R' (line 46)."""
-    assert _classify_outer_quadrant(135) == 'R'
-    assert _classify_outer_quadrant(180) == 'R'
-    assert _classify_outer_quadrant(224.9) == 'R'
+    assert _classify_outer_quadrant(135) == "R"
+    assert _classify_outer_quadrant(180) == "R"
+    assert _classify_outer_quadrant(224.9) == "R"
 
 
 def test_classify_outer_quadrant_bottom():
     """Angle in [225, 315) → 'B' (line 48)."""
-    assert _classify_outer_quadrant(225) == 'B'
-    assert _classify_outer_quadrant(270) == 'B'
-    assert _classify_outer_quadrant(314.9) == 'B'
+    assert _classify_outer_quadrant(225) == "B"
+    assert _classify_outer_quadrant(270) == "B"
+    assert _classify_outer_quadrant(314.9) == "B"
 
 
 def test_classify_outer_quadrant_left():
     """Angle in [315, 360) or [0, 45) → 'L' (line 50)."""
-    assert _classify_outer_quadrant(315) == 'L'
-    assert _classify_outer_quadrant(0) == 'L'
-    assert _classify_outer_quadrant(44.9) == 'L'
+    assert _classify_outer_quadrant(315) == "L"
+    assert _classify_outer_quadrant(0) == "L"
+    assert _classify_outer_quadrant(44.9) == "L"
 
 
 def test_classify_outer_quadrant_top():
     """Angle in [45, 135) → 'T' (line 51)."""
-    assert _classify_outer_quadrant(45) == 'T'
-    assert _classify_outer_quadrant(90) == 'T'
-    assert _classify_outer_quadrant(134.9) == 'T'
+    assert _classify_outer_quadrant(45) == "T"
+    assert _classify_outer_quadrant(90) == "T"
+    assert _classify_outer_quadrant(134.9) == "T"
 
 
 # ---------------------------------------------------------------------------
 # ArchiMate 3.x Compliance: View primary viewpoint
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def sample_model():
-    return Model('sample-view')
+    return Model("sample-view")
 
 
 def test_view_primary_viewpoint(sample_model):
-    view = cast(View, sample_model.add(ArchiType.View, 'Test View'))
-    view.set_primary_viewpoint('technology')
-    assert view.primary_viewpoint == 'technology'
+    view = cast(View, sample_model.add(ArchiType.View, "Test View"))
+    view.set_primary_viewpoint("technology")
+    assert view.primary_viewpoint == "technology"
 
 
 def test_view_primary_viewpoint_invalid(sample_model):
-    view = cast(View, sample_model.add(ArchiType.View, 'Test View'))
+    view = cast(View, sample_model.add(ArchiType.View, "Test View"))
     with pytest.raises(ValueError):
-        view.set_primary_viewpoint('not_valid')
+        view.set_primary_viewpoint("not_valid")
 
 
 def test_view_primary_viewpoint_default_is_none(sample_model):
-    view = cast(View, sample_model.add(ArchiType.View, 'Test View'))
+    view = cast(View, sample_model.add(ArchiType.View, "Test View"))
     assert view.primary_viewpoint is None
 
 
 # ---------------------------------------------------------------------------
 # Coverage for conn-on-conn source/target property paths (view.py:824-826, 843-845)
 # ---------------------------------------------------------------------------
+
 
 def _build_conn_on_conn_model():
     """Build a model with a connection that sources/targets another connection."""

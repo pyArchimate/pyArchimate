@@ -11,6 +11,7 @@
 ### 1. Performance Requirements ⚠️ CRITICAL BLOCKER
 
 **Current Status**:
+
 ```
 ✅ 50 nodes:   458ms (meets <2s target)
 ✅ 100 nodes:  1824ms (just within <2s budget)
@@ -231,4 +232,3 @@ TOTAL                                : 130-185 hours (4-6 weeks)
 - Current Performance: `specs/011-view-auto-layout/tasks.md` (Performance Characteristics)
 - Architecture: `specs/011-view-auto-layout/ARCHITECTURE.md`
 - API Documentation: `LAYOUT_QUICKSTART.md`
-

@@ -73,9 +73,9 @@ class LayoutConfig:
         if invalid_keys:
             raise ValueError(f"Invalid node_size_constraints keys: {invalid_keys}")
         min_w = self.node_size_constraints.get("min_width", 0)
-        max_w = self.node_size_constraints.get("max_width", float('inf'))
+        max_w = self.node_size_constraints.get("max_width", float("inf"))
         min_h = self.node_size_constraints.get("min_height", 0)
-        max_h = self.node_size_constraints.get("max_height", float('inf'))
+        max_h = self.node_size_constraints.get("max_height", float("inf"))
         if min_w < 0 or max_w < 0 or min_h < 0 or max_h < 0:
             raise ValueError("node_size_constraints values must be non-negative")
         if min_w > max_w or min_h > max_h:

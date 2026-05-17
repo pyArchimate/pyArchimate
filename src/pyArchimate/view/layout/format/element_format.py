@@ -85,32 +85,32 @@ class ElementFormatRegistry:
 
         # Business layer specs
         business_specs: list[tuple[ArchiMateElementCategory, list[str], float, float, int, str]] = [
-            (ArchiMateElementCategory.BUSINESS_ACTOR,   ["BusinessActor"],   100, 80, 10, "normal"),
-            (ArchiMateElementCategory.BUSINESS_ROLE,    ["BusinessRole"],    100, 70, 10, "normal"),
+            (ArchiMateElementCategory.BUSINESS_ACTOR, ["BusinessActor"], 100, 80, 10, "normal"),
+            (ArchiMateElementCategory.BUSINESS_ROLE, ["BusinessRole"], 100, 70, 10, "normal"),
             (ArchiMateElementCategory.BUSINESS_PROCESS, ["BusinessProcess"], 120, 80, 10, "normal"),
-            (ArchiMateElementCategory.BUSINESS_FUNCTION,["BusinessFunction"],120, 80, 10, "normal"),
+            (ArchiMateElementCategory.BUSINESS_FUNCTION, ["BusinessFunction"], 120, 80, 10, "normal"),
             (ArchiMateElementCategory.BUSINESS_SERVICE, ["BusinessService"], 120, 60, 10, "bold"),
-            (ArchiMateElementCategory.BUSINESS_OBJECT,  ["BusinessObject"],   80, 80, 10, "normal"),
-            (ArchiMateElementCategory.BUSINESS_EVENT,   ["BusinessEvent"],   100, 70, 10, "normal"),
-            (ArchiMateElementCategory.BUSINESS_INTERFACE,["BusinessInterface"],100, 70, 10, "normal"),
+            (ArchiMateElementCategory.BUSINESS_OBJECT, ["BusinessObject"], 80, 80, 10, "normal"),
+            (ArchiMateElementCategory.BUSINESS_EVENT, ["BusinessEvent"], 100, 70, 10, "normal"),
+            (ArchiMateElementCategory.BUSINESS_INTERFACE, ["BusinessInterface"], 100, 70, 10, "normal"),
         ]
 
         # Application layer specs
         app_specs: list[tuple[ArchiMateElementCategory, list[str], float, float, int, str]] = [
-            (ArchiMateElementCategory.APPLICATION_COMPONENT,  ["ApplicationComponent"],  100, 80, 10, "normal"),
-            (ArchiMateElementCategory.APPLICATION_SERVICE,    ["ApplicationService"],    120, 60, 10, "bold"),
-            (ArchiMateElementCategory.APPLICATION_INTERFACE,  ["ApplicationInterface"],  100, 70, 10, "normal"),
-            (ArchiMateElementCategory.APPLICATION_FUNCTION,   ["ApplicationFunction"],   120, 80, 10, "normal"),
-            (ArchiMateElementCategory.DATA_OBJECT,            ["DataObject"],             80, 80, 10, "normal"),
+            (ArchiMateElementCategory.APPLICATION_COMPONENT, ["ApplicationComponent"], 100, 80, 10, "normal"),
+            (ArchiMateElementCategory.APPLICATION_SERVICE, ["ApplicationService"], 120, 60, 10, "bold"),
+            (ArchiMateElementCategory.APPLICATION_INTERFACE, ["ApplicationInterface"], 100, 70, 10, "normal"),
+            (ArchiMateElementCategory.APPLICATION_FUNCTION, ["ApplicationFunction"], 120, 80, 10, "normal"),
+            (ArchiMateElementCategory.DATA_OBJECT, ["DataObject"], 80, 80, 10, "normal"),
         ]
 
         # Technology layer specs
         tech_specs: list[tuple[ArchiMateElementCategory, list[str], float, float, int, str]] = [
-            (ArchiMateElementCategory.TECHNOLOGY_NODE,         ["TechnologyNode"],         100, 80, 9, "normal"),
-            (ArchiMateElementCategory.TECHNOLOGY_ARTIFACT,     ["TechnologyArtifact"],      80, 80, 9, "normal"),
-            (ArchiMateElementCategory.TECHNOLOGY_SERVICE,      ["TechnologyService"],       120, 60, 9, "bold"),
-            (ArchiMateElementCategory.TECHNOLOGY_DEVICE,       ["TechnologyDevice"],        100, 80, 9, "normal"),
-            (ArchiMateElementCategory.TECHNOLOGY_INTERFACE,    ["TechnologyInterface"],     100, 70, 9, "normal"),
+            (ArchiMateElementCategory.TECHNOLOGY_NODE, ["TechnologyNode"], 100, 80, 9, "normal"),
+            (ArchiMateElementCategory.TECHNOLOGY_ARTIFACT, ["TechnologyArtifact"], 80, 80, 9, "normal"),
+            (ArchiMateElementCategory.TECHNOLOGY_SERVICE, ["TechnologyService"], 120, 60, 9, "bold"),
+            (ArchiMateElementCategory.TECHNOLOGY_DEVICE, ["TechnologyDevice"], 100, 80, 9, "normal"),
+            (ArchiMateElementCategory.TECHNOLOGY_INTERFACE, ["TechnologyInterface"], 100, 70, 9, "normal"),
         ]
 
         all_specs = business_specs + app_specs + tech_specs
@@ -155,9 +155,7 @@ class ElementFormatRegistry:
         Returns:
             ElementFormatSpec for the type, or default spec if unknown
         """
-        category = self._type_to_category.get(
-            element_type, ArchiMateElementCategory.UNKNOWN
-        )
+        category = self._type_to_category.get(element_type, ArchiMateElementCategory.UNKNOWN)
         if category.value in self._specs:
             return self._specs[category.value]
 
@@ -187,7 +185,7 @@ class FormatService:
             self._apply_override_font(element, spec, user_font_override)
 
     def _apply_default_font(self, element: Any, spec: Any) -> None:
-        if hasattr(element, 'font_name'):
+        if hasattr(element, "font_name"):
             element.font_name = spec.font_family
             element.font_size = spec.font_size
         else:
@@ -197,7 +195,7 @@ class FormatService:
             element.font_weight = spec.font_weight
 
     def _apply_override_font(self, element: Any, spec: Any, override: dict[str, Any]) -> None:
-        if hasattr(element, 'font_name'):
+        if hasattr(element, "font_name"):
             font_name = override.get("font_family") or override.get("font_name") or spec.font_family
             element.font_name = font_name
             element.font_size = int(override.get("font_size", spec.font_size))
@@ -242,7 +240,7 @@ class FormatService:
             width = self._apply_size_constraint(width, size_constraints, "width")
             height = self._apply_size_constraint(height, size_constraints, "height")
 
-        if hasattr(element, 'w'):
+        if hasattr(element, "w"):
             element.w = width
             element.h = height
         else:
@@ -321,7 +319,9 @@ class FormatService:
         for element in elements:
             element_id = getattr(element, "id", None)
 
-            if element_id is not None and (str(element_id) in excluded_element_ids or element_id in excluded_element_ids):
+            if element_id is not None and (
+                str(element_id) in excluded_element_ids or element_id in excluded_element_ids
+            ):
                 skipped_count += 1
                 continue
 

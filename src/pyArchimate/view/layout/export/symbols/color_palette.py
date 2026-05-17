@@ -4,15 +4,14 @@ This module provides the ArchiMate 3.x specification color palette, mapping each
 type to its standard color code. Supports per-element color overrides via element properties.
 """
 
-
 # ArchiMate 3.x Standard Color Palette (Archi tool layer-based colors)
-_BUSINESS     = "#fffbdb"
-_APPLICATION  = "#daf0f8"
-_TECHNOLOGY   = "#daf0e0"
-_MOTIVATION   = "#ffe8d0"
-_IMPL_MIGR    = "#e8e8d0"
-_STRATEGY     = "#f5dbfb"
-_GROUP        = "#d9d9d9"
+_BUSINESS = "#fffbdb"
+_APPLICATION = "#daf0f8"
+_TECHNOLOGY = "#daf0e0"
+_MOTIVATION = "#ffe8d0"
+_IMPL_MIGR = "#e8e8d0"
+_STRATEGY = "#f5dbfb"
+_GROUP = "#d9d9d9"
 
 ARCHIMATE_PALETTE = {
     # ===== BUSINESS LAYER =====
@@ -30,7 +29,6 @@ ARCHIMATE_PALETTE = {
     "Location": _BUSINESS,
     "Product": _BUSINESS,
     "Representation": _BUSINESS,
-
     # ===== APPLICATION LAYER =====
     "ApplicationCollaboration": _APPLICATION,
     "ApplicationComponent": _APPLICATION,
@@ -41,7 +39,6 @@ ARCHIMATE_PALETTE = {
     "ApplicationProcess": _APPLICATION,
     "ApplicationService": _APPLICATION,
     "DataObject": _APPLICATION,
-
     # ===== TECHNOLOGY LAYER =====
     "Artifact": _TECHNOLOGY,
     "CommunicationNetwork": _TECHNOLOGY,
@@ -60,7 +57,6 @@ ARCHIMATE_PALETTE = {
     "TechnologyService": _TECHNOLOGY,
     "DistributionNetwork": _TECHNOLOGY,
     "Material": _TECHNOLOGY,
-
     # ===== MOTIVATION LAYER =====
     "Assessment": _MOTIVATION,
     "Constraint": _MOTIVATION,
@@ -72,13 +68,11 @@ ARCHIMATE_PALETTE = {
     "Stakeholder": _MOTIVATION,
     "Meaning": _MOTIVATION,
     "Value": _MOTIVATION,
-
     # ===== STRATEGY LAYER =====
     "Resource": _STRATEGY,
     "Capability": _STRATEGY,
     "ValueStream": _STRATEGY,
     "CourseOfAction": _STRATEGY,
-
     # ===== IMPLEMENTATION & MIGRATION =====
     "Deliverable": _IMPL_MIGR,
     "DeliverableComponent": _IMPL_MIGR,
@@ -87,11 +81,9 @@ ARCHIMATE_PALETTE = {
     "Plateau": _IMPL_MIGR,
     "Gap": _IMPL_MIGR,
     "WorkPackage": _IMPL_MIGR,
-
     # ===== VISUAL GROUPING =====
     "Group": _GROUP,
     "Grouping": "none",  # Transparent (fill="none")
-
     # ===== JUNCTION TYPES =====
     "AndJunction": "#000000",
     "OrJunction": "#000000",
@@ -170,11 +162,7 @@ class ColorPalette:
         """
         if not isinstance(color, str):
             return False  # type: ignore[unreachable]
-        return (
-            color.startswith("#")
-            and len(color) == 7
-            and self._is_valid_hex(color[1:])
-        )
+        return color.startswith("#") and len(color) == 7 and self._is_valid_hex(color[1:])
 
     def _is_valid_hex(self, hex_str: str) -> bool:
         """Check if string is valid hex."""

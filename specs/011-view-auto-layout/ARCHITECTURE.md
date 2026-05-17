@@ -287,12 +287,14 @@ Algorithm exits early if node movement falls below threshold, avoiding unnecessa
 1. Create new class inheriting from `LayoutAlgorithm`
 2. Implement `apply(view, config) -> LayoutResult` method
 3. Register in `algorithms/__init__.py`:
+  
    ```python
-   _ALGORITHMS = {
+_ALGORITHMS = {
        "force_directed": ForceDirectedLayout,
        "hierarchical": HierarchicalLayout,
        "my_new_algorithm": MyNewAlgorithm,  # Add here
    }
+
    ```
 
 ### Custom Formatting

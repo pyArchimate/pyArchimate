@@ -10,7 +10,8 @@ Validate that the current Git branch follows the expected feature branch naming 
 
 - Check if Git is available by running `git rev-parse --is-inside-work-tree 2>/dev/null`
 - If Git is not available, output a warning and skip validation:
-  ```
+  
+```
   [specify] Warning: Git repository not detected; skipped branch validation
   ```
 

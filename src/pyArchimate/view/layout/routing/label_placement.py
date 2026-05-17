@@ -1,6 +1,5 @@
 """Label placement for connections without overlaps."""
 
-
 from ..utils.geometry import Point, Rectangle
 
 
@@ -126,6 +125,7 @@ def avoid_label_collision(
         distance = label_height * (1 + i * 0.5)
 
         import math
+
         rad = math.radians(angle)
         new_x = original_position.x + distance * math.cos(rad)
         new_y = original_position.y + distance * math.sin(rad)

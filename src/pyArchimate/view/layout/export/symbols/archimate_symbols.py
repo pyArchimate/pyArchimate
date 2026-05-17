@@ -15,6 +15,7 @@ from typing import NamedTuple
 
 class SymbolDefinition(NamedTuple):
     """SVG symbol definition for an ArchiMate element type."""
+
     element_type: str  # e.g., "BusinessActor"
     svg_path: str  # SVG path data (body only, no icon)
     viewBox: str  # ViewBox dimensions  # noqa: N815
@@ -85,7 +86,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0f8",
         icon_path=_ICON_COLLABORATION,
         icon_viewbox="129 3 20 15",
-        body_type="rect"
+        body_type="rect",
     ),
     "ApplicationComponent": SymbolDefinition(
         element_type="ApplicationComponent",
@@ -97,7 +98,7 @@ ARCHIMATE_SYMBOLS = {
         # Main body rect + two left-side tab rectangles
         icon_path="M 132 5 L 147.7 5 L 147.7 14.5 L 132 14.5 Z M 130 6.9 L 134.1 6.9 L 134.1 8.8 L 130 8.8 Z M 130 10.7 L 134.1 10.7 L 134.1 12.6 L 130 12.6 Z",
         icon_viewbox="128 3 22 14",
-        body_type="rect"
+        body_type="rect",
     ),
     "ApplicationEvent": SymbolDefinition(
         element_type="ApplicationEvent",
@@ -107,7 +108,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0f8",
         icon_path=_ICON_EVENT,
         icon_viewbox="128 5 22 15",
-        body_type="rect"
+        body_type="rect",
     ),
     "ApplicationFunction": SymbolDefinition(
         element_type="ApplicationFunction",
@@ -117,7 +118,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0f8",
         icon_path=_ICON_FUNCTION,
         icon_viewbox="128 3 22 20",
-        body_type="rect"
+        body_type="rect",
     ),
     "ApplicationInteraction": SymbolDefinition(
         element_type="ApplicationInteraction",
@@ -127,7 +128,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0f8",
         icon_path=_ICON_INTERACTION,
         icon_viewbox="128 3 22 20",
-        body_type="rect"
+        body_type="rect",
     ),
     "ApplicationInterface": SymbolDefinition(
         element_type="ApplicationInterface",
@@ -137,7 +138,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0f8",
         icon_path=_ICON_INTERFACE,
         icon_viewbox="128 3 22 16",
-        body_type="rect"
+        body_type="rect",
     ),
     "ApplicationProcess": SymbolDefinition(
         element_type="ApplicationProcess",
@@ -147,7 +148,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0f8",
         icon_path=_ICON_PROCESS,
         icon_viewbox="128 5 22 15",
-        body_type="rect"
+        body_type="rect",
     ),
     "ApplicationService": SymbolDefinition(
         element_type="ApplicationService",
@@ -157,7 +158,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0f8",
         icon_path=_ICON_SERVICE,
         icon_viewbox="128 5 22 15",
-        body_type="rect"
+        body_type="rect",
     ),
     "Artifact": SymbolDefinition(
         element_type="Artifact",
@@ -167,7 +168,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         icon_path="M 132 5 L 139.7 5 L 143 8.3 L 143 20 L 132 20 Z M 139.7 5 L 139.7 8.3 L 143 8.3",
         icon_viewbox="128 3 22 20",
-        body_type="rect"
+        body_type="rect",
     ),
     "Assessment": SymbolDefinition(
         element_type="Assessment",
@@ -183,7 +184,7 @@ ARCHIMATE_SYMBOLS = {
             "M 134.2 11.4 L 130 16"
         ),
         icon_viewbox="128 2 16 16",
-        body_type="path"
+        body_type="path",
     ),
     "BusinessActor": SymbolDefinition(
         element_type="BusinessActor",
@@ -200,7 +201,7 @@ ARCHIMATE_SYMBOLS = {
             "M 139.9 10.9 L 139.9 13.5 M 139.9 13.5 L 135.3 18.1 M 139.9 13.5 L 144.5 18.1"
         ),
         icon_viewbox="133 1 16 19",
-        body_type="rect"
+        body_type="rect",
     ),
     "BusinessCollaboration": SymbolDefinition(
         element_type="BusinessCollaboration",
@@ -210,7 +211,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#fffbdb",
         icon_path=_ICON_COLLABORATION,
         icon_viewbox="129 3 20 15",
-        body_type="rect"
+        body_type="rect",
     ),
     "BusinessEvent": SymbolDefinition(
         element_type="BusinessEvent",
@@ -220,7 +221,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#fffbdb",
         icon_path=_ICON_EVENT,
         icon_viewbox="128 5 22 15",
-        body_type="rect"
+        body_type="rect",
     ),
     "BusinessFunction": SymbolDefinition(
         element_type="BusinessFunction",
@@ -230,7 +231,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#fffbdb",
         icon_path=_ICON_FUNCTION,
         icon_viewbox="128 3 22 20",
-        body_type="rect"
+        body_type="rect",
     ),
     "BusinessInteraction": SymbolDefinition(
         element_type="BusinessInteraction",
@@ -240,7 +241,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#fffbdb",
         icon_path=_ICON_INTERACTION,
         icon_viewbox="128 3 22 20",
-        body_type="rect"
+        body_type="rect",
     ),
     "BusinessInterface": SymbolDefinition(
         element_type="BusinessInterface",
@@ -250,7 +251,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#fffbdb",
         icon_path=_ICON_INTERFACE,
         icon_viewbox="128 3 22 16",
-        body_type="rect"
+        body_type="rect",
     ),
     "BusinessObject": SymbolDefinition(
         element_type="BusinessObject",
@@ -258,7 +259,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        body_type="rect_header"
+        body_type="rect_header",
     ),
     "BusinessProcess": SymbolDefinition(
         element_type="BusinessProcess",
@@ -268,7 +269,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#fffbdb",
         icon_path=_ICON_PROCESS,
         icon_viewbox="128 5 22 15",
-        body_type="rect"
+        body_type="rect",
     ),
     "BusinessRole": SymbolDefinition(
         element_type="BusinessRole",
@@ -284,7 +285,7 @@ ARCHIMATE_SYMBOLS = {
             "C 142.5 9 143.7 7 145.2 7 C 146.7 7 147.9 9 147.9 11.5 Z"
         ),
         icon_viewbox="128 5 22 13",
-        body_type="rect"
+        body_type="rect",
     ),
     "BusinessService": SymbolDefinition(
         element_type="BusinessService",
@@ -294,7 +295,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#fffbdb",
         icon_path=_ICON_SERVICE,
         icon_viewbox="128 5 22 15",
-        body_type="rect"
+        body_type="rect",
     ),
     "CommunicationNetwork": SymbolDefinition(
         element_type="CommunicationNetwork",
@@ -304,13 +305,9 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         # SVG source: Communication_network_2.svg (w=38.48 h=12.76); scale=0.45, offset=(130,8)
         # Bidirectional arrow: horizontal line with open arrowheads on both ends
-        icon_path=(
-            "M 130 10.9 L 147.2 10.9 "
-            "M 143.4 8 L 147.2 10.9 L 143.4 13.7 "
-            "M 133.9 13.7 L 130 10.9 L 133.9 8"
-        ),
+        icon_path=("M 130 10.9 L 147.2 10.9 M 143.4 8 L 147.2 10.9 L 143.4 13.7 M 133.9 13.7 L 130 10.9 L 133.9 8"),
         icon_viewbox="128 6 22 10",
-        body_type="rect"
+        body_type="rect",
     ),
     "Constraint": SymbolDefinition(
         element_type="Constraint",
@@ -320,7 +317,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#ffe8d0",
         icon_path="M 133.75 9 L 145 9 L 141.25 16 L 130 16 Z M 136.75 9 L 133 16",
         icon_viewbox="128 5 22 15",
-        body_type="path"
+        body_type="path",
     ),
     "DataObject": SymbolDefinition(
         element_type="DataObject",
@@ -328,7 +325,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0f8",
-        body_type="rect_header"
+        body_type="rect_header",
     ),
     "Device": SymbolDefinition(
         element_type="Device",
@@ -336,7 +333,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        body_type="path"
+        body_type="path",
     ),
     "Driver": SymbolDefinition(
         element_type="Driver",
@@ -353,7 +350,7 @@ ARCHIMATE_SYMBOLS = {
             "C 134.3 8.9 134.9 8.3 135.7 8.3 C 136.5 8.3 137.2 8.9 137.2 9.7 Z"
         ),
         icon_viewbox="128 2 16 16",
-        body_type="path"
+        body_type="path",
     ),
     "Equipment": SymbolDefinition(
         element_type="Equipment",
@@ -361,7 +358,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        body_type="path"
+        body_type="path",
     ),
     "Facility": SymbolDefinition(
         element_type="Facility",
@@ -369,7 +366,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#daf0e0",
-        body_type="path"
+        body_type="path",
     ),
     "Gap": SymbolDefinition(
         element_type="Gap",
@@ -385,7 +382,7 @@ ARCHIMATE_SYMBOLS = {
             "M 130 8.1 L 145.3 8.1"
         ),
         icon_viewbox="128 3 16 13",
-        body_type="path"
+        body_type="path",
     ),
     "Goal": SymbolDefinition(
         element_type="Goal",
@@ -402,7 +399,7 @@ ARCHIMATE_SYMBOLS = {
             "C 132 7.8 133.8 6 136 6 C 138.2 6 140 7.8 140 10 Z"
         ),
         icon_viewbox="128 2 16 16",
-        body_type="path"
+        body_type="path",
     ),
     "ImplementationEvent": SymbolDefinition(
         element_type="ImplementationEvent",
@@ -412,7 +409,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#e8e8d0",
         icon_path=_ICON_EVENT,
         icon_viewbox="128 5 22 15",
-        body_type="rect"
+        body_type="rect",
     ),
     "Node": SymbolDefinition(
         element_type="Node",
@@ -422,7 +419,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         icon_path="M 130 8.75 L 133.75 5 L 145 5 L 145 16.25 L 141.25 20 L 130 20 Z M 130 8.75 L 141.25 8.75 L 141.25 20 M 145 5 L 141.25 8.75",
         icon_viewbox="128 3 22 22",
-        body_type="rect"
+        body_type="rect",
     ),
     "Outcome": SymbolDefinition(
         element_type="Outcome",
@@ -432,7 +429,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#ffe8d0",
         icon_path="M 136 14 L 143.5 6.5 M 136.3 11 L 136 14 L 139 13.7 M 142 5 L 141.25 8.75 L 145 8",
         icon_viewbox="128 3 22 18",
-        body_type="path"
+        body_type="path",
     ),
     "Path": SymbolDefinition(
         element_type="Path",
@@ -442,7 +439,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         icon_path="M 133 15 L 130 12.5 L 133 10 M 142 15 L 145 12.5 L 142 10 M 130 12.5 L 145 12.5",
         icon_viewbox="128 8 22 12",
-        body_type="rect"
+        body_type="rect",
     ),
     "Plateau": SymbolDefinition(
         element_type="Plateau",
@@ -450,7 +447,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#e8e8d0",
-        body_type="path"
+        body_type="path",
     ),
     "Principle": SymbolDefinition(
         element_type="Principle",
@@ -460,7 +457,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#ffe8d0",
         icon_path="M 130.75 5.75 C 135.21 4.86 139.79 4.86 144.25 5.75 C 145.14 10.21 145.14 14.79 144.25 19.25 C 139.79 20.14 135.21 20.14 130.75 19.25 C 129.86 14.79 129.86 10.21 130.75 5.75 Z M 136.75 15.5 L 136.3 7.25 L 138.7 7.25 L 138.25 15.5 Z M 136.75 16.25 L 138.25 16.25 L 138.25 17.75 L 136.75 17.75 Z",
         icon_viewbox="128 3 22 20",
-        body_type="path"
+        body_type="path",
     ),
     "Requirement": SymbolDefinition(
         element_type="Requirement",
@@ -470,7 +467,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#ffe8d0",
         icon_path="M 133.75 9 L 145 9 L 141.25 16 L 130 16 Z",
         icon_viewbox="128 5 22 15",
-        body_type="path"
+        body_type="path",
     ),
     "Stakeholder": SymbolDefinition(
         element_type="Stakeholder",
@@ -485,7 +482,7 @@ ARCHIMATE_SYMBOLS = {
             "C 142.5 9 143.7 7 145.2 7 C 146.7 7 147.9 9 147.9 11.5 Z"
         ),
         icon_viewbox="128 5 22 13",
-        body_type="path"
+        body_type="path",
     ),
     "SystemSoftware": SymbolDefinition(
         element_type="SystemSoftware",
@@ -495,7 +492,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         icon_path=_ICON_SYSTEM_SOFTWARE,
         icon_viewbox="128 2 20 14",
-        body_type="rect"
+        body_type="rect",
     ),
     "TechnologyFunction": SymbolDefinition(
         element_type="TechnologyFunction",
@@ -505,7 +502,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         icon_path=_ICON_FUNCTION,
         icon_viewbox="128 3 22 20",
-        body_type="rect"
+        body_type="rect",
     ),
     "TechnologyInteraction": SymbolDefinition(
         element_type="TechnologyInteraction",
@@ -515,7 +512,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         icon_path=_ICON_INTERACTION,
         icon_viewbox="128 3 22 20",
-        body_type="rect"
+        body_type="rect",
     ),
     "TechnologyInterface": SymbolDefinition(
         element_type="TechnologyInterface",
@@ -525,7 +522,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         icon_path=_ICON_INTERFACE,
         icon_viewbox="128 3 22 16",
-        body_type="rect"
+        body_type="rect",
     ),
     "TechnologyProcess": SymbolDefinition(
         element_type="TechnologyProcess",
@@ -535,7 +532,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         icon_path=_ICON_PROCESS,
         icon_viewbox="128 5 22 15",
-        body_type="rect"
+        body_type="rect",
     ),
     "TechnologyService": SymbolDefinition(
         element_type="TechnologyService",
@@ -545,7 +542,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         icon_path=_ICON_SERVICE,
         icon_viewbox="128 5 22 15",
-        body_type="rect"
+        body_type="rect",
     ),
     # ===== MISSING ELEMENTS - Added to complete the palette =====
     "Capability": SymbolDefinition(
@@ -561,7 +558,7 @@ ARCHIMATE_SYMBOLS = {
             "M 135 13 L 145 13 M 140 8 L 145 8 M 135 13 L 135 18 M 140 8 L 140 18"
         ),
         icon_viewbox="128 1 18 19",
-        body_type="rect"
+        body_type="rect",
     ),
     "Contract": SymbolDefinition(
         element_type="Contract",
@@ -571,7 +568,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        body_type="path"
+        body_type="path",
     ),
     "CourseOfAction": SymbolDefinition(
         element_type="CourseOfAction",
@@ -605,7 +602,7 @@ ARCHIMATE_SYMBOLS = {
             "C 140.3 9.9 141.6 10.5 142.9 10.2 Z"
         ),
         icon_viewbox="127 1 22 17",
-        body_type="rect"
+        body_type="rect",
     ),
     "Deliverable": SymbolDefinition(
         element_type="Deliverable",
@@ -617,7 +614,7 @@ ARCHIMATE_SYMBOLS = {
         # Mini wavy-bottom rect (S-curve at bottom like Representation)
         icon_path="M 130 8 L 147.9 8 L 147.9 13.8 C 138.9 9.8 138.9 17.8 130 13.8 Z",
         icon_viewbox="128 6 22 12",
-        body_type="rect"
+        body_type="rect",
     ),
     "DeliverableComponent": SymbolDefinition(
         element_type="DeliverableComponent",
@@ -625,7 +622,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#e8e8d0",
-        body_type="rect"
+        body_type="rect",
     ),
     "DistributionNetwork": SymbolDefinition(
         element_type="DistributionNetwork",
@@ -635,7 +632,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         icon_path=_ICON_DISTRIBUTION_NETWORK,
         icon_viewbox="128 5 20 10",
-        body_type="rect"
+        body_type="rect",
     ),
     "Group": SymbolDefinition(
         element_type="Group",
@@ -643,7 +640,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#d9d9d9",
-        body_type="rect"
+        body_type="rect",
     ),
     "Grouping": SymbolDefinition(
         element_type="Grouping",
@@ -656,7 +653,7 @@ ARCHIMATE_SYMBOLS = {
         # SVG source: Grouping_2.svg; scale=0.212, offset=(130,6) → mini tab-outline icon
         icon_path="M 143.5 8.7 L 143.5 6 L 130 6 L 130 8.7 L 147.9 8.7 L 147.9 15.9 L 130 15.9 L 130 8.7",
         icon_viewbox="128 4 22 14",
-        body_type="path"
+        body_type="path",
     ),
     "Location": SymbolDefinition(
         element_type="Location",
@@ -676,7 +673,7 @@ ARCHIMATE_SYMBOLS = {
             "C 140.1 13.3 139.0 15.1 138.5 17.6 Z"
         ),
         icon_viewbox="132 1 13 19",
-        body_type="rect"
+        body_type="rect",
     ),
     "Material": SymbolDefinition(
         element_type="Material",
@@ -691,7 +688,7 @@ ARCHIMATE_SYMBOLS = {
             "M 132.6 11.2 L 135.7 5.8 M 134.4 14.5 L 140.5 14.5 M 139.2 5.8 L 142.2 11.2"
         ),
         icon_viewbox="128 2 18 17",
-        body_type="rect"
+        body_type="rect",
     ),
     "Meaning": SymbolDefinition(
         element_type="Meaning",
@@ -705,7 +702,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#ffe8d0",
-        body_type="path"
+        body_type="path",
     ),
     "Product": SymbolDefinition(
         element_type="Product",
@@ -715,7 +712,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        body_type="path"
+        body_type="path",
     ),
     "Representation": SymbolDefinition(
         element_type="Representation",
@@ -726,7 +723,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#fffbdb",
-        body_type="path"
+        body_type="path",
     ),
     "Resource": SymbolDefinition(
         element_type="Resource",
@@ -748,7 +745,7 @@ ARCHIMATE_SYMBOLS = {
             "M 133.1 7.4 L 133.1 12.6 M 135.7 7.4 L 135.7 12.6 M 138.4 7.4 L 138.4 12.6"
         ),
         icon_viewbox="128 3 20 14",
-        body_type="rect"
+        body_type="rect",
     ),
     "TechnologyCollaboration": SymbolDefinition(
         element_type="TechnologyCollaboration",
@@ -758,7 +755,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         icon_path=_ICON_COLLABORATION,
         icon_viewbox="129 3 20 15",
-        body_type="rect"
+        body_type="rect",
     ),
     "TechnologyEvent": SymbolDefinition(
         element_type="TechnologyEvent",
@@ -768,7 +765,7 @@ ARCHIMATE_SYMBOLS = {
         default_color="#daf0e0",
         icon_path=_ICON_EVENT,
         icon_viewbox="128 5 22 15",
-        body_type="rect"
+        body_type="rect",
     ),
     "Value": SymbolDefinition(
         element_type="Value",
@@ -780,7 +777,7 @@ ARCHIMATE_SYMBOLS = {
         viewBox="-0.5 -0.5 151 76",
         bounding_box=(-0.5, -0.5, 151.0, 76.0),
         default_color="#ffe8d0",
-        body_type="path"
+        body_type="path",
     ),
     "ValueStream": SymbolDefinition(
         element_type="ValueStream",
@@ -792,7 +789,7 @@ ARCHIMATE_SYMBOLS = {
         # Hexagonal arrow (pentagon with indented left side) pointing right
         icon_path="M 130 6 L 142 6 L 148 12 L 142 18 L 130 18 L 136 12 Z",
         icon_viewbox="128 4 22 16",
-        body_type="rect"
+        body_type="rect",
     ),
     "WorkPackage": SymbolDefinition(
         element_type="WorkPackage",
@@ -808,7 +805,7 @@ ARCHIMATE_SYMBOLS = {
             "C 130.5 15.1 130 14.6 130 14 L 130 9.1 C 130 8.5 130.5 8 131.1 8 Z"
         ),
         icon_viewbox="128 6 22 11",
-        body_type="rect"
+        body_type="rect",
     ),
 }
 
@@ -848,7 +845,11 @@ def validate_symbols() -> tuple[int, int]:
             assert symbol.svg_path and len(symbol.svg_path) > 0
             assert symbol.viewBox.startswith(("0 0", "-"))
             assert len(symbol.bounding_box) == 4
-            assert symbol.default_color.startswith("#") and len(symbol.default_color) == 7 or symbol.default_color == "none"
+            assert (
+                symbol.default_color.startswith("#")
+                and len(symbol.default_color) == 7
+                or symbol.default_color == "none"
+            )
             valid += 1
         except AssertionError:
             print(f"Invalid symbol: {element_type}")

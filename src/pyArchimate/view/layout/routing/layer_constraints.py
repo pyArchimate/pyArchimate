@@ -28,13 +28,23 @@ class ArchiMateLayer(Enum):
             return cls.TECHNOLOGY
 
         # Business layer elements
-        if any(t in element_type_lower for t in ["actor", "role", "interaction", "process", "function", "product", "event"]):
+        if any(
+            t in element_type_lower for t in ["actor", "role", "interaction", "process", "function", "product", "event"]
+        ):
             return cls.BUSINESS
 
         # Application layer elements (including DataObject, DataStore)
-        if any(t in element_type_lower for t in [
-            "component", "interface", "data object", "dataobject", "datastore", "data store",
-        ]):
+        if any(
+            t in element_type_lower
+            for t in [
+                "component",
+                "interface",
+                "data object",
+                "dataobject",
+                "datastore",
+                "data store",
+            ]
+        ):
             return cls.APPLICATION
 
         # Technology layer elements
@@ -83,9 +93,7 @@ class LayerConstraint:
             return pos1[1] <= pos2[1]
         return pos1[0] <= pos2[0]
 
-    def validate_layer_order(
-        self, positions: dict[int, tuple[float, float]], vertical: bool = True
-    ) -> bool:
+    def validate_layer_order(self, positions: dict[int, tuple[float, float]], vertical: bool = True) -> bool:
         """Validate that element positions respect layer ordering.
 
         Args:
@@ -105,9 +113,7 @@ class LayerConstraint:
                     return False
         return True
 
-    def enforce_layer_separation(
-        self, positions: dict[int, Any], spacing: float = 100
-    ) -> dict[int, Any]:
+    def enforce_layer_separation(self, positions: dict[int, Any], spacing: float = 100) -> dict[int, Any]:
         """Enforce minimum separation between layers.
 
         Args:
@@ -144,13 +150,14 @@ class LayerConstraint:
         return updated_positions
 
     def _clamp_position_to_layer(self, pos: Any, y_min: float, y_max: float) -> Any:
-        if hasattr(pos, 'x') and hasattr(pos, 'y'):
+        if hasattr(pos, "x") and hasattr(pos, "y"):
             x, y = pos.x, pos.y
         else:
             x, y = pos[0], pos[1]
         new_y = max(y_min, min(y, y_max - 50))
-        if hasattr(pos, 'x'):
+        if hasattr(pos, "x"):
             from ..utils.geometry import Point
+
             return Point(x, new_y)
         return (x, new_y)
 
