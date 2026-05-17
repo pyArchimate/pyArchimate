@@ -1297,16 +1297,27 @@ class Model:
         self._traverse_by_path(parts, self.get_root_elements(), results, wildcard)
         return results
 
+    def _collect_path_results(self, current_elements: list[Element], results: list[Element], wildcard: bool) -> None:
+        """Collect results at the end of a path traversal."""
+        if wildcard:
+            for elem in current_elements:
+                results.extend(self.get_children(elem.uuid))
+        else:
+            results.extend(current_elements)
+
+    def _add_element_match(self, elem: Element, results: list[Element], wildcard: bool) -> None:
+        """Add a leaf match to results, expanding children if wildcard."""
+        if wildcard:
+            results.extend(self.get_children(elem.uuid))
+        else:
+            results.append(elem)
+
     def _traverse_by_path(
         self, path_parts: list[str], current_elements: list[Element], results: list[Element], wildcard: bool
     ) -> None:
         """Traverse hierarchy to find elements matching path."""
         if not path_parts:
-            if wildcard:
-                for elem in current_elements:
-                    results.extend(self.get_children(elem.uuid))
-            else:
-                results.extend(current_elements)
+            self._collect_path_results(current_elements, results, wildcard)
             return
         target_name = path_parts[0]
         remaining_parts = path_parts[1:]
@@ -1315,10 +1326,7 @@ class Model:
                 if remaining_parts:
                     self._traverse_by_path(remaining_parts, self.get_children(elem.uuid), results, wildcard)
                 else:
-                    if wildcard:
-                        results.extend(self.get_children(elem.uuid))
-                    else:
-                        results.append(elem)
+                    self._add_element_match(elem, results, wildcard)
 
 
 __all__ = ["Model"]

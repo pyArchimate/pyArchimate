@@ -514,8 +514,10 @@ class SVGExportService:
 
         # Match coordinate pairs separated by whitespace or comma (SVG path spec)
         result = re.sub(
-            r"(-?\d+(?:\.\d+)?)[ \t\n\r,]+(-?\d+(?:\.\d+)?)", transform_number, svg_path
-        )  # NOSONAR  literal \. separator makes \d+ groups non-overlapping; no polynomial backtracking
+            r"(-?\d+(?:\.\d+)?)[ \t\n\r,]+(-?\d+(?:\.\d+)?)",  # NOSONAR literal \. makes groups non-overlapping; no polynomial backtracking
+            transform_number,
+            svg_path,
+        )
         return result
 
     def _render_node(self, svg: ET.Element, node: Any) -> None:
