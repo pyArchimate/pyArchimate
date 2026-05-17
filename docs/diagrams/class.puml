@@ -144,6 +144,7 @@ class View {
   + remove_folder()
   + delete()
   + to_svg(filepath) : str
+  + duplicate(name) : View
 }
 
 class Node {
@@ -269,14 +270,24 @@ class SVGExportService {
   + to_svg(view, filepath) : str
   --
   # _sort_nodes_by_hierarchy(view) : list
-  # _build_complete_nodes_dict(view) : dict
-  # _is_containment_relationship(conn, nodes) : bool
-  # _render_node_into(parent, node) : Element
-  # _render_relationship(svg, conn, nodes, svc)
+  # _build_complete_nodes_dict(view) : dict[str, Any]
+  # _is_containment_relationship(conn, complete_nodes_dict) : bool
+  # _calculate_bounds(view) : dict[str, float]
+  # _add_defs(svg) : None
+  # _add_background(svg, width, height) : None
+  # _render_nodes_to_svg(svg, view, complete_nodes_dict) : None
+  # _render_node(svg, node) : None
+  # _render_node_into(parent, node) : ET.Element
+  # _render_relationship(svg, conn, complete_nodes_dict) : None
+  # _render_connection(svg, conn, complete_nodes_dict) : None
   # _get_clipped_polyline_points(...) : list
-  # _get_node_bounds(node) : tuple
+  # _get_routed_polyline_points(...) : list
+  # _get_node_bounds(node) : tuple[float, float, float, float]
   # _word_wrap_text(text, max_width) : list[str]
   # _distributed_spread(idx, count, span) : float
+  # _lookup_rel_style(rel_type) : Any
+  # _build_relationship_label(rel_type, conn) : str
+  # _render_connection_label(svg, conn, points) : None
 }
 
 View --> SVGExportService : delegates to_svg()

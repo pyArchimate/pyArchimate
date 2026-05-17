@@ -220,13 +220,15 @@ Visual representation of a relationship between nodes.
 
 ### View Auto-Layout
 
-- `apply_layout(view, config)` — automatically position all elements in a view using the configured algorithm; returns `LayoutResult`
+- `auto_layout(view, config)` — reposition all nodes in ArchiMate layer order on a coarse grid; does **not** modify connections; returns `LayoutResult`
+- `auto_route(view, config)` — recompute all connection paths as obstacle-avoiding orthogonal polylines using BFS; does **not** modify node positions; returns `LayoutResult` (includes `node_moves` if `allow_node_move=True`)
+- `apply_layout(view, config)` — convenience wrapper: calls `auto_layout` then `auto_route`; returns combined `LayoutResult`
 - `apply_format(view, config)` — standardize element sizes (120×55), fonts (Segoe UI 9pt), and optional grid alignment without repositioning; returns `LayoutResult`
 - `undo_layout(view)` — revert the last layout/format operation (stub; full transaction rollback planned); returns `LayoutResult`
 - Import from `pyArchimate.view.layout`
-- Algorithms: `"force_directed"` (default, physics simulation) or `"hierarchical"` (ArchiMate-layer-aware top-down)
-- Applies orthogonal connection routing automatically after layout
-- Enforces ArchiMate layer ordering: Business → Application → Technology
+- Layer direction: `"vertical"` (Business top, Application middle, Technology bottom) or `"horizontal"` (layers stacked left-to-right)
+- `auto_route` uses multi-pass conflict resolution; escalating crossing penalties re-route connections that pass through node bounding boxes or cross each other twice
+- Connection routing: obstacle map inflates each node by `node_clearance` (default 25 px), then BFS finds shortest orthogonal corridor
 
 ### SVG Export
 
@@ -279,7 +281,7 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 ## Limitations (Important Context)
 
 - No built-in graphical editor (code-first only)
-- Layout automation available but no GUI-based constraint editor; algorithmic layout via `apply_layout()` (force-directed or hierarchical)
+- Layout automation available but no GUI-based constraint editor; algorithmic layout via `auto_layout()` (layer-ordered grid) and `auto_route()` (BFS obstacle-avoiding orthogonal routing), or the combined `apply_layout()` convenience function
 - Requires understanding of ArchiMate concepts
 - SVG export available via `view.to_svg()`; full interactive editing still requires external tools (e.g., Archi)
 - Not fully conformant to the complete ArchiMate 3.x specification (see Non-Conformances below; major gaps closed in v1.3.0)
@@ -400,6 +402,8 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `get_or_create_connection(rel, source, target, ...)` | Return existing connection or create one if requested |
 | `set_primary_viewpoint(viewpoint_id)` | Set canonical ArchiMate 3.x viewpoint slug for this view |
 | `primary_viewpoint` | Current primary viewpoint slug or `None` |
+| `duplicate(name)` | Deep-copy this view into the same model; `name` defaults to `"<original> (copy)"` if omitted; returns new `View` |
+| `delete()` | Remove this view and all its nodes and connections |
 | `to_svg(filepath)` | Export view to SVG string; optionally write to file if `filepath` given |
 | `prop(key, value)` | Get or set a view-level property |
 | `remove_prop(key)` | Delete a property by key |
@@ -457,9 +461,11 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 
 | Function | Description |
 |---|---|
-| `apply_layout(view, config)` | Auto-position elements using the configured algorithm; returns `LayoutResult` |
+| `auto_layout(view, config)` | Reposition all nodes in layer order on a coarse grid; does not touch connections; accepts `LayoutConfig`; returns `LayoutResult` |
+| `auto_route(view, config)` | Recompute all connection paths as obstacle-avoiding orthogonal polylines; does not move nodes; accepts `RoutingConfig`; returns `LayoutResult` |
+| `apply_layout(view, config)` | Convenience wrapper: runs `auto_layout` then `auto_route`; accepts `LayoutConfig`; returns combined `LayoutResult` |
 | `apply_format(view, config)` | Standardize element sizes/fonts without repositioning; returns `LayoutResult` |
-| `undo_layout(view)` | Revert the last layout/format operation; returns `LayoutResult` |
+| `undo_layout(view)` | Revert the last layout/format operation (stub; transaction rollback planned); returns `LayoutResult` |
 
 ### LayoutConfig (dataclass)
 
@@ -471,11 +477,29 @@ All fields are optional; defaults shown below.
 | `spacing` | `50.0` | Minimum pixels between elements |
 | `margin` | `20.0` | Pixels around canvas edges |
 | `alignment` | `"free"` | `"free"` or `"grid"` (snap to grid) |
-| `grid_size` | `10.0` | Grid spacing in pixels when `alignment="grid"` |
+| `grid_size` | `240.0` | Coarse grid cell size in pixels (approx. node width + gap); used by `auto_layout` for node placement |
 | `routing_style` | `"orthogonal"` | `"orthogonal"` (0°/90°) or `"mixed_45"` (±45°) |
 | `layer_priority` | `"mandatory"` | `"mandatory"` (enforce ArchiMate layers) or `"soft"` |
+| `layer_direction` | `"vertical"` | `"vertical"` (Business top → Technology bottom) or `"horizontal"` (Business left → Technology right) |
+| `high_degree_threshold` | `5` | Nodes with ≥ this many connections get 1-cell isolation padding to reduce routing bottlenecks |
 | `excluded_element_ids` | `[]` | Element IDs excluded from repositioning |
 | `node_size_constraints` | `{}` | Dict with `min_width`, `max_width`, `min_height`, `max_height` |
+
+### RoutingConfig (dataclass)
+
+All fields are optional; used by `auto_route`. Defaults shown below.
+
+| Field | Default | Description |
+|---|---|---|
+| `node_clearance` | `25` | Avoidance zone inflated around each node side (px) |
+| `min_segment_gap` | `20.0` | Minimum separation between collinear segments of different connections (px) |
+| `min_turn_segment` | `40` | Minimum segment length after each L-turn (px) |
+| `corner_clearance_pct` | `0.10` | Fraction of edge length reserved at each corner (0 < pct ≤ 0.50) |
+| `corner_clearance_min` | `4.0` | Absolute floor for corner clearance (px) |
+| `crossing_penalty` | `3.0` | BFS cost weight when crossing an already-routed segment |
+| `max_routing_passes` | `3` | Maximum re-routing passes for conflict resolution |
+| `allow_node_move` | `False` | Last-resort: shift a blocking node ≤ `max_node_displacement` cells to open a corridor |
+| `max_node_displacement` | `1` | Max cells a node may be shifted per move |
 
 ### LayoutResult (dataclass)
 
@@ -483,12 +507,14 @@ All fields are optional; defaults shown below.
 |---|---|---|
 | `success` | `bool` | `True` if layout completed without error |
 | `view_id` | `str` | UUID of the laid-out view |
-| `algorithm_used` | `str` | Algorithm name or `"format"` / `"undo"` |
+| `algorithm_used` | `str` | Algorithm name or `"format"` / `"undo"` / `"auto_layout"` / `"auto_route"` |
 | `elements_processed` | `int` | Number of nodes repositioned or formatted |
 | `connections_processed` | `int` | Number of connections routed |
 | `layout_time_ms` | `float` | Wall-clock time for the operation |
 | `quality_metrics` | `dict` | Algorithm-specific metrics (crossing count, variance, etc.) |
 | `error_message` | `str \| None` | Error description if `success=False` |
+| `warnings` | `list[str]` | Non-fatal warnings (e.g. connections skipped due to no valid path) |
+| `node_moves` | `list[NodeMove]` | Records of nodes shifted by routing-driven node-move fallback (when `allow_node_move=True`) |
 
 ---
 

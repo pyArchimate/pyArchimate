@@ -71,6 +71,7 @@ object View {
   - _primary_viewpoint : Optional[str]
   - unions : list
   - model : Model
+  ~ duplicate(name) : View
 }
 
 object Node {
@@ -99,6 +100,7 @@ object Node {
   - image_position : Optional[int]
   - image_type : Optional[int]
   - image_source : bool
+  - _area : int {w * h, cached}
   - nodes_dict : dict[str, Node] {nested children}
   - _view : View
   - parent : Node | View

@@ -20,7 +20,14 @@ package "pyArchimate" {
       class Position
     }
     package "layout" as LayoutPkg {
-      class "core.py" as LayoutCore
+      class "core.py" as LayoutCore {
+        class NodeMove
+        class LayoutConfig
+        class RoutingConfig
+        class LayoutResult
+        class LayoutAlgorithm
+      }
+      class "layout_engine.py" as LayoutEngine
       package "algorithms" {
         class "force_directed.py"
         class "hierarchical.py"
@@ -49,6 +56,10 @@ package "pyArchimate" {
         class "orthogonal.py"
         class "label_placement.py"
         class "layer_constraints.py"
+        class "obstacle_map.py" as ObstacleMap {
+          class ObstacleMap
+        }
+        class "segment_separation.py" as SegSep
       }
       package "utils" {
         class "geometry.py"
