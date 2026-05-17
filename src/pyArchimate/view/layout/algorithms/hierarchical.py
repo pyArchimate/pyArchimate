@@ -196,7 +196,7 @@ class HierarchicalLayout(LayoutAlgorithm):
         self,
         _node_id: int,
         _layer_index: int,
-        nodes: list[Any],
+        _nodes: list[Any],
         _layer_constraint: LayerConstraint,
     ) -> bool:
         """Check if assigning node to layer respects ArchiMate layer ordering.

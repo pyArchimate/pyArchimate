@@ -20,6 +20,7 @@ run_quiet "poetry install"  poetry install
 run_quiet "poetry sync"     poetry sync
 run_quiet "pymarkdown lint" poetry run pymarkdownlnt fix *.md specs/*.md
 run_quiet "ruff check"      poetry run ruff check src/ tests/ --fix
+run_quiet "vulture"         poetry run vulture src/ --min-confidence 80
 run_quiet "pyright"         poetry run pyright src/ tests/
 run_quiet "mypy"            poetry run mypy src/
 run_quiet "pytest unit"     poetry run pytest tests/unit/

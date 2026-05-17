@@ -29,6 +29,7 @@ dev = [
     "snakeviz>=2.2.2,<3.0.0",
     "locust (>=2.43.3,<3.0.0)",
     "ipykernel (>=7.2.0,<8.0.0)",
+    "vulture (>=2.16,<3.0)",
 ]
 
 testing = [  # runtime tooling required to exercise the test suite
@@ -118,7 +119,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = [
-    "E", "F", "W", "B", "C", "I", "S110", "A", "N",
+    "E", "F", "W", "B", "C", "I", "S110", "A", "N", "ARG",
     # TODO(009-quality-uplift): Enable UP rule set — 124 violations exceed the 20-violation cap;
     # most are auto-fixable (ruff --fix) but UP042/UP032 need semantic review
     "UP",
@@ -144,11 +145,14 @@ exclude = [
     "*.log",
 ]
 
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
 [tool.ruff.lint.flake8-bandit]
 check-typed-exception = true
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "N999", "N817"]  # S101: assertions OK in tests; N999: test files mirror camelCase reader/writer names; N817: ET is the canonical ElementTree alias
+"tests/**" = ["S101", "N999", "N817", "ARG"]  # S101: assertions OK in tests; N999: test files mirror camelCase reader/writer names; N817: ET is the canonical ElementTree alias; ARG: unused params are normal in BDD steps, mocks, and sentinel lambdas
 
 [tool.ruff.format]
 quote-style = "double"
@@ -192,6 +196,7 @@ output = "build/coverage.xml"
 paths = [
     "tests/features/"
 ]
+tags = ["not @wip"]
 
 [tool.pymarkdown]
 # MD010 - no hard tabs
