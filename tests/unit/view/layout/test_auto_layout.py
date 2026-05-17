@@ -239,7 +239,6 @@ class TestHighDegreeIsolation:
         degrees = {"hub": 5, "n1": 1, "n2": 1}
         assignments = assign_grid_cells(
             nodes,
-            grid_size=240.0,
             layer_direction="vertical",
             node_degrees=degrees,
             high_degree_threshold=5,
@@ -267,7 +266,6 @@ class TestHighDegreeIsolation:
         degrees = {f"n{i}": 2 for i in range(4)}  # all below threshold=5
         assignments = assign_grid_cells(
             nodes,
-            grid_size=240.0,
             layer_direction="vertical",
             node_degrees=degrees,
             high_degree_threshold=5,
@@ -287,7 +285,6 @@ class TestHighDegreeIsolation:
         degrees = {"hub": 6, "after": 1}
         assignments = assign_grid_cells(
             nodes,
-            grid_size=240.0,
             layer_direction="vertical",
             node_degrees=degrees,
             high_degree_threshold=5,

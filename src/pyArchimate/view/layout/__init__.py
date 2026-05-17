@@ -67,7 +67,6 @@ def auto_layout(view: Any, config: LayoutConfig | None = None) -> LayoutResult:
 
         cell_assignments = assign_grid_cells(
             active_nodes,
-            grid_size=config.grid_size,
             layer_direction=config.layer_direction,
             node_degrees=node_degrees,
             high_degree_threshold=config.high_degree_threshold,
@@ -330,7 +329,7 @@ def _multi_pass_route(
     if config.allow_node_move:
         om, node_moves = _apply_node_move_fallback(
             all_waypoints, conn_refs, nodes_dict, spread_anchors,
-            om, resolution, config, warnings, node_moves,
+            om, config, warnings, node_moves,
         )
     return node_moves, om
 
@@ -351,7 +350,6 @@ def _apply_node_move_fallback(
     nodes_dict: dict[str, Any],
     spread_anchors: dict[tuple[str, str], Point],
     om: ObstacleMap,
-    resolution: float,
     config: RoutingConfig,
     warnings: list[str],
     node_moves: list[NodeMove],

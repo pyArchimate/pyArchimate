@@ -35,7 +35,6 @@ def _place_node_vertical(
     is_high: bool,
     col: int,
     current_row: int,
-    band_start_row: int,
     occupied: set[tuple[int, int]],
     assignments: dict[str, tuple[int, int]],
     max_cols: int,
@@ -44,13 +43,13 @@ def _place_node_vertical(
     if is_high:
         if col > 0:
             col += 1  # gap before high-degree node
-        cell = _next_free_cell_row_major(col, current_row, occupied, max_cols, band_start_row)
+        cell = _next_free_cell_row_major(col, current_row, occupied, max_cols)
         assignments[nid] = cell
         occupied.add(cell)
         occupied.add((cell[0] + 1, cell[1]))  # isolation pad on right
         col = cell[0] + 2
     else:
-        cell = _next_free_cell_row_major(col, current_row, occupied, max_cols, band_start_row)
+        cell = _next_free_cell_row_major(col, current_row, occupied, max_cols)
         assignments[nid] = cell
         occupied.add(cell)
         col = cell[0] + 1
@@ -62,7 +61,6 @@ def _place_node_vertical(
 
 def assign_grid_cells(
     nodes: list[Any],
-    grid_size: float,
     layer_direction: str,
     max_cols: int = 8,
     node_degrees: dict[str, int] | None = None,
@@ -76,7 +74,6 @@ def assign_grid_cells(
 
     Args:
         nodes: List of node objects with .uuid and .type attributes.
-        grid_size: Size of each grid cell in pixels.
         layer_direction: "vertical" (layers stack top-to-bottom) or "horizontal" (left-to-right).
         max_cols: Maximum nodes per row within a layer band.
         node_degrees: Dict mapping node UUID to connection degree. None = no isolation.
@@ -108,7 +105,7 @@ def assign_grid_cells(
                 nid = getattr(node, 'uuid', None) or getattr(node, 'id', None) or str(id(node))
                 is_high = _degrees.get(nid, 0) >= high_degree_threshold
                 col, current_row, row = _place_node_vertical(
-                    nid, is_high, col, current_row, band_start_row, occupied, assignments, max_cols,
+                    nid, is_high, col, current_row, occupied, assignments, max_cols,
                 )
                 band_max_row = max(band_max_row, row)
             current_row = band_max_row + 2  # leave one empty row between layers
@@ -122,7 +119,7 @@ def assign_grid_cells(
             band_max_col = band_start_col
             for node in layer_nodes:
                 nid = getattr(node, 'uuid', None) or getattr(node, 'id', None) or str(id(node))
-                cell = _next_free_cell_col_major(current_col, row, occupied, max_cols, band_start_col)
+                cell = _next_free_cell_col_major(current_col, row, occupied, max_cols)
                 assignments[nid] = cell
                 occupied.add(cell)
                 row = cell[1] + 1
@@ -140,7 +137,6 @@ def _next_free_cell_row_major(
     start_row: int,
     occupied: set[tuple[int, int]],
     max_cols: int,
-    band_start_row: int,
 ) -> tuple[int, int]:
     """Find next free cell starting from (start_col, start_row), advancing row-major."""
     col, row = start_col % max_cols, start_row
@@ -159,7 +155,6 @@ def _next_free_cell_col_major(
     start_row: int,
     occupied: set[tuple[int, int]],
     max_rows: int,
-    band_start_col: int,
 ) -> tuple[int, int]:
     """Find next free cell starting from (start_col, start_row), advancing column-major."""
     col, row = start_col, start_row % max_rows
