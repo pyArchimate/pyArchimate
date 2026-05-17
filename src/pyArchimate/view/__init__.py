@@ -303,6 +303,15 @@ class Node:
 
     # --- lifecycle ---
 
+    def _delete_concept_from_model(self, recurse: bool) -> None:
+        """Remove the underlying concept and all its view references from the model."""
+        e = self.concept
+        if e is None:
+            return
+        for n in [n for n in self.model.nodes if n.ref == e.uuid]:
+            n.delete(recurse)
+        e.delete()
+
     def delete(self, recurse=True, delete_from_model=False):
         """Delete this node and its related connections."""
         for c in self.view.conns_dict.copy().values():
@@ -318,12 +327,7 @@ class Node:
             del self.parent.nodes_dict[self._uuid]
         del self.model.nodes_dict[self._uuid]
         if delete_from_model:
-            e = self.concept
-            if e is not None:
-                related_nodes = [n for n in self.model.nodes if n.ref == e.uuid]
-                for n in related_nodes:
-                    n.delete(recurse)
-                e.delete()
+            self._delete_concept_from_model(recurse)
 
     def add(self, ref=None, x=0, y=0, w=120, h=55, uuid=None, node_type="Element", label=None, nested_rel_type=None):
         """Create and return a child node embedded in this node."""
@@ -1141,6 +1145,30 @@ class View:
         if _id in self.parent.views_dict:
             del self.parent.views_dict[_id]
 
+    def _duplicate_nodes(self, dup_view: "View") -> "dict[str, Node]":
+        """Copy all nodes from this view into dup_view; return original-uuid → new-node map."""
+        node_map: dict[str, Node] = {}
+        for node in self.nodes:
+            dup_node = dup_view.add(ref=node.ref, x=node.x, y=node.y, w=node.w, h=node.h, label=node.label)
+            node_map[node.uuid] = dup_node
+        return node_map
+
+    def _copy_connection_bendpoints(self, conn: "Connection", dup_conn: "Connection") -> None:
+        """Copy all bendpoints from conn into dup_conn."""
+        for bp in conn.bendpoints:
+            dup_conn.add_bendpoint(bp)
+
+    def _duplicate_connections(self, dup_view: "View", node_map: "dict[str, Node]") -> None:
+        """Copy all connections from this view into dup_view using node_map for endpoints."""
+        for conn in self.conns:
+            src_node = node_map.get(conn.source.uuid) if conn.source else None
+            tgt_node = node_map.get(conn.target.uuid) if conn.target else None
+            if not (src_node and tgt_node):
+                continue
+            dup_conn = dup_view.add_connection(ref=conn.ref, source=src_node, target=tgt_node)
+            if conn.bendpoints:
+                self._copy_connection_bendpoints(conn, dup_conn)
+
     def duplicate(self, name: str | None = None) -> "View":
         """Create independent deep copy of this view registered in same model.
 
@@ -1156,31 +1184,12 @@ class View:
         if self.model is None:
             raise ValueError("View has no parent model; cannot register duplicate")
 
-        # Determine name for duplicate
         dup_name = name if name is not None else f"{self.name} (copy)"
-
-        # Create new view
         dup_view = View(name=dup_name, parent=self.model)
         self.model.views_dict[dup_view.uuid] = dup_view
 
-        # Map original node UUIDs to duplicated nodes (for connection recreation)
-        node_map: dict[str, Node] = {}
-
-        # Deep copy nodes
-        for node in self.nodes:
-            dup_node = dup_view.add(ref=node.ref, x=node.x, y=node.y, w=node.w, h=node.h, label=node.label)
-            node_map[node.uuid] = dup_node
-
-        # Deep copy connections
-        for conn in self.conns:
-            src_node = node_map.get(conn.source.uuid) if conn.source else None
-            tgt_node = node_map.get(conn.target.uuid) if conn.target else None
-            if src_node and tgt_node:
-                dup_conn = dup_view.add_connection(ref=conn.ref, source=src_node, target=tgt_node)
-                # Deep copy waypoints
-                if conn.bendpoints:
-                    for bp in conn.bendpoints:
-                        dup_conn.add_bendpoint(bp)
+        node_map = self._duplicate_nodes(dup_view)
+        self._duplicate_connections(dup_view, node_map)
 
         return dup_view
 

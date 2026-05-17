@@ -573,6 +573,92 @@ class SVGExportService:
         if name:
             self._render_wrapped_text(g, name, x + 5, y + tab_h / 2, tab_w - 10, is_centered=False)
 
+    def _render_element_body(
+        self, g: ET.Element, x: float, y: float, w: float, h: float, color: str, symbol_def: Any
+    ) -> None:
+        """Render the filled body and border for a regular element (rect, rect_header, or path)."""
+        body_type = symbol_def.body_type
+        if body_type == "rect":
+            ET.SubElement(
+                g,
+                "rect",
+                {
+                    "x": str(int(x)),
+                    "y": str(int(y)),
+                    "width": str(int(w)),
+                    "height": str(int(h)),
+                    "fill": color,
+                    "stroke": "none",
+                },
+            )
+            ET.SubElement(
+                g,
+                "rect",
+                {
+                    "x": str(int(x)),
+                    "y": str(int(y)),
+                    "width": str(int(w)),
+                    "height": str(int(h)),
+                    "fill": "none",
+                    "stroke": "black",
+                    "stroke-width": "1",
+                },
+            )
+        elif body_type == "rect_header":
+            header_y = y + h * (15.0 / 75.0)
+            ET.SubElement(
+                g,
+                "rect",
+                {
+                    "x": str(int(x)),
+                    "y": str(int(y)),
+                    "width": str(int(w)),
+                    "height": str(int(h)),
+                    "fill": color,
+                    "stroke": "none",
+                },
+            )
+            ET.SubElement(
+                g,
+                "rect",
+                {
+                    "x": str(int(x)),
+                    "y": str(int(y)),
+                    "width": str(int(w)),
+                    "height": str(int(h)),
+                    "fill": "none",
+                    "stroke": "black",
+                    "stroke-width": "1",
+                },
+            )
+            ET.SubElement(
+                g,
+                "line",
+                {
+                    "x1": str(int(x)),
+                    "y1": f"{header_y:.1f}",
+                    "x2": str(int(x + w)),
+                    "y2": f"{header_y:.1f}",
+                    "stroke": "black",
+                    "stroke-width": "1",
+                },
+            )
+        else:
+            scaled_body = self._scale_path(symbol_def.svg_path, x, y, w, h)
+            ET.SubElement(g, "path", {"d": scaled_body, "fill": color, "stroke": "none"})
+            ET.SubElement(g, "path", {"d": scaled_body, "fill": "none", "stroke": "black", "stroke-width": "1"})
+
+    def _render_element_icon(self, g: ET.Element, x: float, y: float, w: float, h: float, symbol_def: Any) -> None:
+        """Render the fixed-size icon in the top-right corner if the element is large enough."""
+        _ICON_W = 22  # noqa: N806
+        _ICON_H = 20  # noqa: N806
+        if symbol_def.icon_path and symbol_def.icon_viewbox and w >= _ICON_W + 8 and h >= _ICON_H + 8:
+            ICON_MARGIN = 4  # noqa: N806
+            icon_ox = x + w - _ICON_W - ICON_MARGIN
+            icon_oy = y + ICON_MARGIN
+            translated = self._translate_icon(symbol_def.icon_path, symbol_def.icon_viewbox, icon_ox, icon_oy)
+            ET.SubElement(g, "path", {"d": translated, "fill": "none", "stroke": "black", "stroke-width": "1"})
+
     def _render_node_into(self, parent: ET.Element, node: Any) -> ET.Element:
         """Render a single node as flat inline SVG with stacked layers.
 
@@ -596,20 +682,16 @@ class SVGExportService:
         element_type = getattr(node, "type", "BusinessActor")
         element_id = getattr(node, "uuid", None)
 
-        # Group for node
         g = ET.SubElement(parent, "g", {"class": "node"})
 
-        # ── Junction nodes: small circle (Or=white, And=black) ──────────
         if element_type in ("OrJunction", "AndJunction", "Junction"):
             self._render_junction(g, x, y, w, h, element_type, node)
             return g
 
-        # ── Grouping: dashed L-shaped border, label in top-left tab ──
         if element_type == "Grouping":
             self._render_grouping(g, x, y, w, h, node)
             return g
 
-        # ── Group: solid grey, no icon, label top-left ───────────────
         if element_type == "Group":
             color = getattr(node, "fill_color", None) or "#d9d9d9"
             ET.SubElement(
@@ -628,115 +710,12 @@ class SVGExportService:
             self._render_topleft_text(g, node, x, y, w)
             return g
 
-        # ── Regular element ──────────────────────────────────────────
-        symbol_def = ARCHIMATE_SYMBOLS.get(element_type)
-        if not symbol_def:
-            symbol_def = ARCHIMATE_SYMBOLS["BusinessActor"]
-
+        symbol_def = ARCHIMATE_SYMBOLS.get(element_type) or ARCHIMATE_SYMBOLS["BusinessActor"]
         color = getattr(node, "fill_color", None) or get_element_color(element_type, element_id)
-        body_type = symbol_def.body_type
 
-        if body_type == "rect":
-            # 1. Filled body
-            ET.SubElement(
-                g,
-                "rect",
-                {
-                    "x": str(int(x)),
-                    "y": str(int(y)),
-                    "width": str(int(w)),
-                    "height": str(int(h)),
-                    "fill": color,
-                    "stroke": "none",
-                },
-            )
-            # 2. Border
-            ET.SubElement(
-                g,
-                "rect",
-                {
-                    "x": str(int(x)),
-                    "y": str(int(y)),
-                    "width": str(int(w)),
-                    "height": str(int(h)),
-                    "fill": "none",
-                    "stroke": "black",
-                    "stroke-width": "1",
-                },
-            )
+        self._render_element_body(g, x, y, w, h, color, symbol_def)
+        self._render_element_icon(g, x, y, w, h, symbol_def)
 
-        elif body_type == "rect_header":
-            # Header stripe at 20% from top (y=15 in 75-unit reference frame)
-            header_y = y + h * (15.0 / 75.0)
-            # 1. Filled body
-            ET.SubElement(
-                g,
-                "rect",
-                {
-                    "x": str(int(x)),
-                    "y": str(int(y)),
-                    "width": str(int(w)),
-                    "height": str(int(h)),
-                    "fill": color,
-                    "stroke": "none",
-                },
-            )
-            # 2. Border
-            ET.SubElement(
-                g,
-                "rect",
-                {
-                    "x": str(int(x)),
-                    "y": str(int(y)),
-                    "width": str(int(w)),
-                    "height": str(int(h)),
-                    "fill": "none",
-                    "stroke": "black",
-                    "stroke-width": "1",
-                },
-            )
-            # 3. Header line
-            ET.SubElement(
-                g,
-                "line",
-                {
-                    "x1": str(int(x)),
-                    "y1": f"{header_y:.1f}",
-                    "x2": str(int(x + w)),
-                    "y2": f"{header_y:.1f}",
-                    "stroke": "black",
-                    "stroke-width": "1",
-                },
-            )
-
-        else:  # "path"
-            scaled_body = self._scale_path(symbol_def.svg_path, x, y, w, h)
-            # 1. Filled shape
-            ET.SubElement(g, "path", {"d": scaled_body, "fill": color, "stroke": "none"})
-            # 2. Stroked border
-            ET.SubElement(
-                g,
-                "path",
-                {"d": scaled_body, "fill": "none", "stroke": "black", "stroke-width": "1"},
-            )
-
-        # 3. Icon (top-right corner, always fixed pixel size — never scaled with element)
-        # icon_ox/oy anchor the icon area; _translate_icon uses scale=1.0 so size is invariant.
-        # Only render when the element is large enough to accommodate the icon without overflow.
-        _ICON_W = 22  # reserved icon width in canvas pixels  # noqa: N806
-        _ICON_H = 20  # reserved icon height in canvas pixels  # noqa: N806
-        if symbol_def.icon_path and symbol_def.icon_viewbox and w >= _ICON_W + 8 and h >= _ICON_H + 8:
-            ICON_MARGIN = 4  # noqa: C901, N806
-            icon_ox = x + w - _ICON_W - ICON_MARGIN  # right-aligned, fixed distance from edge
-            icon_oy = y + ICON_MARGIN  # fixed distance from top
-            translated = self._translate_icon(symbol_def.icon_path, symbol_def.icon_viewbox, icon_ox, icon_oy)
-            ET.SubElement(
-                g,
-                "path",
-                {"d": translated, "fill": "none", "stroke": "black", "stroke-width": "1"},
-            )
-
-        # 4. Text
         has_children = len(getattr(node, "nodes", [])) > 0
         _raw_name = getattr(node, "name", None)
         element_name = _raw_name if _raw_name is not None else getattr(node, "label", "") or ""

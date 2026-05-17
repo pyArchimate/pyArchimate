@@ -46,6 +46,49 @@ def _place_node_vertical(
     return col, current_row, cell[1]
 
 
+def _assign_vertical_band(
+    layer_nodes: list[Any],
+    current_row: int,
+    occupied: set[tuple[int, int]],
+    assignments: dict[str, tuple[int, int]],
+    max_cols: int,
+    _degrees: dict[str, int],
+    high_degree_threshold: int,
+) -> int:
+    """Place one layer band vertically; return the next available row after this band."""
+    col = 0
+    band_max_row = current_row
+    for node in layer_nodes:
+        nid = getattr(node, "uuid", None) or getattr(node, "id", None) or str(id(node))
+        is_high = _degrees.get(nid, 0) >= high_degree_threshold
+        col, current_row, row = _place_node_vertical(nid, is_high, col, current_row, occupied, assignments, max_cols)
+        band_max_row = max(band_max_row, row)
+    return band_max_row + 2  # leave one empty row between layers
+
+
+def _assign_horizontal_band(
+    layer_nodes: list[Any],
+    current_col: int,
+    occupied: set[tuple[int, int]],
+    assignments: dict[str, tuple[int, int]],
+    max_cols: int,
+) -> int:
+    """Place one layer band horizontally; return the next available column after this band."""
+    row = 0
+    band_max_col = current_col
+    for node in layer_nodes:
+        nid = getattr(node, "uuid", None) or getattr(node, "id", None) or str(id(node))
+        cell = _next_free_cell_col_major(current_col, row, occupied, max_cols)
+        assignments[nid] = cell
+        occupied.add(cell)
+        row = cell[1] + 1
+        if row >= max_cols:
+            row = 0
+            current_col = cell[0] + 1
+        band_max_col = max(band_max_col, cell[0])
+    return band_max_col + 2  # leave one empty column between layers
+
+
 def assign_grid_cells(
     nodes: list[Any],
     layer_direction: str,
@@ -81,46 +124,15 @@ def assign_grid_cells(
     occupied: set[tuple[int, int]] = set()
 
     if layer_direction == "vertical":
-        # Layers stack top-to-bottom; each layer band starts at a new row
         current_row = 0
         for prio in sorted(groups.keys()):
-            layer_nodes = groups[prio]
-            col = 0
-            band_start_row = current_row
-            band_max_row = band_start_row
-            for node in layer_nodes:
-                nid = getattr(node, "uuid", None) or getattr(node, "id", None) or str(id(node))
-                is_high = _degrees.get(nid, 0) >= high_degree_threshold
-                col, current_row, row = _place_node_vertical(
-                    nid,
-                    is_high,
-                    col,
-                    current_row,
-                    occupied,
-                    assignments,
-                    max_cols,
-                )
-                band_max_row = max(band_max_row, row)
-            current_row = band_max_row + 2  # leave one empty row between layers
+            current_row = _assign_vertical_band(
+                groups[prio], current_row, occupied, assignments, max_cols, _degrees, high_degree_threshold
+            )
     else:
-        # Horizontal: layers stack left-to-right; each layer band starts at a new column
         current_col = 0
         for prio in sorted(groups.keys()):
-            layer_nodes = groups[prio]
-            row = 0
-            band_start_col = current_col
-            band_max_col = band_start_col
-            for node in layer_nodes:
-                nid = getattr(node, "uuid", None) or getattr(node, "id", None) or str(id(node))
-                cell = _next_free_cell_col_major(current_col, row, occupied, max_cols)
-                assignments[nid] = cell
-                occupied.add(cell)
-                row = cell[1] + 1
-                if row >= max_cols:
-                    row = 0
-                    current_col = cell[0] + 1
-                band_max_col = max(band_max_col, cell[0])
-            current_col = band_max_col + 2  # leave one empty column between layers
+            current_col = _assign_horizontal_band(groups[prio], current_col, occupied, assignments, max_cols)
 
     return assignments
 

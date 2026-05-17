@@ -40,6 +40,17 @@ or 4). Run automatically by the pre-push hook; also callable directly:
 poetry run python scripts/check_layer_boundaries.py
 ```
 
+### `check_sonarcloud.py`
+
+Queries the SonarCloud API for open issues on the `pyArchimate_pyArchimate` project and exits
+non-zero if any are found. Run as part of the release checklist (step 2b in `how_to_build.md`).
+
+```bash
+python scripts/check_sonarcloud.py
+```
+
+Set `SONAR_TOKEN` in your environment for private project or rate-limit avoidance.
+
 ### `render_diagrams.sh`
 
 Renders all `.puml` files in `docs/diagrams/` to `.png` using the PlantUML web service.

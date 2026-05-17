@@ -224,6 +224,31 @@ def remove_uturn_waypoints(waypoints: list[Point]) -> list[Point]:
     return pts
 
 
+def _extend_post_turn_point(p2: Point, p3: Point, min_len: float, seg_h_then_v: bool) -> Point:
+    """Return p3 extended along its post-turn axis to at least min_len from p2."""
+    if seg_h_then_v:
+        if p3.y > p2.y:
+            return Point(p3.x, p2.y + min_len)
+        return Point(p3.x, p2.y - min_len)
+    if p3.x > p2.x:
+        return Point(p2.x + min_len, p3.y)
+    return Point(p2.x - min_len, p3.y)
+
+
+def _maybe_extend_post_turn(result: list[Point], i: int, min_len: float) -> None:
+    """Extend p3 if the post-turn segment p2→p3 is shorter than min_len (in-place)."""
+    p1, p2, p3 = result[i], result[i + 1], result[i + 2]
+    seg_h_then_v = abs(p1.y - p2.y) < _EPSILON and abs(p2.x - p3.x) < _EPSILON
+    seg_v_then_h = abs(p1.x - p2.x) < _EPSILON and abs(p2.y - p3.y) < _EPSILON
+    if not (seg_h_then_v or seg_v_then_h):
+        return
+    if i + 2 == len(result) - 1:
+        return
+    curr_len = abs(p3.y - p2.y) if seg_h_then_v else abs(p3.x - p2.x)
+    if curr_len < min_len:
+        result[i + 2] = _extend_post_turn_point(p2, p3, min_len, seg_h_then_v)
+
+
 def _enforce_min_turn_segment(waypoints: list[Point], min_len: float) -> list[Point]:
     """Enforce minimum length for post-turn segments (FR-024, SC-012).
 
@@ -248,40 +273,7 @@ def _enforce_min_turn_segment(waypoints: list[Point], min_len: float) -> list[Po
         return list(waypoints)
 
     result = list(waypoints)
-    i = 0
-    while i < len(result) - 2:
-        p1, p2, p3 = result[i], result[i + 1], result[i + 2]
-
-        # Detect 90° bend: segments are perpendicular (h→v or v→h)
-        seg_h_then_v = abs(p1.y - p2.y) < _EPSILON and abs(p2.x - p3.x) < _EPSILON
-        seg_v_then_h = abs(p1.x - p2.x) < _EPSILON and abs(p2.y - p3.y) < _EPSILON
-
-        if seg_h_then_v or seg_v_then_h:
-            # Skip terminal segment (last segment before target attachment)
-            is_terminal = i + 2 == len(result) - 1
-            if is_terminal:
-                i += 1
-                continue
-
-            # Measure post-turn segment length (p2→p3)
-            curr_len = abs(p3.y - p2.y) if seg_h_then_v else abs(p3.x - p2.x)
-
-            if curr_len < min_len:
-                # Extend p3 along post-turn axis to enforce min_len
-                # Moving p3 along its own axis (vertical or horizontal) preserves orthogonality
-                if seg_h_then_v:
-                    # Vertical segment: extend p3.y away from p2
-                    if p3.y > p2.y:
-                        result[i + 2] = Point(p3.x, p2.y + min_len)
-                    else:
-                        result[i + 2] = Point(p3.x, p2.y - min_len)
-                else:
-                    # Horizontal segment: extend p3.x away from p2
-                    if p3.x > p2.x:
-                        result[i + 2] = Point(p2.x + min_len, p3.y)
-                    else:
-                        result[i + 2] = Point(p2.x - min_len, p3.y)
-
-        i += 1
+    for i in range(len(result) - 2):
+        _maybe_extend_post_turn(result, i, min_len)
 
     return result

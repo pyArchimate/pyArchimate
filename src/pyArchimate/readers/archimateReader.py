@@ -167,19 +167,25 @@ def _apply_viewpoint_props(elem: Any, props_xml: Any, ns: str, pdef_merge_map: d
         _assign_viewpoint(elem, slug)
 
 
+def _set_junction_type_from_prop(elem: Any, prop_xml: Any, ns: str) -> None:
+    """Apply a single junctionType property to elem; logs a warning on invalid value."""
+    val_elem = prop_xml.find(ns + "value")
+    if val_elem is None:
+        return
+    junction_type = (val_elem.text or "").strip().lower()
+    if junction_type:
+        try:
+            elem.set_junction_type(junction_type)
+        except ValueError as e:
+            log.warning(f"Invalid junctionType on import: {e}")
+
+
 def _apply_junction_type_props(elem: Any, props_xml: Any, ns: str) -> None:
     if props_xml is None:
         return
     for p in props_xml.findall(ns + "property"):
         if p.get("key") == "junctionType":
-            val_elem = p.find(ns + "value")
-            if val_elem is not None:
-                junction_type = (val_elem.text or "").strip().lower()
-                if junction_type:
-                    try:
-                        elem.set_junction_type(junction_type)
-                    except ValueError as e:
-                        log.warning(f"Invalid junctionType on import: {e}")
+            _set_junction_type_from_prop(elem, p, ns)
 
 
 def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
@@ -397,29 +403,34 @@ def _read_views(model, root, ns, xsi, pdef_merge_map, merge_flg):
             _read_view_connection(_v, c, ns, merge_flg)
 
 
-def _walk_orgs(item, ns, model, folder=""):
+def _assign_folder_by_ref(ref_id: str, folder: str, model: Any) -> None:
+    """Set the folder attribute on whichever model dict contains ref_id."""
+    if ref_id in model.views_dict:
+        model.views_dict[ref_id].folder = folder
+    elif ref_id in model.elems_dict:
+        model.elems_dict[ref_id].folder = folder
+    elif ref_id in model.rels_dict:
+        model.rels_dict[ref_id].folder = folder
+
+
+def _walk_orgs(item: Any, ns: str, model: Any, folder: str = "") -> None:
     items = item.findall(ns + "item")
     label = item.find(ns + "label")
     if label is not None:
         folder += "/" + label.text
-    if item.find(ns + "documentation") is not None:
-        desc = item.find(ns + "documentation").text
+    doc = item.find(ns + "documentation")
+    if doc is not None:
         ref_id = item.find(ns + "item").get("identifierRef")
         _v = model.views_dict[ref_id]
-        _v.desc = desc
+        _v.desc = doc.text
         _v.folder = folder
-    else:
-        for sub_item in items:
-            ref_id = sub_item.get("identifierRef")
-            if ref_id is not None:
-                if ref_id in model.views_dict:
-                    model.views_dict[ref_id].folder = folder
-                elif ref_id in model.elems_dict:
-                    model.elems_dict[ref_id].folder = folder
-                elif ref_id in model.rels_dict:
-                    model.rels_dict[ref_id].folder = folder
-            else:
-                _walk_orgs(sub_item, ns, model, folder)
+        return
+    for sub_item in items:
+        ref_id = sub_item.get("identifierRef")
+        if ref_id is not None:
+            _assign_folder_by_ref(ref_id, folder, model)
+        else:
+            _walk_orgs(sub_item, ns, model, folder)
 
 
 def _read_organizations(model, root, ns):

@@ -22,6 +22,26 @@ __mod__ = __name__.split(".")[len(__name__.split(".")) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
+_XSI = "{http://www.w3.org/2001/XMLSchema-instance}"
+
+
+def _process_hierarchy_folder(folder_elem, model):
+    """Recursively process one folder to establish parent-child relationships from parentId."""
+    for elem in folder_elem.findall("element"):
+        elem_id = elem.get("id")
+        parent_id = elem.get("parentId")
+        type_attr = elem.get(_XSI + "type", "")
+        if "Relationship" in type_attr or "ArchimateDiagramModel" in type_attr:
+            continue
+        if parent_id and elem_id in model.elems_dict and parent_id in model.elems_dict:
+            try:
+                model.add_child(parent_id, elem_id)
+            except (ValueError, KeyError) as e:
+                log.debug(f"Failed to establish parent-child relationship: {e}")
+    for folder in folder_elem.findall("folder"):
+        _process_hierarchy_folder(folder, model)
+
+
 def _rebuild_hierarchy_from_parent_id(model, root):
     """Rebuild parent-child hierarchy from parentId attributes in XML.
 
@@ -31,33 +51,8 @@ def _rebuild_hierarchy_from_parent_id(model, root):
     :param model: pyArchimate Model object
     :param root: XML root element
     """
-    xsi = "{http://www.w3.org/2001/XMLSchema-instance}"
-
-    def _process_hierarchy(folder_elem):
-        """Recursively process folders to find elements with parentId."""
-        for elem in folder_elem.findall("element"):
-            elem_id = elem.get("id")
-            parent_id = elem.get("parentId")
-
-            # Only process non-relationship, non-view elements
-            type_attr = elem.get(xsi + "type", "")
-            if "Relationship" in type_attr or "ArchimateDiagramModel" in type_attr:
-                continue
-
-            # If element has parentId and both parent and child exist, establish relationship
-            if parent_id and elem_id in model.elems_dict and parent_id in model.elems_dict:
-                try:
-                    model.add_child(parent_id, elem_id)
-                except (ValueError, KeyError) as e:
-                    # Element might already have parent or relationship might be invalid
-                    # This is acceptable during merge operations
-                    log.debug(f"Failed to establish parent-child relationship: {e}")
-
-        for folder in folder_elem.findall("folder"):
-            _process_hierarchy(folder)
-
     for folder in root.findall("folder"):
-        _process_hierarchy(folder)
+        _process_hierarchy_folder(folder, model)
 
 
 def archi_reader(model, root, merge_flg=False):

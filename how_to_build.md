@@ -54,8 +54,19 @@ git merge develop         # fast-forward master to develop HEAD
 ### 2. Check layer boundaries
 
 ```bash
-poetry run scripts/check_layer_boundaries.py
+poetry run python scripts/check_layer_boundaries.py
 ```
+
+### 2b. Check SonarCloud for open issues
+
+Requires the code to have been analysed by SonarCloud (happens automatically after a push/PR merge).
+
+```bash
+python scripts/check_sonarcloud.py
+```
+
+Set `SONAR_TOKEN` in your environment for private project access. Exit code 1 means open issues
+exist — resolve them before proceeding.
 
 ### 3. Regenerate diagrams
 
