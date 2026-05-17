@@ -52,7 +52,7 @@ jobs:
       - name: Run behave
         env:
           PYTHONIOENCODING: "utf-8"
-        run: poetry run behave tests/features/ --tags "not @wip"
+        run: poetry run behave
 
       - name: Upload test results
         if: always()
