@@ -305,7 +305,6 @@ def _multi_pass_route(
     all_waypoints: list[list[Point]],
     nodes_dict: dict[str, Any],
     om: ObstacleMap,
-    resolution: float,
     config: RoutingConfig,
     warnings: list[str],
 ) -> tuple[list[NodeMove], ObstacleMap]:
@@ -465,7 +464,7 @@ def auto_route(view: Any, config: RoutingConfig | None = None) -> LayoutResult:
 
         # Multi-pass conflict resolution + node-move fallback (P2-T16/T26).
         node_moves, om = _multi_pass_route(
-            conns, conn_refs, all_waypoints, nodes_dict, om, _res, config, warnings,
+            conns, conn_refs, all_waypoints, nodes_dict, om, config, warnings,
         )
 
         # Post-processing: separation, anchor restore, cleanup.
