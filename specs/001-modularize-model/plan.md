@@ -31,6 +31,7 @@ All other principles remain satisfied by adhering to project testing, security, 
 
 ## Project Structure
 ### Documentation (this feature)
+
 ```text
 specs/001-modularize-model/
 ├── plan.md              # this file (output of /speckit.plan)
@@ -43,6 +44,7 @@ specs/001-modularize-model/
 ```
 
 ### Source Code (repository root)
+
 ```text
 src/
 └── pyArchimate/
@@ -62,6 +64,7 @@ tests/
 ├── integration/
 └── examples/
 ```
+
 **Structure Decision**: Use the existing `src/pyArchimate` layout, carve `pyArchimate.py` into module files and helper submodules, update `pyArchimate/__init__.py` to expose the same API surface, and leave reader/writer/CLI directories untouched except for import paths.
 
 ## Phase 0 Research Deliverables

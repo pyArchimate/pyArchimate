@@ -10,7 +10,7 @@
 
 ```bash
 # Install all dependency groups including dev and testing
-uv sync --upgrade --groups dev,testing,lint
+poetry install --with dev,testing,lint
 
 # Verify ruff is available
 poetry run ruff --version
@@ -97,7 +97,7 @@ curl -s "https://sonarcloud.io/api/issues/search?projectKeys=pyArchimate_pyArchi
 
 All commits on this branch must follow Conventional Commits:
 
-```
+```text
 refactor(layout): decompose auto_route into private helpers
 test(layout): uplift view/layout/__init__.py coverage to 83%
 chore(pre-commit): add .pre-commit-config.yaml with ruff gates

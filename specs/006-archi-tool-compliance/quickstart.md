@@ -69,6 +69,7 @@ poetry run behave tests/features/archi_view_documentation.feature --format progr
 5. Verify exported XML contains `value="false"` (not "true")
 
 **Commands**:
+
 ```python
 from src.pyArchimate.readers.archimateReader import read_archimate
 from src.pyArchimate.writers.archimateWriter import write_archimate
@@ -105,6 +106,7 @@ for conn in model_reimport.conns:
 5. Verify exported XML contains the documentation
 
 **Commands**:
+
 ```python
 from src.pyArchimate.readers.archimateReader import read_archimate
 from src.pyArchimate.writers.archimateWriter import write_archimate
@@ -142,12 +144,12 @@ Feature: Archi label visibility round-trip fidelity
     Given an Archi file with connections marked nameVisible="false"
     When I import the file into pyArchimate
     Then each connection should have show_label=False
-    
+  
   Scenario: Hidden labels remain hidden after export
     Given a pyArchimate model with connections where show_label=False
     When I export to an Archi file
     Then each connection should have nameVisible="false" in the XML
-    
+  
   Scenario: Label visibility survives round-trip
     Given an Archi file with mixed label visibility (some true, some false)
     When I import and export back to Archi
@@ -163,12 +165,12 @@ Feature: Archi view documentation round-trip fidelity
     Given an Archi file with views that have <documentation> elements
     When I import the file into pyArchimate
     Then each view's desc property contains the documentation text
-    
+  
   Scenario: View documentation is exported correctly
     Given a pyArchimate model with views that have documentation
     When I export to an Archi file
     Then each view has a <documentation> element with the correct text
-    
+  
   Scenario: View documentation survives round-trip
     Given an Archi file with various view documentation
     When I import and export back to Archi

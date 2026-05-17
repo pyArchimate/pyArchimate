@@ -17,6 +17,7 @@ The Element Visual Style API enables per-element customization of colors, line w
 ### Named Colors (140+)
 
 Standard CSS/X11 named colors:
+
 ```python
 NAMED_COLORS = {
     'red': '#ff0000',
@@ -31,6 +32,7 @@ All converted to lowercase hex on storage.
 ### Standard Palette (Defaults)
 
 By ArchiMate category:
+
 ```python
 STANDARD_PALETTE = {
     'strategy': '#F5DEAA',
@@ -82,6 +84,7 @@ STANDARD_PALETTE = {
   - Message: `"Unknown color: {color} (hex or named color expected)"`
 
 **Examples**:
+
 ```python
 elem.set_fill_color('#FF0000')         # Hex (case-insensitive)
 elem.set_fill_color('red')             # Named color
@@ -144,6 +147,7 @@ elem._visual_style['fillColor'] = '#ff0000'  # Always lowercase hex
   - Message: `"Line width must be number, got {type}"`
 
 **Examples**:
+
 ```python
 elem.set_line_width(1.0)           # 1 pixel
 elem.set_line_width(2)             # 2 pixels (converted to float)
@@ -189,6 +193,7 @@ elem.set_line_width(-1)            # Error: ValueError
   - Message: `"Transparency must be number, got {type}"`
 
 **Examples**:
+
 ```python
 elem.set_transparency(0.8)         # 80% opaque
 elem.set_transparency(0.5)         # 50% opaque
@@ -235,6 +240,7 @@ elem.set_transparency(1.5)         # Error: ValueError
 - Failure: No updates applied (atomic)
 
 **Examples**:
+
 ```python
 # Set fill and transparency
 elem.set_visual_style(fill_color='red', transparency=0.8)
@@ -259,11 +265,12 @@ elem.set_visual_style(
 
 **Method**: `Element.get_fill_color() -> Optional[str]`
 
-**Returns**: 
+**Returns**:
 - Normalized hex color (#rrggbb), or
 - None if not set (use default)
 
 **Example**:
+
 ```python
 color = elem.get_fill_color()
 # Returns: '#ff0000' or None
@@ -306,6 +313,7 @@ color = elem.get_fill_color()
 - `'transparency'`: float or absent
 
 **Example**:
+
 ```python
 style = elem.get_visual_style()
 # Returns: {
@@ -331,6 +339,7 @@ style = elem.get_visual_style()
 - Uses standard palette defaults
 
 **Example**:
+
 ```python
 elem.reset_visual_style()
 # Now get_fill_color() returns None (use default)
@@ -357,6 +366,7 @@ elem.reset_visual_style()
 ## XML Serialization Contract
 
 ### Write (Export)
+
 ```xml
 <element id="id-123" ...>
   <property key="fillColor" value="#ff0000"/>
@@ -408,4 +418,3 @@ If element has no custom visual style:
 ---
 
 **Contract Status**: Ready for Phase 2 Implementation
-

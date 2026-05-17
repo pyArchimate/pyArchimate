@@ -12,6 +12,7 @@
 **Finding**: In Python, `bool("false")` evaluates to `True` because any non-empty string is truthy.
 
 **Correct Approach**: Parse the string value explicitly:
+
 ```python
 value_str = ft.get('value', '').lower()
 show_label = value_str == 'true'  # Only True if explicitly "true"
@@ -35,6 +36,7 @@ show_label = value_str == 'true'  # Only True if explicitly "true"
 **Finding**: The view documentation bug at line 237 assigns the parent element's text (`e.text`) instead of the documentation child element's text (`doc.text`). Since `<documentation>` is a container with `<content>` as text, `e.text` will be None.
 
 **XML Structure** (from lxml.etree):
+
 ```xml
 <ArchimateDiagramModel>
   <documentation>
@@ -50,6 +52,7 @@ When parsed:
 - `doc.find('content').text` is the actual documentation text
 
 **Correct Fix**: Use the same pattern as elements/relationships:
+
 ```python
 doc = e.find('documentation')
 if doc is not None:
@@ -65,6 +68,7 @@ if doc is not None:
 **Context**: `archiWriter.py:149-151` writes label visibility to Archi files.
 
 **Current Code** (inferred from Feature 004 plan):
+
 ```python
 # Likely writes: ft.set('value', str(node.show_label))
 # This produces "True" or "False" (capitalized), not "true"/"false"
@@ -80,7 +84,7 @@ if doc is not None:
 
 **Context**: Feature 004 uses pytest (unit/integration) + behave (BDD).
 
-**Finding**: 
+**Finding**:
 - pytest: Sufficient for unit testing boolean parsing and documentation extraction
 - behave: Can test round-trip scenarios with real Archi files
 - No special XML testing library needed — lxml's standard parsing validates structure

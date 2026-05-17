@@ -63,6 +63,7 @@ Defines the representation, storage, and serialization of ArchiMate 3.x viewpoin
 ### Element Viewpoint Associations (.archimate)
 
 **Example**:
+
 ```xml
 <element id="id-abc123" name="Customer Service" xsi:type="BusinessActor">
   <property key="viewpoint" value="stakeholder"/>
@@ -80,6 +81,7 @@ Defines the representation, storage, and serialization of ArchiMate 3.x viewpoin
 ### View Primary Viewpoint (.archimate)
 
 **Example**:
+
 ```xml
 <view id="id-view456" name="Stakeholder Map" viewpoint="stakeholder">
   <node id="n1" elementRef="id-abc123" x="10" y="20" w="120" h="55"/>
@@ -94,12 +96,14 @@ Defines the representation, storage, and serialization of ArchiMate 3.x viewpoin
 ### OpenGroup Exchange Format
 
 **Element Properties**:
+
 ```xml
 <property name="viewpoint" value="stakeholder"/>
 <property name="viewpoint" value="capability"/>
 ```
 
 **View Properties**:
+
 ```xml
 <property name="viewpoint" value="technology"/>
 ```
@@ -111,6 +115,7 @@ Defines the representation, storage, and serialization of ArchiMate 3.x viewpoin
 ### Viewpoint Name Normalization
 
 **Stage 1: Raw Input Normalization**
+
 ```python
 # From _archireader_helpers.py line 181, 241
 slug = (property_value or '').strip().lower()
@@ -130,6 +135,7 @@ slug = (property_value or '').strip().lower()
 ### Unrecognized Viewpoint Handling
 
 **Behavior** (per T085 implementation):
+
 ```python
 # _archireader_helpers.py line 184-187
 if get_viewpoint(slug) is not None:
@@ -282,13 +288,15 @@ _VENDOR_VIEWPOINT_MAPPINGS = {
 ### Error Messages
 
 **Invalid Slug Assignment**:
+
 ```
-ValueError: Unknown viewpoint slug 'invalid'. Valid slugs: actor, application, business, capability, 
-    implementation, infrastructure, migration, organization, physical, service, stakeholder, 
+ValueError: Unknown viewpoint slug 'invalid'. Valid slugs: actor, application, business, capability,
+    implementation, infrastructure, migration, organization, physical, service, stakeholder,
     strategy, technology
 ```
 
 **Invalid Slug for View**:
+
 ```
 ValueError: Unknown viewpoint slug 'my_custom_view'. Valid slugs: actor, application, business, ...
 ```

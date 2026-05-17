@@ -109,6 +109,7 @@ src/pyArchimate/
 #### Current Consumers (e.g., readers, writers, CLI)
 
 **Recommended pattern (new modules)**:
+
 ```python
 # Import core domain classes directly from main package (preferred for new code)
 from pyArchimate import Model, Element, Relationship
@@ -123,6 +124,7 @@ from pyArchimate.helpers.diagram import visualize_view
 #### Legacy Consumers (backward compatibility)
 
 **Direct module import (still supported indefinitely)**:
+
 ```python
 # Old pattern: direct import from legacy module (via _legacy.py re-export)
 from src.pyArchimate.pyArchimate import Model, Element, Relationship
@@ -134,6 +136,7 @@ from src.pyArchimate.pyArchimate import Model, Element, Relationship
 #### Package Entry Point (`pyArchimate/__init__.py`)
 
 The main `__init__.py` consolidates all public exports:
+
 ```python
 # Core domain
 from pyArchimate.model import Model
@@ -159,6 +162,7 @@ __all__ = [
 #### Compatibility Shim (`pyArchimate.py`)
 
 After extraction, `pyArchimate.py` becomes a re-export module:
+
 ```python
 # Stripped version: re-exports only extracted classes
 from pyArchimate.model import Model
@@ -172,6 +176,7 @@ __all__ = ['Model', 'Element', 'Relationship', 'diagram', 'properties', 'logging
 #### Legacy Compatibility Layer (`_legacy.py`)
 
 A permanent re-export layer for old direct imports:
+
 ```python
 # Supports: from src.pyArchimate.pyArchimate import Model, Element, Relationship
 # This file is maintained indefinitely for downstream automation pipelines.

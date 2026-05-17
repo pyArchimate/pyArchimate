@@ -182,6 +182,7 @@ remain in the same file.
 #### `view/layout/routing/segment_separation.py` — 1 violation (complexity 34)
 
 `_enforce_min_turn_segment()` at line 227 has 6-level deep if nesting. Extract:
+
 - `_is_horizontal_segment(seg)` — orientation predicate
 - `_needs_extension(seg, threshold)` — extension condition predicate
 - `_apply_min_turn(seg, direction)` — mutation logic
@@ -218,7 +219,7 @@ TBD at implementation — apply Extract Helper once the specific function is con
 Execute file-by-file. Run `pytest` + coverage after each file. No file is touched unless its P0
 coverage gate is met.
 
-```
+```text
 [P0] Uplift: view/layout/__init__.py tests → ≥ 80%
 [P0] Uplift: segment_separation.py tests → ≥ 80%
 [P1] Refactor: readers/archiReader.py          (84% — safe)
@@ -240,7 +241,7 @@ No new domain entities. The only new artifact is the pre-commit configuration fi
 
 **Pre-commit configuration structure**:
 
-```
+```text
 .pre-commit-config.yaml
   repos[]
     repo: astral-sh/ruff-pre-commit   (external hook repo)

@@ -50,7 +50,7 @@ Goal: Users can start with pyArchimate in under 2 minutes (SC-001).
 
 - [x] T012 [US1] Verify `docs/tutorial/tutorial.md` is discoverable by Sphinx (no edits needed; `myst-parser` + `source_suffix` handle it)
 
-**Completion Test**: 
+**Completion Test**:
 - New user can open `docs/_build/html/getting-started.html`, copy the code example, run it successfully
 - `concepts.rst` defines all terms used in getting-started example
 - `make clean html` zero warnings
@@ -148,7 +148,7 @@ Final integration and validation.
 - [x] T040 Search test: Verify Sphinx search index includes concepts + API names (SC-006)
 - [x] T055 [P] Verify SC-009: confirm all deprecated public APIs surfaced by T054 have a visible `.. deprecated::` notice in `docs/_build/html/`; zero deprecated APIs appear without a migration note
 
-**Completion Test**: 
+**Completion Test**:
 - `make clean html` exits with code 0, zero warning/error output
 - HTML site renders in browser; all three tiers visible in sidebar with correct labels
 - No broken links (verified via Sphinx warnings)

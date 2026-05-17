@@ -10,13 +10,13 @@
 
 **Decision**: Uncomment `BusinessInteraction: Business` in `checker_rules.yml` under `archi_category` section.
 
-**Rationale**: 
+**Rationale**:
 - BusinessInteraction is already defined in `ArchiType` enum (line 76 of `enums.py`)
 - BusinessInteraction is already referenced in relationship rules (9 rule entries in checker_rules.yml)
 - It is only commented out in the `archi_category` section (line 99)
 - Once uncommented, `Element.__init__` validation will pass for BusinessInteraction elements
 
-**Alternatives considered**: 
+**Alternatives considered**:
 - Creating a new category for BusinessInteraction (rejected - it already maps to Business layer per ArchiMate spec)
 - Conditional validation (rejected - simpler to enable outright as it's part of spec)
 
@@ -43,6 +43,7 @@
 - Eliminates round-trip data loss by using consistent field names
 
 **Mapping Logic**:
+
 ```
 On import:
   - Read `influenceStrength` if present
@@ -109,18 +110,21 @@ In `_archireader_helpers.py`, the relationship parser finds the `<documentation>
 ## 5. Code Patterns & Validation
 
 **Element validation pattern**:
+
 ```python
 # Location: src/pyArchimate/element.py Element.__init__
 ARCHI_CATEGORY[elem_type]  # Validates elem_type is in allowed categories
 ```
 
 **Reader pattern**:
+
 ```python
 # Location: src/pyArchimate/readers/*.py
 r.get('field_name')  # Safe dictionary access for optional fields
 ```
 
 **Writer pattern**:
+
 ```python
 # Location: src/pyArchimate/writers/*.py
 elem.set('field_name', value)  # XML attribute setting
@@ -128,6 +132,7 @@ e.property_name  # Relationship property access
 ```
 
 **Relationship property pattern**:
+
 ```python
 # Location: src/pyArchimate/relationship.py
 relationship.influence_strength  # Snake case property matching ArchiMate camelCase field

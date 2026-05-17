@@ -9,13 +9,20 @@ and configured via `pyproject.toml`.
 One-time setup per clone:
 
 ```bash
-poetry run pre-commit install
+pip install pre-commit
+pre-commit install --hook-type pre-commit --hook-type pre-push
 ```
 
-To run the hooks against the entire codebase manually:
+This wires two gates:
+
+- **pre-commit**: ruff lint + format, pymarkdown, vulture — runs on staged files only, fast
+- **pre-push**: pyright, mypy, layer boundaries, behave, full pytest suite — runs on every push
+
+To run either gate manually against the entire codebase:
 
 ```bash
-poetry run pre-commit run --all-files
+pre-commit run --all-files                        # commit-stage hooks
+pre-commit run --all-files --hook-stage pre-push  # push-stage hooks
 ```
 
 Any commit that introduces a function exceeding McCabe complexity 15 (`C901`) or

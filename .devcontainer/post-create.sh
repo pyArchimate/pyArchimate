@@ -87,8 +87,8 @@ echo "✅ Done"
 
 # Installing Git Hooks
 echo -e "\n🪝 Installing Git Hooks..."
-run_command "ln -sf ../../scripts/pre_commit_checks.sh .git/hooks/pre-commit"
-run_command "ln -sf ../../scripts/pre_push_checks.sh .git/hooks/pre-push"
+run_command "pip install pre-commit"
+run_command "pre-commit install --hook-type pre-commit --hook-type pre-push"
 echo "✅ Done"
 
 echo -e "\n🧹 Cleaning cache..."

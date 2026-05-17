@@ -5,6 +5,7 @@ Fixed critical bugs preventing pyArchimate from generating valid OpenGroup Excha
 
 ## The Bug
 When exporting models to OpenGroup Exchange format (default writer), generated files failed to parse with error:
+
 ```
 org.xml.sax.SAXParseException (line 1 col 163): 
 cvc-elt.1.a - Declaration of element 'model' not found

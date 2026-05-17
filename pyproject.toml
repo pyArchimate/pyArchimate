@@ -206,13 +206,15 @@ tags = ["not @wip"]
 [tool.pymarkdown]
 # MD010 - no hard tabs
 plugins.md010.enabled = true
-# MD007 - unordered list indentation
-plugins.md007.indent = 4
+# MD007 - disabled: plugin crashes on emoji used as pseudo-bullets (pymarkdownlnt bug)
+plugins.md007.enabled = false
 # MD004 - unordered list style
 plugins.md004.style = "dash"
 
 [tool.pymarkdown.plugins.md013]
 line_length = 120
+code_blocks = false
+tables = false
 
 [tool.commitizen]
 name = "cz_conventional_commits"

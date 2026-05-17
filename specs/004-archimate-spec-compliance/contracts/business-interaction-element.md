@@ -11,6 +11,7 @@ Defines how the `BusinessInteraction` ArchiMate element type is registered, vali
 ## Registration
 
 ### ArchiType Enum
+
 ```python
 # File: src/pyArchimate/enums.py
 class ArchiType(str, Enum):
@@ -20,6 +21,7 @@ class ArchiType(str, Enum):
 **Status**: ✅ Already defined; no change needed.
 
 ### ARCHI_CATEGORY Mapping
+
 ```yaml
 # File: src/pyArchimate/checker_rules.yml (line 99)
 archi_category:
@@ -33,6 +35,7 @@ archi_category:
 ## Validation
 
 ### Element.__init__ Validation
+
 ```python
 # File: src/pyArchimate/element.py
 def __init__(self, name, elem_type, ...):
@@ -46,6 +49,7 @@ def __init__(self, name, elem_type, ...):
 - No additional code changes needed
 
 ### Relationship Rules
+
 ```yaml
 # File: src/pyArchimate/checker_rules.yml (lines 30, 99, 171, 234, 297, 360, 423, 486, 549, 612)
 # BusinessInteraction already referenced in 9 relationship rule entries
@@ -57,6 +61,7 @@ def __init__(self, name, elem_type, ...):
 ## Serialization
 
 ### Export to .archimate format
+
 ```xml
 <!-- Expected output -->
 <BusinessInteraction name="Customer Service Interaction">
@@ -69,6 +74,7 @@ def __init__(self, name, elem_type, ...):
 - No format changes needed
 
 ### Export to OpenGroup exchange format
+
 ```xml
 <!-- Expected output -->
 <element xsi:type="BusinessInteraction" name="..." id="...">
@@ -81,6 +87,7 @@ def __init__(self, name, elem_type, ...):
 - No format changes needed
 
 ### Import from .archimate format
+
 ```python
 # Existing reader logic will parse BusinessInteraction elements
 # Once ARCHI_CATEGORY is enabled, Element.__init__ validation passes
@@ -93,6 +100,7 @@ def __init__(self, name, elem_type, ...):
 ## Testing Criteria
 
 **Creation Test**:
+
 ```python
 elem = Element(name='Test', elem_type=ArchiType.BusinessInteraction)
 assert elem.elem_type == ArchiType.BusinessInteraction
@@ -100,6 +108,7 @@ assert elem.name == 'Test'
 ```
 
 **Export Test**:
+
 ```python
 model.add_element(elem)
 model.export_to_file('test.archimate', Writers.archi)
@@ -107,6 +116,7 @@ model.export_to_file('test.archimate', Writers.archi)
 ```
 
 **Import Test**:
+
 ```python
 imported_model = read_archimate_file('test.archimate')
 imported_elem = imported_model.get_element_by_type(ArchiType.BusinessInteraction)[0]
@@ -114,6 +124,7 @@ assert imported_elem.name == 'Test'
 ```
 
 **Relationship Test**:
+
 ```python
 # All existing relationship rule tests should pass once category is enabled
 # Example: Can relate BusinessInteraction to BusinessActor via Realization

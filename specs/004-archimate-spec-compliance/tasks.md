@@ -473,4 +473,3 @@ Phase 7.6: Documentation & QA (T113-T120)
 | Test coverage | 90%+ maintained |
 | BDD scenarios | 15+ passing across 3 feature files |
 | Regressions | 0 |
-

@@ -210,9 +210,9 @@ class RelationshipStyle(NamedTuple):
   </marker>
 </defs>
 
-<polyline points="110,125 110,200 200,200" 
-          stroke="#4A90E2" 
-          stroke-width="1" 
+<polyline points="110,125 110,200 200,200"
+          stroke="#4A90E2"
+          stroke-width="1"
           stroke-dasharray="5,5"
           fill="none"
           marker-end="url(#arrow-hollow)"/>

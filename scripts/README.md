@@ -58,6 +58,7 @@ Renders all `.puml` files in `docs/diagrams/` to `.png` using the PlantUML web s
 Quick incremental build for development. Generates HTML documentation in `docs/build/html/`.
 
 **Usage:**
+
 ```bash
 ./scripts/build_docs.sh [--clean] [--open]
 ```
@@ -76,6 +77,7 @@ Full release build with validation. Performs a clean build and validates:
 - Proper HTML generation
 
 **Usage:**
+
 ```bash
 ./scripts/build_docs_release.sh [--deploy]
 ```
@@ -83,7 +85,7 @@ Full release build with validation. Performs a clean build and validates:
 **When to use:** Before releasing or publishing documentation to ensure quality.
 
 ### `create_documentation.sh`
-Legacy script. Builds the project's Sphinx documentation into `build/html`. 
+Legacy script. Builds the project's Sphinx documentation into `build/html`.
 
 **Recommendation:** Use `build_docs.sh` or `build_docs_release.sh` instead for better features and validation.
 

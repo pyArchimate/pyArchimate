@@ -139,6 +139,7 @@ Layout behavior is configurable via a LayoutConfig object (algorithm choice, spa
 - Preserves MVP scope while allowing future customization.
 
 **Implementation Approach**:
+
 ```python
 class LayoutConfig:
     algorithm: str = "force_directed"  # or "hierarchical"

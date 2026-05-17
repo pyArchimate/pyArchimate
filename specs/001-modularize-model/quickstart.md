@@ -2,7 +2,7 @@
 
 1. **Setup the environment**  
    - `poetry install` (ensures Python >=3.10 and all dev dependencies are available).  
-   - `uv venv use <name>` / `poetry shell` if you prefer an isolated shell.  
+   - `poetry shell` if you prefer an isolated shell.  
 
 2. **Verify the refactor**  
    - `poetry run pytest` to execute the full suite (unit, integration, examples); confirm the new modules expose the same API as before.  

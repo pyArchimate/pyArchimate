@@ -5,6 +5,7 @@ Fix critical bug in `archimateWriter.py` that prevents generated OpenGroup Excha
 
 ## Problem Statement
 The default writer (OpenGroup Exchange format) was generating XML files that failed schema validation with error:
+
 ```
 org.xml.sax.SAXParseException: cvc-elt.1.a - Declaration of element 'model' not found
 ```
@@ -26,6 +27,7 @@ This is a prerequisite fix for Feature 004 (ArchiMate v3.x Specification Complia
 #### Single Critical Fix: Schema Location (Line 381)
 
 **Before (BROKEN):**
+
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" 
@@ -38,12 +40,13 @@ This is a prerequisite fix for Feature 004 (ArchiMate v3.x Specification Complia
 </model>
 ```
 
-**Issue**: 
+**Issue**:
 - Schema location points to `archimate3_Diagram.xsd` (intended for diagram elements, not model root)
 - Schema URI mismatch: `3.0` namespace but `3.1` schema location
 - XML validators reject the file because `<model>` element not declared in diagram schema
 
 **After (FIXED):**
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" 
@@ -94,6 +97,7 @@ This is a prerequisite fix for Feature 004 (ArchiMate v3.x Specification Complia
 - `src/pyArchimate/writers/archimateWriter.py` (line 381 - 1 line change in template)
 
 ## Validation Commands
+
 ```bash
 # Python XML validation
 python3 -m xml.dom.minidom temp/demo.xml

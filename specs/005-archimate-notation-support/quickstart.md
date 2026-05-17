@@ -22,7 +22,7 @@ model = Model('E-Commerce')
 
 # Create top-level process
 order_proc = model.add(
-    ArchiType.BusinessProcess, 
+    ArchiType.BusinessProcess,
     'Order Processing',
     desc='Main order workflow'
 )
@@ -446,4 +446,3 @@ except ValueError as e:
 ---
 
 **Ready to build!** 🚀
-

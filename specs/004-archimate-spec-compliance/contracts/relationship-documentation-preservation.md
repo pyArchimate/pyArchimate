@@ -26,6 +26,7 @@ if doc is not None and doc.text:
 ## XML Structure
 
 ### Archi .archimate Format
+
 ```xml
 <Relationship source="..." target="...">
   <documentation>This relationship handles data transformation</documentation>
@@ -36,6 +37,7 @@ if doc is not None and doc.text:
 **Documentation Storage**: Direct child element with text content
 
 ### OpenGroup Exchange Format
+
 ```xml
 <relationship source="..." target="...">
   <properties>
@@ -56,12 +58,12 @@ def parse_relationship(rel_element):
     Extract relationship data from Archi .archimate XML element.
     """
     relationship = Relationship(...)
-    
+  
     # Extract documentation (FIX)
     doc_element = rel_element.find('documentation')
     if doc_element is not None:
         relationship.description = doc_element.text or ""
-    
+  
     return relationship
 ```
 
@@ -80,14 +82,14 @@ def parse_relationship_from_opengroup(rel_element):
     Extract relationship data from OpenGroup exchange XML element.
     """
     relationship = Relationship(...)
-    
+  
     # Extract documentation (if present in properties)
     properties = rel_element.find('properties')
     if properties is not None:
         for prop in properties.findall('property'):
             if prop.get('key') == 'description':
                 relationship.description = prop.get('value')
-    
+  
     return relationship
 ```
 
@@ -107,12 +109,12 @@ def write_relationship(rel, parent_element):
     rel_elem = SubElement(parent_element, 'Relationship')
     rel_elem.set('source', rel.source_id)
     rel_elem.set('target', rel.target_id)
-    
+  
     # Write documentation (if present)
     if rel.description:
         doc_elem = SubElement(rel_elem, 'documentation')
         doc_elem.text = rel.description  # ✓ lxml handles escaping
-    
+  
     return rel_elem
 ```
 
@@ -130,14 +132,14 @@ def write_relationship(rel, parent_element):
     rel_elem = SubElement(parent_element, 'relationship')
     rel_elem.set('source', rel.source_id)
     rel_elem.set('target', rel.target_id)
-    
+  
     # Write documentation (if present)
     if rel.description:
         props_elem = SubElement(rel_elem, 'properties')
         prop_elem = SubElement(props_elem, 'property')
         prop_elem.set('key', 'description')
         prop_elem.set('value', rel.description)
-    
+  
     return rel_elem
 ```
 
@@ -196,6 +198,7 @@ Step 3: Verify equality
 ## Edge Cases
 
 ### Empty Documentation
+
 ```python
 rel.description = ""  # Empty string (distinguish from None)
 # Behavior on export: May write empty element or skip
@@ -203,6 +206,7 @@ rel.description = ""  # Empty string (distinguish from None)
 ```
 
 ### Unicode & Special Characters
+
 ```python
 rel.description = "关系说明: <flow> & transformation"
 # Behavior: lxml escapes special XML chars (&lt;, &gt;, &amp;)
@@ -210,6 +214,7 @@ rel.description = "关系说明: <flow> & transformation"
 ```
 
 ### Very Long Documentation
+
 ```python
 rel.description = "A" * 10000  # 10k character documentation
 # Behavior: No truncation; XML supports arbitrary text length
@@ -217,6 +222,7 @@ rel.description = "A" * 10000  # 10k character documentation
 ```
 
 ### None vs Empty String
+
 ```python
 rel.description = None   # No documentation; may skip element on export
 rel.description = ""     # Empty documentation; may write empty element
@@ -236,6 +242,7 @@ rel.description = ""     # Empty documentation; may write empty element
 ## Testing Criteria
 
 **Basic Import Test**:
+
 ```python
 # File: test_import_documentation.py
 archi_xml = '''
@@ -248,6 +255,7 @@ assert rel.description == 'Test documentation'
 ```
 
 **Missing Documentation Test**:
+
 ```python
 archi_xml = '<Relationship source="x" target="y"></Relationship>'
 rel = parse_relationship_from_xml(archi_xml)
@@ -255,6 +263,7 @@ assert rel.description is None or rel.description == ""
 ```
 
 **Unicode Test**:
+
 ```python
 rel.description = "关系: データフロー & 変換"
 # Export and re-import
@@ -262,6 +271,7 @@ assert imported_rel.description == "関係: データフロー & 変換"
 ```
 
 **Special Characters Test**:
+
 ```python
 rel.description = '<script> & "quotes" & \'single\''
 # Export to XML (lxml escapes)
@@ -270,6 +280,7 @@ assert imported_rel.description == '<script> & "quotes" & \'single\''
 ```
 
 **Long Text Test**:
+
 ```python
 rel.description = "A" * 10000
 model.export_to_file('test.archimate')
@@ -278,6 +289,7 @@ assert len(imported_model.get_relationship(rel.id).description) == 10000
 ```
 
 **Round-Trip Test**:
+
 ```python
 # Create → Export → Import → Export → Verify
 original_desc = "Process: reads data, transforms it, publishes results"
@@ -297,27 +309,29 @@ assert rel1.description == rel2.description
   - Handles missing elements gracefully
 
 - **`src/pyArchimate/writers/archiWriter.py` (lines 126-129)**: ✓ Documentation write implemented
-  ```python
+  
+```python
   desc = getattr(rel, 'desc', None)
   if desc is not None:
       doc = et.SubElement(r, 'documentation')
       doc.text = desc
   ```
+
   - Creates `<documentation>` child element
   - lxml automatically escapes special characters
   - Preserves UTF-8 encoding
 
-- **`src/pyArchimate/writers/archimateWriter.py`**: ✓ Verified (if applicable for OpenGroup format)
+  - **`src/pyArchimate/writers/archimateWriter.py`**: ✓ Verified (if applicable for OpenGroup format)
   - OpenGroup format handling confirmed
 
-- **`src/pyArchimate/relationship.py`**: ✓ Property verified
+  - **`src/pyArchimate/relationship.py`**: ✓ Property verified
   - Uses `desc` attribute internally for storage
   - Supports full UTF-8 text with special characters
 
-- **Test files**: ✓ Comprehensive test coverage
-  - Basic documentation import/export tests
+  - **Test files**: ✓ Comprehensive test coverage
+-   Basic documentation import/export tests
   - Edge cases: empty, Unicode, special chars, long text
-  - Round-trip fidelity tests
+-   Round-trip fidelity tests
   - All scenarios in `relationship_documentation.feature`
 
 ## Compliance

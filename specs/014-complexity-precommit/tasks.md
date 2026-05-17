@@ -92,9 +92,10 @@
 
 **Independent Test**: Attempt `git commit` with a deliberately complex function (McCabe > 15) — commit must be blocked with a readable error. Attempt `git commit` with clean code — commit must succeed.
 
-- [X] T016 [US2] Add `pre-commit` to `[dependency-groups] dev` in `pyproject.toml` (after the existing `vulture` entry); run `uv sync --upgrade --groups dev` to install
+- [X] T016 [US2] Add `pre-commit` to `[dependency-groups] dev` in `pyproject.toml` (after the existing `vulture` entry); run `poetry install --with dev` to install
 - [X] T017 [US2] Create `.pre-commit-config.yaml` at repository root:
-  ```yaml
+  
+```yaml
   repos:
     - repo: https://github.com/astral-sh/ruff-pre-commit
       rev: <pin to latest release compatible with ruff ≥ 0.14.10>
@@ -103,7 +104,9 @@
         - id: ruff-format # ruff format --check — format gate (read-only)
           args: [--check]
   ```
-  All rule config remains in `pyproject.toml` — do not duplicate settings
+  
+All rule config remains in `pyproject.toml` — do not duplicate settings
+
 - [X] T018 [US2] Run `poetry run pre-commit install` to register hooks in `.git/hooks/pre-commit`
 - [X] T019 [US2] Verify hooks fire: run `poetry run pre-commit run --all-files` and confirm it exits 0 (all files already pass after T015)
 - [X] T020 [US2] Smoke test: create a scratch file `_test_complexity_gate.py` at repo root with a function that has McCabe complexity > 15, stage it, attempt `git commit`, confirm the commit is blocked and the violation is named in the output; then delete the scratch file
@@ -120,10 +123,12 @@
 **Independent Test**: Query the SonarCloud API and confirm the `total` field is `0` for rule `python:S3776`.
 
 - [ ] T022 [US3] After merging to main: query SonarCloud API to confirm zero open S3776 violations:
+
   ```bash
   curl -s "https://sonarcloud.io/api/issues/search?projectKeys=pyArchimate_pyArchimate&rules=python:S3776&statuses=OPEN" \
     | python3 -c "import sys,json; d=json.load(sys.stdin); print('PASS' if d['total']==0 else f'FAIL: {d[\"total\"]} issues remain')"
   ```
+
   If violations remain, identify which functions still exceed the cognitive complexity threshold (note: SonarCloud S3776 ≠ ruff C901 — some functions may require further decomposition)
 
 **Checkpoint**: Zero SonarCloud S3776 issues confirmed — US3 complete
@@ -155,7 +160,7 @@
 
 ### Task-Level Dependencies
 
-```
+```text
 T001 → T002 → (T003 ∥ T004) → T005 → T013 → T014
                                               ↓
 T001 → (T006 ∥ T007 ∥ T008 ∥ T009 ∥ T010 ∥ T011) → T012 → T014 → T015

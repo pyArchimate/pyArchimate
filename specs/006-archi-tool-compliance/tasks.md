@@ -439,6 +439,7 @@ Rationale: All three bugs/gaps are P1 critical. Label visibility and documentati
 - **Stream 3**: T009, T010, T011, T012 (Image preservation)
 
 Example execution schedule with maximum parallelization:
+
 ```
 Time 0:00-0:05   → T001 (create helper)
 Time 0:05-0:35   → T002, T004, T009 (parallel: readers + test files)
