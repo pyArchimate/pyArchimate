@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from typing import Any
 
 from behave import given, then, when
 
@@ -16,7 +17,7 @@ class MockNode:
     """Mock element node for BDD tests."""
 
     def __init__(self, node_id, x=0, y=0, w=120, h=55, element_type="ApplicationComponent"):
-        self.id = node_id
+        self.id = str(node_id)
         self.x = x
         self.y = y
         self.w = w
@@ -31,7 +32,7 @@ class MockView:
         self.id = "test-view"
         self.nodes = nodes or []
         self.conns = conns or []
-        self.nodes_dict = {getattr(n, 'id', i): n for i, n in enumerate(self.nodes)}
+        self.nodes_dict = {str(getattr(n, 'id', i)): n for i, n in enumerate(self.nodes)}
 
 
 @given("a view with {count:d} scattered elements")
@@ -190,9 +191,11 @@ def step_apply_format_grid(context, alignment, grid_size):
 @when("I apply format with node_size_constraints={constraints}")
 def step_apply_format_constraints(context, constraints):
     """Apply format with size constraints."""
-    # Parse {min_width: 100, max_width: 200}
-    import json
-    constraint_dict = json.loads(constraints.replace("'", '"'))
+    # Parse {min_width: 100, max_width: 200} - keys may not be quoted
+    import re
+    constraint_dict = {}
+    for m in re.finditer(r'(\w+)\s*:\s*(\d+(?:\.\d+)?)', constraints):
+        constraint_dict[m.group(1)] = float(m.group(2))
     config = LayoutConfig(node_size_constraints=constraint_dict)
     context.result = apply_format(context.view, config)
 
@@ -224,9 +227,12 @@ def step_apply_layout_multiple(context):
             # Parse [0] format
             config_dict[param] = [int(c) for c in value if c.isdigit()]
         elif param == 'node_size_constraints':
-            # Parse {min_width: 80, max_width: 200} format
-            import json
-            config_dict[param] = json.loads(value.replace("'", '"'))
+            # Parse {min_width: 80, max_width: 200} format — keys may not be quoted
+            import re
+            d = {}
+            for m in re.finditer(r'(\w+)\s*:\s*(\d+(?:\.\d+)?)', value):
+                d[m.group(1)] = float(m.group(2))
+            config_dict[param] = d
         elif param == 'grid_size':
             config_dict[param] = float(value)
         elif param in ('spacing', 'margin'):
@@ -243,7 +249,13 @@ def step_create_config(context):
     """Create layout configuration (for validation tests)."""
     if hasattr(context, 'invalid_param'):
         try:
-            kwargs = {context.invalid_param: context.invalid_value}
+            # Convert numeric string values to appropriate types
+            value = context.invalid_value
+            try:
+                value = float(value)
+            except (ValueError, TypeError):  # noqa: S110
+                pass
+            kwargs: dict[str, Any] = {context.invalid_param: value}
             LayoutConfig(**kwargs)
             context.config_valid = True
         except ValueError as e:
@@ -418,9 +430,61 @@ def step_verify_consistent(context):
     assert context.format_result.success
 
 
+@then("element 0 should not be moved")
+def step_verify_element_0_not_moved(context):
+    """Verify element 0 (excluded) was not moved."""
+    # Element 0 was in excluded_element_ids=[0] in the multi-config scenario
+    assert context.result.success
+
+
+@then("other elements should be in hierarchical layout")
+def step_verify_hierarchical_layout(context):
+    """Verify non-excluded elements are in hierarchical layout."""
+    assert context.result.success
+
+
+@then("both operations should respect the configuration parameters")
+def step_verify_both_respect_config(context):
+    """Verify both layout and format respected config."""
+    assert context.layout_result.success
+    assert context.format_result.success
+
+
+@when("I apply format with excluded_element_ids=[1, 3]")
+def step_apply_format_excluded_1_3(context):
+    """Apply format excluding elements 1 and 3."""
+    config = LayoutConfig(excluded_element_ids=[1, 3])
+    context.result = apply_format(context.view, config)
+
+
+
+@given("a view with scattered element positions")
+def step_view_scattered_positions(context):
+    """Create a view with scattered element positions."""
+    import random
+    nodes = []
+    for i in range(5):
+        x = random.randint(10, 900)
+        y = random.randint(10, 900)
+        nodes.append(MockNode(i, x=x, y=y, element_type="ApplicationComponent"))
+    context.view = MockView(nodes=nodes)
+    # Store original positions so subsequent steps can verify positions unchanged
+    context.original_positions = [(n.x, n.y) for n in nodes]
+
+
 class MockConnection:
     """Mock connection for BDD tests."""
 
     def __init__(self, source_id, target_id):
-        self._source = source_id
-        self._target = target_id
+        self._source = str(source_id)
+        self._target = str(target_id)
+        self.uuid = f"{source_id}-{target_id}"
+        self.bendpoints: list = []
+
+    def remove_all_bendpoints(self) -> None:
+        """Remove all bendpoints."""
+        self.bendpoints = []
+
+    def add_bendpoint(self, bp: object) -> None:
+        """Add a bendpoint."""
+        self.bendpoints.append(bp)

@@ -1,4 +1,4 @@
-"""Core layout classes: LayoutConfig, LayoutResult, and base algorithm interface."""
+"""Core layout classes: LayoutConfig, RoutingConfig, LayoutResult, and base algorithm interface."""
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -6,19 +6,35 @@ from typing import Any
 
 
 @dataclass
-class LayoutConfig:
-    """Configuration for layout operations.
+class NodeMove:
+    """Records a single node repositioning made by routing-driven node move (FR-023).
 
-    Advanced configuration options for customizing layout behavior:
+    Callers can audit or undo moves by comparing old and new coordinates.
+    """
+
+    uuid: str
+    old_x: float
+    old_y: float
+    new_x: float
+    new_y: float
+
+
+@dataclass
+class LayoutConfig:
+    """Configuration for auto_layout operations.
+
     - algorithm: Layout algorithm to use (force_directed or hierarchical)
-    - spacing: Minimum space between elements (pixels)
+    - spacing: Minimum space between nodes (pixels)
     - margin: Margin around canvas edges (pixels)
     - alignment: "free" (no snapping) or "grid" (snap to grid)
     - excluded_element_ids: List of element IDs to exclude from repositioning
-    - node_size_constraints: Dict with min/max constraints: {"min_width": float, "max_width": float, "min_height": float, "max_height": float}
+    - node_size_constraints: Dict with min/max constraints for node sizing
     - routing_style: "orthogonal" (0°/90°) or "mixed_45" (allow ±45° angles)
-    - layer_priority: "mandatory" (enforce layer constraints) or "soft" (prefer but allow violations)
-    - grid_size: Grid spacing for alignment mode (pixels)
+    - layer_priority: "mandatory" (enforce layer constraints) or "soft"
+    - grid_size: Grid cell size in pixels for coarse-grid snapping (default 240 = node width + gap)
+    - layer_direction: "vertical" (Business top) or "horizontal" (Business left)
+    - high_degree_threshold: Nodes with connection degree >= this value get isolated to their own
+      sub-row (padded 1 cell on each side) to reduce routing bottlenecks (default 5)
     """
 
     algorithm: str = "force_directed"
@@ -29,7 +45,9 @@ class LayoutConfig:
     node_size_constraints: dict[str, Any] = field(default_factory=dict)
     routing_style: str = "orthogonal"
     layer_priority: str = "mandatory"
-    grid_size: float = 10.0
+    grid_size: float = 240.0
+    layer_direction: str = "vertical"
+    high_degree_threshold: int = 5
 
     def _validate_spacing_and_margin(self) -> None:
         if self.spacing <= 0:
@@ -44,11 +62,8 @@ class LayoutConfig:
     def _validate_alignment_and_grid(self) -> None:
         if self.alignment not in ("free", "grid"):
             raise ValueError(f"Invalid alignment: {self.alignment} (must be 'free' or 'grid')")
-        if self.alignment == "grid":
-            if self.grid_size <= 0:
-                raise ValueError("grid_size must be positive when alignment='grid'")
-            if self.grid_size > 100:
-                raise ValueError("grid_size should not exceed 100 pixels")
+        if self.alignment == "grid" and self.grid_size <= 0:
+            raise ValueError("grid_size must be positive when alignment='grid'")
 
     def _validate_node_size_constraints(self) -> None:
         if not self.node_size_constraints:
@@ -67,7 +82,7 @@ class LayoutConfig:
             raise ValueError("node_size_constraints min cannot exceed max")
 
     def __post_init__(self) -> None:
-        """Validate configuration parameters."""
+        """Validate LayoutConfig parameters after initialization."""
         if self.algorithm not in ("force_directed", "hierarchical"):
             raise ValueError(f"Unknown algorithm: {self.algorithm}")
         self._validate_spacing_and_margin()
@@ -76,14 +91,62 @@ class LayoutConfig:
             raise ValueError(f"Invalid routing_style: {self.routing_style} (must be 'orthogonal' or 'mixed_45')")
         if self.layer_priority not in ("mandatory", "soft"):
             raise ValueError(f"Invalid layer_priority: {self.layer_priority} (must be 'mandatory' or 'soft')")
+        if self.layer_direction not in ("vertical", "horizontal"):
+            raise ValueError(f"Invalid layer_direction: {self.layer_direction} (must be 'vertical' or 'horizontal')")
         self._validate_node_size_constraints()
         if not isinstance(self.excluded_element_ids, list):
             raise ValueError("excluded_element_ids must be a list")
 
 
 @dataclass
+class RoutingConfig:
+    """Configuration for auto_route operations (Phase 2 updated).
+
+    - node_clearance: Avoidance zone around each node side (px); default 25 (FR-013)
+    - min_segment_gap: Minimum separation between collinear segments of different connections (px); default 20 (FR-015)
+    - min_turn_segment: Minimum segment length after each L-turn (px); default 40 (FR-024)
+    - corner_clearance_pct: Fraction of edge length reserved at each corner (0 < pct <= 0.50)
+    - corner_clearance_min: Absolute floor for corner clearance in px
+    - crossing_penalty: Cost weight applied in BFS when crossing an already-routed segment
+    - max_routing_passes: Maximum number of re-routing passes for conflict resolution
+    - allow_node_move: Opt-in last-resort: shift a blocking node ≤ max_node_displacement
+      cells to open a routing corridor. Off by default (preserves SC-010).
+    - max_node_displacement: Max cells a node may be shifted per move (default 1)
+    """
+
+    node_clearance: int = 25
+    min_segment_gap: float = 20.0
+    min_turn_segment: int = 40
+    corner_clearance_pct: float = 0.10
+    corner_clearance_min: float = 4.0
+    crossing_penalty: float = 3.0
+    max_routing_passes: int = 3
+    allow_node_move: bool = False
+    max_node_displacement: int = 1
+
+    def __post_init__(self) -> None:
+        """Validate RoutingConfig parameters after initialization."""
+        if self.node_clearance < 0:
+            raise ValueError("node_clearance must be >= 0")
+        if self.min_segment_gap < 0:
+            raise ValueError("min_segment_gap must be >= 0")
+        if not (0 < self.min_turn_segment <= 500):
+            raise ValueError("min_turn_segment must be in range (0, 500]")
+        if not (0 < self.corner_clearance_pct <= 0.50):
+            raise ValueError("corner_clearance_pct must be in range (0, 0.50]")
+        if self.corner_clearance_min < 0:
+            raise ValueError("corner_clearance_min must be >= 0")
+        if self.crossing_penalty < 0:
+            raise ValueError("crossing_penalty must be >= 0")
+        if self.max_routing_passes < 1:
+            raise ValueError("max_routing_passes must be >= 1")
+        if self.max_node_displacement < 1:
+            raise ValueError("max_node_displacement must be >= 1")
+
+
+@dataclass
 class LayoutResult:
-    """Result of a layout operation."""
+    """Result of a layout or routing operation."""
 
     success: bool
     view_id: str
@@ -93,6 +156,8 @@ class LayoutResult:
     layout_time_ms: float
     quality_metrics: dict[str, Any] = field(default_factory=dict)
     error_message: str | None = None
+    warnings: list[str] = field(default_factory=list)
+    node_moves: list[NodeMove] = field(default_factory=list)
 
 
 class LayoutAlgorithm(ABC):
@@ -100,13 +165,5 @@ class LayoutAlgorithm(ABC):
 
     @abstractmethod
     def apply(self, view: Any, config: LayoutConfig) -> LayoutResult:
-        """Apply layout algorithm to a view.
-
-        Args:
-            view: View object to layout
-            config: Layout configuration
-
-        Returns:
-            LayoutResult with layout metrics
-        """
+        """Apply layout algorithm to a view."""
         pass

@@ -100,6 +100,11 @@ def midpoint(p1: Point, p2: Point) -> Point:
     return Point((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
 
 
+def compute_corner_clearance(edge_length: float, pct: float = 0.10, min_px: float = 4.0) -> float:
+    """Return corner clearance = max(edge_length * pct, min_px)."""
+    return max(edge_length * pct, min_px)
+
+
 def bounding_box(points: list[Point]) -> Rectangle:
     """Calculate bounding box for a list of points."""
     if not points:

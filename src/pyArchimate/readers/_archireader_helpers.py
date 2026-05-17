@@ -103,6 +103,7 @@ def _parse_node_attributes(node: Any, child: Any, parent: Any) -> None:
 
 
 def get_node(tag: Any, parent: Any, xsi: str) -> None:
+    """Recursively parse and add diagram nodes from XML tag."""
     for child in tag.findall('child'):
         node, type_n = _parse_node_type(parent, child, xsi)
         if node is None:
@@ -174,6 +175,7 @@ def _parse_connection(sc: Any, parent: View) -> None:
 
 
 def get_connection(tag: Any, parent: View) -> None:
+    """Recursively parse and add diagram connections from XML tag."""
     for child in tag.findall('child'):
         for sc in child.findall('sourceConnection'):
             _parse_connection(sc, parent)
@@ -302,6 +304,7 @@ def _process_folder_element(e: Any, model: Any, xsi: str, merge_flg: bool, folde
 
 
 def get_folders_elem(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path: str = '') -> None:
+    """Recursively parse and add elements from folder hierarchy."""
     folder = folder_path + '/' + tag.get('name')
     for e in tag.findall('element'):
         _process_folder_element(e, model, xsi, merge_flg, folder)
@@ -339,6 +342,7 @@ def _retry_unresolved_rels(unresolved: list[Any], model: Any, merge_flg: bool) -
 
 
 def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path: str = '', unresolved: list[Any] | None = None) -> None:
+    """Recursively parse and add relationships from folder hierarchy."""
     if unresolved is None:
         unresolved = []
     folder = folder_path + '/' + tag.get('name')
@@ -360,6 +364,7 @@ def get_folders_rel(tag: Any, model: Any, xsi: str, merge_flg: bool, folder_path
 
 
 def get_folders_view(tag: Any, model: Any, xsi: str, folder_path: str = '') -> None:
+    """Recursively parse and add views from folder hierarchy."""
     folder = folder_path + '/' + tag.get('name')
     for e in tag.findall('element'):
         type_e = e.get(xsi + 'type').split(':')[1]

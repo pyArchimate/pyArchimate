@@ -1,3 +1,8 @@
+"""Writer for Archi (.archimate) XML format.
+
+Exports pyArchimate models and views to .archimate files (Archi tool format).
+Handles XML structure, folder organization, elements, relationships, and views.
+"""
 # ruff: noqa: N999  # legacy module name preserved for API compatibility
 import os
 import sys

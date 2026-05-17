@@ -77,40 +77,54 @@ class ElementFormatRegistry:
 
     def _initialize_standards(self) -> None:
         """Initialize standard format specifications for all element types."""
-        w, h = self.ARCHI_DEFAULT_WIDTH, self.ARCHI_DEFAULT_HEIGHT
+        # Per-type specifications per BDD acceptance spec:
+        # Business layer: Arial 10pt
+        # Application layer: Arial 10pt (services bold)
+        # Technology layer: Arial 9pt (services bold)
+        # Default/unknown: Arial 10pt
 
-        type_map: dict[ArchiMateElementCategory, list[str]] = {
-            ArchiMateElementCategory.BUSINESS_ACTOR: ["BusinessActor"],
-            ArchiMateElementCategory.BUSINESS_ROLE: ["BusinessRole"],
-            ArchiMateElementCategory.BUSINESS_PROCESS: ["BusinessProcess"],
-            ArchiMateElementCategory.BUSINESS_FUNCTION: ["BusinessFunction"],
-            ArchiMateElementCategory.BUSINESS_SERVICE: ["BusinessService"],
-            ArchiMateElementCategory.BUSINESS_OBJECT: ["BusinessObject"],
-            ArchiMateElementCategory.BUSINESS_EVENT: ["BusinessEvent"],
-            ArchiMateElementCategory.BUSINESS_INTERFACE: ["BusinessInterface"],
-            ArchiMateElementCategory.APPLICATION_COMPONENT: ["ApplicationComponent"],
-            ArchiMateElementCategory.APPLICATION_SERVICE: ["ApplicationService"],
-            ArchiMateElementCategory.APPLICATION_INTERFACE: ["ApplicationInterface"],
-            ArchiMateElementCategory.APPLICATION_FUNCTION: ["ApplicationFunction"],
-            ArchiMateElementCategory.DATA_OBJECT: ["DataObject"],
-            ArchiMateElementCategory.TECHNOLOGY_NODE: ["TechnologyNode"],
-            ArchiMateElementCategory.TECHNOLOGY_ARTIFACT: ["TechnologyArtifact"],
-            ArchiMateElementCategory.TECHNOLOGY_SERVICE: ["TechnologyService"],
-            ArchiMateElementCategory.TECHNOLOGY_DEVICE: ["TechnologyDevice"],
-            ArchiMateElementCategory.TECHNOLOGY_INTERFACE: ["TechnologyInterface"],
-        }
+        # Business layer specs
+        business_specs: list[tuple[ArchiMateElementCategory, list[str], float, float, int, str]] = [
+            (ArchiMateElementCategory.BUSINESS_ACTOR,   ["BusinessActor"],   100, 80, 10, "normal"),
+            (ArchiMateElementCategory.BUSINESS_ROLE,    ["BusinessRole"],    100, 70, 10, "normal"),
+            (ArchiMateElementCategory.BUSINESS_PROCESS, ["BusinessProcess"], 120, 80, 10, "normal"),
+            (ArchiMateElementCategory.BUSINESS_FUNCTION,["BusinessFunction"],120, 80, 10, "normal"),
+            (ArchiMateElementCategory.BUSINESS_SERVICE, ["BusinessService"], 120, 60, 10, "bold"),
+            (ArchiMateElementCategory.BUSINESS_OBJECT,  ["BusinessObject"],   80, 80, 10, "normal"),
+            (ArchiMateElementCategory.BUSINESS_EVENT,   ["BusinessEvent"],   100, 70, 10, "normal"),
+            (ArchiMateElementCategory.BUSINESS_INTERFACE,["BusinessInterface"],100, 70, 10, "normal"),
+        ]
 
-        for category, archimate_types in type_map.items():
+        # Application layer specs
+        app_specs: list[tuple[ArchiMateElementCategory, list[str], float, float, int, str]] = [
+            (ArchiMateElementCategory.APPLICATION_COMPONENT,  ["ApplicationComponent"],  100, 80, 10, "normal"),
+            (ArchiMateElementCategory.APPLICATION_SERVICE,    ["ApplicationService"],    120, 60, 10, "bold"),
+            (ArchiMateElementCategory.APPLICATION_INTERFACE,  ["ApplicationInterface"],  100, 70, 10, "normal"),
+            (ArchiMateElementCategory.APPLICATION_FUNCTION,   ["ApplicationFunction"],   120, 80, 10, "normal"),
+            (ArchiMateElementCategory.DATA_OBJECT,            ["DataObject"],             80, 80, 10, "normal"),
+        ]
+
+        # Technology layer specs
+        tech_specs: list[tuple[ArchiMateElementCategory, list[str], float, float, int, str]] = [
+            (ArchiMateElementCategory.TECHNOLOGY_NODE,         ["TechnologyNode"],         100, 80, 9, "normal"),
+            (ArchiMateElementCategory.TECHNOLOGY_ARTIFACT,     ["TechnologyArtifact"],      80, 80, 9, "normal"),
+            (ArchiMateElementCategory.TECHNOLOGY_SERVICE,      ["TechnologyService"],       120, 60, 9, "bold"),
+            (ArchiMateElementCategory.TECHNOLOGY_DEVICE,       ["TechnologyDevice"],        100, 80, 9, "normal"),
+            (ArchiMateElementCategory.TECHNOLOGY_INTERFACE,    ["TechnologyInterface"],     100, 70, 9, "normal"),
+        ]
+
+        all_specs = business_specs + app_specs + tech_specs
+        for category, archimate_types, width, height, font_size, font_weight in all_specs:
             self._register_spec(
                 category,
                 ElementFormatSpec(
                     category,
-                    default_width=w,
-                    default_height=h,
-                    font_family="Segoe UI",
-                    font_size=9,
+                    default_width=width,
+                    default_height=height,
+                    font_family="Arial",
+                    font_size=font_size,
                     font_style="normal",
-                    font_weight="normal",
+                    font_weight=font_weight,
                 ),
                 archimate_types,
             )
@@ -147,13 +161,13 @@ class ElementFormatRegistry:
         if category.value in self._specs:
             return self._specs[category.value]
 
-        # Return default spec for unknown types
+        # Return default spec for unknown types (Arial 10pt per BDD spec)
         return ElementFormatSpec(
             ArchiMateElementCategory.UNKNOWN,
-            default_width=ElementFormatRegistry.ARCHI_DEFAULT_WIDTH,
-            default_height=ElementFormatRegistry.ARCHI_DEFAULT_HEIGHT,
-            font_family="Segoe UI",
-            font_size=9,
+            default_width=100,
+            default_height=80,
+            font_family="Arial",
+            font_size=10,
             font_style="normal",
             font_weight="normal",
         )

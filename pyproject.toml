@@ -192,7 +192,6 @@ output = "build/coverage.xml"
 paths = [
     "tests/features/"
 ]
-tags = ["~@wip"]
 
 [tool.pymarkdown]
 # MD010 - no hard tabs

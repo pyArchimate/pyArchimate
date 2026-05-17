@@ -85,6 +85,7 @@ def detect_crossings(
         True if lines intersect, False otherwise
     """
     def ccw(pt_a: tuple[float, float], pt_b: tuple[float, float], pt_c: tuple[float, float]) -> bool:
+        """Test if three points are in counter-clockwise order."""
         return (pt_c[1] - pt_a[1]) * (pt_b[0] - pt_a[0]) > (pt_b[1] - pt_a[1]) * (pt_c[0] - pt_a[0])
 
     pt_a, pt_b = line1
