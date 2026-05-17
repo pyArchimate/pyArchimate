@@ -6,17 +6,6 @@ from typing import Any
 
 from .routing.layer_constraints import ArchiMateLayer
 
-# Extended layer priority map including all ArchiMate layers
-_LAYER_PRIORITY: dict[str, int] = {
-    "motivation": 0,
-    "business": 1,
-    "application": 2,
-    "technology": 3,
-    "physical": 4,
-    "implementation": 5,
-    "migration": 5,
-}
-
 _ROWS_PER_LAYER = 3  # max nodes per row within a layer band before wrapping
 
 
