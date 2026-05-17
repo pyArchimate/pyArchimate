@@ -1,11 +1,12 @@
 """Smoke test for auto-layout feature. Run from repo root: poetry run python examples/smoke_test.py"""
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.pyArchimate.pyArchimate import Model
-from src.pyArchimate.view.layout import apply_layout, LayoutConfig
+from src.pyArchimate.view.layout import LayoutConfig, apply_layout
 
 FIXTURE = Path(__file__).parent.parent / "tests/fixtures/test1.archimate"
 OUT_DIR = Path(__file__).parent

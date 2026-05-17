@@ -30,6 +30,7 @@ dev = [
     "locust (>=2.43.3,<3.0.0)",
     "ipykernel (>=7.2.0,<8.0.0)",
     "vulture (>=2.16,<3.0)",
+    "pre-commit>=4.0.0,<5.0.0",
 ]
 
 testing = [  # runtime tooling required to exercise the test suite
@@ -153,6 +154,10 @@ check-typed-exception = true
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "N999", "N817", "ARG"]  # S101: assertions OK in tests; N999: test files mirror camelCase reader/writer names; N817: ET is the canonical ElementTree alias; ARG: unused params are normal in BDD steps, mocks, and sentinel lambdas
+"docs/**" = ["A001"]  # A001: `copyright` is a required Sphinx config variable, shadowing the builtin is intentional
+"examples/**" = ["N813"]  # N813: `import pyArchimate as pa` is the documented user-facing alias
+"scripts/**" = ["N817"]  # N817: ET is the canonical ElementTree alias
+"*.ipynb" = ["E402", "I001"]  # E402/I001: out-of-order imports are normal in notebook cells
 
 [tool.ruff.format]
 quote-style = "double"

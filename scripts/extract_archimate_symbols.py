@@ -10,6 +10,7 @@ And generates symbol definitions with proper paths and colors.
 import ssl
 from urllib.parse import quote
 from urllib.request import urlopen
+
 from defusedxml import ElementTree as ET
 
 # Mapping of repository file names to element type names
@@ -144,36 +145,38 @@ def fetch_symbol(filename: str) -> dict | None:
         ssl_context = ssl.create_default_context()
 
         with urlopen(url, context=ssl_context, timeout=5) as response:
-            svg_content = response.read().decode('utf-8')
+            svg_content = response.read().decode("utf-8")
 
         # Parse SVG
         root = ET.fromstring(svg_content)
 
         # Extract viewBox
-        view_box = root.get('viewBox', '0 0 100 100')
+        view_box = root.get("viewBox", "0 0 100 100")
 
         # Extract fill color from first rectangle or ellipse
         color = "#FFD700"  # Default
         for elem in root.iter():
-            fill = elem.get('fill')
-            if fill and fill.startswith('#'):
+            fill = elem.get("fill")
+            if fill and fill.startswith("#"):
                 color = fill.upper()
                 break
 
         # Extract all path data
         paths = []
-        for path_elem in root.findall('.//{http://www.w3.org/2000/svg}path'):
-            d = path_elem.get('d')
+        for path_elem in root.findall(".//{http://www.w3.org/2000/svg}path"):
+            d = path_elem.get("d")
             if d:
                 paths.append(d)
 
         # Also extract rect, circle, ellipse as basic shapes
-        for rect in root.findall('.//{http://www.w3.org/2000/svg}rect'):
-            x = rect.get('x', '0')
-            y = rect.get('y', '0')
-            width = rect.get('width', '100')
-            height = rect.get('height', '100')
-            paths.append(f"M {x} {y} L {float(x) + float(width)} {y} L {float(x) + float(width)} {float(y) + float(height)} L {x} {float(y) + float(height)} Z")
+        for rect in root.findall(".//{http://www.w3.org/2000/svg}rect"):
+            x = rect.get("x", "0")
+            y = rect.get("y", "0")
+            width = rect.get("width", "100")
+            height = rect.get("height", "100")
+            paths.append(
+                f"M {x} {y} L {float(x) + float(width)} {y} L {float(x) + float(width)} {float(y) + float(height)} L {x} {float(y) + float(height)} Z"
+            )
 
         # Combine all paths
         combined_path = " ".join(paths) if paths else "M 0 0 L 100 0 L 100 100 L 0 100 Z"
@@ -306,7 +309,7 @@ def validate_symbols() -> tuple[int, int]:
 
     # Write to file
     output_path = "src/pyArchimate/view/layout/export/symbols/archimate_symbols.py"
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         f.write(code)
 
     print(f"✓ Generated {output_path}")

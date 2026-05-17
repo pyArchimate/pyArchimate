@@ -39,9 +39,9 @@ def set_id(uuid=None):
     """
     _id = str(uuid4()) if (uuid is None) else uuid
     if _is_valid_uuid(_id):
-        _id = _id.replace('-', '')
-        if not _id.startswith('id-'):
-            _id = 'id-' + _id
+        _id = _id.replace("-", "")
+        if not _id.startswith("id-"):
+            _id = "id-" + _id
     return _id
 
 
@@ -63,28 +63,31 @@ def check_valid_relationship(rel_type, source_type, target_type, raise_flg=False
     :type target_type: str
     :param raise_flg: Throw an exception instead of logging an error
     """
-    if not hasattr(ArchiType, rel_type) or ARCHI_CATEGORY[rel_type] != 'Relationship':
+    if not hasattr(ArchiType, rel_type) or ARCHI_CATEGORY[rel_type] != "Relationship":
         _report(ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'"), raise_flg)
     if not hasattr(ArchiType, source_type):
         _report(ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'"), raise_flg)
     if not hasattr(ArchiType, target_type):
         _report(ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'"), raise_flg)
 
-    if ARCHI_CATEGORY[source_type] == 'Relationship':
+    if ARCHI_CATEGORY[source_type] == "Relationship":
         source_type = "Relationship"
-    if ARCHI_CATEGORY[target_type] == 'Relationship':
+    if ARCHI_CATEGORY[target_type] == "Relationship":
         target_type = "Relationship"
-    if 'Junction' in rel_type:
-        rel_type = 'Junction'
-    if 'Junction' in source_type:
-        source_type = 'Junction'
-    if 'Junction' in target_type:
-        target_type = 'Junction'
+    if "Junction" in rel_type:
+        rel_type = "Junction"
+    if "Junction" in source_type:
+        source_type = "Junction"
+    if "Junction" in target_type:
+        target_type = "Junction"
 
     if RELATIONSHIP_KEYS[rel_type] not in ALLOWED_RELATIONSHIPS[source_type][target_type]:
-        _report(ArchimateRelationshipError(
-            f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' "
-        ), raise_flg)
+        _report(
+            ArchimateRelationshipError(
+                f"Invalid Relationship type '{rel_type}' from '{source_type}' and '{target_type}' "
+            ),
+            raise_flg,
+        )
 
 
 def _resolve_and_validate_ref(ref: Any, elems_dict: dict[str, Any], rels_dict: dict[str, Any], arg_name: str) -> str:
@@ -93,6 +96,7 @@ def _resolve_and_validate_ref(ref: Any, elems_dict: dict[str, Any], rels_dict: d
         uid: str = ref
     else:
         from .element import Element  # noqa: PLC0415  # circular: element↔relationship init cycle
+
         if not (isinstance(ref, Element) or isinstance(ref, Relationship) or hasattr(ref, "uuid")):
             raise ValueError(f"'{arg_name}' argument is not an instance of 'Element or Relationship' class.")
         uid = cast(str, ref.uuid)
@@ -109,14 +113,14 @@ def _get_concept_type(uid: str, elems_dict: dict[str, Any], rels_dict: dict[str,
 
 def get_default_rel_type(source_type, target_type):
     """Return the default valid relationship type between two element types."""
-    if not hasattr(ArchiType, source_type) or ARCHI_CATEGORY[source_type] == 'Relationship':
+    if not hasattr(ArchiType, source_type) or ARCHI_CATEGORY[source_type] == "Relationship":
         raise ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'")
-    if not hasattr(ArchiType, target_type) or ARCHI_CATEGORY[target_type] == 'Relationship':
+    if not hasattr(ArchiType, target_type) or ARCHI_CATEGORY[target_type] == "Relationship":
         raise ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'")
     rels = ALLOWED_RELATIONSHIPS[source_type][target_type]
     if len(rels) > 0:
         t: str = rels[0]
-        for preferred in ('g', 'r', 's', 'a', 'c', 'o', 'v'):
+        for preferred in ("g", "r", "s", "a", "c", "o", "v"):
             if preferred in rels:
                 t = preferred
                 break
@@ -157,19 +161,31 @@ class Relationship:
 
     """
 
-    def __init__(self, rel_type='', source=None, target=None, uuid=None, name=None,
-                 access_type=None, influence_strength=None, desc=None, is_directed=None, profile=None, parent=None):
+    def __init__(
+        self,
+        rel_type="",
+        source=None,
+        target=None,
+        uuid=None,
+        name=None,
+        access_type=None,
+        influence_strength=None,
+        desc=None,
+        is_directed=None,
+        profile=None,
+        parent=None,
+    ):
         """Initialize a relationship between two elements with type and optional properties."""
         if parent is not None:
             # Accept any model-like object exposing relationship storage to
             # remain compatible with legacy and modular Model instances.
             if not hasattr(parent, "rels_dict"):
-                raise ValueError('Relationship class parent should be a class Model instance!')
+                raise ValueError("Relationship class parent should be a class Model instance!")
 
         self.parent: Model = cast("Model", parent)
         self.model: Model = cast("Model", parent)
-        self._source = _resolve_and_validate_ref(source, self.parent.elems_dict, self.parent.rels_dict, 'source')
-        self._target = _resolve_and_validate_ref(target, self.parent.elems_dict, self.parent.rels_dict, 'target')
+        self._source = _resolve_and_validate_ref(source, self.parent.elems_dict, self.parent.rels_dict, "source")
+        self._target = _resolve_and_validate_ref(target, self.parent.elems_dict, self.parent.rels_dict, "target")
 
         self._uuid = set_id(uuid)
         self._type = rel_type
@@ -248,6 +264,7 @@ class Relationship:
             self._source = src
         elif not isinstance(src, type(None)):
             from .element import Element  # noqa: PLC0415  # circular: element↔relationship init cycle
+
             if not isinstance(src, Element):
                 raise ArchimateConceptTypeError("'source' argument is not an instance of 'Element' class.")
             else:
@@ -282,6 +299,7 @@ class Relationship:
             self._target = dst
         elif not isinstance(dst, type(None)):
             from .element import Element  # noqa: PLC0415  # circular: element↔relationship init cycle
+
             if not isinstance(dst, Element):
                 raise ArchimateConceptTypeError("'target' argument is not an instance of 'Element' class.")
             else:
@@ -306,10 +324,12 @@ class Relationship:
         :type new_type: str
 
         """
-        if new_type not in ARCHI_CATEGORY or ARCHI_CATEGORY[new_type] != 'Relationship':
-            raise ValueError('Invalid Archimate relationship type')
+        if new_type not in ARCHI_CATEGORY or ARCHI_CATEGORY[new_type] != "Relationship":
+            raise ValueError("Invalid Archimate relationship type")
         # Raise an exception is the new relationship type is not compatible with the source & target ones
-        check_valid_relationship(new_type, self.source.type if self.source else '', self.target.type if self.target else '')  # noqa: E501
+        check_valid_relationship(
+            new_type, self.source.type if self.source else "", self.target.type if self.target else ""
+        )  # noqa: E501
         self._type = new_type
 
     @property
@@ -372,7 +392,6 @@ class Relationship:
     def reset_profile(self) -> None:
         """Clear the profile assignment."""
         self._profile = None
-
 
     @property
     def props(self):

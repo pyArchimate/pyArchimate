@@ -15,8 +15,8 @@ def _normalize_connection_edge(edge: Any, uuid_to_index: dict[str, int]) -> tupl
 
 
 def _normalize_dict_edge(edge: dict[str, Any], uuid_to_index: dict[str, int]) -> tuple[int | None, int | None]:
-    source_key = edge.get('source') or edge.get('_source')
-    target_key = edge.get('target') or edge.get('_target')
+    source_key = edge.get("source") or edge.get("_source")
+    target_key = edge.get("target") or edge.get("_target")
 
     if isinstance(source_key, int):
         source_idx: int | None = source_key
@@ -35,9 +35,7 @@ def _normalize_dict_edge(edge: dict[str, Any], uuid_to_index: dict[str, int]) ->
     return source_idx, target_idx
 
 
-def _normalize_single_edge(
-    edge: Any, uuid_to_index: dict[str, int]
-) -> tuple[int | None, int | None]:
+def _normalize_single_edge(edge: Any, uuid_to_index: dict[str, int]) -> tuple[int | None, int | None]:
     if isinstance(edge, tuple) and len(edge) == 2:
         return _normalize_tuple_edge(edge)
     if hasattr(edge, "_source") and hasattr(edge, "_target"):
@@ -68,7 +66,7 @@ def normalize_edges(edges: Any, nodes: list[Any]) -> list[tuple[int, int]]:
     # Build UUID to index mapping
     node_uuid_to_index: dict[str, int] = {}
     for i, node in enumerate(nodes):
-        node_uuid = getattr(node, 'uuid', None)
+        node_uuid = getattr(node, "uuid", None)
         if node_uuid:
             node_uuid_to_index[node_uuid] = i
 

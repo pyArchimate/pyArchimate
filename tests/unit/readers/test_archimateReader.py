@@ -141,79 +141,79 @@ MERGE_MODEL_XML = """<?xml version='1.0'?>
 
 def test_archimate_reader_understands_opengroup():
     root = etree.fromstring(OPEN_MODEL)
-    model = Model('open')
+    model = Model("open")
     archimate_reader(model, root)
-    assert model.name == 'archimate unit'
-    assert model.desc == 'desc text'
+    assert model.name == "archimate unit"
+    assert model.desc == "desc text"
 
 
 def test_archimate_reader_parses_full_model_details():
     root = etree.fromstring(FULL_MODEL_XML)
-    model = Model('complete')
+    model = Model("complete")
     archimate_reader(model, root)
 
     # Model metadata and properties
-    assert model.name == 'archimate unit'
-    assert model.prop('priority') == 'high'
+    assert model.name == "archimate unit"
+    assert model.prop("priority") == "high"
 
-    elem = model.elems_dict['elem-1']
-    rel = model.rels_dict['rel-1']
-    view = model.views_dict['view-1']
-    node = model.nodes_dict['node-1']
-    nested = node.nodes_dict['node-1-child']
-    conn = model.conns_dict['conn-1']
+    elem = model.elems_dict["elem-1"]
+    rel = model.rels_dict["rel-1"]
+    view = model.views_dict["view-1"]
+    node = model.nodes_dict["node-1"]
+    nested = node.nodes_dict["node-1-child"]
+    conn = model.conns_dict["conn-1"]
 
-    assert elem.prop('priority') == 'element-value'
-    assert rel.prop('priority') == 'rel-value'
-    assert rel.is_directed == 'true'
-    assert rel.access_type == 'Read'
-    assert rel.folder == '/Top'
-    assert elem.folder == '/Top'
-    assert view.folder == '/Top/Leaf'
-    assert view.desc == 'Leaf desc'
+    assert elem.prop("priority") == "element-value"
+    assert rel.prop("priority") == "rel-value"
+    assert rel.is_directed == "true"
+    assert rel.access_type == "Read"
+    assert rel.folder == "/Top"
+    assert elem.folder == "/Top"
+    assert view.folder == "/Top/Leaf"
+    assert view.desc == "Leaf desc"
 
-    assert node.fill_color == '#0A141E'
-    assert node.line_color == '#010203'
+    assert node.fill_color == "#0A141E"
+    assert node.line_color == "#010203"
     assert node.opacity == 80
     assert int(node.font_size) == 12
-    assert node.font_name == 'Arial'
-    assert node.font_color == '#FF0080'
-    assert nested.ref == 'elem-2'
+    assert node.font_name == "Arial"
+    assert node.font_color == "#FF0080"
+    assert nested.ref == "elem-2"
     assert nested in node.nodes
 
-    assert conn.line_color == '#646E78'
+    assert conn.line_color == "#646E78"
     assert int(conn.line_width) == 4
-    assert conn.font_name == 'Calibri'
+    assert conn.font_name == "Calibri"
     assert int(conn.font_size) == 11
-    assert conn.font_color == '#C8D2DC'
+    assert conn.font_color == "#C8D2DC"
     assert conn.bendpoints[0].x == 5
 
 
 def test_archimate_reader_merges_existing_elements_and_relationships():
-    base = Model('merge')
+    base = Model("merge")
     archimate_reader(base, etree.fromstring(FULL_MODEL_XML))
     archimate_reader(base, etree.fromstring(MERGE_MODEL_XML), merge_flg=True)
 
-    elem = base.elems_dict['elem-1']
-    rel = base.rels_dict['rel-1']
-    assert elem.name == 'App One Updated'
-    assert elem.desc == 'updated desc'
-    assert rel.name == 'Flow Link Updated'
+    elem = base.elems_dict["elem-1"]
+    rel = base.rels_dict["rel-1"]
+    assert elem.name == "App One Updated"
+    assert elem.desc == "updated desc"
+    assert rel.name == "Flow Link Updated"
 
 
 def test_archimate_reader_returns_none_for_missing_opengroup_tag():
     root = etree.fromstring(INVALID_ARCHIMATE_ROOT)
-    model = Model('invalid')
+    model = Model("invalid")
     assert archimate_reader(model, root) is None
 
 
 def test_archimate_reader_merges_property_with_conflicting_definition():
-    model = Model('conflict')
+    model = Model("conflict")
     # pre-populate existing property with different name to force remap
-    model.pdefs['prop1'] = 'legacy'
+    model.pdefs["prop1"] = "legacy"
     root = etree.fromstring(MERGE_PROP_MODEL)
     archimate_reader(model, root, merge_flg=True)
-    assert any(name.startswith('propid-') for name in model.pdefs)
+    assert any(name.startswith("propid-") for name in model.pdefs)
 
 
 # ArchiMate 3.x Compliance: BusinessInteraction
@@ -277,7 +277,7 @@ def test_assign_viewpoint_unknown_slug_does_not_raise():
 
 def test_apply_viewpoint_props_skips_unknown_prop_def_ref():
     """Property with propertyDefinitionRef not in pdef_merge_map is silently skipped (line 59)."""
-    ns = '{http://www.opengroup.org/xsd/archimate/3.0/}'
+    ns = "{http://www.opengroup.org/xsd/archimate/3.0/}"
     props_xml = etree.fromstring(
         b"<properties xmlns='http://www.opengroup.org/xsd/archimate/3.0/'>"
         b"  <property propertyDefinitionRef='unknown-id'><value>val</value></property>"
@@ -291,16 +291,16 @@ def test_apply_viewpoint_props_skips_unknown_prop_def_ref():
 
 def test_apply_viewpoint_props_missing_value_element_is_noop():
     """Property matched as viewpoint but has no <value> child yields empty slug → no viewpoint assigned (line 152)."""
-    ns = '{http://www.opengroup.org/xsd/archimate/3.0/}'
+    ns = "{http://www.opengroup.org/xsd/archimate/3.0/}"
     props_xml = etree.fromstring(
         b"<properties xmlns='http://www.opengroup.org/xsd/archimate/3.0/'>"
         b"  <property propertyDefinitionRef='pd-vp'/>"
         b"</properties>"
     )
     model = Model("t")
-    model.pdefs['pd-vp'] = 'viewpoint'
+    model.pdefs["pd-vp"] = "viewpoint"
     elem = model.add(ArchiType.ApplicationComponent, "App")
-    _apply_viewpoint_props(elem, props_xml, ns, {'pd-vp': 'pd-vp'}, model)
+    _apply_viewpoint_props(elem, props_xml, ns, {"pd-vp": "pd-vp"}, model)
     assert elem.viewpoints == []
 
 
@@ -309,7 +309,8 @@ def test_assign_viewpoint_empty_slug_is_noop():
     model = Model("t")
     elem = model.add(ArchiType.ApplicationComponent, "App")
     from src.pyArchimate.readers.archimateReader import _assign_viewpoint
-    _assign_viewpoint(elem, '')
+
+    _assign_viewpoint(elem, "")
     assert elem.viewpoints == []
 
 
@@ -458,6 +459,7 @@ def test_walk_orgs_sets_folder_on_view_direct_ref():
 # _normalize_color_on_import coverage (lines 27, 30, 35-40)
 # ---------------------------------------------------------------------------
 
+
 def test_normalize_color_on_import_none_returns_none():
     """None input returns None (line 27)."""
     assert _normalize_color_on_import(None) is None
@@ -478,7 +480,7 @@ def test_normalize_color_on_import_named_color_returns_hex():
     """Named color 'red' returns a hex string (lines 37-38)."""
     result = _normalize_color_on_import("red")
     assert result is not None
-    assert result.startswith('#')
+    assert result.startswith("#")
 
 
 def test_normalize_color_on_import_unknown_string_returns_none():
@@ -497,74 +499,72 @@ def test_normalize_color_on_import_valid_hex_lowercased():
 # _extract_visual_style_properties coverage (lines 53, 56, 67, 73-75)
 # ---------------------------------------------------------------------------
 
+
 def _make_props_xml(inner_xml: str) -> etree._Element:
-    ns = "http://www.opengroup.org/xsd/archimate/3.0/" # NOSONAR
-    return etree.fromstring(
-        f'<element xmlns="{ns}"><properties>{inner_xml}</properties></element>'
-    )
+    ns = "http://www.opengroup.org/xsd/archimate/3.0/"  # NOSONAR
+    return etree.fromstring(f'<element xmlns="{ns}"><properties>{inner_xml}</properties></element>')
 
 
 def test_extract_visual_style_no_value_child_continues():
     """Property with no <value> child is skipped (line 53)."""
-    ns = "http://www.opengroup.org/xsd/archimate/3.0/" # NOSONAR
-    elem_xml = _make_props_xml(
-        '<property xmlns="http://www.opengroup.org/xsd/archimate/3.0/" key="fillColor"/>'
-    )
-    result = _extract_visual_style_properties(elem_xml, '{' + ns + '}')
-    assert 'fillColor' not in result
+    ns = "http://www.opengroup.org/xsd/archimate/3.0/"  # NOSONAR
+    elem_xml = _make_props_xml('<property xmlns="http://www.opengroup.org/xsd/archimate/3.0/" key="fillColor"/>')
+    result = _extract_visual_style_properties(elem_xml, "{" + ns + "}")
+    assert "fillColor" not in result
 
 
 def test_extract_visual_style_empty_value_continues():
     """Property with empty value text is skipped (line 56)."""
-    ns = "http://www.opengroup.org/xsd/archimate/3.0/" # NOSONAR
+    ns = "http://www.opengroup.org/xsd/archimate/3.0/"  # NOSONAR
     elem_xml = _make_props_xml(
         '<property xmlns="http://www.opengroup.org/xsd/archimate/3.0/" key="fillColor">'
         '  <value xmlns="http://www.opengroup.org/xsd/archimate/3.0/">   </value>'
-        '</property>'
+        "</property>"
     )
-    result = _extract_visual_style_properties(elem_xml, '{' + ns + '}')
-    assert 'fillColor' not in result
+    result = _extract_visual_style_properties(elem_xml, "{" + ns + "}")
+    assert "fillColor" not in result
 
 
 def test_extract_visual_style_negative_line_width_warns():
     """Negative lineWidth logs warning and is not stored (line 67)."""
-    ns = "http://www.opengroup.org/xsd/archimate/3.0/" # NOSONAR
+    ns = "http://www.opengroup.org/xsd/archimate/3.0/"  # NOSONAR
     elem_xml = _make_props_xml(
         '<property xmlns="http://www.opengroup.org/xsd/archimate/3.0/" key="lineWidth">'
         '  <value xmlns="http://www.opengroup.org/xsd/archimate/3.0/">-1.0</value>'
-        '</property>'
+        "</property>"
     )
-    result = _extract_visual_style_properties(elem_xml, '{' + ns + '}')
-    assert 'lineWidth' not in result
+    result = _extract_visual_style_properties(elem_xml, "{" + ns + "}")
+    assert "lineWidth" not in result
 
 
 def test_extract_visual_style_transparency_out_of_range_warns():
     """transparency > 1.0 logs warning and is not stored (line 73)."""
-    ns = "http://www.opengroup.org/xsd/archimate/3.0/" # NOSONAR
+    ns = "http://www.opengroup.org/xsd/archimate/3.0/"  # NOSONAR
     elem_xml = _make_props_xml(
         '<property xmlns="http://www.opengroup.org/xsd/archimate/3.0/" key="transparency">'
         '  <value xmlns="http://www.opengroup.org/xsd/archimate/3.0/">1.5</value>'
-        '</property>'
+        "</property>"
     )
-    result = _extract_visual_style_properties(elem_xml, '{' + ns + '}')
-    assert 'transparency' not in result
+    result = _extract_visual_style_properties(elem_xml, "{" + ns + "}")
+    assert "transparency" not in result
 
 
 def test_extract_visual_style_non_numeric_value_handled():
     """Non-numeric lineWidth value is caught by except (lines 74-75)."""
-    ns = "http://www.opengroup.org/xsd/archimate/3.0/" # NOSONAR
+    ns = "http://www.opengroup.org/xsd/archimate/3.0/"  # NOSONAR
     elem_xml = _make_props_xml(
         '<property xmlns="http://www.opengroup.org/xsd/archimate/3.0/" key="lineWidth">'
         '  <value xmlns="http://www.opengroup.org/xsd/archimate/3.0/">notanumber</value>'
-        '</property>'
+        "</property>"
     )
-    result = _extract_visual_style_properties(elem_xml, '{' + ns + '}')
-    assert 'lineWidth' not in result
+    result = _extract_visual_style_properties(elem_xml, "{" + ns + "}")
+    assert "lineWidth" not in result
 
 
 # ---------------------------------------------------------------------------
 # _build_hierarchy_from_parents coverage (lines 90, 92-93, 96-97)
 # ---------------------------------------------------------------------------
+
 
 def test_build_hierarchy_parent_uuid_none_skips():
     """Entry with parent_uuid=None is skipped (line 90)."""
@@ -600,9 +600,10 @@ def test_build_hierarchy_add_child_raises_on_cycle():
 # _apply_junction_type_props coverage (lines 167-168)
 # ---------------------------------------------------------------------------
 
+
 def test_apply_junction_type_props_invalid_type_warns():
     """Invalid junctionType value is caught as ValueError (lines 167-168)."""
-    ns = '{http://www.opengroup.org/xsd/archimate/3.0/}'
+    ns = "{http://www.opengroup.org/xsd/archimate/3.0/}"
     props_xml = etree.fromstring(
         b"<properties xmlns='http://www.opengroup.org/xsd/archimate/3.0/'>"
         b"  <property key='junctionType'>"
@@ -726,6 +727,7 @@ def test_visual_style_except_blocks_do_not_raise():
     with pytest.raises(ValueError):
         elem.set_transparency(2.0)
 
+
 def test_read_props_unknown_format_skips():
     """Line 127: Property with no propertyDefinitionRef and unknown key is skipped."""
     xml = """<?xml version='1.0'?>
@@ -742,10 +744,11 @@ def test_read_props_unknown_format_skips():
     </model>
     """
     root = etree.fromstring(xml)
-    model = Model('t')
+    model = Model("t")
     # Should not raise any error and elem should be created
     archimate_reader(model, root)
     assert "e1" in model.elems_dict
+
 
 def test_assign_valid_viewpoint():
     """Line 137: Valid viewpoint is assigned to a view."""
@@ -763,10 +766,11 @@ def test_assign_valid_viewpoint():
     </model>
     """
     root = etree.fromstring(xml)
-    model = Model('t')
+    model = Model("t")
     archimate_reader(model, root)
     view = model.views_dict["v1"]
     assert view.primary_viewpoint == "stakeholder"
+
 
 def test_apply_viewpoint_props_on_element():
     """Lines 151-153: Viewpoint property on an element is applied."""
@@ -791,10 +795,11 @@ def test_apply_viewpoint_props_on_element():
     </model>
     """
     root = etree.fromstring(xml)
-    model = Model('t')
+    model = Model("t")
     archimate_reader(model, root)
     elem = model.elems_dict["e1"]
     assert "stakeholder" in elem.viewpoints
+
 
 def test_element_hierarchy_via_parent_id():
     """Line 195: parentId attribute establishes hierarchy."""
@@ -808,11 +813,12 @@ def test_element_hierarchy_via_parent_id():
     </model>
     """
     root = etree.fromstring(xml)
-    model = Model('t')
+    model = Model("t")
     archimate_reader(model, root)
     parent = model.get_parent("c1")
     assert parent is not None
     assert parent.uuid == "p1"
+
 
 def test_visual_style_application_warnings_real():
     """Lines 418-434: log.warning is called when visual style application fails.
@@ -835,7 +841,7 @@ def test_visual_style_application_warnings_real():
     </model>
     """
     root = etree.fromstring(xml)
-    model = Model('t')
+    model = Model("t")
 
     original_add = model.add
     mock_elem = MagicMock()
@@ -845,14 +851,14 @@ def test_visual_style_application_warnings_real():
     mock_elem.set_transparency.side_effect = ValueError("bad alpha")
 
     def mocked_add(*args, **kwargs):
-        if kwargs.get('uuid') == 'e1':
+        if kwargs.get("uuid") == "e1":
             return mock_elem
         return original_add(*args, **kwargs)
 
     model.add = mocked_add
-    model.elems_dict['e1'] = mock_elem
+    model.elems_dict["e1"] = mock_elem
 
-    with patch('src.pyArchimate.readers.archimateReader.log') as mock_log:
+    with patch("src.pyArchimate.readers.archimateReader.log") as mock_log:
         archimate_reader(model, root)
 
         warning_calls = [call.args[0] for call in mock_log.warning.call_args_list]
@@ -866,6 +872,7 @@ def test_visual_style_application_warnings_real():
 # Coverage for new paths: forward relationship refs, Line connections, visual
 # style map skip for unknown element UUIDs
 # ---------------------------------------------------------------------------
+
 
 def _make_model_with_elem():
     """Return a model with two elements for relationship tests."""
@@ -900,6 +907,7 @@ def test_forward_relationship_ref_resolved_after_multipass():
     m = Model("fwd")
     m.read_string = None  # not needed; build via archimate_reader directly
     from lxml import etree as _et
+
     root = _et.fromstring(XML_FORWARD_REL.encode())
     archimate_reader(m, root)
     assert "rel-a" in m.rels_dict
@@ -927,6 +935,7 @@ XML_UNRESOLVABLE_REL = """\
 def test_genuinely_unresolvable_relationship_raises():
     """Multi-pass reader surfaces ValueError for genuinely missing target."""
     from lxml import etree as _et
+
     m = Model("bad")
     root = _et.fromstring(XML_UNRESOLVABLE_REL.encode())
     with pytest.raises(ValueError, match="Invalid target reference"):
@@ -965,6 +974,7 @@ XML_LINE_CONNECTION = """\
 def test_line_connection_skipped_no_crash():
     """Line connections (no relationshipRef) are silently skipped."""
     from lxml import etree as _et
+
     m = Model("line")
     root = _et.fromstring(XML_LINE_CONNECTION.encode())
     archimate_reader(m, root)

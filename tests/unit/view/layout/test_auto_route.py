@@ -10,6 +10,7 @@ from src.pyArchimate.view.layout.utils.geometry import Point
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def mock_node(uuid: str, x: float, y: float, w: float = 120, h: float = 55) -> MagicMock:
     n = MagicMock()
     n.uuid = uuid
@@ -22,8 +23,7 @@ def mock_node(uuid: str, x: float, y: float, w: float = 120, h: float = 55) -> M
     return n
 
 
-def mock_connection(uuid: str, src: str, tgt: str,
-                    bendpoints: list | None = None) -> MagicMock:
+def mock_connection(uuid: str, src: str, tgt: str, bendpoints: list | None = None) -> MagicMock:
     c = MagicMock()
     c.uuid = uuid
     c._source = src
@@ -56,6 +56,7 @@ def make_view(nodes: list, connections: list | None = None) -> MagicMock:
 # T033 — No segment intersects node bbox
 # ---------------------------------------------------------------------------
 
+
 class TestNoSegmentThroughNode:
     def test_routed_path_avoids_obstacle_node(self) -> None:
         """A connection routed through another node must be rerouted around it."""
@@ -69,18 +70,19 @@ class TestNoSegmentThroughNode:
         # Each segment of routed path must not pass through obstacle bbox
         from src.pyArchimate.view.layout.routing.obstacle_map import ObstacleMap
         from src.pyArchimate.view.layout.utils.geometry import Rectangle
+
         obs_rect = Rectangle(obstacle.x, obstacle.y, obstacle.w, obstacle.h)
         # Use resolution=10 to match auto_route's resolution for small views (<2000px)
         om = ObstacleMap([obs_rect], resolution=10.0)
         wps = conn.bendpoints
         for i in range(len(wps) - 1):
-            assert not om.segment_blocked(wps[i], wps[i + 1]), \
-                f"Segment {i} passes through obstacle node"
+            assert not om.segment_blocked(wps[i], wps[i + 1]), f"Segment {i} passes through obstacle node"
 
 
 # ---------------------------------------------------------------------------
 # T033b — No segment overlaps connection label bbox (FR-014)
 # ---------------------------------------------------------------------------
+
 
 class TestNoSegmentThroughLabel:
     def test_label_clearance(self) -> None:
@@ -104,6 +106,7 @@ class TestNoSegmentThroughLabel:
 # T034 — auto_route does not modify node positions (SC-010)
 # ---------------------------------------------------------------------------
 
+
 class TestNoNodePositionChange:
     def test_node_positions_unchanged(self) -> None:
         nodes = [
@@ -115,13 +118,13 @@ class TestNoNodePositionChange:
         view = make_view(nodes, [conn])
         auto_route(view)
         for n in nodes:
-            assert (n.x, n.y) == original[n.uuid], \
-                f"Node {n.uuid} position changed by auto_route"
+            assert (n.x, n.y) == original[n.uuid], f"Node {n.uuid} position changed by auto_route"
 
 
 # ---------------------------------------------------------------------------
 # T035 — Collinear segments separated by ≥ min_segment_gap
 # ---------------------------------------------------------------------------
+
 
 class TestSegmentSeparation:
     def test_collinear_segments_displaced(self) -> None:
@@ -141,6 +144,7 @@ class TestSegmentSeparation:
 # ---------------------------------------------------------------------------
 # T036 — Skip + warn for unroutable connection
 # ---------------------------------------------------------------------------
+
 
 class TestSkipUnroutable:
     def test_unroutable_connection_skipped_with_warning(self) -> None:
@@ -164,6 +168,7 @@ class TestSkipUnroutable:
 # T037 — Endpoint corner clearance
 # ---------------------------------------------------------------------------
 
+
 class TestEndpointCornerClearance:
     def test_endpoints_not_in_corner_zone(self) -> None:
         """No departure/arrival point should be within corner_clearance of a node corner."""
@@ -183,9 +188,8 @@ class TestEndpointCornerClearance:
             clearance_y = max(n1.h * 0.10, 4.0)
             first = wps[0]
             # Must not be in corner zone of n1
-            in_corner = (
-                (first.x < n1.x + clearance_x or first.x > n1.x + n1.w - clearance_x)
-                and (first.y < n1.y + clearance_y or first.y > n1.y + n1.h - clearance_y)
+            in_corner = (first.x < n1.x + clearance_x or first.x > n1.x + n1.w - clearance_x) and (
+                first.y < n1.y + clearance_y or first.y > n1.y + n1.h - clearance_y
             )
             assert not in_corner, f"Departure point {first} is in corner zone of n1"
 
@@ -193,6 +197,7 @@ class TestEndpointCornerClearance:
 # ---------------------------------------------------------------------------
 # T043 — Empty connections
 # ---------------------------------------------------------------------------
+
 
 class TestEmptyConnections:
     def test_no_connections_returns_success(self) -> None:
@@ -212,16 +217,15 @@ class TestEmptyConnections:
 #         to accommodate coverage instrumentation overhead in CI/pre-commit runs)
 # ---------------------------------------------------------------------------
 
+
 class TestRoutingPerformance:
     def test_500_nodes_1000_connections_under_3s(self) -> None:
         import random
+
         random.seed(42)
         nodes = [mock_node(f"n{i}", x=(i % 20) * 150, y=(i // 20) * 150) for i in range(500)]
         uuid_list = [n.uuid for n in nodes]
-        connections = [
-            mock_connection(f"c{i}", uuid_list[i % 500], uuid_list[(i + 7) % 500])
-            for i in range(1000)
-        ]
+        connections = [mock_connection(f"c{i}", uuid_list[i % 500], uuid_list[(i + 7) % 500]) for i in range(1000)]
         view = make_view(nodes, connections)
         start = time.time()
         result = auto_route(view)
@@ -234,6 +238,7 @@ class TestRoutingPerformance:
 # P2-T17 — RoutingConfig.max_routing_passes
 # ---------------------------------------------------------------------------
 
+
 class TestMaxRoutingPasses:
     def test_default_max_routing_passes(self) -> None:
         """P2-T17: RoutingConfig.max_routing_passes defaults to 3."""
@@ -242,6 +247,7 @@ class TestMaxRoutingPasses:
     def test_max_routing_passes_validation(self) -> None:
         """P2-T17: max_routing_passes must be >= 1."""
         import pytest
+
         with pytest.raises(ValueError, match="max_routing_passes must be >= 1"):
             RoutingConfig(max_routing_passes=0)
 
@@ -249,6 +255,7 @@ class TestMaxRoutingPasses:
 # ---------------------------------------------------------------------------
 # P2-T18 — Multi-pass resolves node crossing
 # ---------------------------------------------------------------------------
+
 
 class TestMultiPassNodeCrossing:
     def test_detect_node_crossings_finds_crossing(self) -> None:
@@ -286,7 +293,7 @@ class TestMultiPassNodeCrossing:
         # Two nodes far apart with a third node directly in between.
         # The straight-line BFS path would cross the blocker.
         # Multi-pass should detect the crossing and re-route.
-        left = mock_node("left",   0,   100, 40, 40)
+        left = mock_node("left", 0, 100, 40, 40)
         right = mock_node("right", 400, 100, 40, 40)
         # Blocker in the middle at y=100 same row
         blocker = mock_node("blocker", 190, 100, 40, 40)
@@ -320,6 +327,7 @@ class TestMultiPassNodeCrossing:
 # P2-T19 — Multi-pass reduces double crossings
 # ---------------------------------------------------------------------------
 
+
 class TestMultiPassDoubleCrossing:
     def test_detect_double_crossings_finds_pair(self) -> None:
         """P2-T15: _detect_double_crossings finds connection with 2 crossing points."""
@@ -349,15 +357,13 @@ class TestMultiPassDoubleCrossing:
 # P2-T21 — Performance with multi-pass (< 5s for 500 nodes / 1000 connections)
 # ---------------------------------------------------------------------------
 
+
 class TestMultiPassPerformance:
     def test_multi_pass_500_nodes_1000_conns_under_5s(self) -> None:
         """P2-T21: 500 nodes + 1000 connections with max_routing_passes=3 routes < 5s."""
         nodes = [mock_node(f"n{i}", (i % 20) * 150, (i // 20) * 150) for i in range(500)]
         uuid_list = [n.uuid for n in nodes]
-        connections = [
-            mock_connection(f"c{i}", uuid_list[i % 500], uuid_list[(i + 7) % 500])
-            for i in range(1000)
-        ]
+        connections = [mock_connection(f"c{i}", uuid_list[i % 500], uuid_list[(i + 7) % 500]) for i in range(1000)]
         view = make_view(nodes, connections)
         config = RoutingConfig(max_routing_passes=3)
         start = time.time()
@@ -370,6 +376,7 @@ class TestMultiPassPerformance:
 # ---------------------------------------------------------------------------
 # P2-T27 — allow_node_move=False preserves SC-010 (no node position changes)
 # ---------------------------------------------------------------------------
+
 
 class TestAllowNodeMoveFalse:
     def test_node_positions_unchanged_when_move_disabled(self) -> None:
@@ -402,12 +409,13 @@ class TestAllowNodeMoveFalse:
 # P2-T28 — Single blocking node moved 1 cell to open corridor
 # ---------------------------------------------------------------------------
 
+
 class TestNodeMoveOpensCoridor:
     def test_blocking_node_moved_to_resolve_crossing(self) -> None:
         """P2-T28: with allow_node_move=True a blocking node shifts to open a corridor."""
         # Blocker sits directly in the path between src and tgt (same row).
-        src = mock_node("src",     0,   200, 80, 80)
-        tgt = mock_node("tgt",   500,   200, 80, 80)
+        src = mock_node("src", 0, 200, 80, 80)
+        tgt = mock_node("tgt", 500, 200, 80, 80)
         blocker = mock_node("blocker", 220, 200, 80, 80)
 
         conn = mock_connection("c1", "src", "tgt")
@@ -430,10 +438,10 @@ class TestNodeMoveOpensCoridor:
             # Blocker's new position must not overlap src or tgt
             for n in [src, tgt]:
                 overlap = (
-                    float(blocker.x) < float(n.x) + float(n.w) and
-                    float(n.x) < float(blocker.x) + float(blocker.w) and
-                    float(blocker.y) < float(n.y) + float(n.h) and
-                    float(n.y) < float(blocker.y) + float(blocker.h)
+                    float(blocker.x) < float(n.x) + float(n.w)
+                    and float(n.x) < float(blocker.x) + float(blocker.w)
+                    and float(blocker.y) < float(n.y) + float(n.h)
+                    and float(n.y) < float(blocker.y) + float(blocker.h)
                 )
                 assert not overlap, f"Moved blocker overlaps node {n.uuid}"
 
@@ -441,6 +449,7 @@ class TestNodeMoveOpensCoridor:
 # ---------------------------------------------------------------------------
 # P2-T29 — Move rejected when it would cause overlap
 # ---------------------------------------------------------------------------
+
 
 class TestNodeMoveRejectedOnOverlap:
     def test_move_rejected_when_causes_overlap(self) -> None:
@@ -479,6 +488,7 @@ class TestNodeMoveRejectedOnOverlap:
 # ---------------------------------------------------------------------------
 # P2-T30 — _find_candidate_node_moves returns candidates for crossing connection
 # ---------------------------------------------------------------------------
+
 
 class TestFindCandidateNodeMoves:
     def test_finds_blocking_node(self) -> None:

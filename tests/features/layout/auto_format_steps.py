@@ -35,7 +35,15 @@ class MockView:
         self.id = "test_view"
         self.nodes = []
 
-    def add_element(self, element_id: str, elem_type: str, width: float = 100, height: float = 80, name: str = "Element", documentation: str = ""):
+    def add_element(
+        self,
+        element_id: str,
+        elem_type: str,
+        width: float = 100,
+        height: float = 80,
+        name: str = "Element",
+        documentation: str = "",
+    ):
         """Add element to view."""
         element = MockElement(
             id=element_id,
@@ -174,11 +182,7 @@ def step_create_element_with_docs(context):
     """Create element with documentation."""
     context.view = MockView()
     context.view.add_element(
-        "elem1",
-        "ApplicationComponent",
-        width=150,
-        name="TestComponent",
-        documentation="Test documentation"
+        "elem1", "ApplicationComponent", width=150, name="TestComponent", documentation="Test documentation"
     )
 
 
@@ -252,10 +256,7 @@ def step_verify_excluded_fonts(context):
         # They should not have standard fonts applied
         spec = context.format_service.registry.get_spec("ApplicationComponent")
         # Should NOT match standard font
-        assert not (
-            excluded[0].font_family == spec.font_family and
-            excluded[0].font_size == spec.font_size
-        )
+        assert not (excluded[0].font_family == spec.font_family and excluded[0].font_size == spec.font_size)
 
 
 @then("other elements should be formatted normally")
@@ -589,14 +590,14 @@ def step_verify_connections_valid(context):
     assert len(context.view.nodes) == 2
 
 
-@when("I apply auto-format with alignment=\"free\"")
+@when('I apply auto-format with alignment="free"')
 def step_apply_format_free(context):
     """Apply format with free alignment."""
     config = LayoutConfig(alignment="free")
     context.result = apply_format(context.view, config)
 
 
-@when("I apply auto-format with alignment=\"grid\" and grid_size=10")
+@when('I apply auto-format with alignment="grid" and grid_size=10')
 def step_apply_format_grid(context):
     """Apply format with grid alignment."""
     config = LayoutConfig(alignment="grid", grid_size=10)
@@ -663,7 +664,6 @@ def step_verify_sc_004(context):
     service = FormatService()
     variance = service.calculate_size_variance(context.view)
     assert variance["std_dev"] == 0  # 100% reduction
-
 
 
 @then("Business layer elements should use standard sizes and fonts")

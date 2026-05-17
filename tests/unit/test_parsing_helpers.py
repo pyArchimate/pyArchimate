@@ -1,4 +1,5 @@
 """Unit tests for parsing helper functions."""
+
 import sys
 from pathlib import Path
 
@@ -96,6 +97,7 @@ class TestExtractImages:
     def test_extract_no_images(self):
         """Test extraction from element with no images."""
         from lxml import etree
+
         root = etree.Element("root")
         result = extract_images_from_archimate(root)
         assert result == []
@@ -103,6 +105,7 @@ class TestExtractImages:
     def test_extract_single_image_from_element(self):
         """Test extraction of single image element."""
         from lxml import etree
+
         root = etree.Element("root")
         etree.SubElement(root, "image", data="dGVzdGRhdGE=")  # "testdata" in base64
         result = extract_images_from_archimate(root)
@@ -111,6 +114,7 @@ class TestExtractImages:
     def test_extract_multiple_images(self):
         """Test extraction of multiple image elements."""
         from lxml import etree
+
         root = etree.Element("root")
         etree.SubElement(root, "image", data="aW1hZ2UxAA==")
         etree.SubElement(root, "image", data="aW1hZ2UyAA==")
@@ -122,6 +126,7 @@ class TestExtractImages:
     def test_extract_images_nested(self):
         """Test extraction of nested image elements."""
         from lxml import etree
+
         root = etree.Element("root")
         child = etree.SubElement(root, "child")
         etree.SubElement(child, "image", data="bmVzdGVkAA==")
@@ -131,6 +136,7 @@ class TestExtractImages:
     def test_extract_images_missing_data(self):
         """Test that images without data attribute are skipped."""
         from lxml import etree
+
         root = etree.Element("root")
         etree.SubElement(root, "image")  # No data attribute
         etree.SubElement(root, "image", data="dmFsaWQA")

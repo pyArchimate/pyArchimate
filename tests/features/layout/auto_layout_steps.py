@@ -38,9 +38,7 @@ def step_create_scattered_view(context):
     """Create view with scattered elements."""
     context.view = MockView()
     for i in range(10):
-        context.view.nodes.append(
-            MockElement(id=f"elem{i}", type="ApplicationComponent", x=i * 30, y=i * 20)
-        )
+        context.view.nodes.append(MockElement(id=f"elem{i}", type="ApplicationComponent", x=i * 30, y=i * 20))
 
 
 @when("auto-layout is applied")
@@ -102,9 +100,7 @@ def step_create_large_view(context):
     """Create view with 300 elements."""
     context.view = MockView()
     for i in range(300):
-        context.view.nodes.append(
-            MockElement(id=f"elem{i}", type="ApplicationComponent")
-        )
+        context.view.nodes.append(MockElement(id=f"elem{i}", type="ApplicationComponent"))
     # Create some connections
     for i in range(0, 299, 10):
         context.view.edges.append((i, i + 1))

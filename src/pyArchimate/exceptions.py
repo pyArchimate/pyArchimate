@@ -7,10 +7,12 @@ including domain-specific validation errors.
 No external pyArchimate imports - this is a Layer 1 base module.
 """
 
+
 class ArchimateError(Exception):
     """
     Base exception for all Archimate-related errors.
     """
+
     pass
 
 
@@ -19,6 +21,7 @@ class ArchimateRelationshipError(ArchimateError):
     Raised when a relationship constraint is violated or an invalid relationship
     operation is attempted.
     """
+
     pass
 
 

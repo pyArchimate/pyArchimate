@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from .relationship import Relationship
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-__mod__ = __name__.split('.')[-1]
+__mod__ = __name__.split(".")[-1]
 
 ARCHIMATE_EXCEPTION_GROUP = (ArchimateConceptTypeError,)
 
@@ -45,13 +45,13 @@ def _find_props_block(text: str) -> tuple[int, int, dict[str, Any]] | None:
     Uses json.JSONDecoder.raw_decode instead of a backtracking regex (S5852).
     Returns (block_start, block_end, parsed_dict) or None.
     """
-    for prefix in ('', '#'):
-        for sep in (' = ', '='):
-            marker = prefix + 'properties' + sep
+    for prefix in ("", "#"):
+        for sep in (" = ", "="):
+            marker = prefix + "properties" + sep
             idx = text.find(marker)
             if idx == -1:
                 continue
-            brace = text.find('{', idx + len(marker))
+            brace = text.find("{", idx + len(marker))
             if brace == -1:
                 continue
             try:
@@ -68,17 +68,18 @@ def _strip_props_block(text: str) -> str:
     if result is None:
         return text
     start, end, _ = result
-    return (text[:start] + text[end:].lstrip(';')).strip()
+    return (text[:start] + text[end:].lstrip(";")).strip()
 
 
 def _embed_object(o: Any, remove_props: bool) -> None:
     from .relationship import Relationship  # noqa: PLC0415  # circular: model↔relationship init cycle
+
     if isinstance(o, Relationship):
         if o.name is not None:
-            o.prop('Identifier', o.name)
+            o.prop("Identifier", o.name)
     elif o.props != {}:
-        desc = '' if o.desc is None else _strip_props_block(o.desc)
-        desc += desc.strip(' \n') + '\n\nproperties = ' + json.dumps(o.props, indent=2) + '\n'
+        desc = "" if o.desc is None else _strip_props_block(o.desc)
+        desc += desc.strip(" \n") + "\n\nproperties = " + json.dumps(o.props, indent=2) + "\n"
         o.desc = desc
         if remove_props:
             for x in o.props.copy():
@@ -88,24 +89,24 @@ def _embed_object(o: Any, remove_props: bool) -> None:
 def _apply_rel_identity_props(o: Any, p: Any) -> None:
     if p is None:
         return
-    o.name = p.get('name')
-    o.desc = p.get('documentation')
-    if 'isDirected' in p and o.type == ArchiType.Association:
-        o.is_directed = str(p['isDirected']).lower() == 'true'
-    if 'access' in p and o.type == ArchiType.Access:
-        o.access_type = p['access']
-    if 'influence_strength' in p and o.type == ArchiType.Influence:
-        o.influence_strength = p['influence_strength']
+    o.name = p.get("name")
+    o.desc = p.get("documentation")
+    if "isDirected" in p and o.type == ArchiType.Association:
+        o.is_directed = str(p["isDirected"]).lower() == "true"
+    if "access" in p and o.type == ArchiType.Access:
+        o.access_type = p["access"]
+    if "influence_strength" in p and o.type == ArchiType.Influence:
+        o.influence_strength = p["influence_strength"]
     for key, val in p.items():
         o.prop(key, val)
 
 
 def _expand_relationship(o: Any, clean_doc: bool) -> None:
-    if o.prop('Identifier') is not None:
-        result = _find_props_block(str(o.prop('Identifier')))
+    if o.prop("Identifier") is not None:
+        result = _find_props_block(str(o.prop("Identifier")))
         if result is not None:
             _, _, p = result
-            o.remove_prop('Identifier')
+            o.remove_prop("Identifier")
             _apply_rel_identity_props(o, p)
     if clean_doc:
         o.desc = None if o.desc is None else _strip_props_block(o.desc)
@@ -126,11 +127,11 @@ def _expand_element(o: Any, clean_doc: bool) -> None:
 
 def _expand_object(o: Any, clean_doc: bool) -> None:
     from .relationship import Relationship  # noqa: PLC0415  # circular: model↔relationship init cycle
+
     if isinstance(o, Relationship):
         _expand_relationship(o, clean_doc)
     else:
         _expand_element(o, clean_doc)
-
 
 
 def default_color(elem_type: str, theme: Any = DEFAULT_THEME) -> str:
@@ -143,26 +144,46 @@ def default_color(elem_type: str, theme: Any = DEFAULT_THEME) -> str:
     :type theme: str
     :return: #Hex color str
     """
-    default_colors = {'strategy': '#F5DEAA', 'business': "#FFFFB5", 'application': "#B5FFFF", 'technology': "#C9E7B7",
-                      'physical': "#C9E7B7", 'migration': "#FFE0E0", 'implementation & migration': "#FFE0E0",
-                      'motivation': "#CCCCFF", 'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
-    aris_colors = {'strategy': '#D38300', 'business': "#F5C800", 'application': "#00A0FF", 'technology': "#6BA50E",
-                   'physical': "#6BA50E", 'migration': "#FFE0E0", 'implementation & migration': "#FFE0E0",
-                   'motivation': "#F099FF", 'relationship': "#DDDDDD", 'other': '#FFFFFF', 'junction': '#000000'}
+    default_colors = {
+        "strategy": "#F5DEAA",
+        "business": "#FFFFB5",
+        "application": "#B5FFFF",
+        "technology": "#C9E7B7",
+        "physical": "#C9E7B7",
+        "migration": "#FFE0E0",
+        "implementation & migration": "#FFE0E0",
+        "motivation": "#CCCCFF",
+        "relationship": "#DDDDDD",
+        "other": "#FFFFFF",
+        "junction": "#000000",
+    }
+    aris_colors = {
+        "strategy": "#D38300",
+        "business": "#F5C800",
+        "application": "#00A0FF",
+        "technology": "#6BA50E",
+        "physical": "#6BA50E",
+        "migration": "#FFE0E0",
+        "implementation & migration": "#FFE0E0",
+        "motivation": "#F099FF",
+        "relationship": "#DDDDDD",
+        "other": "#FFFFFF",
+        "junction": "#000000",
+    }
     if elem_type in ARCHI_CATEGORY:
         cat = ARCHI_CATEGORY[elem_type].lower()
-        cat = cat.split(' & ')[0].split('-')[0]
+        cat = cat.split(" & ")[0].split("-")[0]
 
-        if theme == 'archi' or theme is None:
-            return default_colors.get(cat, default_colors['other'])
-        if theme == 'aris':
-            return aris_colors.get(cat, aris_colors['other'])
+        if theme == "archi" or theme is None:
+            return default_colors.get(cat, default_colors["other"])
+        if theme == "aris":
+            return aris_colors.get(cat, aris_colors["other"])
         else:
             try:
                 return str(theme[cat])
             except (KeyError, TypeError):
-                return default_colors.get(cat, default_colors['other'])
-    return default_colors['other']
+                return default_colors.get(cat, default_colors["other"])
+    return default_colors["other"]
 
 
 class Model:
@@ -261,11 +282,11 @@ class Model:
         self.views_dict = {}
         self.labels_dict = {}
         self.orgs = defaultdict(list)
-        self.theme = 'archi'
+        self.theme = "archi"
         self._viewpoint_elements: dict[str, set[str]] = {}  # slug → set of element UUIDs
-        self._viewpoint_views: dict[str, str] = {}          # view UUID → primary viewpoint slug
+        self._viewpoint_views: dict[str, str] = {}  # view UUID → primary viewpoint slug
         self._element_hierarchy: dict[str, str | None] = {}  # child_uuid → parent_uuid
-        self._element_children: dict[str, set[str]] = {}        # parent_uuid → child_uuids
+        self._element_children: dict[str, set[str]] = {}  # parent_uuid → child_uuids
         self._images_dict: dict[str, bytes] = {}  # filename → image bytes (for .archimate ZIP support)
         self._image_files: list[str] = []  # list of image filenames from archive
 
@@ -296,8 +317,19 @@ class Model:
             self.elems_dict[_e.uuid] = _e
             return _e
 
-    def add_relationship(self, rel_type: str = '', source: Any = None, target: Any = None, uuid: str | None = None, name: str | None = None, access_type: str | None = None,  # noqa: E501
-                         influence_strength: str | None = None, desc: str | None = None, is_directed: bool | None = None, profile: str | None = None) -> "Relationship":
+    def add_relationship(
+        self,
+        rel_type: str = "",
+        source: Any = None,
+        target: Any = None,
+        uuid: str | None = None,
+        name: str | None = None,
+        access_type: str | None = None,  # noqa: E501
+        influence_strength: str | None = None,
+        desc: str | None = None,
+        is_directed: bool | None = None,
+        profile: str | None = None,
+    ) -> "Relationship":
         """
         Method to add a new Relationship between two Element objects
 
@@ -323,9 +355,20 @@ class Model:
         :rtype: Relationship
         """
         from .relationship import Relationship  # noqa: PLC0415  # circular: model↔relationship init cycle
-        r = Relationship(rel_type, source, target, uuid, name, access_type, influence_strength, desc,
-                         is_directed, profile,
-                         parent=self)
+
+        r = Relationship(
+            rel_type,
+            source,
+            target,
+            uuid,
+            name,
+            access_type,
+            influence_strength,
+            desc,
+            is_directed,
+            profile,
+            parent=self,
+        )
         self.rels_dict[r.uuid] = r
         return r
 
@@ -346,7 +389,7 @@ class Model:
         :return: type
         :rtype: str
         """
-        return 'Model'
+        return "Model"
 
     @property
     def profiles(self) -> list["Profile"]:
@@ -455,7 +498,7 @@ class Model:
 
         :return: [Relationship]
         :rtype: list
-         """
+        """
         return list(self.rels_dict.values())
 
     @property
@@ -521,9 +564,9 @@ class Model:
             False
         """
         try:
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 magic = f.read(2)
-                return magic == b'PK'
+                return magic == b"PK"
         except OSError:
             return False
 
@@ -547,9 +590,9 @@ class Model:
             >>> assert content.startswith("<?xml")
         """
         try:
-            with zipfile.ZipFile(file_path, 'r') as zf:
-                with zf.open('model.xml') as xml_file:
-                    return xml_file.read().decode('utf-8')
+            with zipfile.ZipFile(file_path, "r") as zf:
+                with zf.open("model.xml") as xml_file:
+                    return xml_file.read().decode("utf-8")
         except KeyError as e:
             raise KeyError(f"Invalid .archimate file - model.xml not found in archive: {file_path}") from e
 
@@ -571,10 +614,10 @@ class Model:
             >>> print(len(m._images_dict))  # number of images extracted
         """
         try:
-            with zipfile.ZipFile(file_path, 'r') as zf:
+            with zipfile.ZipFile(file_path, "r") as zf:
                 # Extract all files in images/ folder
                 for file_info in zf.filelist:
-                    if file_info.filename.startswith('images/') and not file_info.is_dir():
+                    if file_info.filename.startswith("images/") and not file_info.is_dir():
                         # Extract image data
                         image_data = zf.read(file_info.filename)
                         self._images_dict[file_info.filename] = image_data
@@ -607,16 +650,22 @@ class Model:
                     self._extract_images_from_zip(file_path)
                     return self._extract_xml_from_zip(file_path)
                 except zipfile.BadZipFile:
-                    log.error(f"{__mod__} {self.__class__.__name__}.{operation}: Invalid .archimate file - ZIP archive is corrupted: '{file_path}'")
+                    log.error(
+                        f"{__mod__} {self.__class__.__name__}.{operation}: Invalid .archimate file - ZIP archive is corrupted: '{file_path}'"
+                    )
                     sys.exit(1)
                 except KeyError:
-                    log.error(f"{__mod__} {self.__class__.__name__}.{operation}: Invalid .archimate file - model.xml not found in archive: '{file_path}'")
+                    log.error(
+                        f"{__mod__} {self.__class__.__name__}.{operation}: Invalid .archimate file - model.xml not found in archive: '{file_path}'"
+                    )
                     sys.exit(1)
             # Load plain XML files (.xml format)
-            with open(file_path, encoding='utf-8') as fd:
+            with open(file_path, encoding="utf-8") as fd:
                 return fd.read()
         except UnicodeDecodeError:
-            log.error(f"{__mod__} {self.__class__.__name__}.{operation}: File encoding error - unable to decode as UTF-8: '{file_path}'")
+            log.error(
+                f"{__mod__} {self.__class__.__name__}.{operation}: File encoding error - unable to decode as UTF-8: '{file_path}'"
+            )
             sys.exit(1)
         except OSError:
             log.error(f"{__mod__} {self.__class__.__name__}.{operation}: Cannot open or read file '{file_path}'")
@@ -634,13 +683,13 @@ class Model:
         entry = None
         data = self._load_file_contents(file_path, operation)
 
-        if data != '':
+        if data != "":
             parser = et.XMLParser(recover=True)
             root = et.fromstring(data.encode(), parser=parser)
             entry = self._match_reader_entry(root.tag)
 
         if entry is None:
-            log.error(OPERATION_ERROR_MESSAGES.get(operation, OPERATION_ERROR_MESSAGES['read']))
+            log.error(OPERATION_ERROR_MESSAGES.get(operation, OPERATION_ERROR_MESSAGES["read"]))
             return None, None, None
         reader = entry.loader()
         return reader, root, entry
@@ -661,7 +710,7 @@ class Model:
         :type file_path: str
         :raises SystemExit: If file cannot be read or is invalid
         """
-        reader, root, entry = self._prepare_reader(file_path, 'read')
+        reader, root, entry = self._prepare_reader(file_path, "read")
         if reader is None or entry is None:
             return
         call_args = args if entry.forward_read_args else ()
@@ -677,11 +726,11 @@ class Model:
 
         """
 
-        reader, root, entry = self._prepare_reader(file_path, 'merge')
+        reader, root, entry = self._prepare_reader(file_path, "merge")
         if reader is None or entry is None:
             return
         if not entry.supports_merge:
-            log.error(OPERATION_ERROR_MESSAGES['merge'])
+            log.error(OPERATION_ERROR_MESSAGES["merge"])
             return
         reader(self, root, merge_flg=True)
 
@@ -716,7 +765,7 @@ class Model:
         else:
             return list(self.elems_dict.values())
 
-    def find_relationships(self, rel_type, elem, direction='both'):
+    def find_relationships(self, rel_type, elem, direction="both"):
         """
         Find all relationships of a list of elements
 
@@ -732,10 +781,9 @@ class Model:
         if elem is None:
             return None
         direction = direction.lower()
-        wants_in = 'in' in direction or 'both' in direction
-        wants_out = 'out' in direction or 'both' in direction
-        return [r for r in self.rels_dict.values()
-                if _matches_rel(r, rel_type, elem.uuid, wants_in, wants_out)]
+        wants_in = "in" in direction or "both" in direction
+        wants_out = "out" in direction or "both" in direction
+        return [r for r in self.rels_dict.values() if _matches_rel(r, rel_type, elem.uuid, wants_in, wants_out)]
 
     def filter_relationships(self, fct):
         """
@@ -783,7 +831,7 @@ class Model:
         :return: Element object
         :rtype: Element
         """
-        if elem == '' or elem is None:
+        if elem == "" or elem is None:
             return None
         e = self.find_elements(elem, elem_type)
         if len(e) > 0:
@@ -793,9 +841,18 @@ class Model:
         else:
             return None
 
-    def get_or_create_relationship(self, rel_type: str, name: str | None, source: Any, target: Any, create_rel: bool = False,  # noqa: E501
-                                   access_type: str | None = None,
-                                   influence_strength: str | None = None, desc: str | None = None, is_directed: bool | None = None) -> Any | None:
+    def get_or_create_relationship(
+        self,
+        rel_type: str,
+        name: str | None,
+        source: Any,
+        target: Any,
+        create_rel: bool = False,  # noqa: E501
+        access_type: str | None = None,
+        influence_strength: str | None = None,
+        desc: str | None = None,
+        is_directed: bool | None = None,
+    ) -> Any | None:
         """
         Method to get a Relationship by source/target/type and/or by name or create one if not found
 
@@ -829,23 +886,39 @@ class Model:
         if isinstance(target, Node):
             target = target.concept
         if name is None:
-            r = self.filter_relationships(lambda x: (x.type == rel_type
-                                                     and x.source.uuid == source.uuid
-                                                     and x.target.uuid == target.uuid
-                                                     and x.access_type == access_type
-                                                     and x.is_directed == is_directed))
+            r = self.filter_relationships(
+                lambda x: (
+                    x.type == rel_type
+                    and x.source.uuid == source.uuid
+                    and x.target.uuid == target.uuid
+                    and x.access_type == access_type
+                    and x.is_directed == is_directed
+                )
+            )
         else:
-            r = self.filter_relationships(lambda x: (x.type == rel_type and x.name == name
-                                                     and x.source.uuid == source.uuid
-                                                     and x.target.uuid == target.uuid
-                                                     and x.access_type == access_type
-                                                     and x.is_directed == is_directed))
+            r = self.filter_relationships(
+                lambda x: (
+                    x.type == rel_type
+                    and x.name == name
+                    and x.source.uuid == source.uuid
+                    and x.target.uuid == target.uuid
+                    and x.access_type == access_type
+                    and x.is_directed == is_directed
+                )
+            )
         if len(r) > 0:
             return r[0]
         if create_rel:
-            return self.add_relationship(source=source.uuid, target=target.uuid, rel_type=rel_type, name=name,
-                                         access_type=access_type, influence_strength=influence_strength, desc=desc,
-                                         is_directed=is_directed)
+            return self.add_relationship(
+                source=source.uuid,
+                target=target.uuid,
+                rel_type=rel_type,
+                name=name,
+                access_type=access_type,
+                influence_strength=influence_strength,
+                desc=desc,
+                is_directed=is_directed,
+            )
         else:
             return None
 
@@ -916,39 +989,43 @@ class Model:
     def _check_connection_refs(self, c: Any) -> bool:
         _ok = True
         if c._ref not in self.rels_dict:
-            log.error(f'Orphan connection {c.uuid} to unknown relationship {c.ref}')
+            log.error(f"Orphan connection {c.uuid} to unknown relationship {c.ref}")
             _ok = False
         if c._source not in self.nodes_dict and c._source not in self.conns_dict:
-            log.error(f'Connection {c.uuid} has orphan source node {c._source}')
+            log.error(f"Connection {c.uuid} has orphan source node {c._source}")
             _ok = False
         if c.concept._source not in self.elems_dict and c.concept._source not in self.rels_dict:
-            log.error(f'Connection {c.uuid} has orphan source node concept {c.concept._source}')
+            log.error(f"Connection {c.uuid} has orphan source node concept {c.concept._source}")
             _ok = False
         if c._target not in self.nodes_dict and c._target not in self.conns_dict:
-            log.error(f'Connection {c.uuid} has orphan target node {c._target}')
+            log.error(f"Connection {c.uuid} has orphan target node {c._target}")
             _ok = False
         if c.concept._target not in self.elems_dict and c.concept._target not in self.rels_dict:
-            log.error(f'Connection {c.uuid} has orphan target node concept {c.concept._target}')
+            log.error(f"Connection {c.uuid} has orphan target node concept {c.concept._target}")
             _ok = False
         return _ok
 
     def _check_connection_endpoints(self, c: Any) -> bool:
         _ok = True
         if isinstance(c.target, View):
-            log.error(f'Connection {c.uuid} has a view {c.target.name} as source node')
+            log.error(f"Connection {c.uuid} has a view {c.target.name} as source node")
             _ok = False
         if isinstance(c.source, View):
-            log.error(f'Connection {c.uuid} has a view {c.source.name} as source node')
+            log.error(f"Connection {c.uuid} has a view {c.source.name} as source node")
             _ok = False
         if c.source is not None and not isinstance(c.source, View):
             if c.source._ref != c.concept._source:
-                log.error(f'Connection {c.uuid} has a reference to its source Element which is not '
-                          'the reference of the relationship source Element')
+                log.error(
+                    f"Connection {c.uuid} has a reference to its source Element which is not "
+                    "the reference of the relationship source Element"
+                )
             _ok = False
         if c.target is not None and not isinstance(c.target, View):
             if c.target._ref != c.concept._target:
-                log.error(f'Connection {c.uuid} has a reference to its target Element which is not '
-                          'the reference of the relationship target Element')
+                log.error(
+                    f"Connection {c.uuid} has a reference to its target Element which is not "
+                    "the reference of the relationship target Element"
+                )
             _ok = False
         return _ok
 
@@ -971,12 +1048,12 @@ class Model:
         """
         invalids = []
         for node_id, n in self.nodes_dict.items():
-            if n.ref not in self.elems_dict and n.cat == 'Element':
+            if n.ref not in self.elems_dict and n.cat == "Element":
                 invalids.append(node_id)
                 try:
                     log.error(f'Orphan node "{n.name}" with id {n.uuid} refers to unknown {n.ref}')
                 except ARCHIMATE_EXCEPTION_GROUP:
-                    log.error(f'Orphan node with id {node_id}')
+                    log.error(f"Orphan node with id {node_id}")
         return invalids
 
     def default_theme(self, theme=DEFAULT_THEME):
@@ -988,7 +1065,7 @@ class Model:
         for e in self.nodes:
             e.fill_color = default_color(e.type, theme)
         for r in self.conns:
-            r.line_color = default_color('Relationship', theme)
+            r.line_color = default_color("Relationship", theme)
         self.theme = theme
 
     def get_viewpoints(self):
@@ -1000,6 +1077,7 @@ class Model:
         from .viewpoint_registry import (
             STANDARD_VIEWPOINTS,  # noqa: PLC0415  # deferred: avoids init-time circular import via view
         )
+
         return list(STANDARD_VIEWPOINTS)
 
     def get_elements_by_viewpoint(self, viewpoint_id: str) -> list[Any]:
@@ -1014,6 +1092,7 @@ class Model:
         from .viewpoint_registry import (
             validate_viewpoint_slug,  # noqa: PLC0415  # deferred: avoids init-time circular import via view
         )
+
         validate_viewpoint_slug(viewpoint_id)
         uuids = self._viewpoint_elements.get(viewpoint_id, set())
         return [self.elems_dict[uid] for uid in uuids if uid in self.elems_dict]
@@ -1030,9 +1109,9 @@ class Model:
         from .viewpoint_registry import (
             validate_viewpoint_slug,  # noqa: PLC0415  # deferred: avoids init-time circular import via view
         )
+
         validate_viewpoint_slug(viewpoint_id)
-        return [v for uid, v in self.views_dict.items()
-                if self._viewpoint_views.get(uid) == viewpoint_id]
+        return [v for uid, v in self.views_dict.items() if self._viewpoint_views.get(uid) == viewpoint_id]
 
     def _would_create_cycle(self, parent_uuid: str, child_uuid: str) -> bool:
         """Check if adding child_uuid as a child of parent_uuid would create a cycle.
@@ -1122,8 +1201,7 @@ class Model:
         :param elem_uuid: Element UUID
         :return: List of child Elements (empty if no children)
         """
-        return [self.elems_dict[uid] for uid in self._element_children.get(elem_uuid, set())
-                if uid in self.elems_dict]
+        return [self.elems_dict[uid] for uid in self._element_children.get(elem_uuid, set()) if uid in self.elems_dict]
 
     def get_ancestors(self, elem_uuid: str) -> list[Element]:
         """Get all ancestors of an element (parent, grandparent, ..., root).
@@ -1175,16 +1253,14 @@ class Model:
 
         :return: List of root Elements
         """
-        return [e for e in self.elems_dict.values()
-                if self._element_hierarchy.get(e.uuid) is None]
+        return [e for e in self.elems_dict.values() if self._element_hierarchy.get(e.uuid) is None]
 
     def get_leaf_elements(self) -> list[Element]:
         """Get all leaf elements (elements with no children).
 
         :return: List of leaf Elements
         """
-        return [e for e in self.elems_dict.values()
-                if not self._element_children.get(e.uuid)]
+        return [e for e in self.elems_dict.values() if not self._element_children.get(e.uuid)]
 
     def get_siblings(self, elem_uuid: str) -> list[Element]:
         """Get all sibling elements (elements with same parent).
@@ -1199,8 +1275,7 @@ class Model:
         if parent_uuid is None:
             return []
         siblings = self._element_children.get(parent_uuid, set())
-        return [e for e in [self.elems_dict[uuid] for uuid in siblings]
-                if e.uuid != elem_uuid]
+        return [e for e in [self.elems_dict[uuid] for uuid in siblings] if e.uuid != elem_uuid]
 
     def find_by_hierarchy_path(self, path: str) -> list[Element]:
         """Find elements by hierarchy path (e.g., '/parent/child/element').
@@ -1212,18 +1287,19 @@ class Model:
         """
         if not path:
             return []
-        parts = [p for p in path.split('/') if p]
+        parts = [p for p in path.split("/") if p]
         if not parts:
             return []
         results: list[Element] = []
-        wildcard = parts[-1] == '*'
+        wildcard = parts[-1] == "*"
         if wildcard:
             parts = parts[:-1]
         self._traverse_by_path(parts, self.get_root_elements(), results, wildcard)
         return results
 
-    def _traverse_by_path(self, path_parts: list[str], current_elements: list[Element],
-                         results: list[Element], wildcard: bool) -> None:
+    def _traverse_by_path(
+        self, path_parts: list[str], current_elements: list[Element], results: list[Element], wildcard: bool
+    ) -> None:
         """Traverse hierarchy to find elements matching path."""
         if not path_parts:
             if wildcard:
@@ -1235,16 +1311,14 @@ class Model:
         target_name = path_parts[0]
         remaining_parts = path_parts[1:]
         for elem in current_elements:
-            if elem.name == target_name or target_name == '*':
+            if elem.name == target_name or target_name == "*":
                 if remaining_parts:
-                    self._traverse_by_path(remaining_parts, self.get_children(elem.uuid),
-                                         results, wildcard)
+                    self._traverse_by_path(remaining_parts, self.get_children(elem.uuid), results, wildcard)
                 else:
                     if wildcard:
                         results.extend(self.get_children(elem.uuid))
                     else:
                         results.append(elem)
-
 
 
 __all__ = ["Model"]

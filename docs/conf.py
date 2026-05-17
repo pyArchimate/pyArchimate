@@ -6,58 +6,55 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'pyArchimate'
-copyright = '2026 - Xavier Mayeur / Stephan Borg'
-author = 'Xavier Mayeur'
+project = "pyArchimate"
+copyright = "2026 - Xavier Mayeur / Stephan Borg"
+author = "Xavier Mayeur"
 version = "1.4"
-release = '1.4.2'
+release = "1.4.2"
 
 import os  # noqa: E402
 import sys  # noqa: E402
 
-sys.path.insert(0, os.path.abspath('../src'))
+sys.path.insert(0, os.path.abspath("../src"))
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.doctest',
-    'myst_parser'
+    "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.doctest",
+    "myst_parser",
 ]
 
 doctest_global_setup = """
 from pyArchimate import Model, Element, View, Relationship
 """
 
-templates_path = ['_templates']
-exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
+templates_path = ["_templates"]
+exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 
-root_doc = 'index'
+root_doc = "index"
 
-source_suffix = {
-    '.rst': 'restructuredtext',
-    '.md': 'markdown'
-}
+source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
 
 # Suppress "more than one target found for cross-reference" warnings.
 # These arise because pyArchimate.pyArchimate re-exports every public symbol,
 # causing Sphinx to see duplicate targets (e.g. pyArchimate.model.Model and
 # pyArchimate.pyArchimate.Model).  The individual module pages are canonical;
 # the shim page is an additional convenience entry point.
-suppress_warnings = ['ref.python']
+suppress_warnings = ["ref.python"]
 
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
+html_theme = "sphinx_rtd_theme"
+html_static_path = ["_static"]
 
 # Customization of the style sheet
 html_css_files = [
-    'custom.css',
+    "custom.css",
 ]

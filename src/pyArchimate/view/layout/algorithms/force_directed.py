@@ -34,6 +34,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
             LayoutResult with layout metrics
         """
         import time
+
         start_time = time.time()
 
         try:
@@ -84,7 +85,9 @@ class ForceDirectedLayout(LayoutAlgorithm):
 
             # Enforce layer constraints (mandatory or soft based on config)
             if config.layer_priority == "mandatory":
-                positions = layer_constraint.enforce_layer_separation_with_exclusions(positions, config.spacing, excluded_ids)
+                positions = layer_constraint.enforce_layer_separation_with_exclusions(
+                    positions, config.spacing, excluded_ids
+                )
 
             # Layer clamping can reintroduce collisions, so make one final pass.
             positions = self._resolve_overlaps(positions, nodes, excluded_ids)
@@ -114,6 +117,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
 
         except Exception as e:
             import traceback
+
             elapsed_ms = (time.time() - start_time) * 1000
             error_msg = f"{str(e)}\n{traceback.format_exc()}"
             return LayoutResult(
@@ -187,9 +191,7 @@ class ForceDirectedLayout(LayoutAlgorithm):
                 break
         return converged, iterations_completed
 
-    def _apply_positions(
-        self, nodes: list[Any], positions: dict[int, Point], excluded_ids: set[int]
-    ) -> None:
+    def _apply_positions(self, nodes: list[Any], positions: dict[int, Point], excluded_ids: set[int]) -> None:
         for i, node in enumerate(nodes):
             if i not in excluded_ids and i in positions:
                 node.x = int(round(positions[i].x))
@@ -232,8 +234,8 @@ class ForceDirectedLayout(LayoutAlgorithm):
         # Get node dimensions (width/height halves)
         node_dims = {}
         for i, node in enumerate(nodes):
-            w = getattr(node, 'w', 100)
-            h = getattr(node, 'h', 80)
+            w = getattr(node, "w", 100)
+            h = getattr(node, "h", 80)
             node_dims[i] = (w, h)
 
         # Iteratively push overlapping nodes apart

@@ -26,64 +26,80 @@ OUT_ARCHIMATE = Path(__file__).parent / "synthetic_large.archimate"
 
 # Element type distribution matching IT4IT proportions (type, count)
 ELEM_DISTRIBUTION = [
-    ("Requirement",            452),
-    ("Resource",               177),
-    ("ApplicationService",      88),
-    ("Artifact",                60),
-    ("ApplicationFunction",     54),
-    ("DataObject",              50),
-    ("Grouping",                47),
-    ("Capability",              43),
-    ("ValueStream",             39),
-    ("BusinessService",         38),
-    ("Outcome",                 36),
-    ("Node",                    27),
-    ("BusinessEvent",           26),
-    ("Stakeholder",             25),
-    ("BusinessObject",          17),
-    ("BusinessProcess",         14),
-    ("Goal",                     8),
-    ("Path",                     7),
-    ("CourseOfAction",           6),
-    ("CommunicationNetwork",     6),
-    ("Plateau",                  6),
-    ("BusinessActor",            5),
-    ("WorkPackage",              5),
-    ("Deliverable",              4),
-    ("BusinessRole",             2),
-    ("ApplicationInterface",     2),
-    ("Value",                    2),
+    ("Requirement", 452),
+    ("Resource", 177),
+    ("ApplicationService", 88),
+    ("Artifact", 60),
+    ("ApplicationFunction", 54),
+    ("DataObject", 50),
+    ("Grouping", 47),
+    ("Capability", 43),
+    ("ValueStream", 39),
+    ("BusinessService", 38),
+    ("Outcome", 36),
+    ("Node", 27),
+    ("BusinessEvent", 26),
+    ("Stakeholder", 25),
+    ("BusinessObject", 17),
+    ("BusinessProcess", 14),
+    ("Goal", 8),
+    ("Path", 7),
+    ("CourseOfAction", 6),
+    ("CommunicationNetwork", 6),
+    ("Plateau", 6),
+    ("BusinessActor", 5),
+    ("WorkPackage", 5),
+    ("Deliverable", 4),
+    ("BusinessRole", 2),
+    ("ApplicationInterface", 2),
+    ("Value", 2),
     ("ApplicationCollaboration", 1),
-    ("ApplicationInteraction",   1),
-    ("TechnologyInterface",      1),
-    ("ImplementationEvent",      1),
+    ("ApplicationInteraction", 1),
+    ("TechnologyInterface", 1),
+    ("ImplementationEvent", 1),
 ]
 
 # Relationship type distribution (type, count)
 REL_DISTRIBUTION = [
-    ("Realization",  1083),
-    ("Composition",   650),
-    ("Association",   486),
-    ("Assignment",    237),
-    ("Flow",          179),
-    ("Serving",       154),
-    ("Aggregation",    94),
-    ("Access",         58),
-    ("Triggering",     34),
+    ("Realization", 1083),
+    ("Composition", 650),
+    ("Association", 486),
+    ("Assignment", 237),
+    ("Flow", 179),
+    ("Serving", 154),
+    ("Aggregation", 94),
+    ("Access", 58),
+    ("Triggering", 34),
     ("Specialization", 24),
-    ("Influence",       3),
+    ("Influence", 3),
 ]
 
 LAYER_GROUPS = {
-    "Strategy":     ["Capability", "ValueStream", "Resource", "CourseOfAction", "Outcome"],
-    "Business":     ["BusinessActor", "BusinessRole", "BusinessProcess", "BusinessService",
-                     "BusinessEvent", "BusinessObject", "Stakeholder", "Goal", "Value"],
-    "Application":  ["ApplicationService", "ApplicationFunction", "ApplicationInterface",
-                     "ApplicationCollaboration", "ApplicationInteraction", "DataObject", "Artifact"],
-    "Technology":   ["Node", "Path", "CommunicationNetwork", "TechnologyInterface"],
-    "Motivation":   ["Requirement", "Outcome", "Goal", "Stakeholder"],
-    "Migration":    ["Plateau", "WorkPackage", "Deliverable", "ImplementationEvent"],
-    "Other":        ["Grouping"],
+    "Strategy": ["Capability", "ValueStream", "Resource", "CourseOfAction", "Outcome"],
+    "Business": [
+        "BusinessActor",
+        "BusinessRole",
+        "BusinessProcess",
+        "BusinessService",
+        "BusinessEvent",
+        "BusinessObject",
+        "Stakeholder",
+        "Goal",
+        "Value",
+    ],
+    "Application": [
+        "ApplicationService",
+        "ApplicationFunction",
+        "ApplicationInterface",
+        "ApplicationCollaboration",
+        "ApplicationInteraction",
+        "DataObject",
+        "Artifact",
+    ],
+    "Technology": ["Node", "Path", "CommunicationNetwork", "TechnologyInterface"],
+    "Motivation": ["Requirement", "Outcome", "Goal", "Stakeholder"],
+    "Migration": ["Plateau", "WorkPackage", "Deliverable", "ImplementationEvent"],
+    "Other": ["Grouping"],
 }
 
 _LAYER_FOR_TYPE: dict[str, str] = {}
@@ -97,12 +113,43 @@ def _layer(elem_type: str) -> str:
 
 
 def _words(n: int, prefix: str) -> str:
-    adjectives = ["Core", "Advanced", "Primary", "Secondary", "Global", "Local",
-                  "Integrated", "Distributed", "Managed", "Automated", "Enterprise",
-                  "Strategic", "Operational", "Service", "Platform", "Digital"]
-    nouns = ["Framework", "Module", "Component", "Service", "Process", "Interface",
-             "Layer", "Engine", "Pipeline", "Registry", "Gateway", "Controller",
-             "Repository", "Manager", "Provider", "Handler", "Orchestrator"]
+    adjectives = [
+        "Core",
+        "Advanced",
+        "Primary",
+        "Secondary",
+        "Global",
+        "Local",
+        "Integrated",
+        "Distributed",
+        "Managed",
+        "Automated",
+        "Enterprise",
+        "Strategic",
+        "Operational",
+        "Service",
+        "Platform",
+        "Digital",
+    ]
+    nouns = [
+        "Framework",
+        "Module",
+        "Component",
+        "Service",
+        "Process",
+        "Interface",
+        "Layer",
+        "Engine",
+        "Pipeline",
+        "Registry",
+        "Gateway",
+        "Controller",
+        "Repository",
+        "Manager",
+        "Provider",
+        "Handler",
+        "Orchestrator",
+    ]
     return f"{prefix} {random.choice(adjectives)} {random.choice(nouns)} {n}"
 
 
@@ -157,8 +204,9 @@ def build_model() -> pa.Model:
         ror_target = random.choice(realization_rels)
         ror_source = random.choice(assoc_sources)
         try:
-            m.add_relationship(rel_type="Association", source=ror_source, target=ror_target,
-                               name="cross-ref association")
+            m.add_relationship(
+                rel_type="Association", source=ror_source, target=ror_target, name="cross-ref association"
+            )
         except Exception:  # noqa: S110
             pass
 
@@ -189,8 +237,7 @@ def _build_views(m, all_elems, elems_by_type, added_rels) -> None:
         for i, elem in enumerate(pool):
             x = (i % cols) * 160 + 20
             y = (i // cols) * 100 + 20
-            n = v.get_or_create_node(elem, x=x, y=y, w=140, h=80,
-                                     create_elem=False, create_node=True)
+            n = v.get_or_create_node(elem, x=x, y=y, w=140, h=80, create_elem=False, create_node=True)
             if n:
                 nodes.append(n)
 
@@ -198,8 +245,16 @@ def _build_views(m, all_elems, elems_by_type, added_rels) -> None:
 
 
 def _build_view_connections(m, v, nodes, added_rels) -> None:
-    conn_rel_types = ["Association", "Composition", "Realization", "Serving",
-                      "Flow", "Assignment", "Aggregation", "Triggering"]
+    conn_rel_types = [
+        "Association",
+        "Composition",
+        "Realization",
+        "Serving",
+        "Flow",
+        "Assignment",
+        "Aggregation",
+        "Triggering",
+    ]
     conns_added = 0
     attempts = 0
     while conns_added < 17 and attempts < 80 and len(nodes) >= 2:
@@ -214,9 +269,9 @@ def _build_view_connections(m, v, nodes, added_rels) -> None:
             r = m.add_relationship(rel_type=rel_type, source=src_elem, target=tgt_elem)
             added_rels.append(r)
             rtype = str(r.type).split(".")[-1]
-            v.get_or_create_connection(rel_type=getattr(pa.ArchiType, rtype),
-                                       source=src_node, target=tgt_node,
-                                       create_conn=True)
+            v.get_or_create_connection(
+                rel_type=getattr(pa.ArchiType, rtype), source=src_node, target=tgt_node, create_conn=True
+            )
             conns_added += 1
         except Exception:  # noqa: S110
             pass

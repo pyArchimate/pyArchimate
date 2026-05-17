@@ -1,0 +1,7 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.13
+    hooks:
+      - id: ruff        # ruff check — lint + complexity gate (read-only)
+      - id: ruff-format # ruff format --check — format gate (read-only)
+        args: [--check]

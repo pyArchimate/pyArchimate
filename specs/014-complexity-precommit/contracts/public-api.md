@@ -59,7 +59,11 @@ Public functions that must not change signature or be removed:
 
 Public class and functions that must not change signature or be removed:
 
-`SVGExportService`, `add_nested_nodes`, `to_svg`, `transform_number`, `visit`
+`SVGExportService`
+
+Note: `to_svg`, `visit`, `add_nested_nodes`, and `transform_number` are nested functions
+inside `SVGExportService` methods — they are not importable as module-level symbols.
+`SVGExportService.to_svg` is the public entry point.
 
 ---
 

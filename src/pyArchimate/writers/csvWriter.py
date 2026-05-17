@@ -18,29 +18,29 @@ import os
 
 
 def _write_elements_csv(model: Model, path: str, file_name: str, file_ext: str) -> None:
-    fpath = os.path.join(path, file_name + '_elements.' + file_ext)
-    with open(fpath, 'w', encoding='UTF8', newline='') as fd:
-        writer = csv.writer(fd, delimiter=';', quotechar='"', quoting=csv.QUOTE_ALL)
-        writer.writerow(['ID', 'Type', 'Name', 'Documentation', 'Specialization'])
-        writer.writerow([model.uuid, 'ArchimateModel', model.name, model.desc, ''])
+    fpath = os.path.join(path, file_name + "_elements." + file_ext)
+    with open(fpath, "w", encoding="UTF8", newline="") as fd:
+        writer = csv.writer(fd, delimiter=";", quotechar='"', quoting=csv.QUOTE_ALL)
+        writer.writerow(["ID", "Type", "Name", "Documentation", "Specialization"])
+        writer.writerow([model.uuid, "ArchimateModel", model.name, model.desc, ""])
         for e in model.elements:
-            writer.writerow([e.uuid, e.type, e.name, e.desc, ''])
+            writer.writerow([e.uuid, e.type, e.name, e.desc, ""])
 
 
 def _write_relationships_csv(model: Model, path: str, file_name: str, file_ext: str) -> None:
-    fpath = os.path.join(path, file_name + '_relations.' + file_ext)
-    with open(fpath, 'w', encoding='UTF8', newline='') as fd:
-        writer = csv.writer(fd, delimiter=';', quotechar='"', quoting=csv.QUOTE_ALL)
-        writer.writerow(['ID', 'Type', 'Name', 'Documentation', 'Source', 'Target', 'Specialization'])
+    fpath = os.path.join(path, file_name + "_relations." + file_ext)
+    with open(fpath, "w", encoding="UTF8", newline="") as fd:
+        writer = csv.writer(fd, delimiter=";", quotechar='"', quoting=csv.QUOTE_ALL)
+        writer.writerow(["ID", "Type", "Name", "Documentation", "Source", "Target", "Specialization"])
         for r in model.relationships:
-            writer.writerow([r.uuid, r.type, r.name, r.desc, r.source.uuid, r.target.uuid, ''])
+            writer.writerow([r.uuid, r.type, r.name, r.desc, r.source.uuid, r.target.uuid, ""])
 
 
 def _write_properties_csv(model: Model, path: str, file_name: str, file_ext: str) -> None:
-    fpath = os.path.join(path, file_name + '_properties.' + file_ext)
-    with open(fpath, 'w', encoding='UTF8', newline='') as fd:
-        writer = csv.writer(fd, delimiter=';', quotechar='"', quoting=csv.QUOTE_ALL)
-        writer.writerow(['ID', 'Key', 'Value'])
+    fpath = os.path.join(path, file_name + "_properties." + file_ext)
+    with open(fpath, "w", encoding="UTF8", newline="") as fd:
+        writer = csv.writer(fd, delimiter=";", quotechar='"', quoting=csv.QUOTE_ALL)
+        writer.writerow(["ID", "Key", "Value"])
         for key, value in model.props.items():
             writer.writerow([model.uuid, key, value])
         for e in model.elements:
@@ -63,8 +63,8 @@ def csv_writer(model: Model, file_path: str) -> None:
     :param file_path:
     """
     path, file_name = os.path.split(file_path)
-    file_ext = file_name.split('.')[1]
-    file_name = file_name.split('.')[0]
+    file_ext = file_name.split(".")[1]
+    file_name = file_name.split(".")[0]
     _write_elements_csv(model, path, file_name, file_ext)
     _write_relationships_csv(model, path, file_name, file_ext)
     _write_properties_csv(model, path, file_name, file_ext)

@@ -1,4 +1,5 @@
 """Integration tests for label visibility round-trip fidelity."""
+
 import sys
 from pathlib import Path
 
@@ -43,7 +44,7 @@ def test_label_visibility_roundtrip_false():
     conn_orig = create_minimal_archi_connection_element("false")
 
     # Serialize to XML
-    xml_string = lxml_etree.tostring(conn_orig, encoding='unicode')
+    xml_string = lxml_etree.tostring(conn_orig, encoding="unicode")
 
     # Parse back from string
     conn_reimp = lxml_etree.fromstring(xml_string)
@@ -63,7 +64,7 @@ def test_label_visibility_roundtrip_true():
     conn_orig = create_minimal_archi_connection_element("true")
 
     # Serialize to XML
-    xml_string = lxml_etree.tostring(conn_orig, encoding='unicode')
+    xml_string = lxml_etree.tostring(conn_orig, encoding="unicode")
 
     # Parse back from string
     conn_reimp = lxml_etree.fromstring(xml_string)

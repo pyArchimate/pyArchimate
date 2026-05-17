@@ -11,9 +11,9 @@ class TestAddChildBasic:
 
     def test_add_child_valid(self):
         """Test adding a valid child to a parent."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(parent.uuid, child.uuid)
 
@@ -23,10 +23,10 @@ class TestAddChildBasic:
 
     def test_add_multiple_children(self):
         """Test adding multiple children to same parent."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
-        child1 = model.add(ArchiType.BusinessFunction, 'Child1')
-        child2 = model.add(ArchiType.BusinessFunction, 'Child2')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
+        child1 = model.add(ArchiType.BusinessFunction, "Child1")
+        child2 = model.add(ArchiType.BusinessFunction, "Child2")
 
         model.add_child(parent.uuid, child1.uuid)
         model.add_child(parent.uuid, child2.uuid)
@@ -37,10 +37,10 @@ class TestAddChildBasic:
 
     def test_add_child_different_types(self):
         """Test adding children of different element types."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
-        func = model.add(ArchiType.BusinessFunction, 'Function')
-        interaction = model.add(ArchiType.BusinessInteraction, 'Interaction')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
+        func = model.add(ArchiType.BusinessFunction, "Function")
+        interaction = model.add(ArchiType.BusinessInteraction, "Interaction")
 
         model.add_child(parent.uuid, func.uuid)
         model.add_child(parent.uuid, interaction.uuid)
@@ -56,26 +56,26 @@ class TestAddChildErrors:
 
     def test_add_child_parent_not_found(self):
         """Test error when parent UUID doesn't exist."""
-        model = Model('TestModel')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         with pytest.raises(KeyError, match="Parent element .* not found"):
-            model.add_child('nonexistent-uuid', child.uuid)
+            model.add_child("nonexistent-uuid", child.uuid)
 
     def test_add_child_child_not_found(self):
         """Test error when child UUID doesn't exist."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
 
         with pytest.raises(KeyError, match="Child element .* not found"):
-            model.add_child(parent.uuid, 'nonexistent-uuid')
+            model.add_child(parent.uuid, "nonexistent-uuid")
 
     def test_add_child_already_has_parent(self):
         """Test error when child already has a parent."""
-        model = Model('TestModel')
-        parent1 = model.add(ArchiType.BusinessProcess, 'Parent1')
-        parent2 = model.add(ArchiType.BusinessProcess, 'Parent2')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        parent1 = model.add(ArchiType.BusinessProcess, "Parent1")
+        parent2 = model.add(ArchiType.BusinessProcess, "Parent2")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(parent1.uuid, child.uuid)
 
@@ -84,17 +84,17 @@ class TestAddChildErrors:
 
     def test_add_child_self_reference(self):
         """Test error when element tries to be its own parent."""
-        model = Model('TestModel')
-        elem = model.add(ArchiType.BusinessProcess, 'Element')
+        model = Model("TestModel")
+        elem = model.add(ArchiType.BusinessProcess, "Element")
 
         with pytest.raises(ValueError, match="Cycle detected"):
             model.add_child(elem.uuid, elem.uuid)
 
     def test_add_child_direct_cycle(self):
         """Test error when adding would create a direct cycle."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(parent.uuid, child.uuid)
 
@@ -103,10 +103,10 @@ class TestAddChildErrors:
 
     def test_add_child_indirect_cycle(self):
         """Test error when adding would create an indirect cycle."""
-        model = Model('TestModel')
-        root = model.add(ArchiType.BusinessProcess, 'Root')
-        mid = model.add(ArchiType.BusinessFunction, 'Mid')
-        leaf = model.add(ArchiType.BusinessFunction, 'Leaf')
+        model = Model("TestModel")
+        root = model.add(ArchiType.BusinessProcess, "Root")
+        mid = model.add(ArchiType.BusinessFunction, "Mid")
+        leaf = model.add(ArchiType.BusinessFunction, "Leaf")
 
         model.add_child(root.uuid, mid.uuid)
         model.add_child(mid.uuid, leaf.uuid)
@@ -116,13 +116,13 @@ class TestAddChildErrors:
 
     def test_add_child_depth_exceeded(self):
         """Test error when max depth is exceeded."""
-        model = Model('TestModel')
+        model = Model("TestModel")
 
-        elements = [model.add(ArchiType.BusinessProcess, f'Elem{i}') for i in range(6)]
+        elements = [model.add(ArchiType.BusinessProcess, f"Elem{i}") for i in range(6)]
 
         # Create chain of 4 relationships (depths 0-4), which should succeed
         for i in range(4):
-            model.add_child(elements[i].uuid, elements[i+1].uuid)
+            model.add_child(elements[i].uuid, elements[i + 1].uuid)
 
         # Try to add 5th relationship (elements[4] → elements[5]),
         # which would create depth 5, exceeding MAX_DEPTH=5
@@ -135,9 +135,9 @@ class TestRemoveChild:
 
     def test_remove_child_valid(self):
         """Test removing a valid parent-child relationship."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(parent.uuid, child.uuid)
         model.remove_child(parent.uuid, child.uuid)
@@ -148,10 +148,10 @@ class TestRemoveChild:
 
     def test_remove_child_not_parent(self):
         """Test error when removing non-parent relationship."""
-        model = Model('TestModel')
-        parent1 = model.add(ArchiType.BusinessProcess, 'Parent1')
-        parent2 = model.add(ArchiType.BusinessProcess, 'Parent2')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        parent1 = model.add(ArchiType.BusinessProcess, "Parent1")
+        parent2 = model.add(ArchiType.BusinessProcess, "Parent2")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(parent1.uuid, child.uuid)
 
@@ -160,19 +160,19 @@ class TestRemoveChild:
 
     def test_remove_child_parent_not_found(self):
         """Test error when parent UUID doesn't exist."""
-        model = Model('TestModel')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         with pytest.raises(KeyError):
-            model.remove_child('nonexistent-uuid', child.uuid)
+            model.remove_child("nonexistent-uuid", child.uuid)
 
     def test_remove_child_child_not_found(self):
         """Test error when child UUID doesn't exist."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
 
         with pytest.raises(KeyError):
-            model.remove_child(parent.uuid, 'nonexistent-uuid')
+            model.remove_child(parent.uuid, "nonexistent-uuid")
 
 
 class TestDepth:
@@ -180,16 +180,16 @@ class TestDepth:
 
     def test_depth_root_element(self):
         """Test depth of root element (should be 0)."""
-        model = Model('TestModel')
-        root = model.add(ArchiType.BusinessProcess, 'Root')
+        model = Model("TestModel")
+        root = model.add(ArchiType.BusinessProcess, "Root")
 
         assert model.get_depth(root.uuid) == 0
 
     def test_depth_direct_child(self):
         """Test depth of direct child (should be 1)."""
-        model = Model('TestModel')
-        root = model.add(ArchiType.BusinessProcess, 'Root')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        root = model.add(ArchiType.BusinessProcess, "Root")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(root.uuid, child.uuid)
 
@@ -197,11 +197,11 @@ class TestDepth:
 
     def test_depth_nested_elements(self):
         """Test depth of deeply nested elements."""
-        model = Model('TestModel')
-        elements = [model.add(ArchiType.BusinessProcess, f'Elem{i}') for i in range(5)]
+        model = Model("TestModel")
+        elements = [model.add(ArchiType.BusinessProcess, f"Elem{i}") for i in range(5)]
 
         for i in range(4):
-            model.add_child(elements[i].uuid, elements[i+1].uuid)
+            model.add_child(elements[i].uuid, elements[i + 1].uuid)
 
         assert model.get_depth(elements[0].uuid) == 0
         assert model.get_depth(elements[1].uuid) == 1
@@ -213,9 +213,9 @@ class TestElementDeletion:
 
     def test_delete_orphans_children(self):
         """Test that deleting parent orphans its children."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(parent.uuid, child.uuid)
         parent.delete()
@@ -225,10 +225,10 @@ class TestElementDeletion:
 
     def test_delete_with_multiple_children(self):
         """Test that deleting parent with multiple children orphans all."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
-        child1 = model.add(ArchiType.BusinessFunction, 'Child1')
-        child2 = model.add(ArchiType.BusinessFunction, 'Child2')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
+        child1 = model.add(ArchiType.BusinessFunction, "Child1")
+        child2 = model.add(ArchiType.BusinessFunction, "Child2")
 
         model.add_child(parent.uuid, child1.uuid)
         model.add_child(parent.uuid, child2.uuid)
@@ -240,10 +240,10 @@ class TestElementDeletion:
 
     def test_delete_nested_preserves_hierarchy(self):
         """Test that deleting middle element preserves grandchildren."""
-        model = Model('TestModel')
-        grandparent = model.add(ArchiType.BusinessProcess, 'GrandParent')
-        parent = model.add(ArchiType.BusinessFunction, 'Parent')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        grandparent = model.add(ArchiType.BusinessProcess, "GrandParent")
+        parent = model.add(ArchiType.BusinessFunction, "Parent")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(grandparent.uuid, parent.uuid)
         model.add_child(parent.uuid, child.uuid)
@@ -259,20 +259,20 @@ class TestCycleDetection:
 
     def test_no_cycle_linear_chain(self):
         """Test that linear chain doesn't create cycles."""
-        model = Model('TestModel')
-        elements = [model.add(ArchiType.BusinessProcess, f'Elem{i}') for i in range(5)]
+        model = Model("TestModel")
+        elements = [model.add(ArchiType.BusinessProcess, f"Elem{i}") for i in range(5)]
 
         for i in range(4):
-            model.add_child(elements[i].uuid, elements[i+1].uuid)
+            model.add_child(elements[i].uuid, elements[i + 1].uuid)
 
         assert model._would_create_cycle(elements[4].uuid, elements[0].uuid) is True
 
     def test_cycle_detection_three_way(self):
         """Test cycle detection in three-element scenario."""
-        model = Model('TestModel')
-        a = model.add(ArchiType.BusinessProcess, 'A')
-        b = model.add(ArchiType.BusinessProcess, 'B')
-        c = model.add(ArchiType.BusinessProcess, 'C')
+        model = Model("TestModel")
+        a = model.add(ArchiType.BusinessProcess, "A")
+        b = model.add(ArchiType.BusinessProcess, "B")
+        c = model.add(ArchiType.BusinessProcess, "C")
 
         model.add_child(a.uuid, b.uuid)
         model.add_child(b.uuid, c.uuid)
@@ -285,9 +285,9 @@ class TestGetParent:
 
     def test_get_parent_existing(self):
         """Test getting parent of element with parent."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(parent.uuid, child.uuid)
 
@@ -295,8 +295,8 @@ class TestGetParent:
 
     def test_get_parent_root(self):
         """Test getting parent of root element returns None."""
-        model = Model('TestModel')
-        root = model.add(ArchiType.BusinessProcess, 'Root')
+        model = Model("TestModel")
+        root = model.add(ArchiType.BusinessProcess, "Root")
 
         assert model.get_parent(root.uuid) is None
 
@@ -306,16 +306,16 @@ class TestGetChildren:
 
     def test_get_children_empty(self):
         """Test getting children of element with no children."""
-        model = Model('TestModel')
-        elem = model.add(ArchiType.BusinessProcess, 'Elem')
+        model = Model("TestModel")
+        elem = model.add(ArchiType.BusinessProcess, "Elem")
 
         assert model.get_children(elem.uuid) == []
 
     def test_get_children_one(self):
         """Test getting single child."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(parent.uuid, child.uuid)
 
@@ -323,11 +323,11 @@ class TestGetChildren:
 
     def test_get_children_multiple(self):
         """Test getting multiple children."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
-        child1 = model.add(ArchiType.BusinessFunction, 'Child1')
-        child2 = model.add(ArchiType.BusinessFunction, 'Child2')
-        child3 = model.add(ArchiType.BusinessFunction, 'Child3')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
+        child1 = model.add(ArchiType.BusinessFunction, "Child1")
+        child2 = model.add(ArchiType.BusinessFunction, "Child2")
+        child3 = model.add(ArchiType.BusinessFunction, "Child3")
 
         model.add_child(parent.uuid, child1.uuid)
         model.add_child(parent.uuid, child2.uuid)
@@ -343,17 +343,17 @@ class TestGetAncestors:
 
     def test_get_ancestors_root(self):
         """Test ancestors of root element (should be empty)."""
-        model = Model('TestModel')
-        root = model.add(ArchiType.BusinessProcess, 'Root')
+        model = Model("TestModel")
+        root = model.add(ArchiType.BusinessProcess, "Root")
 
         ancestors = model.get_ancestors(root.uuid)
         assert ancestors == []
 
     def test_get_ancestors_direct_child(self):
         """Test ancestors of direct child (should be just parent)."""
-        model = Model('TestModel')
-        root = model.add(ArchiType.BusinessProcess, 'Root')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        root = model.add(ArchiType.BusinessProcess, "Root")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(root.uuid, child.uuid)
 
@@ -362,11 +362,11 @@ class TestGetAncestors:
 
     def test_get_ancestors_nested(self):
         """Test ancestors of deeply nested element (excludes self)."""
-        model = Model('TestModel')
-        elements = [model.add(ArchiType.BusinessProcess, f'Elem{i}') for i in range(5)]
+        model = Model("TestModel")
+        elements = [model.add(ArchiType.BusinessProcess, f"Elem{i}") for i in range(5)]
 
         for i in range(4):
-            model.add_child(elements[i].uuid, elements[i+1].uuid)
+            model.add_child(elements[i].uuid, elements[i + 1].uuid)
 
         ancestors = model.get_ancestors(elements[4].uuid)
         # Should be [elem3, elem2, elem1, elem0] - excludes elem4 itself
@@ -378,9 +378,9 @@ class TestGetDescendants:
 
     def test_get_descendants_leaf(self):
         """Test descendants of leaf element (should be empty)."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(parent.uuid, child.uuid)
 
@@ -388,10 +388,10 @@ class TestGetDescendants:
 
     def test_get_descendants_one_level(self):
         """Test descendants one level deep."""
-        model = Model('TestModel')
-        parent = model.add(ArchiType.BusinessProcess, 'Parent')
-        child1 = model.add(ArchiType.BusinessFunction, 'Child1')
-        child2 = model.add(ArchiType.BusinessFunction, 'Child2')
+        model = Model("TestModel")
+        parent = model.add(ArchiType.BusinessProcess, "Parent")
+        child1 = model.add(ArchiType.BusinessFunction, "Child1")
+        child2 = model.add(ArchiType.BusinessFunction, "Child2")
 
         model.add_child(parent.uuid, child1.uuid)
         model.add_child(parent.uuid, child2.uuid)
@@ -401,12 +401,12 @@ class TestGetDescendants:
 
     def test_get_descendants_multiple_levels(self):
         """Test descendants across multiple levels."""
-        model = Model('TestModel')
-        root = model.add(ArchiType.BusinessProcess, 'Root')
-        mid1 = model.add(ArchiType.BusinessFunction, 'Mid1')
-        mid2 = model.add(ArchiType.BusinessFunction, 'Mid2')
-        leaf1 = model.add(ArchiType.BusinessFunction, 'Leaf1')
-        leaf2 = model.add(ArchiType.BusinessFunction, 'Leaf2')
+        model = Model("TestModel")
+        root = model.add(ArchiType.BusinessProcess, "Root")
+        mid1 = model.add(ArchiType.BusinessFunction, "Mid1")
+        mid2 = model.add(ArchiType.BusinessFunction, "Mid2")
+        leaf1 = model.add(ArchiType.BusinessFunction, "Leaf1")
+        leaf2 = model.add(ArchiType.BusinessFunction, "Leaf2")
 
         model.add_child(root.uuid, mid1.uuid)
         model.add_child(root.uuid, mid2.uuid)
@@ -422,9 +422,9 @@ class TestGetRootElements:
 
     def test_get_root_elements_single(self):
         """Test with single root element."""
-        model = Model('TestModel')
-        root = model.add(ArchiType.BusinessProcess, 'Root')
-        child = model.add(ArchiType.BusinessFunction, 'Child')
+        model = Model("TestModel")
+        root = model.add(ArchiType.BusinessProcess, "Root")
+        child = model.add(ArchiType.BusinessFunction, "Child")
 
         model.add_child(root.uuid, child.uuid)
 
@@ -433,10 +433,10 @@ class TestGetRootElements:
 
     def test_get_root_elements_multiple(self):
         """Test with multiple root elements."""
-        model = Model('TestModel')
-        root1 = model.add(ArchiType.BusinessProcess, 'Root1')
-        root2 = model.add(ArchiType.BusinessProcess, 'Root2')
-        child1 = model.add(ArchiType.BusinessFunction, 'Child1')
+        model = Model("TestModel")
+        root1 = model.add(ArchiType.BusinessProcess, "Root1")
+        root2 = model.add(ArchiType.BusinessProcess, "Root2")
+        child1 = model.add(ArchiType.BusinessFunction, "Child1")
 
         model.add_child(root1.uuid, child1.uuid)
 
@@ -449,19 +449,19 @@ class TestGetLeafElements:
 
     def test_get_leaf_elements_all_leaves(self):
         """Test with all elements being leaves."""
-        model = Model('TestModel')
-        elem1 = model.add(ArchiType.BusinessProcess, 'Elem1')
-        elem2 = model.add(ArchiType.BusinessFunction, 'Elem2')
+        model = Model("TestModel")
+        elem1 = model.add(ArchiType.BusinessProcess, "Elem1")
+        elem2 = model.add(ArchiType.BusinessFunction, "Elem2")
 
         leaves = model.get_leaf_elements()
         assert set(leaves) == {elem1, elem2}
 
     def test_get_leaf_elements_with_hierarchy(self):
         """Test with hierarchical structure."""
-        model = Model('TestModel')
-        root = model.add(ArchiType.BusinessProcess, 'Root')
-        child1 = model.add(ArchiType.BusinessFunction, 'Child1')
-        child2 = model.add(ArchiType.BusinessFunction, 'Child2')
+        model = Model("TestModel")
+        root = model.add(ArchiType.BusinessProcess, "Root")
+        child1 = model.add(ArchiType.BusinessFunction, "Child1")
+        child2 = model.add(ArchiType.BusinessFunction, "Child2")
 
         model.add_child(root.uuid, child1.uuid)
         model.add_child(root.uuid, child2.uuid)

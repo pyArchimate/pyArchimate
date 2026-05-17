@@ -74,8 +74,8 @@ class TestUnifiedFileLoading:
     def test_load_plain_xml_file(self):
         """Load plain XML file (unchanged behavior)."""
         file_path = "tests/fixtures/valid_model.xml"
-        m = Model('test')
-        content = m._load_file_contents(file_path, 'read')
+        m = Model("test")
+        content = m._load_file_contents(file_path, "read")
 
         assert "<?xml" in content
         assert "<model" in content or "<archimate" in content
@@ -83,8 +83,8 @@ class TestUnifiedFileLoading:
     def test_load_archimate_zip_file(self):
         """Load .archimate ZIP file (new behavior)."""
         file_path = "tests/fixtures/valid_model.archimate"
-        m = Model('test')
-        content = m._load_file_contents(file_path, 'read')
+        m = Model("test")
+        content = m._load_file_contents(file_path, "read")
 
         assert "<?xml" in content
         assert "archimateModel" in content or "model" in content
@@ -92,14 +92,14 @@ class TestUnifiedFileLoading:
     def test_load_file_encoding_error(self):
         """Handle encoding errors gracefully."""
         # Create a file with invalid UTF-8 bytes
-        with tempfile.NamedTemporaryFile(mode='wb', suffix='.xml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=".xml", delete=False) as f:
             f.write(b'<?xml version="1.0"?>\n<model>\xff\xfe</model>')
             temp_path = f.name
 
         try:
-            m = Model('test')
+            m = Model("test")
             with pytest.raises(SystemExit):
-                m._load_file_contents(temp_path, 'read')
+                m._load_file_contents(temp_path, "read")
         finally:
             Path(temp_path).unlink(missing_ok=True)
 
@@ -107,17 +107,17 @@ class TestUnifiedFileLoading:
         """Corrupted ZIP file is read as plain text and succeeds."""
         # Note: corrupted.archimate doesn't have ZIP signature, so it's read as plain text
         file_path = "tests/fixtures/corrupted.archimate"
-        m = Model('test')
-        content = m._load_file_contents(file_path, 'read')
+        m = Model("test")
+        content = m._load_file_contents(file_path, "read")
         # Since it's not a ZIP, it's read as plain text
         assert "INVALID_ZIP_DATA_NOT_A_REAL_ZIP" in content
 
     def test_load_missing_model_xml_exits(self):
         """ZIP without model.xml causes SystemExit."""
         file_path = "tests/fixtures/no_model_xml.archimate"
-        m = Model('test')
+        m = Model("test")
         with pytest.raises(SystemExit):
-            m._load_file_contents(file_path, 'read')
+            m._load_file_contents(file_path, "read")
 
 
 class TestBackwardCompatibility:
@@ -126,8 +126,8 @@ class TestBackwardCompatibility:
     def test_xml_files_still_work(self):
         """Plain XML files should work identically to before."""
         file_path = "tests/fixtures/valid_model.xml"
-        m = Model('test')
-        content = m._load_file_contents(file_path, 'read')
+        m = Model("test")
+        content = m._load_file_contents(file_path, "read")
 
         # Should return file content as-is
         assert isinstance(content, str)
@@ -137,13 +137,13 @@ class TestBackwardCompatibility:
     def test_file_without_extension(self):
         """Files without recognized extension should try plain text."""
         # Create a plain XML file without extension
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
             f.write('<?xml version="1.0"?><model/>')
             temp_path = f.name
 
         try:
-            m = Model('test')
-            content = m._load_file_contents(temp_path, 'read')
+            m = Model("test")
+            content = m._load_file_contents(temp_path, "read")
             assert "<?xml" in content
         finally:
             Path(temp_path).unlink(missing_ok=True)
@@ -151,8 +151,8 @@ class TestBackwardCompatibility:
     def test_csv_file_not_detected_as_zip(self):
         """Non-archive files shouldn't be detected as ZIP."""
         # Create a CSV file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
-            f.write('name,value\ntest,123')
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+            f.write("name,value\ntest,123")
             temp_path = f.name
 
         try:

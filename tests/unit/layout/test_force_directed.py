@@ -114,6 +114,7 @@ def test_force_calculation() -> None:
     edges = [(0, 1)]
 
     from src.pyArchimate.view.layout.routing.layer_constraints import ArchiMateLayer, LayerConstraint
+
     layer_constraint = LayerConstraint()
     layer_constraint.assign_layer(0, ArchiMateLayer.BUSINESS)
     layer_constraint.assign_layer(1, ArchiMateLayer.APPLICATION)

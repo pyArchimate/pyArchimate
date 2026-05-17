@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 import pytest
@@ -43,7 +42,7 @@ def test_aris_aml_reader(tmp_path: Path):
     # Check if a property exists and its content - AT_DESC is stored in .desc, not .props
     assert business_service.desc is not None
     assert "à vérifier" in business_service.desc
-    assert business_service.prop('GUID') == "aceaa063-4abf-11ed-722e-0050568b2437" # Check a different property
+    assert business_service.prop("GUID") == "aceaa063-4abf-11ed-722e-0050568b2437"  # Check a different property
 
     # Assert Application Component
     application_component = model.elems_dict[application_component_uuid]
@@ -63,7 +62,6 @@ def test_aris_aml_reader(tmp_path: Path):
     assert capability.name.strip() == "Capability"
     assert capability.type == ARIS_TYPE_MAP["ST_ARCHIMATE_CAPABILITY"]
 
-
     # --- Assertions for Relationships ---
     # Expected relationships from aris.aml:
     # Realizes from Business Service to Capability2 (CT_ARCHIMATE_REALIZES)
@@ -73,9 +71,9 @@ def test_aris_aml_reader(tmp_path: Path):
     assert len(model.relationships) == 3, f"Expected 3 relationships, but got {len(model.relationships)}"
 
     # Get relationships by their UUIDs (generated from CxnDef.ID)
-    rel1_uuid = "id--13T5HDMwnWv-q-L" # Business Service -> Capability2 (Realizes)
-    rel2_uuid = "id-4AlC6ZcCkkG-q-L" # Application Component -> Business Service (Realizes)
-    rel3_uuid = "id--4ifXQL4Hsbj-q-L" # Capability -> Capability2 (Composed Of)
+    rel1_uuid = "id--13T5HDMwnWv-q-L"  # Business Service -> Capability2 (Realizes)
+    rel2_uuid = "id-4AlC6ZcCkkG-q-L"  # Application Component -> Business Service (Realizes)
+    rel3_uuid = "id--4ifXQL4Hsbj-q-L"  # Capability -> Capability2 (Composed Of)
 
     # Assert Realizes relationship (Business Service -> Capability2)
     rel1 = model.rels_dict[rel1_uuid]
@@ -111,12 +109,12 @@ def test_aris_aml_reader(tmp_path: Path):
     # node1 (Business Service) is a direct child of default_view
     node1 = default_view.nodes_dict[node1_uuid]
     assert node1 is not None
-    assert node1.ref == business_service_uuid # The node refers to the element
+    assert node1.ref == business_service_uuid  # The node refers to the element
     # Check scaled coordinates (261 * 0.3 = 78.3 -> 78, 1072 * 0.3 = 321.6 -> 321)
     assert node1.x == 78
     assert node1.y == 321
-    assert node1.w == 126 # 423 * 0.3 = 126.9 -> 126
-    assert node1.h == 58 # 194 * 0.3 = 58.2 -> 58
+    assert node1.w == 126  # 423 * 0.3 = 126.9 -> 126
+    assert node1.h == 58  # 194 * 0.3 = 58.2 -> 58
 
     # ObjOcc.-7joDNmLaWQa-u-L--7Zggq7GS4PW-x-L-33-c refers to Capability
     # node2 (Capability) is a direct child of default_view
@@ -124,10 +122,10 @@ def test_aris_aml_reader(tmp_path: Path):
     node2 = default_view.nodes_dict[node2_uuid]
     assert node2 is not None
     assert node2.ref == capability_uuid
-    assert node2.x == 12 # 42 * 0.3 = 12.6 -> 12
-    assert node2.y == 38 # 127 * 0.3 = 38.1 -> 38
-    assert node2.w == 218 # 727 * 0.3 = 218.1 -> 218
-    assert node2.h == 150 # 501 * 0.3 = 150.3 -> 150
+    assert node2.x == 12  # 42 * 0.3 = 12.6 -> 12
+    assert node2.y == 38  # 127 * 0.3 = 38.1 -> 38
+    assert node2.w == 218  # 727 * 0.3 = 218.1 -> 218
+    assert node2.h == 150  # 501 * 0.3 = 150.3 -> 150
 
     # ObjOcc.-7joDNmLaWQa-u-L--1mxwuFYG4oT-x-L-33-c refers to Capability2
     # node3 (Capability2) is moved to be a child of node2 (Capability)
@@ -140,10 +138,10 @@ def test_aris_aml_reader(tmp_path: Path):
     node3 = node2.nodes_dict[node3_uuid]
     assert node3 is not None
     assert node3.ref == capability2_uuid
-    assert node3.x == 63 # 212 * 0.3 = 63.6 -> 63
-    assert node3.y == 88 # 296 * 0.3 = 88.8 -> 88
-    assert node3.w == 126 # 423 * 0.3 = 126.9 -> 126
-    assert node3.h == 58 # 194 * 0.3 = 58.2 -> 58
+    assert node3.x == 63  # 212 * 0.3 = 63.6 -> 63
+    assert node3.y == 88  # 296 * 0.3 = 88.8 -> 88
+    assert node3.w == 126  # 423 * 0.3 = 126.9 -> 126
+    assert node3.h == 58  # 194 * 0.3 = 58.2 -> 58
 
     # Test nested connections and embedding logic
     # This comes from CxnOcc.-7joDNmLaWQa-u-L-7mqe2qyCIzs-y-L-34-c which is an embedding relationship
@@ -157,4 +155,3 @@ def test_aris_aml_reader(tmp_path: Path):
     model.write(str(output_file))
     assert output_file.exists()
     assert output_file.stat().st_size > 0
-

@@ -1,4 +1,5 @@
 """Security tests: verify no credentials are hard-coded in scripts (FR-010, T015)."""
+
 import re
 from pathlib import Path
 
@@ -14,6 +15,4 @@ _HARDCODED_PATTERNS = [
 def test_no_hardcoded_credentials_in_generate_script() -> None:
     script = (_SCRIPTS_DIR / "generate_ai_docs.py").read_text(encoding="utf-8")
     for pattern in _HARDCODED_PATTERNS:
-        assert not re.search(pattern, script), (
-            f"Potential hardcoded credential matching {pattern!r}"
-        )
+        assert not re.search(pattern, script), f"Potential hardcoded credential matching {pattern!r}"

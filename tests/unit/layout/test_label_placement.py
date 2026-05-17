@@ -77,9 +77,7 @@ def test_avoid_label_collision_unsafe() -> None:
     connection_lines = [(Point(0, 0), Point(100, 100))]
     placed_labels: list = []
 
-    result = avoid_label_collision(
-        original_pos, 50, 20, connection_lines, placed_labels, max_offsets=4
-    )
+    result = avoid_label_collision(original_pos, 50, 20, connection_lines, placed_labels, max_offsets=4)
 
     # Result should be different from original (avoidance applied)
     # or the same if all positions collide

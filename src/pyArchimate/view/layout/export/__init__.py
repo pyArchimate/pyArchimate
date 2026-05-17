@@ -2,4 +2,4 @@
 
 from .svg_export import SVGExportService
 
-__all__ = ['SVGExportService']
+__all__ = ["SVGExportService"]

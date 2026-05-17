@@ -204,10 +204,7 @@ class TestHierarchicalLayout:
         view = MockView()
 
         # Create 50 nodes with linear dependencies
-        view.nodes = [
-            MockElement(id=f"n{i}", type="ApplicationComponent")
-            for i in range(50)
-        ]
+        view.nodes = [MockElement(id=f"n{i}", type="ApplicationComponent") for i in range(50)]
         view.edges = [(i, i + 1) for i in range(49)]
         config = LayoutConfig()
 

@@ -126,6 +126,7 @@ class SVGExportService:
 
         # If target is in source's children, it's a containment relationship
         return target_node in getattr(source_node, "nodes", [])
+
     def _render_nodes_to_svg(
         self,
         svg: ET.Element,
@@ -465,9 +466,7 @@ class SVGExportService:
         """
         return self._apply_path_transform(svg_path, x, y, w / 150.0, h / 75.0)
 
-    def _translate_icon(
-        self, icon_path: str, icon_viewbox: str, icon_ox: float, icon_oy: float
-    ) -> str:
+    def _translate_icon(self, icon_path: str, icon_viewbox: str, icon_ox: float, icon_oy: float) -> str:
         """Translate icon path from reference origin to canvas position.
 
         Args:
@@ -487,9 +486,7 @@ class SVGExportService:
         ty = icon_oy - min_y
         return self._apply_path_transform(icon_path, tx, ty, 1.0, 1.0)
 
-    def _apply_path_transform(
-        self, svg_path: str, tx: float, ty: float, sx: float, sy: float
-    ) -> str:
+    def _apply_path_transform(self, svg_path: str, tx: float, ty: float, sx: float, sy: float) -> str:
         """Apply transformation (translate + scale) to SVG path.
 
         Args:
@@ -511,12 +508,14 @@ class SVGExportService:
             x_new = tx + x * sx
             y_new = ty + y * sy
             # Format with minimal decimal places
-            x_fmt = f"{x_new:.1f}".rstrip('0').rstrip('.')
-            y_fmt = f"{y_new:.1f}".rstrip('0').rstrip('.')
+            x_fmt = f"{x_new:.1f}".rstrip("0").rstrip(".")
+            y_fmt = f"{y_new:.1f}".rstrip("0").rstrip(".")
             return f"{x_fmt} {y_fmt}"
 
         # Match coordinate pairs separated by whitespace or comma (SVG path spec)
-        result = re.sub(r'(-?\d+(?:\.\d+)?)[ \t\n\r,]+(-?\d+(?:\.\d+)?)', transform_number, svg_path)  # NOSONAR  literal \. separator makes \d+ groups non-overlapping; no polynomial backtracking
+        result = re.sub(
+            r"(-?\d+(?:\.\d+)?)[ \t\n\r,]+(-?\d+(?:\.\d+)?)", transform_number, svg_path
+        )  # NOSONAR  literal \. separator makes \d+ groups non-overlapping; no polynomial backtracking
         return result
 
     def _render_node(self, svg: ET.Element, node: Any) -> None:
@@ -528,7 +527,9 @@ class SVGExportService:
         """
         self._render_node_into(svg, node)
 
-    def _render_junction(self, g: ET.Element, x: float, y: float, w: float, h: float, element_type: str, node: Any) -> None:
+    def _render_junction(
+        self, g: ET.Element, x: float, y: float, w: float, h: float, element_type: str, node: Any
+    ) -> None:
         """Render Or/And junction as a circle (Or=white, And=black)."""
         is_or = element_type == "OrJunction"
         if not is_or and element_type == "Junction":
@@ -538,10 +539,18 @@ class SVGExportService:
                 elem = next((e for e in model.elements if getattr(e, "uuid", "") == ref_id), None)
                 is_or = getattr(elem, "junction_type", None) == "or" if elem else False
         cx, cy, r = x + w / 2, y + h / 2, min(w, h) / 2
-        ET.SubElement(g, "circle", {
-            "cx": f"{cx:.1f}", "cy": f"{cy:.1f}", "r": f"{r:.1f}",
-            "fill": "white" if is_or else "black", "stroke": "black", "stroke-width": "1",
-        })
+        ET.SubElement(
+            g,
+            "circle",
+            {
+                "cx": f"{cx:.1f}",
+                "cy": f"{cy:.1f}",
+                "r": f"{r:.1f}",
+                "fill": "white" if is_or else "black",
+                "stroke": "black",
+                "stroke-width": "1",
+            },
+        )
 
     def _render_grouping(self, g: ET.Element, x: float, y: float, w: float, h: float, node: Any) -> None:
         """Render Grouping as dashed L-shaped border with label in top-left tab."""
@@ -553,11 +562,12 @@ class SVGExportService:
         tx, ty = x + tab_w, y + tab_h
         body = (
             f"M {tx:.1f} {ty:.1f} L {tx:.1f} {y:.1f} L {x:.1f} {y:.1f} "
-            f"L {x:.1f} {ty:.1f} L {x+w:.1f} {ty:.1f} L {x+w:.1f} {y+h:.1f} "
-            f"L {x:.1f} {y+h:.1f} L {x:.1f} {ty:.1f}"
+            f"L {x:.1f} {ty:.1f} L {x + w:.1f} {ty:.1f} L {x + w:.1f} {y + h:.1f} "
+            f"L {x:.1f} {y + h:.1f} L {x:.1f} {ty:.1f}"
         )
-        ET.SubElement(g, "path", {"d": body, "fill": "none", "stroke": "black",
-                                   "stroke-width": "1", "stroke-dasharray": "4,3"})
+        ET.SubElement(
+            g, "path", {"d": body, "fill": "none", "stroke": "black", "stroke-width": "1", "stroke-dasharray": "4,3"}
+        )
         if name:
             self._render_wrapped_text(g, name, x + 5, y + tab_h / 2, tab_w - 10, is_centered=False)
 
@@ -732,9 +742,7 @@ class SVGExportService:
             if has_children:
                 self._render_topleft_text(g, node, x, y, w)
             else:
-                self._render_wrapped_text(
-                    g, element_name, x + w / 2, y + h / 2, w - 8, is_centered=True
-                )
+                self._render_wrapped_text(g, element_name, x + w / 2, y + h / 2, w - 8, is_centered=True)
 
         return g
 
@@ -876,13 +884,17 @@ class SVGExportService:
         fill = color if marker_type == "filled" else "none"
         stroke = "none" if marker_type == "filled" else color
         stroke_width = "1" if marker_type == "filled" else "1.5"
-        ET.SubElement(svg, "polygon", {
-            "points": points_str,
-            "fill": fill,
-            "stroke": stroke,
-            "stroke-width": stroke_width,
-            "stroke-linejoin": "miter",
-        })
+        ET.SubElement(
+            svg,
+            "polygon",
+            {
+                "points": points_str,
+                "fill": fill,
+                "stroke": stroke,
+                "stroke-width": stroke_width,
+                "stroke-linejoin": "miter",
+            },
+        )
 
     @staticmethod
     def _render_diamond_marker(
@@ -899,13 +911,17 @@ class SVGExportService:
         p3 = (ex - dx * size, ey - dy * size)
         p4 = (ex + dy * size, ey - dx * size)
         points_str = f"{p1[0]},{p1[1]} {p2[0]},{p2[1]} {p3[0]},{p3[1]} {p4[0]},{p4[1]}"
-        ET.SubElement(svg, "polygon", {
-            "points": points_str,
-            "fill": color,
-            "stroke": "none",
-            "stroke-width": "1",
-            "stroke-linejoin": "miter",
-        })
+        ET.SubElement(
+            svg,
+            "polygon",
+            {
+                "points": points_str,
+                "fill": color,
+                "stroke": "none",
+                "stroke-width": "1",
+                "stroke-linejoin": "miter",
+            },
+        )
 
     def _apply_access_markers(self, conn: Any, attrs: dict[str, str]) -> None:
         """Set marker attrs for Access relationship based on access_type."""
@@ -929,8 +945,7 @@ class SVGExportService:
             directed = getattr(conn, "is_directed", None) or getattr(conn, "_is_directed", None)
             if str(directed).lower() == "true":
                 attrs["marker-end"] = _ARROW_FILLED
-        elif rel_type in ("CompositionRelationship", "Composition",
-                          "AggregationRelationship", "Aggregation"):
+        elif rel_type in ("CompositionRelationship", "Composition", "AggregationRelationship", "Aggregation"):
             if style.marker_start:
                 attrs["marker-start"] = style.marker_start
         else:
@@ -1074,15 +1089,18 @@ class SVGExportService:
             return
 
         # Check both stroke_color and line_color (Connection stores as line_color)
-        stroke_color = (getattr(conn, "stroke_color", None)
-                        or getattr(conn, "line_color", None)
-                        or relationship_style.stroke_color)
+        stroke_color = (
+            getattr(conn, "stroke_color", None) or getattr(conn, "line_color", None) or relationship_style.stroke_color
+        )
         stroke_width = getattr(conn, "stroke_width", None) or relationship_style.stroke_width
         stroke_dasharray = getattr(conn, "stroke_style", None) or relationship_style.stroke_dasharray
 
         polyline_attrs: dict[str, str] = {
-            "points": "", "fill": "none",
-            "stroke": stroke_color, "stroke-width": str(stroke_width), "opacity": "0.8",
+            "points": "",
+            "fill": "none",
+            "stroke": stroke_color,
+            "stroke-width": str(stroke_width),
+            "opacity": "0.8",
         }
         if stroke_dasharray:
             polyline_attrs["stroke-dasharray"] = stroke_dasharray
@@ -1411,16 +1429,12 @@ class SVGExportService:
         return None
 
     @staticmethod
-    def _exit_x_edge(
-        wx: float, wy: float, x1: float, y1: float, x2: float, y2: float
-    ) -> tuple[float, float]:
+    def _exit_x_edge(wx: float, wy: float, x1: float, y1: float, x2: float, y2: float) -> tuple[float, float]:
         """Exit at left or right edge; y clamped to element height."""
         return (x1 if wx < x1 else x2), max(y1, min(y2, wy))
 
     @staticmethod
-    def _exit_y_edge(
-        wx: float, wy: float, x1: float, y1: float, x2: float, y2: float
-    ) -> tuple[float, float]:
+    def _exit_y_edge(wx: float, wy: float, x1: float, y1: float, x2: float, y2: float) -> tuple[float, float]:
         """Exit at top or bottom edge; x clamped to element width."""
         return max(x1, min(x2, wx)), (y1 if wy < y1 else y2)
 
@@ -1448,7 +1462,7 @@ class SVGExportService:
             # Corner: choose axis with larger overshoot
             dx_out = min(abs(wx - x1), abs(wx - x2))
             dy_out = min(abs(wy - y1), abs(wy - y2))
-            outside_x = dx_out >= dy_out        # reuse flag: True → exit x-axis edge
+            outside_x = dx_out >= dy_out  # reuse flag: True → exit x-axis edge
 
         if outside_x:
             return SVGExportService._exit_x_edge(wx, wy, x1, y1, x2, y2)

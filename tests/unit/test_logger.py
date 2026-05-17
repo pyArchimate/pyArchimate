@@ -18,7 +18,7 @@ def test_log_to_file(tmp_path):
     log.warning("exercise logging handler")
     assert log_file.exists()
     for handler in list(log.handlers):
-        if handler.name == 'file':
+        if handler.name == "file":
             log.removeHandler(handler)
             handler.close()
 

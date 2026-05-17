@@ -1,4 +1,5 @@
 """Placeholder step definitions — replace with real steps as acceptance tests are written."""
+
 from behave import given  # type: ignore[import-untyped]
 
 

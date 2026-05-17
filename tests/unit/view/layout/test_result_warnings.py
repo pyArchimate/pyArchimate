@@ -31,12 +31,20 @@ class TestLayoutResultWarnings:
 
     def test_warnings_do_not_mutate_across_instances(self) -> None:
         r1 = LayoutResult(
-            success=True, view_id="v1", algorithm_used="a",
-            elements_processed=0, connections_processed=0, layout_time_ms=0.0,
+            success=True,
+            view_id="v1",
+            algorithm_used="a",
+            elements_processed=0,
+            connections_processed=0,
+            layout_time_ms=0.0,
         )
         r2 = LayoutResult(
-            success=True, view_id="v2", algorithm_used="a",
-            elements_processed=0, connections_processed=0, layout_time_ms=0.0,
+            success=True,
+            view_id="v2",
+            algorithm_used="a",
+            elements_processed=0,
+            connections_processed=0,
+            layout_time_ms=0.0,
         )
         r1.warnings.append("warn1")
         assert r2.warnings == [], "LayoutResult.warnings must not share state across instances"

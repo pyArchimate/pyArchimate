@@ -1,5 +1,26 @@
 - [how to build a python package] (https://packaging.python.org/en/latest/tutorials/packaging-projects/)
 
+## Pre-commit hooks
+
+Pre-commit hooks run `ruff check` (lint + complexity gate) and `ruff format --check` (format gate)
+on every staged file before a commit is accepted. Hooks are defined in `.pre-commit-config.yaml`
+and configured via `pyproject.toml`.
+
+One-time setup per clone:
+
+```bash
+poetry run pre-commit install
+```
+
+To run the hooks against the entire codebase manually:
+
+```bash
+poetry run pre-commit run --all-files
+```
+
+Any commit that introduces a function exceeding McCabe complexity 15 (`C901`) or
+a formatting violation will be blocked with a descriptive error.
+
 ## build the doc
 - cd docs
 - poetry run make html

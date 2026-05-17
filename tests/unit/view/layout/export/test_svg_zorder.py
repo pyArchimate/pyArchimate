@@ -16,10 +16,8 @@ class TestSVGZOrderSorting:
         model.views_dict[view.uuid] = view
 
         # Create parent and child nodes
-        parent_node = view.add(ref=None, x=100, y=100, w=200, h=200,
-                               node_type='Label', label='Parent')
-        child_node = parent_node.add(ref=None, x=20, y=20, w=100, h=100,
-                                     node_type='Label', label='Child')
+        parent_node = view.add(ref=None, x=100, y=100, w=200, h=200, node_type="Label", label="Parent")
+        child_node = parent_node.add(ref=None, x=20, y=20, w=100, h=100, node_type="Label", label="Child")
 
         # Execute sort
         service = SVGExportService()
@@ -41,9 +39,9 @@ class TestSVGZOrderSorting:
         model.views_dict[view.uuid] = view
 
         # Create multiple root-level nodes
-        node1 = view.add(ref=None, x=0, y=0, w=100, h=100, node_type='Label', label='Node1')
-        node2 = view.add(ref=None, x=150, y=0, w=100, h=100, node_type='Label', label='Node2')
-        node3 = view.add(ref=None, x=300, y=0, w=100, h=100, node_type='Label', label='Node3')
+        node1 = view.add(ref=None, x=0, y=0, w=100, h=100, node_type="Label", label="Node1")
+        node2 = view.add(ref=None, x=150, y=0, w=100, h=100, node_type="Label", label="Node2")
+        node3 = view.add(ref=None, x=300, y=0, w=100, h=100, node_type="Label", label="Node3")
 
         # Execute sort
         service = SVGExportService()
@@ -63,14 +61,10 @@ class TestSVGZOrderSorting:
         view = View(name="Test View", uuid="test-view", parent=model)
         model.views_dict[view.uuid] = view
 
-        root = view.add(ref=None, x=0, y=0, w=300, h=300,
-                        node_type='Label', label='Root')
-        parent1 = root.add(ref=None, x=50, y=50, w=200, h=200,
-                           node_type='Label', label='Parent1')
-        parent2 = parent1.add(ref=None, x=50, y=50, w=100, h=100,
-                              node_type='Label', label='Parent2')
-        child = parent2.add(ref=None, x=10, y=10, w=80, h=80,
-                            node_type='Label', label='Child')
+        root = view.add(ref=None, x=0, y=0, w=300, h=300, node_type="Label", label="Root")
+        parent1 = root.add(ref=None, x=50, y=50, w=200, h=200, node_type="Label", label="Parent1")
+        parent2 = parent1.add(ref=None, x=50, y=50, w=100, h=100, node_type="Label", label="Parent2")
+        child = parent2.add(ref=None, x=10, y=10, w=80, h=80, node_type="Label", label="Child")
 
         # Execute sort
         service = SVGExportService()
@@ -105,8 +99,7 @@ class TestSVGZOrderSorting:
         view = View(name="Test View", uuid="test-view", parent=model)
         model.views_dict[view.uuid] = view
 
-        node = view.add(ref=None, x=0, y=0, w=100, h=100,
-                        node_type='Label', label='SingleNode')
+        node = view.add(ref=None, x=0, y=0, w=100, h=100, node_type="Label", label="SingleNode")
 
         # Execute sort
         service = SVGExportService()
@@ -123,12 +116,9 @@ class TestSVGZOrderSorting:
         view = View(name="Test View", uuid="test-view", parent=model)
         model.views_dict[view.uuid] = view
 
-        parent = view.add(ref=None, x=0, y=0, w=300, h=300,
-                          node_type='Label', label='Parent')
-        child1 = parent.add(ref=None, x=10, y=10, w=100, h=100,
-                            node_type='Label', label='Child1')
-        child2 = parent.add(ref=None, x=120, y=10, w=100, h=100,
-                            node_type='Label', label='Child2')
+        parent = view.add(ref=None, x=0, y=0, w=300, h=300, node_type="Label", label="Parent")
+        child1 = parent.add(ref=None, x=10, y=10, w=100, h=100, node_type="Label", label="Child1")
+        child2 = parent.add(ref=None, x=120, y=10, w=100, h=100, node_type="Label", label="Child2")
 
         # Execute sort
         service = SVGExportService()
@@ -150,11 +140,10 @@ class TestSVGZOrderSorting:
         view = View(name="Test View", uuid="test-view", parent=model)
         model.views_dict[view.uuid] = view
 
-        parent = view.add(ref=None, x=0, y=0, w=400, h=200,
-                          node_type='Label', label='Parent')
-        child1 = parent.add(ref=None, x=10, y=10, w=80, h=80, node_type='Label', label='Child1')
-        child2 = parent.add(ref=None, x=100, y=10, w=80, h=80, node_type='Label', label='Child2')
-        child3 = parent.add(ref=None, x=190, y=10, w=80, h=80, node_type='Label', label='Child3')
+        parent = view.add(ref=None, x=0, y=0, w=400, h=200, node_type="Label", label="Parent")
+        child1 = parent.add(ref=None, x=10, y=10, w=80, h=80, node_type="Label", label="Child1")
+        child2 = parent.add(ref=None, x=100, y=10, w=80, h=80, node_type="Label", label="Child2")
+        child3 = parent.add(ref=None, x=190, y=10, w=80, h=80, node_type="Label", label="Child3")
 
         # Execute sort
         service = SVGExportService()

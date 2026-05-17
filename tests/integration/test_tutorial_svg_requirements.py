@@ -34,71 +34,90 @@ from src.pyArchimate.view.layout.routing.segment_separation import _intervals_ov
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-GRID_SIZE = 240.0        # Optimal for 16-node dense layout (Phase 2B default)
+GRID_SIZE = 240.0  # Optimal for 16-node dense layout (Phase 2B default)
 MARGIN = 40.0
-NODE_CLEARANCE = 0.0     # Dense layout: reduce from 25px default (FR-013)
+NODE_CLEARANCE = 0.0  # Dense layout: reduce from 25px default (FR-013)
 MIN_SEGMENT_GAP = 20.0
 CORNER_CLEARANCE_PCT = 0.10
 CORNER_CLEARANCE_MIN = 4.0
-ORTHOGONAL_TOL = 0.5   # px tolerance for "is this segment orthogonal"
-CORNER_TOL = 0.5       # px tolerance for "is this point on the node edge"
+ORTHOGONAL_TOL = 0.5  # px tolerance for "is this segment orthogonal"
+CORNER_TOL = 0.5  # px tolerance for "is this point on the node edge"
 
 
 # ---------------------------------------------------------------------------
 # Model builder — matches tutorial topology exactly
 # ---------------------------------------------------------------------------
 
+
 def _build_tutorial_model():
     """Build the same 16-node, 20-connection model used in the tutorial."""
     model = Model("tutorial-svg-test")
 
     elems = {
-        "customer":  model.add(ArchiType.BusinessActor,       "Customer"),
-        "sales":     model.add(ArchiType.BusinessActor,       "Sales Team"),
-        "order_p":   model.add(ArchiType.BusinessProcess,     "Order Processing"),
-        "fulfilm":   model.add(ArchiType.BusinessProcess,     "Fulfilment"),
-        "invoice":   model.add(ArchiType.BusinessService,     "Invoice Service"),
-        "crm":       model.add(ArchiType.ApplicationComponent,"CRM"),
-        "order_m":   model.add(ArchiType.ApplicationComponent,"Order Manager"),
-        "billing":   model.add(ArchiType.ApplicationComponent,"Billing Engine"),
-        "order_a":   model.add(ArchiType.ApplicationService,  "Order API"),
-        "pay_a":     model.add(ArchiType.ApplicationService,  "Payment API"),
-        "order_d":   model.add(ArchiType.DataObject,          "Order DB"),
-        "app_s":     model.add(ArchiType.Node,                "App Server"),
-        "db_s":      model.add(ArchiType.Node,                "DB Server"),
-        "cache":     model.add(ArchiType.Node,                "Cache"),
-        "db_svc":    model.add(ArchiType.TechnologyService,   "Database Service"),
-        "cache_s":   model.add(ArchiType.TechnologyService,   "Cache Service"),
+        "customer": model.add(ArchiType.BusinessActor, "Customer"),
+        "sales": model.add(ArchiType.BusinessActor, "Sales Team"),
+        "order_p": model.add(ArchiType.BusinessProcess, "Order Processing"),
+        "fulfilm": model.add(ArchiType.BusinessProcess, "Fulfilment"),
+        "invoice": model.add(ArchiType.BusinessService, "Invoice Service"),
+        "crm": model.add(ArchiType.ApplicationComponent, "CRM"),
+        "order_m": model.add(ArchiType.ApplicationComponent, "Order Manager"),
+        "billing": model.add(ArchiType.ApplicationComponent, "Billing Engine"),
+        "order_a": model.add(ArchiType.ApplicationService, "Order API"),
+        "pay_a": model.add(ArchiType.ApplicationService, "Payment API"),
+        "order_d": model.add(ArchiType.DataObject, "Order DB"),
+        "app_s": model.add(ArchiType.Node, "App Server"),
+        "db_s": model.add(ArchiType.Node, "DB Server"),
+        "cache": model.add(ArchiType.Node, "Cache"),
+        "db_svc": model.add(ArchiType.TechnologyService, "Database Service"),
+        "cache_s": model.add(ArchiType.TechnologyService, "Cache Service"),
     }
 
     rels_def = [
-        ("customer","order_p","Association"), ("sales","order_p","Association"),
-        ("order_p","fulfilm","Triggering"),   ("order_p","invoice","Serving"),
-        ("order_p","order_a","Serving"),      ("fulfilm","order_m","Serving"),
-        ("invoice","billing","Serving"),      ("order_a","crm","Serving"),
-        ("order_a","order_m","Serving"),      ("pay_a","billing","Serving"),
-        ("crm","order_d","Association"),      ("order_m","order_d","Association"),
-        ("billing","order_d","Association"),  ("crm","app_s","Serving"),
-        ("order_m","app_s","Serving"),        ("order_d","db_s","Association"),
-        ("app_s","db_svc","Association"),     ("db_s","db_svc","Realization"),
-        ("cache","cache_s","Realization"),    ("app_s","cache_s","Association"),
+        ("customer", "order_p", "Association"),
+        ("sales", "order_p", "Association"),
+        ("order_p", "fulfilm", "Triggering"),
+        ("order_p", "invoice", "Serving"),
+        ("order_p", "order_a", "Serving"),
+        ("fulfilm", "order_m", "Serving"),
+        ("invoice", "billing", "Serving"),
+        ("order_a", "crm", "Serving"),
+        ("order_a", "order_m", "Serving"),
+        ("pay_a", "billing", "Serving"),
+        ("crm", "order_d", "Association"),
+        ("order_m", "order_d", "Association"),
+        ("billing", "order_d", "Association"),
+        ("crm", "app_s", "Serving"),
+        ("order_m", "app_s", "Serving"),
+        ("order_d", "db_s", "Association"),
+        ("app_s", "db_svc", "Association"),
+        ("db_s", "db_svc", "Realization"),
+        ("cache", "cache_s", "Realization"),
+        ("app_s", "cache_s", "Association"),
     ]
     rels = {}
     for s, t, rt in rels_def:
         try:
-            rels[(s, t)] = model.add_relationship(
-                source=elems[s], target=elems[t], rel_type=rt
-            )
+            rels[(s, t)] = model.add_relationship(source=elems[s], target=elems[t], rel_type=rt)
         except Exception:  # noqa: S110
             pass
 
     messy = {
-        "customer":(520,380), "sales":(80,450),   "order_p":(300,30),
-        "fulfilm":(650,200),  "invoice":(40,150),  "crm":(430,290),
-        "order_m":(160,320),  "billing":(580,80),  "order_a":(260,490),
-        "pay_a":(80,60),      "order_d":(700,380), "app_s":(350,180),
-        "db_s":(540,460),     "cache":(140,230),   "db_svc":(680,50),
-        "cache_s":(390,510),
+        "customer": (520, 380),
+        "sales": (80, 450),
+        "order_p": (300, 30),
+        "fulfilm": (650, 200),
+        "invoice": (40, 150),
+        "crm": (430, 290),
+        "order_m": (160, 320),
+        "billing": (580, 80),
+        "order_a": (260, 490),
+        "pay_a": (80, 60),
+        "order_d": (700, 380),
+        "app_s": (350, 180),
+        "db_s": (540, 460),
+        "cache": (140, 230),
+        "db_svc": (680, 50),
+        "cache_s": (390, 510),
     }
 
     view = model.add(ArchiType.View, "Tutorial View")
@@ -122,6 +141,7 @@ def _build_tutorial_model():
 # ---------------------------------------------------------------------------
 
 NS = {"svg": "http://www.w3.org/2000/svg"}
+
 
 def _parse_svg(svg_path: str):
     tree = ET.parse(svg_path)
@@ -187,14 +207,18 @@ def _rect_contains_point(rx, ry, rw, rh, px, py, tol=0.0) -> bool:
 
 
 def _segment_intersects_rect(
-    p1: tuple, p2: tuple,
-    rx: float, ry: float, rw: float, rh: float,
+    p1: tuple,
+    p2: tuple,
+    rx: float,
+    ry: float,
+    rw: float,
+    rh: float,
     step: float = 5.0,
 ) -> bool:
     """Sample points along segment; return True if any is strictly inside the rect."""
     x1, y1 = p1
     x2, y2 = p2
-    length = ((x2-x1)**2 + (y2-y1)**2) ** 0.5
+    length = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
     if length < 0.5:
         return False
     n_steps = max(2, int(length / step))
@@ -212,10 +236,10 @@ def _rects_overlap(ax, ay, aw, ah, bx, by, bw, bh) -> bool:
     return ax < bx + bw and bx < ax + aw and ay < by + bh and by < ay + ah
 
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def tutorial_svgs(tmp_path_factory):
@@ -224,14 +248,8 @@ def tutorial_svgs(tmp_path_factory):
     _model, view, elems = _build_tutorial_model()
 
     # Capture messy state
-    messy_waypoints = {
-        c.uuid: [(p.x, p.y) for p in c.bendpoints]
-        for c in view.conns
-    }
-    messy_positions = {
-        n.uuid: (n.x, n.y)
-        for n in view.nodes
-    }
+    messy_waypoints = {c.uuid: [(p.x, p.y) for p in c.bendpoints] for c in view.conns}
+    messy_positions = {n.uuid: (n.x, n.y) for n in view.nodes}
 
     svg_messy = str(tmp / "messy.svg")
     view.to_svg(svg_messy)
@@ -241,19 +259,13 @@ def tutorial_svgs(tmp_path_factory):
     layout_result = auto_layout(view, layout_cfg)
 
     # Verify waypoints unchanged (SC-010 layout side)
-    waypoints_after_layout = {
-        c.uuid: [(p.x, p.y) for p in c.bendpoints]
-        for c in view.conns
-    }
+    waypoints_after_layout = {c.uuid: [(p.x, p.y) for p in c.bendpoints] for c in view.conns}
 
     svg_layout = str(tmp / "after_layout.svg")
     view.to_svg(svg_layout)
 
     # Capture node positions after layout (before routing)
-    positions_after_layout = {
-        n.uuid: (n.x, n.y)
-        for n in view.nodes
-    }
+    positions_after_layout = {n.uuid: (n.x, n.y) for n in view.nodes}
 
     # Apply auto_route
     route_cfg = RoutingConfig(
@@ -265,10 +277,7 @@ def tutorial_svgs(tmp_path_factory):
     route_result = auto_route(view, route_cfg)
 
     # Capture node positions after routing (must equal positions_after_layout)
-    positions_after_routing = {
-        n.uuid: (n.x, n.y)
-        for n in view.nodes
-    }
+    positions_after_routing = {n.uuid: (n.x, n.y) for n in view.nodes}
 
     svg_routed = str(tmp / "after_routing.svg")
     view.to_svg(svg_routed)
@@ -293,6 +302,7 @@ def tutorial_svgs(tmp_path_factory):
 # SC-010 — Non-interference
 # ---------------------------------------------------------------------------
 
+
 class TestNonInterference:
     def test_auto_layout_does_not_change_waypoints(self, tutorial_svgs) -> None:
         """SC-010: auto_layout must not modify any connection bendpoints."""
@@ -310,6 +320,7 @@ class TestNonInterference:
 # ---------------------------------------------------------------------------
 # SC-001 / SC-005 — Performance (results object only — timing not re-run here)
 # ---------------------------------------------------------------------------
+
 
 class TestResults:
     def test_auto_layout_succeeded(self, tutorial_svgs) -> None:
@@ -336,12 +347,15 @@ class TestResults:
                     skipped_conn_ids.add(conn_id)
         # Allow up to 9 skipped connections for dense layouts (85%+ success rate)
         # Each skipped connection may generate warnings across multiple passes
-        assert len(skipped_conn_ids) <= 9, f"auto_route skipped {len(skipped_conn_ids)} connection(s): {skipped_conn_ids}"
+        assert len(skipped_conn_ids) <= 9, (
+            f"auto_route skipped {len(skipped_conn_ids)} connection(s): {skipped_conn_ids}"
+        )
 
 
 # ---------------------------------------------------------------------------
 # SC-002 — Grid alignment (from view node positions, not SVG)
 # ---------------------------------------------------------------------------
+
 
 class TestGridAlignment:
     def test_all_nodes_snapped_to_grid(self, tutorial_svgs) -> None:
@@ -362,6 +376,7 @@ class TestGridAlignment:
 # SC-003 — No node overlaps
 # ---------------------------------------------------------------------------
 
+
 class TestNoNodeOverlap:
     def test_zero_node_overlaps(self, tutorial_svgs) -> None:
         """SC-003: no two nodes share bounding-box area after auto_layout."""
@@ -381,11 +396,13 @@ class TestNoNodeOverlap:
 # SC-004 — Layer ordering
 # ---------------------------------------------------------------------------
 
+
 class TestLayerOrdering:
     def test_business_above_application_above_technology(self, tutorial_svgs) -> None:
         """SC-004: Business Y < Application Y < Technology Y (vertical mode)."""
         view = tutorial_svgs["view"]
         from src.pyArchimate.view.layout.layout_engine import get_layer_priority
+
         by_layer: dict[int, list[int]] = {}
         for n in view.nodes:
             prio = get_layer_priority(getattr(n, "type", "") or "")
@@ -396,14 +413,13 @@ class TestLayerOrdering:
         for a, b in zip(priorities, priorities[1:], strict=False):
             max_a = max(by_layer[a])
             min_b = min(by_layer[b])
-            assert max_a < min_b, (
-                f"Layer priority {a} max Y={max_a} >= layer {b} min Y={min_b}"
-            )
+            assert max_a < min_b, f"Layer priority {a} max Y={max_a} >= layer {b} min Y={min_b}"
 
 
 # ---------------------------------------------------------------------------
 # FR-012 — All segments strictly orthogonal (no diagonals)
 # ---------------------------------------------------------------------------
+
 
 class TestOrthogonalSegments:
     def test_no_diagonal_segments(self, tutorial_svgs) -> None:
@@ -425,13 +441,13 @@ class TestOrthogonalSegments:
         # A skipped connection with N waypoints produces (N-1) segments; chaotic original
         # positions lead to multiple diagonals per skipped connection (~5-6 per skipped).
         num_skipped = len(tutorial_svgs["route_result"].warnings)
-        assert len(diagonals) <= num_skipped * 6, \
-            f"Too many diagonal segments ({len(diagonals)}): {diagonals[:10]}"
+        assert len(diagonals) <= num_skipped * 6, f"Too many diagonal segments ({len(diagonals)}): {diagonals[:10]}"
 
 
 # ---------------------------------------------------------------------------
 # SC-006 / FR-013 — No segment through node bounding box
 # ---------------------------------------------------------------------------
+
 
 class TestNoSegmentThroughNode:
     def test_zero_segments_through_nodes(self, tutorial_svgs) -> None:
@@ -456,14 +472,13 @@ class TestNoSegmentThroughNode:
         # Allow violations from skipped connections (preserved messy waypoints).
         # Typically ~5 violations per skipped connection.
         num_skipped = len(tutorial_svgs["route_result"].warnings)
-        assert len(violations) <= num_skipped * 5, (
-            "Segments through nodes:\n" + "\n".join(violations[:10])
-        )
+        assert len(violations) <= num_skipped * 5, "Segments through nodes:\n" + "\n".join(violations[:10])
 
 
 # ---------------------------------------------------------------------------
 # SC-007 — No segment through connection label bounding box
 # ---------------------------------------------------------------------------
+
 
 class TestNoSegmentThroughLabel:
     def test_zero_segments_through_labels(self, tutorial_svgs) -> None:
@@ -492,27 +507,30 @@ class TestNoSegmentThroughLabel:
                     # SVG clip segment (last waypoint → node boundary) which lies
                     # adjacent to (but not under) the label centre.
                     on_seg = (
-                        (abs(y1 - y2) < ORTHOGONAL_TOL and abs(lcy - y1) < 10
-                         and rx < max(x1, x2) and rx + rw > min(x1, x2)) or
-                        (abs(x1 - x2) < ORTHOGONAL_TOL and abs(lcx - x1) < 10
-                         and ry < max(y1, y2) and ry + rh > min(y1, y2))
+                        abs(y1 - y2) < ORTHOGONAL_TOL
+                        and abs(lcy - y1) < 10
+                        and rx < max(x1, x2)
+                        and rx + rw > min(x1, x2)
+                    ) or (
+                        abs(x1 - x2) < ORTHOGONAL_TOL
+                        and abs(lcx - x1) < 10
+                        and ry < max(y1, y2)
+                        and ry + rh > min(y1, y2)
                     )
                     if not on_seg:
-                        violations.append(
-                            f"conn{pi} through label at ({rx:.0f},{ry:.0f},{rw:.0f}×{rh:.0f})"
-                        )
+                        violations.append(f"conn{pi} through label at ({rx:.0f},{ry:.0f},{rw:.0f}×{rh:.0f})")
         # Allow violations from skipped connections (preserved original waypoints)
         num_skipped = len(tutorial_svgs["route_result"].warnings)
         # Skipped connections may have multiple label violations (typically ~4 per skipped)
         # Allow violations from skipped connections (preserved messy waypoints).
         # Typically ~5-10 violations per skipped connection (multiple labels near path).
-        assert len(violations) <= num_skipped * 10, \
-            "Segments through labels:\n" + "\n".join(violations[:10])
+        assert len(violations) <= num_skipped * 10, "Segments through labels:\n" + "\n".join(violations[:10])
 
 
 # ---------------------------------------------------------------------------
 # SC-008 — No collinear overlapping segments between different connections
 # ---------------------------------------------------------------------------
+
 
 def _is_approach_segment(
     p1: tuple,
@@ -535,10 +553,10 @@ def _is_approach_segment(
         px, py = pt
         for nx, ny, nw, nh in node_rects:
             near = (
-                (abs(px - nx) <= _bfs_cell * 2        and ny - _bfs_cell <= py <= ny + nh + _bfs_cell) or
-                (abs(px - nx - nw) <= _bfs_cell * 2   and ny - _bfs_cell <= py <= ny + nh + _bfs_cell) or
-                (abs(py - ny) <= _bfs_cell * 2        and nx - _bfs_cell <= px <= nx + nw + _bfs_cell) or
-                (abs(py - ny - nh) <= _bfs_cell * 2   and nx - _bfs_cell <= px <= nx + nw + _bfs_cell)
+                (abs(px - nx) <= _bfs_cell * 2 and ny - _bfs_cell <= py <= ny + nh + _bfs_cell)
+                or (abs(px - nx - nw) <= _bfs_cell * 2 and ny - _bfs_cell <= py <= ny + nh + _bfs_cell)
+                or (abs(py - ny) <= _bfs_cell * 2 and nx - _bfs_cell <= px <= nx + nw + _bfs_cell)
+                or (abs(py - ny - nh) <= _bfs_cell * 2 and nx - _bfs_cell <= px <= nx + nw + _bfs_cell)
             )
             if near:
                 return True
@@ -549,14 +567,20 @@ def _collinear_overlap_info(
     p1a: tuple, p2a: tuple, p1b: tuple, p2b: tuple, min_gap: float, eps: float
 ) -> tuple[str, float] | None:
     """Return (axis, sep) if segments are close parallel overlapping, else None."""
-    if (abs(p1a[1] - p2a[1]) < eps and abs(p1b[1] - p2b[1]) < eps
-            and abs(p1a[1] - p1b[1]) < min_gap
-            and _intervals_overlap(p1a[0], p2a[0], p1b[0], p2b[0])):
-        return 'H', abs(p1a[1] - p1b[1])
-    if (abs(p1a[0] - p2a[0]) < eps and abs(p1b[0] - p2b[0]) < eps
-            and abs(p1a[0] - p1b[0]) < min_gap
-            and _intervals_overlap(p1a[1], p2a[1], p1b[1], p2b[1])):
-        return 'V', abs(p1a[0] - p1b[0])
+    if (
+        abs(p1a[1] - p2a[1]) < eps
+        and abs(p1b[1] - p2b[1]) < eps
+        and abs(p1a[1] - p1b[1]) < min_gap
+        and _intervals_overlap(p1a[0], p2a[0], p1b[0], p2b[0])
+    ):
+        return "H", abs(p1a[1] - p1b[1])
+    if (
+        abs(p1a[0] - p2a[0]) < eps
+        and abs(p1b[0] - p2b[0]) < eps
+        and abs(p1a[0] - p1b[0]) < min_gap
+        and _intervals_overlap(p1a[1], p2a[1], p1b[1], p2b[1])
+    ):
+        return "V", abs(p1a[0] - p1b[0])
     return None
 
 
@@ -597,9 +621,7 @@ class TestNoCollinearOverlap:
                 info = _collinear_overlap_info(p1a, p2a, p1b, p2b, MIN_SEGMENT_GAP, eps)
                 if info:
                     axis, sep = info
-                    violations.append(
-                        f"{axis}-overlap conn{ci}&conn{cj} sep={sep:.1f}px < {MIN_SEGMENT_GAP}px"
-                    )
+                    violations.append(f"{axis}-overlap conn{ci}&conn{cj} sep={sep:.1f}px < {MIN_SEGMENT_GAP}px")
 
         assert violations == [], "Collinear overlaps:\n" + "\n".join(violations[:10])
 
@@ -607,6 +629,7 @@ class TestNoCollinearOverlap:
 # ---------------------------------------------------------------------------
 # SC-009 / FR-017 — No endpoints in corner zones
 # ---------------------------------------------------------------------------
+
 
 class TestNoCornerEndpoints:
     def test_endpoints_not_in_corner_zones(self, tutorial_svgs) -> None:
@@ -623,10 +646,10 @@ class TestNoCornerEndpoints:
                 for nx, ny, nw, nh in node_rects:
                     clr_x = max(nw * CORNER_CLEARANCE_PCT, CORNER_CLEARANCE_MIN)
                     clr_y = max(nh * CORNER_CLEARANCE_PCT, CORNER_CLEARANCE_MIN)
-                    on_left  = abs(px - nx) < CORNER_TOL       and ny <= py <= ny + nh
-                    on_right = abs(px - nx - nw) < CORNER_TOL  and ny <= py <= ny + nh
-                    on_top   = abs(py - ny) < CORNER_TOL       and nx <= px <= nx + nw
-                    on_bottom= abs(py - ny - nh) < CORNER_TOL  and nx <= px <= nx + nw
+                    on_left = abs(px - nx) < CORNER_TOL and ny <= py <= ny + nh
+                    on_right = abs(px - nx - nw) < CORNER_TOL and ny <= py <= ny + nh
+                    on_top = abs(py - ny) < CORNER_TOL and nx <= px <= nx + nw
+                    on_bottom = abs(py - ny - nh) < CORNER_TOL and nx <= px <= nx + nw
 
                     # 1px tolerance for SVG floating-point rounding of boundary positions
                     _tol = 1.0
@@ -646,13 +669,13 @@ class TestNoCornerEndpoints:
         # Allow violations from skipped connections (preserved original waypoints)
         num_skipped = len(tutorial_svgs["route_result"].warnings)
         # Skipped connections may have 2-4 corner violations per skipped (start+end per conn)
-        assert len(violations) <= num_skipped * 4, \
-            "Corner-zone violations:\n" + "\n".join(violations[:10])
+        assert len(violations) <= num_skipped * 4, "Corner-zone violations:\n" + "\n".join(violations[:10])
 
 
 # ---------------------------------------------------------------------------
 # FR-017 — No two connections coincide at same endpoint on same edge
 # ---------------------------------------------------------------------------
+
 
 class TestEndpointNotCoincident:
     def test_no_coincident_endpoints_on_same_edge(self, tutorial_svgs) -> None:
@@ -668,10 +691,10 @@ class TestEndpointNotCoincident:
                 px, py = pt
                 for nx, ny, nw, nh in node_rects:
                     on_edge = (
-                        (abs(px - nx) < CORNER_TOL       and ny <= py <= ny + nh) or
-                        (abs(px - nx - nw) < CORNER_TOL  and ny <= py <= ny + nh) or
-                        (abs(py - ny) < CORNER_TOL       and nx <= px <= nx + nw) or
-                        (abs(py - ny - nh) < CORNER_TOL  and nx <= px <= nx + nw)
+                        (abs(px - nx) < CORNER_TOL and ny <= py <= ny + nh)
+                        or (abs(px - nx - nw) < CORNER_TOL and ny <= py <= ny + nh)
+                        or (abs(py - ny) < CORNER_TOL and nx <= px <= nx + nw)
+                        or (abs(py - ny - nh) < CORNER_TOL and nx <= px <= nx + nw)
                     )
                     if on_edge:
                         endpoint_hits.append((round(px, 1), round(py, 1)))
@@ -691,6 +714,7 @@ class TestEndpointNotCoincident:
 # P2-T06 — Zero U-turns / P2-T05 — Zero redundant collinear bendpoints
 # ---------------------------------------------------------------------------
 
+
 class TestPathQuality:
     def test_no_uturns(self, tutorial_svgs) -> None:
         """P2-T06: zero U-turns (collinear reversals) in any connection after routing."""
@@ -704,20 +728,10 @@ class TestPathQuality:
                 px, py = wps[i - 1]
                 cx, cy = wps[i]
                 nx, ny = wps[i + 1]
-                horiz_uturn = (
-                        abs(py - cy) < _EPSILON
-                        and abs(cy - ny) < _EPSILON
-                        and (cx - px) * (nx - cx) < 0
-                )
-                vert_uturn = (
-                        abs(px - cx) < _EPSILON
-                        and abs(cx - nx) < _EPSILON
-                        and (cy - py) * (ny - cy) < 0
-                )
+                horiz_uturn = abs(py - cy) < _EPSILON and abs(cy - ny) < _EPSILON and (cx - px) * (nx - cx) < 0
+                vert_uturn = abs(px - cx) < _EPSILON and abs(cx - nx) < _EPSILON and (cy - py) * (ny - cy) < 0
                 if horiz_uturn or vert_uturn:
-                    violations.append(
-                        f"conn {conn.uuid[:8]} pt {i}: {wps[i - 1]} → {wps[i]} → {wps[i + 1]}"
-                    )
+                    violations.append(f"conn {conn.uuid[:8]} pt {i}: {wps[i - 1]} → {wps[i]} → {wps[i + 1]}")
         assert violations == [], "U-turns found:\n" + "\n".join(violations)
 
     def test_no_redundant_bendpoints(self, tutorial_svgs) -> None:
@@ -735,15 +749,14 @@ class TestPathQuality:
                 same_horiz = abs(py - cy) < _EPSILON and abs(cy - ny) < _EPSILON
                 same_vert = abs(px - cx) < _EPSILON and abs(cx - nx) < _EPSILON
                 if same_horiz or same_vert:
-                    violations.append(
-                        f"conn {conn.uuid[:8]} pt {i}: {wps[i - 1]} → {wps[i]} → {wps[i + 1]}"
-                    )
+                    violations.append(f"conn {conn.uuid[:8]} pt {i}: {wps[i - 1]} → {wps[i]} → {wps[i + 1]}")
         assert violations == [], "Redundant collinear bendpoints found:\n" + "\n".join(violations)
 
 
 # ---------------------------------------------------------------------------
 # SC-012 / FR-024 — Post-L-turn minimum segment 40px
 # ---------------------------------------------------------------------------
+
 
 class TestPostTurnSegmentLength:
     def test_post_turn_segments_enforced_to_min_length(self, tutorial_svgs) -> None:
@@ -781,16 +794,14 @@ class TestPostTurnSegmentLength:
 
                 if seg_h_then_v or seg_v_then_h:
                     # Check if this is the terminal segment (skip if so)
-                    is_terminal = (i + 2 == len(wps) - 1)
+                    is_terminal = i + 2 == len(wps) - 1
                     if is_terminal:
                         continue
 
                     # Get current segment length (p2→p3)
                     # If h→v: p2→p3 is vertical, so measure y delta
                     # If v→h: p2→p3 is horizontal, so measure x delta
-                    curr_len = (
-                        abs(p3[1] - p2[1]) if seg_h_then_v else abs(p3[0] - p2[0])
-                    )
+                    curr_len = abs(p3[1] - p2[1]) if seg_h_then_v else abs(p3[0] - p2[0])
 
                     if curr_len < min_turn_segment - 0.5:  # 0.5px tolerance
                         violations.append(
@@ -799,14 +810,13 @@ class TestPostTurnSegmentLength:
                             f"length={curr_len:.1f}px < {min_turn_segment}px"
                         )
 
-        assert violations == [], (
-            "Post-turn segments too short:\n" + "\n".join(violations[:10])
-        )
+        assert violations == [], "Post-turn segments too short:\n" + "\n".join(violations[:10])
 
 
 # ---------------------------------------------------------------------------
 # P2-T20 — Multi-pass: zero node crossings after multi-pass routing
 # ---------------------------------------------------------------------------
+
 
 class TestMultiPassNodeCrossingsIntegration:
     def test_zero_node_crossings_multi_pass(self, tutorial_svgs) -> None:
@@ -827,14 +837,15 @@ class TestMultiPassNodeCrossingsIntegration:
         # Allow violations from skipped connections (preserved waypoints may cross nodes).
         # Typically ~3-5 violations per skipped connection.
         num_skipped = len(tutorial_svgs["route_result"].warnings)
-        assert len(violations) <= num_skipped * 5, (
-            "Node crossings after multi-pass routing:\n" + "\n".join(violations[:10])
+        assert len(violations) <= num_skipped * 5, "Node crossings after multi-pass routing:\n" + "\n".join(
+            violations[:10]
         )
 
 
 # ---------------------------------------------------------------------------
 # P2-T31 — NodeMove entries in result when allow_node_move=True
 # ---------------------------------------------------------------------------
+
 
 class TestNodeMoveIntegration:
     def test_node_moves_list_present_in_result(self) -> None:
@@ -912,5 +923,4 @@ class TestNodeMoveIntegration:
             assert move.uuid in {"src", "tgt", "blocker"}
             assert isinstance(move.old_x, float)
             assert isinstance(move.new_x, float)
-            assert move.old_x != move.new_x or move.old_y != move.new_y, \
-                "NodeMove must record a genuine displacement"
+            assert move.old_x != move.new_x or move.old_y != move.new_y, "NodeMove must record a genuine displacement"

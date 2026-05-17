@@ -3,6 +3,7 @@
 Parses .archimate files (Archi tool format) into pyArchimate model and view objects.
 Handles color normalization, style properties, and visual formatting preservation.
 """
+
 # ruff: noqa: N999  # legacy module name preserved for API compatibility
 import os
 import re
@@ -20,7 +21,7 @@ except ImportError:
 
     from pyArchimate import RGBA, ArchiType, Point, log  # type: ignore[attr-defined,no-redef]
 
-__mod__ = __name__.split('.')[len(__name__.split('.')) - 1]
+__mod__ = __name__.split(".")[len(__name__.split(".")) - 1]
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
@@ -35,8 +36,8 @@ def _normalize_color_on_import(color_str: str | None) -> str | None:
     color_str = color_str.strip().lower()
     if not color_str:
         return None
-    if color_str.startswith('#'):
-        if re.match(r'^#[0-9a-f]{6}$', color_str):
+    if color_str.startswith("#"):
+        if re.match(r"^#[0-9a-f]{6}$", color_str):
             return color_str
         log.warning(f"Invalid hex color format on import: {color_str}")
         return None
@@ -49,14 +50,14 @@ def _normalize_color_on_import(color_str: str | None) -> str | None:
 def _parse_style_property_value(key: str, val: str) -> Any:
     """Parse a single visual style property value; returns parsed value or None on failure."""
     try:
-        if key in ('fillColor', 'lineColor'):
+        if key in ("fillColor", "lineColor"):
             return _normalize_color_on_import(val) or None
-        if key == 'lineWidth':
+        if key == "lineWidth":
             width_val = float(val)
             if width_val >= 0:
                 return width_val
             log.warning(f"Invalid lineWidth on import (negative): {val}")
-        elif key == 'transparency':
+        elif key == "transparency":
             alpha_val = float(val)
             if 0.0 <= alpha_val <= 1.0:
                 return alpha_val
@@ -69,15 +70,15 @@ def _parse_style_property_value(key: str, val: str) -> Any:
 def _extract_visual_style_properties(elem_xml: Any, ns: str) -> dict[str, Any]:
     """Extract visual style properties (fillColor, lineColor, lineWidth, transparency) from element."""
     style: dict[str, Any] = {}
-    props_xml = elem_xml.find(ns + 'properties')
+    props_xml = elem_xml.find(ns + "properties")
     if props_xml is None:
         return style
-    for p in props_xml.findall(ns + 'property'):
-        key = p.get('key')
-        val_elem = p.find(ns + 'value')
+    for p in props_xml.findall(ns + "property"):
+        key = p.get("key")
+        val_elem = p.find(ns + "value")
         if val_elem is None:
             continue
-        val = (val_elem.text or '').strip()
+        val = (val_elem.text or "").strip()
         if not val:
             continue
         parsed = _parse_style_property_value(key, val)
@@ -109,40 +110,41 @@ def _build_hierarchy_from_parents(model: Any, parent_map: dict[str, str | None])
 
 def _read_pdefs(model, root, ns, merge_flg):
     pdef_merge_map: dict[str, str] = {}
-    pdefs = root.find(ns + 'propertyDefinitions')
+    pdefs = root.find(ns + "propertyDefinitions")
     if pdefs is None:
         return pdef_merge_map
-    for p in pdefs.findall(ns + 'propertyDefinition'):
-        _id = p.get('identifier')
-        val = p.find(ns + 'name').text
+    for p in pdefs.findall(ns + "propertyDefinition"):
+        _id = p.get("identifier")
+        val = p.find(ns + "name").text
         pdef_merge_map[_id] = _id
         if merge_flg and _id in model.pdefs and model.pdefs[_id] != val:
-            pdef_merge_map[_id] = 'propid-' + str(len(model.pdefs) + 1)
+            pdef_merge_map[_id] = "propid-" + str(len(model.pdefs) + 1)
             _id = pdef_merge_map[_id]
         model.pdefs[_id] = val
     return pdef_merge_map
 
 
 def _read_props(obj: Any, xml_elem: Any, ns: str, pdef_merge_map: dict[str, str], model: Any) -> None:
-    props = xml_elem.find(ns + 'properties')
+    props = xml_elem.find(ns + "properties")
     if props is None:
         return
-    for p in props.findall(ns + 'property'):
+    for p in props.findall(ns + "property"):
         # Skip visual style properties (fillColor, lineColor, lineWidth, transparency)
         # which have 'key' but not 'propertyDefinitionRef'
-        if p.get('propertyDefinitionRef') is None:
-            if p.get('key') in ('fillColor', 'lineColor', 'lineWidth', 'transparency'):
+        if p.get("propertyDefinitionRef") is None:
+            if p.get("key") in ("fillColor", "lineColor", "lineWidth", "transparency"):
                 continue
             # Unknown property format, skip it
             continue
-        _id = pdef_merge_map[p.get('propertyDefinitionRef')]
-        obj.prop(model.pdefs[_id], p.find(ns + 'value').text)
+        _id = pdef_merge_map[p.get("propertyDefinitionRef")]
+        obj.prop(model.pdefs[_id], p.find(ns + "value").text)
 
 
-def _assign_viewpoint(obj: Any, slug: str, method: str = 'assign_viewpoint') -> None:
+def _assign_viewpoint(obj: Any, slug: str, method: str = "assign_viewpoint") -> None:
     from ..viewpoint_registry import (
         get_viewpoint,  # noqa: PLC0415  # deferred: avoids circular import at reader load time
     )
+
     if not slug:
         return
     if get_viewpoint(slug) is not None:
@@ -154,25 +156,25 @@ def _assign_viewpoint(obj: Any, slug: str, method: str = 'assign_viewpoint') -> 
 def _apply_viewpoint_props(elem: Any, props_xml: Any, ns: str, pdef_merge_map: dict[str, str], model: Any) -> None:
     if props_xml is None:
         return
-    for p in props_xml.findall(ns + 'property'):
-        prop_id = p.get('propertyDefinitionRef')
+    for p in props_xml.findall(ns + "property"):
+        prop_id = p.get("propertyDefinitionRef")
         if prop_id not in pdef_merge_map:
             continue
-        if model.pdefs.get(pdef_merge_map[prop_id]) != 'viewpoint':
+        if model.pdefs.get(pdef_merge_map[prop_id]) != "viewpoint":
             continue
-        val_xml = p.find(ns + 'value')
-        slug = (val_xml.text or '').strip().lower() if val_xml is not None else ''
+        val_xml = p.find(ns + "value")
+        slug = (val_xml.text or "").strip().lower() if val_xml is not None else ""
         _assign_viewpoint(elem, slug)
 
 
 def _apply_junction_type_props(elem: Any, props_xml: Any, ns: str) -> None:
     if props_xml is None:
         return
-    for p in props_xml.findall(ns + 'property'):
-        if p.get('key') == 'junctionType':
-            val_elem = p.find(ns + 'value')
+    for p in props_xml.findall(ns + "property"):
+        if p.get("key") == "junctionType":
+            val_elem = p.find(ns + "value")
             if val_elem is not None:
-                junction_type = (val_elem.text or '').strip().lower()
+                junction_type = (val_elem.text or "").strip().lower()
                 if junction_type:
                     try:
                         elem.set_junction_type(junction_type)
@@ -181,15 +183,15 @@ def _apply_junction_type_props(elem: Any, props_xml: Any, ns: str) -> None:
 
 
 def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
-    elements_xml = root.find(ns + 'elements')
+    elements_xml = root.find(ns + "elements")
     if elements_xml is None:
         return {}, {}
     parent_map = {}
     visual_style_map = {}
-    for e in elements_xml.findall(ns + 'element'):
-        _uuid = e.get('identifier')
-        name = None if e.find(ns + 'name') is None else e.find(ns + 'name').text
-        desc = None if e.find(ns + 'documentation') is None else e.find(ns + 'documentation').text
+    for e in elements_xml.findall(ns + "element"):
+        _uuid = e.get("identifier")
+        name = None if e.find(ns + "name") is None else e.find(ns + "name").text
+        desc = None if e.find(ns + "documentation") is None else e.find(ns + "documentation").text
         if merge_flg and _uuid in model.elems_dict:
             elem = model.elems_dict[_uuid]
             elem.name = name
@@ -197,19 +199,19 @@ def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
         else:
             elem = model.add(
                 name=name,
-                concept_type=e.get(xsi + 'type'),
+                concept_type=e.get(xsi + "type"),
                 uuid=_uuid,
                 desc=desc,
             )
         _read_props(elem, e, ns, pdef_merge_map, model)
-        parent_id = e.get('parentId')
+        parent_id = e.get("parentId")
         if parent_id:
             parent_map[_uuid] = parent_id
         visual_style = _extract_visual_style_properties(e, ns)
         if visual_style:
             visual_style_map[_uuid] = visual_style
 
-        props_xml = e.find(ns + 'properties')
+        props_xml = e.find(ns + "properties")
         _apply_viewpoint_props(elem, props_xml, ns, pdef_merge_map, model)
         _apply_junction_type_props(elem, props_xml, ns)
 
@@ -217,9 +219,9 @@ def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
 
 
 def _process_one_relationship(model, r, ns, xsi, pdef_merge_map, merge_flg):
-    _uuid = r.get('identifier')
-    name = None if r.find(ns + 'name') is None else r.find(ns + 'name').text
-    desc = None if r.find(ns + 'documentation') is None else r.find(ns + 'documentation').text
+    _uuid = r.get("identifier")
+    name = None if r.find(ns + "name") is None else r.find(ns + "name").text
+    desc = None if r.find(ns + "documentation") is None else r.find(ns + "documentation").text
     if merge_flg and _uuid in model.rels_dict:
         rel = model.rels_dict[_uuid]
         rel.name = name
@@ -227,31 +229,31 @@ def _process_one_relationship(model, r, ns, xsi, pdef_merge_map, merge_flg):
     else:
         # influenceStrength may be an XML attribute (old files) or a property (new export)
         rel = model.add_relationship(
-            source=r.get('source'),
-            target=r.get('target'),
-            rel_type=r.get(xsi + 'type'),
-            uuid=r.get('identifier'),
+            source=r.get("source"),
+            target=r.get("target"),
+            rel_type=r.get(xsi + "type"),
+            uuid=r.get("identifier"),
             name=name,
             desc=desc,
-            access_type=r.get('accessType'),
-            influence_strength=r.get('influenceStrength') or r.get('modifier'),
+            access_type=r.get("accessType"),
+            influence_strength=r.get("influenceStrength") or r.get("modifier"),
         )
-        if r.get('isDirected') == 'true':
+        if r.get("isDirected") == "true":
             rel.is_directed = True
         _read_props(rel, r, ns, pdef_merge_map, model)
         # Promote influenceStrength from generic props to dedicated attribute
         # (written as a property in the OpenGroup format by the writer)
-        if rel.influence_strength is None and 'influenceStrength' in rel.props:
-            rel.influence_strength = str(rel.props.pop('influenceStrength'))
+        if rel.influence_strength is None and "influenceStrength" in rel.props:
+            rel.influence_strength = str(rel.props.pop("influenceStrength"))
 
 
 def _read_relationships(model, root, ns, xsi, pdef_merge_map, merge_flg):
-    rels_xml = root.find(ns + 'relationships')
+    rels_xml = root.find(ns + "relationships")
     if rels_xml is None:
         return
     # Multi-pass to handle forward references (relationship targeting another relationship
     # defined later in the XML — valid ArchiMate but breaks single-pass ordering).
-    remaining = list(rels_xml.findall(ns + 'relationship'))
+    remaining = list(rels_xml.findall(ns + "relationship"))
     while remaining:
         deferred = []
         for r in remaining:
@@ -268,55 +270,55 @@ def _read_relationships(model, root, ns, xsi, pdef_merge_map, merge_flg):
 def _apply_node_style(node, style_xml, ns):
     if style_xml is None:
         return
-    fc = style_xml.find(ns + 'fillColor')
+    fc = style_xml.find(ns + "fillColor")
     if fc is not None:
-        node.fill_color = RGBA(fc.get('r'), fc.get('g'), fc.get('b')).color
-        if fc.get('a') is not None:
-            node.opacity = int(fc.get('a'))
-    lc = style_xml.find(ns + 'lineColor')
+        node.fill_color = RGBA(fc.get("r"), fc.get("g"), fc.get("b")).color
+        if fc.get("a") is not None:
+            node.opacity = int(fc.get("a"))
+    lc = style_xml.find(ns + "lineColor")
     if lc is not None:
-        node.line_color = RGBA(lc.get('r'), lc.get('g'), lc.get('b')).color
-        if lc.get('a') is not None:
-            node.lc_opacity = int(lc.get('a'))
-    ft = style_xml.find(ns + 'font')
+        node.line_color = RGBA(lc.get("r"), lc.get("g"), lc.get("b")).color
+        if lc.get("a") is not None:
+            node.lc_opacity = int(lc.get("a"))
+    ft = style_xml.find(ns + "font")
     if ft is not None:
-        node.font_name = ft.get('name')
-        node.font_size = ft.get('size')
-        ftc = ft.find(ns + 'color')
+        node.font_name = ft.get("name")
+        node.font_size = ft.get("size")
+        ftc = ft.find(ns + "color")
         if ftc is not None:
-            node.font_color = RGBA(ftc.get('r'), ftc.get('g'), ftc.get('b')).color
+            node.font_color = RGBA(ftc.get("r"), ftc.get("g"), ftc.get("b")).color
 
 
 def _add_node(parent, node_xml, ns, xsi, model, merge_flg):
-    _uuid = node_xml.get('identifier')
+    _uuid = node_xml.get("identifier")
     if merge_flg and _uuid in model.nodes_dict:
         _uuid = None
-    if node_xml.get(xsi + 'type') == 'Element':
+    if node_xml.get(xsi + "type") == "Element":
         _n = parent.add(
             uuid=_uuid,
-            ref=node_xml.get('elementRef'),
-            x=node_xml.get('x'),
-            y=node_xml.get('y'),
-            w=node_xml.get('w'),
-            h=node_xml.get('h'),
+            ref=node_xml.get("elementRef"),
+            x=node_xml.get("x"),
+            y=node_xml.get("y"),
+            w=node_xml.get("w"),
+            h=node_xml.get("h"),
         )
     else:
-        view_ref = node_xml.find(ns + 'viewRef')
-        ref = view_ref.get('ref') if view_ref is not None else None
-        cat = 'Model' if view_ref is not None else node_xml.get(xsi + 'type')
-        label = node_xml.find(ns + 'label')
+        view_ref = node_xml.find(ns + "viewRef")
+        ref = view_ref.get("ref") if view_ref is not None else None
+        cat = "Model" if view_ref is not None else node_xml.get(xsi + "type")
+        label = node_xml.find(ns + "label")
         _n = parent.add(
             uuid=_uuid,
             ref=ref,
-            x=node_xml.get('x'),
-            y=node_xml.get('y'),
-            w=node_xml.get('w'),
-            h=node_xml.get('h'),
+            x=node_xml.get("x"),
+            y=node_xml.get("y"),
+            w=node_xml.get("w"),
+            h=node_xml.get("h"),
             node_type=cat,
             label=None if label is None else label.text,
         )
-    _apply_node_style(_n, node_xml.find(ns + 'style'), ns)
-    for sub_xml in node_xml.findall(ns + 'node'):
+    _apply_node_style(_n, node_xml.find(ns + "style"), ns)
+    for sub_xml in node_xml.findall(ns + "node"):
         _sub = _add_node(_n, sub_xml, ns, xsi, model, merge_flg)
         _n.nodes_dict[_sub.uuid] = _sub
         _n.model.nodes_dict[_sub.uuid] = _sub
@@ -326,16 +328,16 @@ def _add_node(parent, node_xml, ns, xsi, model, merge_flg):
 def _apply_conn_style(conn, style_xml, ns):
     if style_xml is None:
         return
-    lc = style_xml.find(ns + 'lineColor')
+    lc = style_xml.find(ns + "lineColor")
     if lc is not None:
-        conn.line_color = RGBA(lc.get('r'), lc.get('g'), lc.get('b')).color
-    ft = style_xml.find(ns + 'font')
+        conn.line_color = RGBA(lc.get("r"), lc.get("g"), lc.get("b")).color
+    ft = style_xml.find(ns + "font")
     if ft is not None:
-        conn.font_name = ft.get('name')
-        conn.font_size = ft.get('size')
-        ftc = ft.find(ns + 'color')
-        conn.font_color = RGBA(ftc.get('r'), ftc.get('g'), ftc.get('b')).color
-    conn.line_width = style_xml.get('lineWidth')
+        conn.font_name = ft.get("name")
+        conn.font_size = ft.get("size")
+        ftc = ft.find(ns + "color")
+        conn.font_color = RGBA(ftc.get("r"), ftc.get("g"), ftc.get("b")).color
+    conn.line_width = style_xml.get("lineWidth")
 
 
 def _get_xml_text(elem, tag, ns):
@@ -345,13 +347,13 @@ def _get_xml_text(elem, tag, ns):
 
 def _read_view_connection(view, c, ns, merge_flg):
     # Skip view-only lines (xsi:type="Line") — no backing model relationship.
-    rel_ref = c.get('relationshipRef')
+    rel_ref = c.get("relationshipRef")
     if not rel_ref:
         log.debug(f"Skipping connection {c.get('identifier')}: no relationshipRef")
         return
-    source_id = c.get('source')
-    target_id = c.get('target')
-    _uuid_c = None if merge_flg else c.get('identifier')
+    source_id = c.get("source")
+    target_id = c.get("target")
+    _uuid_c = None if merge_flg else c.get("identifier")
     try:
         _c = view.add_connection(
             ref=rel_ref,
@@ -359,56 +361,56 @@ def _read_view_connection(view, c, ns, merge_flg):
             target=target_id,
             uuid=_uuid_c,
         )
-        _apply_conn_style(_c, c.find(ns + 'style'), ns)
-        for bp in c.findall(ns + 'bendpoint'):
-            _c.add_bendpoint(Point(bp.get('x'), bp.get('y')))
+        _apply_conn_style(_c, c.find(ns + "style"), ns)
+        for bp in c.findall(ns + "bendpoint"):
+            _c.add_bendpoint(Point(bp.get("x"), bp.get("y")))
     except (ValueError, KeyError) as e:
         log.debug(f"Skipping connection {c.get('identifier')}: {e}")
 
 
 def _read_views(model, root, ns, xsi, pdef_merge_map, merge_flg):
-    views_xml = root.find(ns + 'views')
+    views_xml = root.find(ns + "views")
     if views_xml is None:
         return
-    diagrams_xml = views_xml.find(ns + 'diagrams')
-    views = diagrams_xml.findall(ns + 'view') if diagrams_xml is not None else []
+    diagrams_xml = views_xml.find(ns + "diagrams")
+    views = diagrams_xml.findall(ns + "view") if diagrams_xml is not None else []
 
     for v in views:
-        _uuid = v.get('identifier')
+        _uuid = v.get("identifier")
         if merge_flg and _uuid in model.views_dict:
             model.views_dict[_uuid].delete()
         _v = model.add(
             ArchiType.View,
-            name=_get_xml_text(v, 'name', ns),
+            name=_get_xml_text(v, "name", ns),
             uuid=_uuid,
-            desc=_get_xml_text(v, 'documentation', ns),
+            desc=_get_xml_text(v, "documentation", ns),
         )
         _read_props(_v, v, ns, pdef_merge_map, model)
-        _assign_viewpoint(_v, (v.get('viewpoint') or '').strip().lower(), 'set_primary_viewpoint')
-        for n in v.findall(ns + 'node'):
+        _assign_viewpoint(_v, (v.get("viewpoint") or "").strip().lower(), "set_primary_viewpoint")
+        for n in v.findall(ns + "node"):
             _add_node(_v, n, ns, xsi, model, merge_flg)
 
     for v in views:
-        _uuid = v.get('identifier')
+        _uuid = v.get("identifier")
         _v = model.views_dict[_uuid]
-        for c in v.findall(ns + 'connection'):
+        for c in v.findall(ns + "connection"):
             _read_view_connection(_v, c, ns, merge_flg)
 
 
-def _walk_orgs(item, ns, model, folder=''):
-    items = item.findall(ns + 'item')
-    label = item.find(ns + 'label')
+def _walk_orgs(item, ns, model, folder=""):
+    items = item.findall(ns + "item")
+    label = item.find(ns + "label")
     if label is not None:
-        folder += '/' + label.text
-    if item.find(ns + 'documentation') is not None:
-        desc = item.find(ns + 'documentation').text
-        ref_id = item.find(ns + 'item').get('identifierRef')
+        folder += "/" + label.text
+    if item.find(ns + "documentation") is not None:
+        desc = item.find(ns + "documentation").text
+        ref_id = item.find(ns + "item").get("identifierRef")
         _v = model.views_dict[ref_id]
         _v.desc = desc
         _v.folder = folder
     else:
         for sub_item in items:
-            ref_id = sub_item.get('identifierRef')
+            ref_id = sub_item.get("identifierRef")
             if ref_id is not None:
                 if ref_id in model.views_dict:
                     model.views_dict[ref_id].folder = folder
@@ -421,19 +423,19 @@ def _walk_orgs(item, ns, model, folder=''):
 
 
 def _read_organizations(model, root, ns):
-    orgs = root.find(ns + 'organizations')
+    orgs = root.find(ns + "organizations")
     if orgs is None:
         return
-    for item in orgs.findall(ns + 'item'):
+    for item in orgs.findall(ns + "item"):
         _walk_orgs(item, ns, model)
 
 
 def _apply_visual_styles(model: Any, visual_style_map: dict[str, Any]) -> None:
     _setters = {
-        'fillColor': 'set_fill_color',
-        'lineColor': 'set_line_color',
-        'lineWidth': 'set_line_width',
-        'transparency': 'set_transparency',
+        "fillColor": "set_fill_color",
+        "lineColor": "set_line_color",
+        "lineWidth": "set_line_width",
+        "transparency": "set_transparency",
     }
     for elem_uuid, style in visual_style_map.items():
         if elem_uuid not in model.elems_dict:
@@ -461,15 +463,15 @@ def archimate_reader(model, root, merge_flg=False):
     :type merge_flg: bool
 
     """
-    if 'opengroup' not in root.tag:
-        log.fatal(f'{__mod__}: Input file is not an Open Group Archimate file - Aborting')
+    if "opengroup" not in root.tag:
+        log.fatal(f"{__mod__}: Input file is not an Open Group Archimate file - Aborting")
         return None
 
-    ns = root.tag.split('model')[0]
-    xsi = '{http://www.w3.org/2001/XMLSchema-instance}'
+    ns = root.tag.split("model")[0]
+    xsi = "{http://www.w3.org/2001/XMLSchema-instance}"
 
-    model.name = None if root.find(ns + 'name') is None else root.find(ns + 'name').text
-    model.desc = None if root.find(ns + 'documentation') is None else root.find(ns + 'documentation').text
+    model.name = None if root.find(ns + "name") is None else root.find(ns + "name").text
+    model.desc = None if root.find(ns + "documentation") is None else root.find(ns + "documentation").text
 
     pdef_merge_map = _read_pdefs(model, root, ns, merge_flg)
     _read_props(model, root, ns, pdef_merge_map, model)
