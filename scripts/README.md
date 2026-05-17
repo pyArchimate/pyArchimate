@@ -4,57 +4,49 @@ This directory contains scripts for maintaining code quality, architectural inte
 
 ## Git Hook Setup
 
-Automate your workflow by integrating these scripts into your Git lifecycle.
-
-### Pre-commit Hook
-
-The `pre_commit_checks.sh` script performs fast checks (linting, formatting, type-checking, and unit tests) that should pass before every commit.
-
-To set it up:
+Hooks are managed by [pre-commit](https://pre-commit.com/) and configured in `.pre-commit-config.yaml`.
+One-time setup per clone:
 
 ```bash
-ln -sf ../../scripts/pre_commit_checks.sh .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
+pip install pre-commit
+pre-commit install --hook-type pre-commit --hook-type pre-push
 ```
 
-### Pre-push Hook
+This wires two gates:
 
-The `pre_push_checks.sh` script runs the full test suite, including integration and acceptance tests. It is recommended to run this before pushing to a remote or merging a PR.
+- **pre-commit**: ruff lint + format, pymarkdown, vulture — runs on staged files only, fast
+- **pre-push**: pyright, mypy, layer boundaries, behave, full pytest suite — runs on every push
 
-To set it up as a pre-push hook:
+To run either gate manually:
 
 ```bash
-ln -sf ../../scripts/pre_push_checks.sh .git/hooks/pre-push
-chmod +x .git/hooks/pre-push
+pre-commit run --all-files                        # commit-stage hooks
+pre-commit run --all-files --hook-stage pre-push  # push-stage hooks
 ```
+
+> **Legacy scripts**: `pre_commit_checks.sh` and `pre_push_checks.sh` are superseded by the
+> pre-commit hooks above and kept only for reference. Do not use them directly.
 
 ---
 
 ## Script Catalog
 
-### `pre_commit_checks.sh`
-The primary developer workflow script. It performs:
-- Dependency synchronization via Poetry.
-- Markdown linting (`pymarkdownlnt`).
-- Python linting and formatting (`ruff`).
-- Static type checking (`pyright` and `mypy`).
-- Unit tests (`pytest tests/unit/`).
-
-### `pre_push_checks.sh`
-A heavier suite intended for CI or pre-push gates. It includes:
-- All checks from `pre_commit_checks.sh`.
-- Architectural boundary enforcement.
-- Acceptance tests (`behave`).
-- Integration, API, and Security test suites.
-- Code coverage reporting.
-
 ### `check_layer_boundaries.py`
-Enforces the project's architectural layering rules (e.g., Layer 2 must not import from Layers 3 or 4). This is called automatically by `pre_push_checks.sh`.
+
+Enforces the project's architectural layering rules (e.g., Layer 2 must not import from Layers 3
+or 4). Run automatically by the pre-push hook; also callable directly:
+
+```bash
+poetry run python scripts/check_layer_boundaries.py
+```
 
 ### `render_diagrams.sh`
-Renders all `.puml` files in `docs/diagrams/` to `.png` using the PlantUML web service. Requires `curl`.
+
+Renders all `.puml` files in `docs/diagrams/` to `.png` using the PlantUML web service.
+Requires `curl`.
 
 ### `build_docs.sh`
+
 Quick incremental build for development. Generates HTML documentation in `docs/build/html/`.
 
 **Usage:**
@@ -70,6 +62,7 @@ Quick incremental build for development. Generates HTML documentation in `docs/b
 **When to use:** During documentation development for fast iteration.
 
 ### `build_docs_release.sh`
+
 Full release build with validation. Performs a clean build and validates:
 - No broken cross-references
 - All documents included in toctree
@@ -85,9 +78,11 @@ Full release build with validation. Performs a clean build and validates:
 **When to use:** Before releasing or publishing documentation to ensure quality.
 
 ### `create_documentation.sh`
+
 Legacy script. Builds the project's Sphinx documentation into `build/html`.
 
-**Recommendation:** Use `build_docs.sh` or `build_docs_release.sh` instead for better features and validation.
+**Recommendation:** Use `build_docs.sh` or `build_docs_release.sh` instead for better features
+and validation.
 
 ### `generate_ai_docs.py`
 

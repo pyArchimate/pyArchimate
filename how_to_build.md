@@ -100,7 +100,7 @@ git commit -m "docs: regenerate diagrams, AI.md, and Sphinx docs pre-release"
 ### 8. Run the full test suite
 
 ```bash
-poetry run scripts/pre_push_checks.sh
+pre-commit run --all-files --hook-stage pre-push
 ```
 
 ### 9. Regenerate requirements files
