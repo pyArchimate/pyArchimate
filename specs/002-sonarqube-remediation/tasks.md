@@ -128,7 +128,7 @@
 **Purpose**: Full-suite validation and SonarCloud confirmation that all CRITICAL issues are resolved.
 
 - [x] T018 Run `bash scripts/pre_push_checks.sh` and confirm all gates pass (ruff, pyright, mypy, pytest unit 80% coverage, legacy unit, integration, behave); then run `poetry run radon cc src/ -s -n C` and confirm zero Grade D/F functions remain across all production modules including new helper modules (SC-003)
-- [ ] T019 [P] Run local SonarCloud scan: `poetry run pysonar --sonar-token=$SONAR_TOKEN`; confirm zero CRITICAL issues reported
+- [X] T019 [P] Run local SonarCloud scan: `poetry run pysonar --sonar-token=$SONAR_TOKEN`; confirm zero CRITICAL issues reported
 - [x] T020 [P] Update `specs/002-sonarqube-remediation/data-model.md`: fill in the TBD helper function names with actual names used during implementation
 - [ ] T021 Push `002-sonarqube-remediation` to origin; confirm CI/CD SonarCloud scan reports zero CRITICAL issues (SC-001)
 
