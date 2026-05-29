@@ -122,7 +122,7 @@ All rule config remains in `pyproject.toml` — do not duplicate settings
 
 **Independent Test**: Query the SonarCloud API and confirm the `total` field is `0` for rule `python:S3776`.
 
-- [ ] T022 [US3] After merging to main: query SonarCloud API to confirm zero open S3776 violations:
+- [X] T022 [US3] After merging to main: query SonarCloud API to confirm zero open S3776 violations:
 
   ```bash
   curl -s "https://sonarcloud.io/api/issues/search?projectKeys=pyArchimate_pyArchimate&rules=python:S3776&statuses=OPEN" \
@@ -142,7 +142,7 @@ All rule config remains in `pyproject.toml` — do not duplicate settings
 - [X] T023 [P] Run `poetry run pre-commit run --all-files` and confirm clean exit on the full codebase
 - [X] T024 [P] Verify public API contract for all 8 files per `contracts/public-api.md`: import each listed symbol and confirm no `ImportError` or `AttributeError`
 - [X] T025 Run `scripts/pre_push_checks.sh` (integration, security, BDD suites) per `how_to_build.md` pre-push guidance
-- [ ] T026 Commit all remaining staged changes with a conventional commit message: `chore(014): complete complexity refactoring and pre-commit enforcement`
+- [X] T026 Commit all remaining staged changes with a conventional commit message: `chore(014): complete complexity refactoring and pre-commit enforcement`
 
 ---
 
