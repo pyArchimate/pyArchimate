@@ -70,7 +70,7 @@ jobs:
   sonar:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
+    if: (github.event_name == 'pull_request' || github.ref == 'refs/heads/master') && github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v6
         with:
