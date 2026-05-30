@@ -1,11 +1,11 @@
 # P3 Task List: Complete ArchiMate Notation Support
 
-**Version**: 1.0 (Planning Phase)  
-**Date**: 2026-05-01  
+**Version**: 1.1 (Superseded)  
+**Date**: 2026-05-01 (updated 2026-05-30)  
 **Feature**: ArchiMate v3.x Complete Notation Support (P3)  
-**Branch**: `005-archimate-notation-support` (to be created)  
-**Total Tasks**: 68 (T121–T188)  
-**Status**: Planning Phase (No Implementation Yet)
+**Branch**: Implemented on `004-archimate-spec-compliance`  
+**Total Tasks**: 68 (T121–T188) — planning only; implementation tracked under feature `005-archimate-notation-support`  
+**Status**: ✅ COMPLETE — all P3 features implemented and verified (see `specs/005-archimate-notation-support/tasks.md` for the authoritative task tracking, 78/78 complete)
 
 ---
 

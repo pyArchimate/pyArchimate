@@ -397,6 +397,121 @@ After verifying these fixes work:
 
 ---
 
+---
+
+## P3: Element Grouping
+
+### What's Available
+
+Parent-child containment lets you organize elements into logical groups (e.g., a `BusinessProcess` containing `BusinessFunction` children). Groups are semantic — distinct from visual `Group` shapes on diagrams.
+
+### Quick Test
+
+```python
+from src.pyArchimate import ArchiType
+from src.pyArchimate.model import Model
+
+model = Model(name='Grouping Demo')
+
+process = model.add(ArchiType.BusinessProcess, 'Order Fulfillment')
+step1   = model.add(ArchiType.BusinessFunction, 'Receive Order')
+step2   = model.add(ArchiType.BusinessFunction, 'Pack and Ship')
+
+model.add_child(process.uuid, step1.uuid)
+model.add_child(process.uuid, step2.uuid)
+
+print(model.get_children(process.uuid))    # [step1, step2]
+print(model.get_parent(step1.uuid).name)   # 'Order Fulfillment'
+print(model.get_ancestors(step1.uuid))     # [process]
+
+# Cycle detection — raises ValueError
+# model.add_child(step1.uuid, process.uuid)
+```
+
+### Test Command
+
+```bash
+pytest tests/unit/test_element_grouping.py -v
+pytest tests/integration/test_round_trip_grouping.py -v
+```
+
+---
+
+## P3: Junction Semantics
+
+### What's Available
+
+Junction elements (`Junction`, `OrJunction`, `AndJunction`) support explicit AND/OR/XOR type semantics that survive export/import cycles in both `.archimate` and OpenGroup formats.
+
+### Quick Test
+
+```python
+from src.pyArchimate import ArchiType
+from src.pyArchimate.model import Model
+
+model = Model(name='Junction Demo')
+
+and_gate = model.add(ArchiType.Junction, 'Approval Gate')
+and_gate.set_junction_type('and')
+
+or_gate = model.add(ArchiType.OrJunction, 'Routing Decision')
+or_gate.set_junction_type('or')
+
+print(and_gate.get_junction_type())  # 'and'
+print(or_gate.get_junction_type())   # 'or'
+
+# Invalid type raises ValueError
+# and_gate.set_junction_type('maybe')
+```
+
+### Test Command
+
+```bash
+pytest tests/unit/test_junction_semantics.py -v
+pytest tests/integration/test_round_trip_junctions.py -v
+```
+
+---
+
+## P3: Visual Properties
+
+### What's Available
+
+Elements support fill color, line color, line width, and transparency. Properties are optional; absent properties fall back to default ArchiMate palette colors at render time.
+
+### Quick Test
+
+```python
+from src.pyArchimate import ArchiType
+from src.pyArchimate.model import Model
+
+model = Model(name='Styling Demo')
+
+component = model.add(ArchiType.ApplicationComponent, 'Order Service')
+component.set_fill_color('#dce8f5')
+component.set_line_color('#2b6cb0')
+component.set_line_width(2.0)
+component.set_transparency(0.9)
+
+style = component.get_visual_style()
+print(style)  # {'fillColor': '#dce8f5', 'lineColor': '#2b6cb0', 'lineWidth': 2.0, 'transparency': 0.9}
+
+# Bulk setter
+component.set_visual_style(fill_color='#ffffb5', transparency=1.0)
+
+# Clear a property
+component.set_fill_color(None)
+```
+
+### Test Command
+
+```bash
+pytest tests/unit/test_visual_style.py -v
+behave tests/features/visual_style.feature
+```
+
+---
+
 ## Contact & Support
 
 For issues or questions about these fixes:
