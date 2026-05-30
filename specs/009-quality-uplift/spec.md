@@ -148,12 +148,14 @@ A developer reviewing `pyproject.toml` notices several lint/type-check ignores a
 
 The following items were scoped and probed during this feature but exceed the 20-violation cap policy or require deeper refactoring. They MUST be resolved before this feature is considered complete.
 
-| Item | Location | Violations | Blocker |
-|------|----------|-----------|---------|
-| Enable ruff `UP` (pyupgrade) rule set | `pyproject.toml:121` | 124 | UP042/UP032 need semantic review; most others auto-fixable |
-| Enable ruff `PT` (pytest style) rule set | `pyproject.toml:124` | 163 | Primarily PT009 unittest assertions in legacy tests |
-| Enable mypy `disallow_untyped_calls` | `pyproject.toml:101` | 89 | Requires annotating callee functions or adding justified `# type: ignore` |
-| Enable mypy `disallow_untyped_defs` | `pyproject.toml:102` | 162 | Requires adding return-type and parameter annotations to unannotated functions |
+> **Reassessed 2026-05-30**: Violation counts updated to reflect work merged since initial deferral.
+
+| Item | Location | Original | Current | Blocker |
+|------|----------|---------|---------|---------|
+| Enable ruff `UP` (pyupgrade) rule set | `pyproject.toml` | 124 | **4** (all UP042) | UP042 planned ignore (StrEnum requires Python 3.11+); no other violations remain — trivially closeable |
+| Enable ruff `PT` (pytest style) rule set | `pyproject.toml` | 163 | **63** real (165 total − 102 PT009 legacy per-file-ignore) | PT011 ×30, PT018 ×23, PT001 ×9 (auto-fix), PT006 ×1 — all mechanical |
+| Enable mypy `disallow_untyped_defs` | `pyproject.toml` | 162 | **121** | Requires adding return-type and parameter annotations to unannotated functions |
+| Enable mypy `disallow_untyped_calls` | `pyproject.toml` | 89 | **91** | Resolves automatically once `disallow_untyped_defs` annotations are added |
 
 **Acceptance**: Feature is complete only when all four `# TODO(009-quality-uplift)` markers are removed from `pyproject.toml` and the corresponding tools pass.
 

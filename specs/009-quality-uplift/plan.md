@@ -17,7 +17,7 @@ Resolve all four deferred `# TODO(009-quality-uplift)` items in `pyproject.toml`
 **Project Type**: Library  
 **Performance Goals**: N/A — quality tooling only  
 **Constraints**: `requires-python = ">=3.10,<4.0"` limits use of Python 3.11+ builtins (StrEnum); ruff target-version = py312 is for lint purposes, not minimum runtime  
-**Scale/Scope**: 28 source files; ~162 untyped functions; 126 UP violations; 163 PT violations
+**Scale/Scope**: 28 source files; ~121 untyped functions (down from 162); 4 UP violations (all UP042, planned ignore); 63 real PT violations (down from 163; 102 PT009 legacy excluded)
 
 ## Constitution Check
 
