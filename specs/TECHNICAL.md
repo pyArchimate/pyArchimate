@@ -215,6 +215,30 @@ The following patterns ensure data fidelity when reading, modifying, and writing
   - `influence_relationship_with_strength.archimate` - Relationship with strength metadata
   - `documented_relationship_unicode.archimate` - Relationship with Unicode documentation
 
+### P3 Implementation Patterns
+
+The following patterns were established during the P3 notation support implementation and should be followed for future metadata extensions:
+
+#### Element Hierarchy (Containment)
+
+- Parent-child relationships are stored at the **Model** level in two complementary dicts: `_element_hierarchy` (child→parent) and `_element_children` (parent→children). The `Element` holds a back-reference `_parent_uuid` for O(1) parent lookup.
+- Serialization uses a `parentId` XML attribute on `<element>` tags. Both the Archi `.archimate` format (`archiWriter.py`) and the OpenGroup Exchange format (`archimateWriter.py`) write and read `parentId`, so round-trip fidelity is guaranteed in both formats.
+- **Cascade rule**: Deleting a parent orphans children; it never cascades deletes. Document this explicitly in any code that deletes elements.
+- Always use `model.add_child()` (not direct dict mutation) so both dicts stay in sync and cycle detection runs.
+
+#### Junction Type Semantics
+
+- Junction type is stored as a lowercase string (`'and'`, `'or'`, `'xor'`) on `Element.junction_type`, not as a separate class.
+- Use `set_junction_type()` — never set `element.junction_type` directly — so validation runs.
+- The two formats serialize junctions differently: `archiWriter` writes a `type` attribute plus a `junctionType` property (only for `elem_type == "Junction"`); `archimateWriter` encodes OR/AND semantics directly in `xsi:type` (`OrJunction`/`AndJunction`) and only writes a `junctionType` property for plain `Junction` elements as a fallback. On import, the `junctionType` property is applied last and overrides any type inferred from `xsi:type`.
+
+#### Visual Style Properties
+
+- Visual properties are stored in `Element._visual_style: dict` using camelCase XML keys (`fillColor`, `lineColor`, `lineWidth`, `transparency`) to eliminate a mapping step during serialization.
+- Colors are normalized to lowercase 6-digit hex at **set time** (inside `set_fill_color()`/`set_line_color()`) via `_normalize_color()`, not during XML serialization. Never store raw color strings — always go through the setter.
+- Absent key = property not set. `None` argument to a setter removes the key. Do not inject default values into `_visual_style`; apply defaults at render time only.
+- This property-dict pattern (introduced for viewpoints, reused for visual styles) is the preferred approach for optional element metadata: unrecognised property keys during import fall through to `elem.prop(key, value)` and are stored as regular element properties, preserving them for round-trips without breaking the import.
+
 ### Requirements Traceability
 
 - **Explicit Mapping**: Maintain a Requirements Traceability Matrix linking:

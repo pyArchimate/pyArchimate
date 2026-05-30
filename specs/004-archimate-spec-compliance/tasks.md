@@ -25,17 +25,17 @@ This task list covers three critical P1 gaps in ArchiMate 3.x spec compliance:
 
 ### Project Initialization & Documentation Setup
 
-- [ ] T001 Clone/verify feature branch `004-archimate-spec-compliance` is active and synced with develop
-- [ ] T002 Create test fixtures directory at `tests/fixtures/archimate_v3/` with sample files
-- [ ] T003 [P] Update `CLAUDE.md` with new feature context (Python 3.10+, lxml, compliance focus)
-- [ ] T004 [P] Update project `README.md` to document ArchiMate v3.x compliance status and known gaps
-- [ ] T005 [P] Update `specs/TECHNICAL.md` with new patterns: XML round-trip testing, field mapping, metadata preservation
+- [X] T001 Clone/verify feature branch `004-archimate-spec-compliance` is active and synced with develop
+- [X] T002 Create test fixtures directory at `tests/fixtures/archimate_v3/` with sample files
+- [X] T003 [P] Update `CLAUDE.md` with new feature context (Python 3.10+, lxml, compliance focus)
+- [X] T004 [P] Update project `README.md` to document ArchiMate v3.x compliance status and known gaps
+- [X] T005 [P] Update `specs/TECHNICAL.md` with new patterns: XML round-trip testing, field mapping, metadata preservation
 
 ### Test Framework Setup
 
-- [ ] T006 [P] Verify pytest and behave are configured correctly in `pyproject.toml`
-- [ ] T007 [P] Create BDD feature files under `tests/features/`: `business_interaction.feature`, `influence_strength.feature`, `relationship_documentation.feature`
-- [ ] T008 Create BDD step implementations in `tests/features/steps/` for all acceptance scenarios from spec
+- [X] T006 [P] Verify pytest and behave are configured correctly in `pyproject.toml`
+- [X] T007 [P] Create BDD feature files under `tests/features/`: `business_interaction.feature`, `influence_strength.feature`, `relationship_documentation.feature`
+- [X] T008 Create BDD step implementations in `tests/features/steps/` for all acceptance scenarios from spec
 
 ---
 
