@@ -172,8 +172,8 @@
 **Independent Test**: `ruff check` exits 0 with `"UP"` uncommented in `[tool.ruff.lint] select`.
 
 - [ ] T050 [US2] Add `"UP042"` to `[tool.ruff.lint] ignore` in `pyproject.toml` with comment `# UP042: StrEnum requires Python 3.11+; project supports 3.10+`; run `ruff check --select UP042` to confirm 0 violations reported
-- [ ] T051 [US2] Run `ruff check --fix --select UP` to auto-fix 121 violations (UP045/UP037/UP024/UP015/UP035/UP032); verify no test regressions with `pytest tests/`
-- [ ] T052 [US2] Run `ruff check --select UP030` and manually fix the remaining format literal (1 violation); run `ruff check --select UP` to confirm 0 remaining violations
+- [ ] T051 [US2] Run `ruff check --fix --select UP` — only UP042 ×4 remain (all planned ignore); verify `ruff check --select UP` reports 0 non-UP042 violations and `pytest tests/` passes
+- [ ] T052 [US2] Confirm `ruff check --select UP030` reports 0 violations (UP030 already resolved); run `ruff check --select UP` to confirm only UP042 violations suppressed via ignore
 - [ ] T053 [US2] Uncomment `"UP"` in `[tool.ruff.lint] select` and remove the `# TODO(009-quality-uplift)` UP comment block from `pyproject.toml`; run `ruff check` to confirm 0 violations; run `pytest tests/` to confirm suite green; commit: `feat(ruff): enable UP (pyupgrade) rule set`
 
 **Checkpoint**: `ruff check` passes with UP active; UP042 globally ignored with justification.
@@ -220,7 +220,7 @@
 
 > **Note**: All T064–T071 tasks operate on different files and are parallelizable. However, `view.py` references `model.py` types and `element.py` references `model.py` types — annotate `model.py` first if type inference issues arise.
 
-- [ ] T064 [P] [US4] Add return-type and parameter-type annotations to all unannotated functions in `src/pyArchimate/view.py` (54 violations): run `mypy --config-file pyproject.toml src/pyArchimate/view.py --disallow-untyped-defs` after each method batch to confirm progress
+- [ ] T064 [P] [US4] Add return-type and parameter-type annotations to all unannotated functions in `src/pyArchimate/view.py` (reassess current count with `mypy --config-file pyproject.toml src/pyArchimate/view.py --disallow-untyped-defs`; was 54, likely reduced): run after each method batch to confirm progress
 - [ ] T065 [P] [US4] Add type annotations to `src/pyArchimate/model.py` (34 violations): run `mypy --config-file pyproject.toml src/pyArchimate/model.py --disallow-untyped-defs` to verify
 - [ ] T066 [P] [US4] Add type annotations to `src/pyArchimate/relationship.py` (25 violations): run `mypy --config-file pyproject.toml src/pyArchimate/relationship.py --disallow-untyped-defs` to verify
 - [ ] T067 [P] [US4] Add type annotations to `src/pyArchimate/element.py` (14 violations): run `mypy --config-file pyproject.toml src/pyArchimate/element.py --disallow-untyped-defs` to verify
