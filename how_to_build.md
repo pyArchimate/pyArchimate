@@ -84,6 +84,12 @@ bash scripts/render_diagrams.sh
 claude -p "Review @AI.md for accuracy since the last release tag version." --dangerously-skip-permissions
 ```
 
+### 4b. Review and update tutorial
+
+```bash
+claude -p "Review @docs/tutorial/tutorial.md and @docs/tutorial/tutorial.ipynb against changes since the last release tag. Update any code examples, API references, or version references that are no longer accurate." --dangerously-skip-permissions
+```
+
 ### 5. Review spec documents for accuracy
 
 ```bash
