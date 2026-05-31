@@ -23,9 +23,8 @@ Routing rules verified:
 
 from __future__ import annotations
 
-from xml.etree import ElementTree as ET
-
 import pytest
+from lxml import etree
 
 from src.pyArchimate import ArchiType, Model
 from src.pyArchimate.view.layout import LayoutConfig, RoutingConfig, auto_layout, auto_route
@@ -144,7 +143,8 @@ NS = {"svg": "http://www.w3.org/2000/svg"}
 
 
 def _parse_svg(svg_path: str):
-    tree = ET.parse(svg_path)
+    parser = etree.XMLParser(resolve_entities=False)
+    tree = etree.parse(svg_path, parser)
     root = tree.getroot()
     # Strip namespace for easier parsing
     for el in root.iter():
