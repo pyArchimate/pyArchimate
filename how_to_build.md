@@ -144,10 +144,10 @@ git push origin master --tags
 
 ### 12. Create GitHub release
 
-Ask Claude to draft release notes based on the v1.8.0 release as a template:
+Ask Claude to draft release notes based on the previous release as a template:
 
 ```
-Look at the v1.8.0 release, particularly the text provided as part of the release,
+Look at the v<PREV_VERSION> release, particularly the text provided as part of the release,
 and do the same for v<NEW_VERSION>. I typically ask for a subject line and summary
 of all commits since the last release.
 ```
