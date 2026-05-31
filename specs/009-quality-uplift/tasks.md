@@ -171,10 +171,10 @@
 
 **Independent Test**: `ruff check` exits 0 with `"UP"` uncommented in `[tool.ruff.lint] select`.
 
-- [ ] T050 [US2] Add `"UP042"` to `[tool.ruff.lint] ignore` in `pyproject.toml` with comment `# UP042: StrEnum requires Python 3.11+; project supports 3.10+`; run `ruff check --select UP042` to confirm 0 violations reported
-- [ ] T051 [US2] Run `ruff check --fix --select UP` — only UP042 ×4 remain (all planned ignore); verify `ruff check --select UP` reports 0 non-UP042 violations and `pytest tests/` passes
-- [ ] T052 [US2] Confirm `ruff check --select UP030` reports 0 violations (UP030 already resolved); run `ruff check --select UP` to confirm only UP042 violations suppressed via ignore
-- [ ] T053 [US2] Uncomment `"UP"` in `[tool.ruff.lint] select` and remove the `# TODO(009-quality-uplift)` UP comment block from `pyproject.toml`; run `ruff check` to confirm 0 violations; run `pytest tests/` to confirm suite green; commit: `feat(ruff): enable UP (pyupgrade) rule set`
+- [X] T050 [US2] Add `"UP042"` to `[tool.ruff.lint] ignore` in `pyproject.toml` with comment `# UP042: StrEnum requires Python 3.11+; project supports 3.10+`; run `ruff check --select UP042` to confirm 0 violations reported
+- [X] T051 [US2] Run `ruff check --fix --select UP` — only UP042 ×4 remain (all planned ignore); verify `ruff check --select UP` reports 0 non-UP042 violations and `pytest tests/` passes
+- [X] T052 [US2] Confirm `ruff check --select UP030` reports 0 violations (UP030 already resolved); run `ruff check --select UP` to confirm only UP042 violations suppressed via ignore
+- [X] T053 [US2] Uncomment `"UP"` in `[tool.ruff.lint] select` and remove the `# TODO(009-quality-uplift)` UP comment block from `pyproject.toml`; run `ruff check` to confirm 0 violations; run `pytest tests/` to confirm suite green; commit: `feat(ruff): enable UP (pyupgrade) rule set`
 
 **Checkpoint**: `ruff check` passes with UP active; UP042 globally ignored with justification.
 
