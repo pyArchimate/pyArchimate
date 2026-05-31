@@ -1,3 +1,20 @@
+## v1.11.0 (2026-05-31)
+
+### Feat
+
+- **ruff**: enable UP (pyupgrade) rule set
+- add installation of Claude Code Skills for enhanced functionality
+
+### Fix
+
+- correct shebang in pre_feature.sh
+- resolve remaining SonarCloud issues post-PR
+- **014**: add push-stage hooks, fix markdown lint, and refine pymarkdown config
+
+### Refactor
+
+- reduce cognitive complexity to satisfy SonarCloud S3776
+
 ## v1.10.0 (2026-05-17)
 
 ### Feat
