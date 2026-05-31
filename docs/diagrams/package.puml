@@ -20,6 +20,14 @@ package "pyArchimate" {
       class Position
     }
     package "layout" as LayoutPkg {
+      class "__init__.py" as LayoutInit {
+        {public API}
+        auto_layout(view, config)
+        auto_route(view, config)
+        apply_layout(view, config)
+        apply_format(view, config)
+        undo_layout(view)
+      }
       class "core.py" as LayoutCore {
         class NodeMove
         class LayoutConfig
@@ -27,10 +35,19 @@ package "pyArchimate" {
         class LayoutResult
         class LayoutAlgorithm
       }
-      class "layout_engine.py" as LayoutEngine
+      class "layout_engine.py" as LayoutEngine {
+        {module-level functions}
+        apply_node_positions()
+        assign_grid_cells()
+        get_layer_priority()
+      }
       package "algorithms" {
-        class "force_directed.py"
-        class "hierarchical.py"
+        class "force_directed.py" as FDAlgo {
+          class ForceDirectedLayout
+        }
+        class "hierarchical.py" as HierAlgo {
+          class HierarchicalLayout
+        }
       }
       package "export" {
         class "svg_export.py" as SvgExport {
@@ -50,20 +67,35 @@ package "pyArchimate" {
         }
       }
       package "format" {
-        class "element_format.py"
+        class "element_format.py" as ElemFmt {
+          class ArchiMateElementCategory
+          class ElementFormatSpec
+          class ElementFormatRegistry
+          class FormatService
+        }
       }
       package "routing" {
         class "orthogonal.py"
-        class "label_placement.py"
-        class "layer_constraints.py"
+        class "label_placement.py" as LabelPl {
+          class LabelPlacement
+        }
+        class "layer_constraints.py" as LayerConstr {
+          class ArchiMateLayer
+          class LayerConstraint
+        }
         class "obstacle_map.py" as ObstacleMap {
           class ObstacleMap
         }
         class "segment_separation.py" as SegSep
       }
       package "utils" {
-        class "geometry.py"
-        class "graph.py"
+        class "geometry.py" as GeoUtils {
+          class Point
+          class Rectangle
+        }
+        class "graph.py" as GraphUtils {
+          class Graph
+        }
         class "edge_utils.py"
       }
     }
@@ -89,7 +121,10 @@ package "pyArchimate" {
   class "logger.py" as Logger
 
   package "helpers" {
-    class "diagram.py" as DiagramHelper
+    class "diagram.py" as DiagramHelper {
+      get_or_create_node()
+      get_or_create_connection()
+    }
     class "properties.py" as PropertiesHelper
     class "logging.py" as LoggingHelper
     class "parsing.py" as ParsingHelper

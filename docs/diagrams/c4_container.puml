@@ -9,7 +9,7 @@ Person(automation, "Automation / Integrations", "Runs scripts, CI jobs, or tool 
 System_Boundary(pyArchimateBoundary, "pyArchimate") {
   Container(pyArchimateLib, "pyArchimate Core", "Python", "Modularized library managing models and elements.")
   Container(viewMod, "View Module", "view/ package", "View, Node, Connection, Profile, Point — visual diagramming structures; layout/ subpackage provides SVG export and auto-layout.")
-  Container(cli, "pyArchimate CLI", "Python", "Exposes commands and automation entry points for scripts and CI.")
+  Container(apiFacade, "Public API Facade", "pyArchimate.py", "Re-exports all public symbols; entry point for user scripts and automation.")
   Container(readers, "Reader Drivers", "Python modules", "Adapters for Archi (.archimate), Archimate (XML), and ARIS (AML).")
   Container(writers, "Writer Drivers", "Python modules", "Adapters for exporting to Archimate XML, Archi, and CSV.")
   Container(logger, "Logging", "Python logging", "Centralized logging configuration via logger.py.")
@@ -17,18 +17,18 @@ System_Boundary(pyArchimateBoundary, "pyArchimate") {
 
 System_Ext(archiFiles, "Archi/Archimate/ARIS sources", "External exchange files and repositories.")
 System_Ext(exportTargets, "Exchange Formats", "Archimate XML, Archi models, or CSV datasets.")
-System_Ext(buildEnv, "CI/CD pipelines", "Invoke pyArchimate CLI for validation and conversion.")
+System_Ext(buildEnv, "CI/CD pipelines", "Import and invoke pyArchimate via Python API for validation and conversion.")
 
-Rel(designer, pyArchimateLib, "Uses API to build models and elements")
+Rel(designer, apiFacade, "Imports pyArchimate; builds models and elements via API")
 Rel(designer, viewMod, "Draws views, places nodes and connections")
-Rel(automation, cli, "Runs CLI commands")
-Rel(cli, pyArchimateLib, "Invokes core APIs")
+Rel(automation, apiFacade, "Imports pyArchimate in scripts and CI jobs")
+Rel(apiFacade, pyArchimateLib, "Re-exports core API")
 Rel(pyArchimateLib, viewMod, "Owns and manages views")
 Rel(pyArchimateLib, readers, "Delegates parsing")
 Rel(pyArchimateLib, writers, "Delegates serialization")
 Rel(pyArchimateLib, logger, "Sends logs")
 Rel(readers, archiFiles, "Reads source data")
 Rel(writers, exportTargets, "Writes output files")
-Rel(buildEnv, cli, "Executes automation workflows")
+Rel(buildEnv, apiFacade, "Executes automation workflows via Python scripts")
 
 @enduml

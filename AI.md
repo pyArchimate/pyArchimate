@@ -451,8 +451,6 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `check_valid_relationship(rel_type, src_type, tgt_type, raise_flg)` | Validate rel type against ArchiMate rules |
 | `get_default_rel_type(source_type, target_type)` | Return preferred valid relationship type |
 | `parse_bool(value)` | Parse XML boolean string per W3C xsd:boolean (`"true"`, `"1"` → `True`; everything else → `False`) |
-| `extract_images_from_archimate(element)` | Extract base64-encoded image data from an Archi XML element |
-| `compare_image_data(data1, data2)` | Byte-for-byte comparison of two base64 image data strings |
 | `log_set_level(level)` | Set logging verbosity (standard `logging` levels) |
 | `log_to_file(path)` | Redirect log output to a file |
 | `log_to_stderr()` | Redirect log output to stderr |

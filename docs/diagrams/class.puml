@@ -66,9 +66,9 @@ class Element {
   --
   {readonly} props: dict
   --
-  + rels(rel_type) : list[Relationship]
-  + in_rels() : list[Relationship]
-  + out_rels() : list[Relationship]
+  + rels(rel_type=None) : list[Relationship]
+  + in_rels(rel_type=None) : list[Relationship]
+  + out_rels(rel_type=None) : list[Relationship]
   + assign_viewpoint(viewpoint_id)
   + remove_viewpoint(viewpoint_id)
   + set_fill_color(color)
@@ -156,7 +156,7 @@ class Node {
   concept: Element
   x, y: int
   w, h: int
-  rx, ry: int (relative to parent node)
+  rx, ry: float (relative to parent node)
   cx, cy: float (center coordinates)
   fill_color: Optional[str]
   line_color: Optional[str]
@@ -171,6 +171,10 @@ class Node {
   border_type: Optional[str]
   icon_color: Optional[str]
   gradient: Optional[str]
+  image_path: Optional[str]
+  image_position: Optional[int]
+  image_type: Optional[int]
+  image_source: bool
   flags: int
   label: Optional[str]
   cat: str
@@ -181,12 +185,13 @@ class Node {
   --
   + add(ref, x, y, w, h, ...) : Node
   + get_or_create_node(...) : Node
+  + getnodes(elem_type=None) : list[Node]
   + move(new_parent)
-  + resize(w, h)
+  + resize(max_in_row, keep_kids_size, w, h, ...) : None
   + distribute_connections()
-  + in_conns() : list[Connection]
-  + out_conns() : list[Connection]
-  + conns() : list[Connection]
+  + in_conns(rel_type=None) : list[Connection]
+  + out_conns(rel_type=None) : list[Connection]
+  + conns(rel_type=None) : list[Connection]
   + is_inside(x, y) : bool
   + delete()
 }
@@ -217,8 +222,8 @@ class Connection {
   + get_bendpoint(index) : Point
   + get_all_bendpoints() : list[Point]
   + remove_all_bendpoints()
-  + l_shape()
-  + s_shape()
+  + l_shape(direction, weight_x, weight_y)
+  + s_shape(direction, weight_x, weight_y, weight2)
   + delete()
 }
 
@@ -275,19 +280,54 @@ class SVGExportService {
   # _calculate_bounds(view) : dict[str, float]
   # _add_defs(svg) : None
   # _add_background(svg, width, height) : None
-  # _render_nodes_to_svg(svg, view, complete_nodes_dict) : None
+  # _render_nodes_to_svg(svg, sorted_nodes) : dict[str, ET.Element]
   # _render_node(svg, node) : None
   # _render_node_into(parent, node) : ET.Element
-  # _render_relationship(svg, conn, complete_nodes_dict) : None
-  # _render_connection(svg, conn, complete_nodes_dict) : None
+  # _render_junction(g, x, y, w, h, element_type, node) : None
+  # _render_grouping(g, x, y, w, h, node) : None
+  # _render_element_body(g, x, y, w, h, color, symbol_def) : None
+  # _render_element_icon(g, x, y, w, h, symbol_def) : None
+  # _render_topleft_text(parent, node, x, y, w) : None
+  # _render_wrapped_text(parent, text, text_x, text_y, max_width, is_centered) : None
+  # _render_relationship(svg, conn, nodes_dict, relationship_service) : None
+  # _render_connection(svg, conn, nodes_dict) : None
+  # _resolve_connection_nodes(conn, nodes_dict) : Optional[tuple]
   # _get_clipped_polyline_points(...) : list
   # _get_routed_polyline_points(...) : list
+  # _orthogonalize_polyline_points(points, ...) : list
+  # _compute_endpoint_spreads(view) : dict
+  # _spread_source_connections(node_uuid, node, conns, nodes_dict, endpoint_spreads)
+  # _spread_target_connections(node_uuid, node, conns, nodes_dict, endpoint_spreads)
   # _get_node_bounds(node) : tuple[float, float, float, float]
   # _word_wrap_text(text, max_width) : list[str]
-  # _distributed_spread(idx, count, span) : float
-  # _lookup_rel_style(rel_type) : Any
+  # _distributed_spread(index, count, edge_span) : float
+  # _lookup_rel_style(rel_type, relationship_service) : Any
   # _build_relationship_label(rel_type, conn) : str
-  # _render_connection_label(svg, conn, points) : None
+  # _render_connection_label(svg, points, label_text) : None
+  # _render_triangle_marker(svg, ex, ey, dx, dy, marker_size, marker_type, color)
+  # _render_diamond_marker(svg, ex, ey, dx, dy, color)
+  # _apply_access_markers(conn, attrs)
+  # _apply_marker_attrs(rel_type, conn, style, attrs)
+  # _offset_points_for_markers(points, polyline_attrs) : list
+  # _render_marker_shape(svg, endpoint, direction_from, marker_type, color, position)
+  # _choose_corner(p1, p2, p3) : tuple
+  # _boundary_side(node, x, y) : str
+  # _boundary_stub(node, side, length) : tuple
+  # _boundary_anchor(node, side, t) : tuple
+  # _preferred_boundary_side(node, other) : str
+  # _infer_boundary_orientation(node) : str
+  # _edge_t(wx, wy, x1, y1, x2, y2) : float
+  # _exit_x_edge(wx, wy, x1, y1, x2, y2) : tuple
+  # _exit_y_edge(wx, wy, x1, y1, x2, y2) : tuple
+  # _orthogonal_clip(points, node, is_source) : list
+  # _clip_point_to_boundary(point, node) : tuple
+  # _check_edge_intersection(p1, p2, p3, p4) : Optional[tuple]
+  # _clip_line_at_rectangle(x1, y1, x2, y2, rect) : Optional[tuple]
+  # _scale_path(svg_path, x, y, w, h) : str
+  # _translate_icon(icon_path, icon_viewbox, icon_ox, icon_oy) : str
+  # _apply_path_transform(svg_path, tx, ty, sx, sy) : str
+  # _find_longest_segment(points) : int
+  # _get_short_type_name(rel_type) : str
 }
 
 View --> SVGExportService : delegates to_svg()

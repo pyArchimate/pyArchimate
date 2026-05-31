@@ -8,7 +8,7 @@ Container(pyArchimateLib, "pyArchimate library", "Python", "Handles creation/ser
 Component(modelMod, "Model Module", "model.py", "Core class (Model) for elements, relationships, and model-level operations")
 Component(viewMod, "View Module", "view/ package", "Visual structures (View, Node, Connection) for diagramming; includes layout/export subpackage for SVG export")
 Component(readerRegistry, "Reader Registry", "constants.py", "Dispatches Archi/Archimate/ARIS readers via MODEL_READER_REGISTRY")
-Component(writerRegistry, "Writer Registry", "writers/", "Routes model exports for Archimate, Archi, CSV via WRITER_REGISTRY")
+Component(writerRegistry, "Writer Registry", "writers/__init__.py", "Routes model exports for Archimate, Archi, CSV via _writer_registry")
 Component(logging, "Logging Subsystem", "logger.py", "Standardized logging across core and IO layers")
 Component(helpers, "Helper Modules", "helpers/", "Property validation and diagram utility wrappers")
 

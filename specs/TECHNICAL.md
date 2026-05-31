@@ -98,75 +98,6 @@ The concept of using autonomous agents to uplift code quality and incrementally 
 
 - **Outcome Metrics and Considerations**: To gauge the success of this automated process, metrics such as reduced bug counts, improvement in test pass rates, and time savings in code reviews should be established and monitored. Additionally, potential challenges such as dependency conflicts and AI reasoning errors should be anticipated and addressed proactively.
 
-## API Testing Patterns (Integration Testing with httpx)
-
-The following patterns and practices have been established for API-level integration testing:
-
-### Test Infrastructure Architecture
-
-- **In-Process ASGI Testing**: Use `httpx.AsyncClient` with `ASGITransport` to test FastAPI applications without spinning up external servers. This provides realistic full-stack coverage with minimal overhead (~2-3 seconds for 7 tests).
-- **Deterministic Fixtures**: Create seeded test data via pytest fixtures that:
-  - Set up known, repeatable account hierarchies (visible, hidden, placeholder accounts)
-  - Provide explicit cleanup (teardown) hooks to ensure test isolation
-  - Use fixture-scoped cleanup to prevent test pollution
-
-### Test Data Cleanup and Isolation
-
-- **Fixture Cleanup Strategy**: Use pytest `yield` fixtures with explicit cleanup blocks to:
-  - Delete test-created accounts after each test
-  - Reset database state (SQLite) to clean slate
-  - Ensure tests are truly independent and can run in any order
-
-### Test Assertion Helpers
-
-- **Shared Assertion Utilities**: Create a `helpers.py` module with reusable validators:
-  - `assert_http_status(response, expected_code)` - Verify HTTP status without exposing full response details
-  - `assert_payload_contains(response, required_keys)` - Validate response structure
-  - `reset_test_database(db_session)` - Clean state between tests
-  - These helpers reduce duplication and provide consistent error messaging
-
-### Test Module Organization
-
-- **Three-Tier Test Coverage**:
-  - **test_accounts.py**: Happy-path and filtering for core resources (2-3 tests)
-  - **test_transactions.py**: Business logic and hierarchy effects (2-3 tests)
-  - **test_validation.py**: Error paths, auth failures, and edge cases (3-4 tests)
-- **Test Naming Convention**: Use explicit, action-oriented names:
-  - `test_create_and_get_account` (setup + verify)
-  - `test_list_accounts_filters` (feature-specific)
-  - `test_unauthorized_request_returns_401` (error case)
-- **Parallel Execution**: Organize tests so they can run concurrently:
-  - Tests should not share mutable state
-  - Use unique IDs for created resources
-  - Rely on cleanup fixtures, not test ordering
-
-### CI/CD Integration
-
-- **Test Runner Script**: Create `scripts/run_api_tests.sh` that:
-  - Activates the virtual environment
-  - Ensures API is running (or skips with graceful exit)
-  - Executes pytest with consistent flags (`-v`, `--tb=short`, coverage options)
-  - Generates both human-readable and machine-readable output (JUnit XML for CI)
-  - Returns appropriate exit codes for pass/fail/skip scenarios
-- **GitHub Actions Integration**: Integrate into CI workflows by:
-  - Running in an isolated step after dependency installation
-  - Setting timeout limits for test suite (5-10 minutes)
-  - Collecting coverage reports and artifacts
-
-### Performance and Stability
-
-- **Target Execution Time**: Aim for <5 seconds total for a ~7-test suite (acceptability threshold for dev feedback loop)
-- **Flakiness Prevention**:
-  - Use `pytest-asyncio` with `asyncio_mode = "auto"` for async test handling
-  - Avoid hardcoded timeouts; use application-defined values
-  - Ensure database cleanup is deterministic (not time-dependent)
-  - Run full suite multiple times locally before committing to verify consistency
-- **Code Coverage**: Expect 60-70% coverage for integration tests (more granular coverage via unit tests):
-  - API endpoints: 70-80%
-  - Models: 90-95%
-  - Schemas (DTOs): 100%
-  - Services: 50-60% (complementary unit tests for edge cases)
-
 ## XML Round-Trip Testing and Field Mapping Patterns
 
 The following patterns ensure data fidelity when reading, modifying, and writing XML-based ArchiMate formats:
@@ -181,7 +112,7 @@ The following patterns ensure data fidelity when reading, modifying, and writing
   5. Export again and compare to previous export (ensuring idempotency)
 
 - **Metadata Preservation**: When testing round-trip fidelity for metadata fields:
-  - Create test fixtures with known metadata values in test files (place in `tests/fixtures/archimate_v3/`)
+  - Create test fixtures with known metadata values in test files (place in `tests/fixtures/`)
   - Verify field names are correctly mapped during import (canonical Python names in model)
   - Verify field names are correctly written during export (format-specific names in XML)
   - Test both happy path (valid values) and edge cases (empty, special characters, Unicode)
@@ -205,7 +136,7 @@ The following patterns ensure data fidelity when reading, modifying, and writing
 
 ### Test Fixture Management
 
-- **Fixture Directory**: Store sample ArchiMate files in `tests/fixtures/archimate_v3/`
+- **Fixture Directory**: Store sample ArchiMate files in `tests/fixtures/`
   - Include files with known metadata (influence strength values, documentation text)
   - Include files with edge cases (empty fields, Unicode characters, special XML characters, long text)
   - Include files created by external tools (Archi) to verify interoperability
@@ -273,17 +204,13 @@ The following patterns were established during the P3 notation support implement
 
 ## Error Management
 
-- **Consistent Error Responses**: Define a standard format for API error responses (e.g., JSON structure including error code, message, and details) for predictable client-side handling.
-- **Exception Handling**: Implement robust try-except blocks to catch and handle exceptions gracefully, preventing application crashes.
-- **Meaningful Error Codes**: Utilize standardized HTTP status codes for API errors and define custom error codes for specific application-level issues.
+- **Exception Handling**: Use the custom exceptions `ArchimateConceptTypeError` and `ArchimateRelationshipError` for validation failures; let them propagate to callers rather than swallowing silently.
+- **Logging over printing**: Use `pyArchimate.logger` (backed by stdlib `logging`) for all diagnostic output. Callers control verbosity via `log_set_level()`.
 
 ## Observability and Logging
 
-- **Structured Logging**: Implement structured logging (e.g., JSON format) to facilitate easier parsing and analysis of log data.
-- **Log Levels**: Utilize standard log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL) appropriately to categorize messages.
-- **Centralized Logging**: Consider strategies for aggregating logs from different services/components into a central system for monitoring and analysis.
-- **Metrics Collection**: Instrument the application to collect key performance indicators (KPIs) and system metrics (e.g., request latency, error rates, resource usage) for monitoring and alerting.
-- **Distributed Tracing**: For microservices or complex workflows, implement distributed tracing to track requests across multiple services.
+- **Log Levels**: Use standard levels (DEBUG, INFO, WARNING, ERROR) via `pyArchimate.logger`. WARNING and above indicate actionable problems (broken references, invalid relationships).
+- **Centralized config**: All logging configuration is routed through `helpers/logging.py`; never call `logging.basicConfig()` inside library code.
 
 ## Continuous Integration and Continuous Deployment (CI/CD)
 
@@ -299,14 +226,6 @@ The following patterns were established during the P3 notation support implement
 paths = ["tests/features/"]
 tags = ["not @wip"]
 ```
-
-## API Design Principles
-
-- **RESTful Conventions**: Adhere to RESTful principles for API design, including resource-based URLs, appropriate HTTP methods (GET, POST, PUT, DELETE), and status codes.
-- **API Versioning**: Implement a clear versioning strategy (e.g., URL path versioning) for managing API evolution.
-- **Authentication and Authorization**: Define secure mechanisms for authenticating API consumers and authorizing access to resources.
-- **Data Validation**: Utilize `Pydantic V2` for request and response data validation to ensure data integrity.
-- **State Transition Enforcement**: When designing APIs for entities modeled as FSMs, use Pydantic models to define valid states and enforce transition rules. Prefer action-based endpoints (e.g., `/resource/{id}/action`) that trigger state changes as side-effects, rather than direct state updates, to maintain workflow integrity.
 
 ## Project Configuration
 
@@ -326,17 +245,15 @@ tags = ["not @wip"]
 
 ## Utilities and Frameworks
 
-- **Testing Frameworks**: `pytest`, `pytest-mock`, `behave` (for BDD)
-- **Linters/Formatters**: `Ruff`
-- **Dead Code Detection**: `vulture` (run with `--min-confidence 80`; add to pre-commit checks)
-- **Type Checkers**: `MyPy`, `PyRight`
-- **Build/Dependency Management**: This repository uses Poetry for dependency/deployment scripts, so prefer `poetry install`, `poetry run`, and pipeline scripts defined in `pyproject.toml`. Keep `requirements.txt` in sync with `pyproject.toml`. Fall back to `uv` only when Poetry lacks the needed capability or when a spec explicitly says so.
-- **Package Installation/Running**: `UV`
-- **API Framework**: `FastAPI`
-- **UI Frameworks**: `Streamlit`, `Chainlit` (for building interactive UIs and LLM-based applications)
-- **Messaging/Orchestration**: `CrewAI` (implied by usage context)
-- **Utilities for LLM**: `LiteLLM`
-- **Data Validation**: `Pydantic V2`
+- **Testing Frameworks**: `pytest`, `pytest-mock`, `behave` (for BDD), `pytest-asyncio`, `pytest-cov`
+- **Linters/Formatters**: `Ruff` (rules: E, F, W, B, C, I, S110, A, N, ARG, UP; max-complexity 15)
+- **Dead Code Detection**: `vulture` (run with `--min-confidence 80`)
+- **Type Checkers**: `MyPy` (strict mode, `disallow_untyped_defs/calls` currently disabled — see `009-quality-uplift`), `PyRight` (basic mode)
+- **Markdown Linting**: `pymarkdownlnt`
+- **Build/Dependency Management**: Poetry — prefer `poetry install`, `poetry run`, and pipeline scripts defined in `pyproject.toml`. Keep `requirements.txt` in sync via the push-stage pre-commit hook. Fall back to `uv` only when Poetry lacks the needed capability.
+- **XML Processing**: `lxml`
+- **YAML**: `oyaml`
+- **Image Handling**: `pillow`
 
 ### Python Specifics
 

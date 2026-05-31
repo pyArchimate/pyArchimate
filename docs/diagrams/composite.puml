@@ -103,6 +103,7 @@ object Node {
   - _area : int {w * h, cached}
   - nodes_dict : dict[str, Node] {nested children}
   - _view : View
+  - _model : Model
   - parent : Node | View
 }
 

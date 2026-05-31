@@ -23,8 +23,8 @@ This document captures the buyer/super-user value that pyArchimate provides: kee
 - **Property embedding and validation utilities**  
   `Model.embed_props`/`expand_props` allow Archimate properties to be serialized into descriptions for downstream tools that lack property support, while validation helpers (`check_invalid_conn`, `check_invalid_nodes`) catch orphans before export.
 
-- **Logging and CLI helpers**  
-  `pyArchimate.logger` exposes centralized logging configuration for scripts/tests. Example scripts (e.g., `tests/examples/Archi2Aris.py`) demonstrate CLI usage and conversion flows.
+- **Logging helpers**  
+  `pyArchimate.logger` exposes centralized logging configuration for scripts/tests. Example scripts (e.g., `tests/legacy_examples/Archi2Aris.py`) demonstrate conversion flows.
 
 - **Documentation and diagrams**  
   PlantUML sources plus the `docs/diagrams.rst` manifesto keep architecture visuals and PlantUML renders in sync with the codebase, helping contributors understand the component, container, context, and lifecycle narratives.
@@ -33,18 +33,19 @@ This document captures the buyer/super-user value that pyArchimate provides: kee
 
 - **Supported readers**: Archi `.archimate` files, Open Group Archimate OEF XML, ARIS AML documents. Any format beyond those requires new reader adapters.
 - **Supported writers**: Archi `.archimate`, Archimate OEF XML, and CSV exports (tabular views + relationships). Writers accept a `Model` and respect view/node positioning captured in the model objects.
-- **Fixtures**: Sample models/diagrams live in `tests/integration/fixtures`, and example conversions (`Archi2Aris.py`) demonstrate CLI invocations against those XML files.
+- **Fixtures**: Sample models/diagrams live in `tests/fixtures/`, and example conversions (`tests/legacy_examples/Archi2Aris.py`) demonstrate invocations against those files.
 
 ## Architectural Context
 
-- `src/pyArchimate/pyArchimate.py` contains the core classes and shared helpers; future refactors should carve this into focused modules (`model.py`, `element.py`, etc.) as per the constitution additions. Reader/writer modules import from these core classes but otherwise focus on XML/CSV parsing.
-- Tests are split into `tests/unit` for lightweight core checks, `tests/integration` for file-based flows, and `tests/examples` for conversion scripts, providing coverage across the major pipelines.
+- `src/pyArchimate/pyArchimate.py` is a compatibility shim (re-exports only); all core logic lives in `model.py`, `element.py`, `relationship.py`, `view/`, `readers/`, `writers/`, and `helpers/`. Reader/writer modules import from these core classes and focus on XML/CSV parsing.
+- Tests are split into `tests/unit` for lightweight core checks, `tests/integration` for file-based flows, `tests/legacy_examples` for conversion scripts, `tests/security` for security checks, and `tests/features` for BDD acceptance scenarios, providing coverage across the major pipelines.
 - Documentation builds (`scripts/create_documentation.sh`) produce Sphinx artifacts after regenerating the PlantUML diagrams, ensuring user-facing docs reflect the current architecture.
 
-## Refactoring & Modularity
+## Modularity
 
-- Split the current `src/pyArchimate/pyArchimate.py` into dedicated modules (`model.py`, `element.py`, `relationship.py`, etc.) before adding new functionality; re-export the public API through `pyArchimate/__init__.py` so existing imports continue to work.
-- Modularization should preserve encapsulated helper state (properties, dictionaries) and keep readers/writers/tests aligned with the same shared classes.
+- The modularization of `pyArchimate.py` is complete. `pyArchimate.py` is now a 50-line re-export shim; all logic lives in dedicated modules.
+- Any new functionality must go into the appropriate module (`model.py`, `element.py`, `view/`, etc.), not into `pyArchimate.py`.
+- Readers, writers, and tests must import from the dedicated modules; `pyArchimate.py` is only for user-facing `from pyArchimate import *` compatibility.
 
 ## Traceability
 
