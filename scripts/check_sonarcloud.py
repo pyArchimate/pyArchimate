@@ -57,8 +57,9 @@ def _fetch_issues() -> dict:
     ssl_context = ssl.create_default_context()
     try:
         import certifi
+
         ssl_context.load_verify_locations(certifi.where())
-    except ImportError:
+    except ImportError:  # noqa: S110
         pass
     with urllib.request.urlopen(req, timeout=30, context=ssl_context) as resp:  # noqa: S310
         return json.loads(resp.read().decode())
