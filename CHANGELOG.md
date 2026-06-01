@@ -1,3 +1,15 @@
+## v1.11.1 (2026-06-01)
+
+### Fix
+
+- add F811 noqa comments to tutorial notebook cells
+- **element**: store UUID instead of name in set_profile for existing profiles
+- **test**: replace stdlib ET with lxml to prevent XXE in SVG parser
+
+### Refactor
+
+- **tests**: mirror src package structure in tests/unit/
+
 ## v1.11.0 (2026-05-31)
 
 ### Feat
