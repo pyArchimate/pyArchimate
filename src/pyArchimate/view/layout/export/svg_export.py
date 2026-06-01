@@ -28,9 +28,9 @@ class SVGExportService:
     ENDPOINT_SPREAD_STEP = 12.0  # pixels between parallel connection anchors
     EDGE_CORNER_MARGIN = 12.0  # keep endpoint spread away from corners
 
-    def __init__(self) -> None:
+    def __init__(self, show_stereotypes: bool = False) -> None:
         """Initialize SVG export service."""
-        pass
+        self.show_stereotypes = show_stereotypes
 
     def _sort_nodes_by_hierarchy(self, view: Any) -> list[Any]:
         """Sort nodes so that containing elements render before contained elements.
@@ -725,7 +725,28 @@ class SVGExportService:
             else:
                 self._render_wrapped_text(g, element_name, x + w / 2, y + h / 2, w - 8, is_centered=True)
 
+        if self.show_stereotypes:
+            concept = getattr(node, "concept", None)
+            profile = concept.profile_name if concept is not None else None
+            if profile:
+                self._render_stereotype(g, profile, x, y, w)
+
         return g
+
+    def _render_stereotype(self, parent: ET.Element, profile: str, x: float, y: float, w: float) -> None:
+        """Render a stereotype label «profile» above the element name."""
+        ET.SubElement(
+            parent,
+            "text",
+            {
+                "x": str(x + w / 2),
+                "y": str(y + 12),
+                "text-anchor": "middle",
+                "font-size": "9",
+                "font-style": "italic",
+                "class": "stereotype",
+            },
+        ).text = f"«{profile}»"
 
     def _render_topleft_text(self, parent: ET.Element, node: Any, x: float, y: float, w: float) -> None:
         """Render text label at top-left for Grouping/Group elements.

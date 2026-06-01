@@ -1377,20 +1377,22 @@ class View:
             return self.add_connection(r, source, target)
         return None
 
-    def to_svg(self, filepath: str | None = None) -> str:
+    def to_svg(self, filepath: str | None = None, show_stereotypes: bool = False) -> str:
         """Export view to SVG string and optionally write to file.
 
         Args:
             filepath: Optional path to write SVG file to. If provided, SVG is
                      written to this file path. If None, only the SVG string
                      is returned.
+            show_stereotypes: If True, render each element's profile name as a
+                     «stereotype» label above the element name.
 
         Returns:
             SVG string (valid XML with <svg> root element)
         """
         from .layout.export import SVGExportService
 
-        service = SVGExportService()
+        service = SVGExportService(show_stereotypes=show_stereotypes)
         return service.to_svg(self, filepath)
 
 
