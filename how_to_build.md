@@ -84,6 +84,12 @@ bash scripts/render_diagrams.sh
 claude -p "Review @AI.md for accuracy since the last release tag version." --dangerously-skip-permissions
 ```
 
+### 4b. Review and update tutorial
+
+```bash
+claude -p "Review @docs/tutorial/tutorial.md and @docs/tutorial/tutorial.ipynb against changes since the last release tag. Update any code examples, API references, or version references that are no longer accurate." --dangerously-skip-permissions
+```
+
 ### 5. Review spec documents for accuracy
 
 ```bash
@@ -144,10 +150,10 @@ git push origin master --tags
 
 ### 12. Create GitHub release
 
-Ask Claude to draft release notes based on the v1.8.0 release as a template:
+Ask Claude to draft release notes based on the previous release as a template:
 
 ```
-Look at the v1.8.0 release, particularly the text provided as part of the release,
+Look at the v<PREV_VERSION> release, particularly the text provided as part of the release,
 and do the same for v<NEW_VERSION>. I typically ask for a subject line and summary
 of all commits since the last release.
 ```

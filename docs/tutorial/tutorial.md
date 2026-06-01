@@ -1,6 +1,6 @@
 # pyArchimate Tutorial
 
-Minimum supported version: pyArchimate 1.0.x (Python 3.10+)
+Written for pyArchimate 1.11.0 (Python 3.10+)
 
 This tutorial covers the core operations of pyArchimate: creating, loading,
 inspecting, modifying, and saving ArchiMate models.
@@ -574,6 +574,114 @@ log_set_level(logging.DEBUG)
 
 # Send log output to stderr (useful in scripts that pipe stdout)
 log_to_stderr()
+```
+
+---
+
+## 20. Auto-Layout
+
+`auto_layout()` automatically positions all nodes in a view using a
+force-directed algorithm. Pass all nodes at the same coordinates and let
+pyArchimate spread them into a readable diagram. `auto_route()` then routes
+connections orthogonally around obstacles. Both are imported from
+`pyArchimate.view.layout` and return a `LayoutResult` with a `success` flag.
+
+```python
+from pyArchimate import Model, ArchiType
+from pyArchimate.view.layout import auto_layout, auto_route
+
+model = Model("layout demo")
+hub  = model.add(ArchiType.ApplicationComponent, "API Gateway")
+svc1 = model.add(ArchiType.ApplicationService,  "Auth")
+svc2 = model.add(ArchiType.ApplicationService,  "Orders")
+svc3 = model.add(ArchiType.ApplicationService,  "Search")
+
+rel1 = model.add_relationship(ArchiType.Serving, source=hub, target=svc1)
+rel2 = model.add_relationship(ArchiType.Serving, source=hub, target=svc2)
+rel3 = model.add_relationship(ArchiType.Serving, source=hub, target=svc3)
+
+view = model.add(ArchiType.View, "Gateway View")
+node_hub = view.add(hub,  x=0, y=0, w=120, h=55)
+ns1      = view.add(svc1, x=0, y=0, w=120, h=55)
+ns2      = view.add(svc2, x=0, y=0, w=120, h=55)
+ns3      = view.add(svc3, x=0, y=0, w=120, h=55)
+view.add_connection(rel1, source=node_hub, target=ns1)
+view.add_connection(rel2, source=node_hub, target=ns2)
+view.add_connection(rel3, source=node_hub, target=ns3)
+
+# Automatically position nodes
+layout_result = auto_layout(view)
+print(f"Layout succeeded: {layout_result.success}")          # True
+print(f"Nodes repositioned: {layout_result.elements_processed}")  # 4
+
+# Automatically route connections around obstacles
+route_result = auto_route(view)
+print(f"Routing succeeded: {route_result.success}")          # True
+print(f"Connections routed: {route_result.connections_processed}")  # 3
+
+print(f"Hub node x after layout: {node_hub.x}")  # non-zero after layout
+```
+
+---
+
+## 21. SVG Export
+
+`view.to_svg()` returns an SVG string for a single view. `model.write()` with
+a `.svg` path writes the first view to an SVG file. SVG output includes
+ArchiMate-compliant element symbols and icons.
+
+```python
+from pyArchimate import Model, ArchiType
+
+model = Model("svg demo")
+app = model.add(ArchiType.ApplicationComponent, "Order Service")
+svc = model.add(ArchiType.ApplicationService, "Place Order")
+rel = model.add_relationship(ArchiType.Serving, source=app, target=svc)
+
+view = model.add(ArchiType.View, "App Layer")
+node_app = view.add(app, x=0,   y=0, w=120, h=55)
+node_svc = view.add(svc, x=200, y=0, w=120, h=55)
+view.add_connection(rel, source=node_app, target=node_svc)
+
+# Get SVG as a string
+svg_string = view.to_svg()
+print(f"SVG starts with: {svg_string.strip()[:4]}")  # <svg
+
+# Write SVG to a file
+model.write("app_layer.svg")
+```
+
+---
+
+## 22. Duplicating Views
+
+`view.duplicate()` creates an independent copy of a view — same nodes,
+connections, and styling — and registers it in the model. Pass an optional
+name string; if omitted the copy is named `"<original> (copy)"`.
+
+```python
+from pyArchimate import Model, ArchiType
+
+model = Model("duplicate demo")
+app = model.add(ArchiType.ApplicationComponent, "Order Service")
+svc = model.add(ArchiType.ApplicationService, "Place Order")
+rel = model.add_relationship(ArchiType.Serving, source=app, target=svc)
+
+view = model.add(ArchiType.View, "App Layer")
+node_app = view.add(app, x=0,   y=0, w=120, h=55)
+node_svc = view.add(svc, x=200, y=0, w=120, h=55)
+view.add_connection(rel, source=node_app, target=node_svc)
+
+# Duplicate with auto-generated name
+copy = view.duplicate()
+print(f"Copy name: {copy.name}")          # App Layer (copy)
+print(f"Copy nodes: {len(copy.nodes)}")   # 2
+print(f"Copy conns: {len(copy.conns)}")   # 1
+print(f"Total views: {len(model.views)}") # 2
+
+# Duplicate with a custom name
+draft = view.duplicate("App Layer — Draft")
+print(f"Draft name: {draft.name}")        # App Layer — Draft
 ```
 
 ---

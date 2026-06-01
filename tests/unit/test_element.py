@@ -128,8 +128,14 @@ def test_element_set_profile_reuses_existing(model_with_elem):
     m, e = model_with_elem
     m.add_profile(name="Existing", concept=ArchiType.ApplicationComponent)
     e.set_profile("Existing")
-    # profile_name returns model profile name looked up by uuid — uuid stored is the profile name here
-    assert e._profile is not None
+    assert e.profile_id is not None
+
+
+def test_element_set_profile_reuses_existing_resolves_name(model_with_elem):
+    m, e = model_with_elem
+    m.add_profile(name="Existing", concept=ArchiType.ApplicationComponent)
+    e.set_profile("Existing")
+    assert e.profile_name == "Existing"
 
 
 def test_element_reset_profile(model_with_elem):
