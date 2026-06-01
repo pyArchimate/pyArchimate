@@ -298,7 +298,7 @@ class Element:
         Raises:
             No exceptions are explicitly raised in this method.
         """
-        n = [x.name for x in self.model.profiles if x.name == profile_name]
+        n = [x.uuid for x in self.model.profiles if x.name == profile_name]
         if len(n) == 1:
             self._profile = n[0]
         else:
