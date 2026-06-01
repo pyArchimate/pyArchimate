@@ -133,6 +133,7 @@ class View {
   --
   {readonly} nodes: list[Node]
   {readonly} conns: list[Connection]
+  {readonly} nodes_dict: dict[str, Node]
   --
   + add(ref, x, y, w, h, ...) : Node
   + add_connection(ref, source, target, ...) : Connection

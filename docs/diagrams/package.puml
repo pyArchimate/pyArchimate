@@ -22,11 +22,11 @@ package "pyArchimate" {
     package "layout" as LayoutPkg {
       class "__init__.py" as LayoutInit {
         {public API}
-        auto_layout(view, config)
-        auto_route(view, config)
-        apply_layout(view, config)
-        apply_format(view, config)
-        undo_layout(view)
+        auto_layout(view, config) : LayoutResult
+        auto_route(view, config) : LayoutResult
+        apply_layout(view, config) : LayoutResult
+        apply_format(view, config) : LayoutResult
+        undo_layout(view) : LayoutResult
       }
       class "core.py" as LayoutCore {
         class NodeMove
@@ -50,6 +50,10 @@ package "pyArchimate" {
         }
       }
       package "export" {
+        class "__init__.py" as ExportInit {
+          {public API}
+          SVGExportService
+        }
         class "svg_export.py" as SvgExport {
           class SVGExportService
         }
@@ -177,6 +181,6 @@ ElementMod --> Enums : uses
 RelationshipMod --> Enums : uses
 ViewInit --> Enums : uses
 
-ViewInit --> LayoutPkg : delegates SVG export
+ViewInit --> LayoutPkg : delegates layout and SVG export
 
 @enduml

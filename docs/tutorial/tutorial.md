@@ -216,7 +216,7 @@ from pyArchimate import (
 
 # Query the default relationship between two element types
 default = get_default_rel_type("ApplicationComponent", "ApplicationService")
-print(f"The default relationship between 'ApplicationComponent' and 'ApplicationService' is: '{default}'")  # Serving
+print(f"The default relationship between 'ApplicationComponent' and 'ApplicationService' is: '{default}'")  # Realization
 
 # Validate a specific combination (returns silently if valid)
 check_valid_relationship(
