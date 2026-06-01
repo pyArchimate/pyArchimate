@@ -1828,6 +1828,13 @@ class SVGExportService:
         Returns:
             Short type name
         """
+        # conn.type returns an ArchiType enum; extract its value string
+        if hasattr(rel_type, "value"):
+            rel_type = rel_type.value
+        rel_type = str(rel_type)
+        # Strip "ArchiType." enum prefix if present (e.g. "ArchiType.Influence")
+        if rel_type.startswith("ArchiType."):
+            rel_type = rel_type[len("ArchiType."):]
         if rel_type.endswith("Relationship"):
             return rel_type[: -len("Relationship")]
         return rel_type
