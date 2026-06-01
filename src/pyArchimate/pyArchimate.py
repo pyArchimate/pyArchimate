@@ -24,6 +24,7 @@ from .enums import TextPosition as TextPosition
 from .enums import Writers as Writers
 from .exceptions import ArchimateConceptTypeError as ArchimateConceptTypeError
 from .exceptions import ArchimateRelationshipError as ArchimateRelationshipError
+from .helpers.diagram import apply_profile_styles as apply_profile_styles
 from .helpers.diagram import get_or_create_connection as get_or_create_connection
 from .helpers.diagram import get_or_create_node as get_or_create_node
 from .helpers.logging import log as log
