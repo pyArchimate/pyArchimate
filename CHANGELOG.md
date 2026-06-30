@@ -1,3 +1,10 @@
+## v1.11.2 (2026-06-30)
+
+### Fix
+
+- resolve SonarCloud SSL cert and poetry plugin issues
+- add certifi SSL certificate bundle to SonarCloud check script
+
 ## v1.11.1 (2026-06-01)
 
 ### Fix
