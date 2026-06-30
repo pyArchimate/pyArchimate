@@ -51,14 +51,14 @@ typing-extensions = ">=4.5.0"
 
 [[package]]
 name = "application-properties"
-version = "0.9.2"
+version = "0.9.3"
 description = "A simple, easy to use, unified manner of accessing program properties."
 optional = false
 python-versions = ">=3.10.0"
 groups = ["lint"]
 files = [
-    {file = "application_properties-0.9.2-py3-none-any.whl", hash = "sha256:503388017a8d12436ba0914c8d24820adf658f765f9ac7dc9dc77a4733115238"},
-    {file = "application_properties-0.9.2.tar.gz", hash = "sha256:d8e7858bbf72c9d834117d74f561efb65d31e5193f1a5e803d6adc2d556c8465"},
+    {file = "application_properties-0.9.3-py3-none-any.whl", hash = "sha256:32dbd62b3fb657ec1c7fdc352590463c2ffd14950ffd258a5c091e8798d8aec0"},
+    {file = "application_properties-0.9.3.tar.gz", hash = "sha256:7dc7d8f23d11e539427e7b8e3afa70353e159c16f703bad6dd082cc6cdfeeaa8"},
 ]
 
 [package.dependencies]
@@ -2984,19 +2984,19 @@ files = [
 
 [[package]]
 name = "pymarkdownlnt"
-version = "0.9.37"
+version = "0.9.38"
 description = "A GitHub Flavored Markdown compliant Markdown linter."
 optional = false
 python-versions = ">=3.10.0"
 groups = ["lint"]
 files = [
-    {file = "pymarkdownlnt-0.9.37-py3-none-any.whl", hash = "sha256:1dc7296f9bf96c26736571b3b73311e516dbaf8ec587c3539fdf63c8d30f66e6"},
-    {file = "pymarkdownlnt-0.9.37.tar.gz", hash = "sha256:d0d7882ae08263a12130b159c1a27a728630b1b53bb75246f2f61f81b9289fd9"},
+    {file = "pymarkdownlnt-0.9.38-py3-none-any.whl", hash = "sha256:37eda39c2ba0d5be10abe0d1150e4564b08cd26a3570b1575a972db5a423aa39"},
+    {file = "pymarkdownlnt-0.9.38.tar.gz", hash = "sha256:bd79a2cef3a90652135672272b20aabb8f5db8dd870983ee8710f7daf64a74a7"},
 ]
 
 [package.dependencies]
 application-file-scanner = ">=0.6.4"
-application-properties = ">=0.9.2"
+application-properties = ">=0.9.3"
 columnar = ">=1.4.0"
 py-walk = ">=0.3.3"
 typing-extensions = ">=4.5.0"
@@ -4364,4 +4364,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "3f91ec125fdbb908f96946663105be2e2563065fe464cd5e59bd10ba676b966c"
+content-hash = "61337d0b6e4d0dd8a3e5c4d89829d94ff0a1d6f8a1a9da813b6fd09468a6ba94"
