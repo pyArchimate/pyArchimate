@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import ssl
 import sys
 import urllib.error
 import urllib.request
@@ -53,7 +54,14 @@ def _fetch_issues() -> dict:
 
         credentials = base64.b64encode(f"{token}:".encode()).decode()
         req.add_header("Authorization", f"Basic {credentials}")
-    with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
+    ssl_context = ssl.create_default_context()
+    try:
+        import certifi
+
+        ssl_context.load_verify_locations(certifi.where())
+    except ImportError:  # noqa: S110
+        pass
+    with urllib.request.urlopen(req, timeout=30, context=ssl_context) as resp:  # noqa: S310
         return json.loads(resp.read().decode())
 
 
