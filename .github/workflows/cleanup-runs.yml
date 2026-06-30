@@ -1,0 +1,54 @@
+name: Cleanup old workflow runs
+
+on:
+  schedule:
+    - cron: "0 3 * * 0"  # weekly, Sunday 03:00 UTC
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Delete runs older than N days"
+        default: "30"
+        required: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+
+    steps:
+      - name: Delete workflow runs older than ${{ inputs.days || 30 }} days
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const days = parseInt(core.getInput('days') || '${{ inputs.days || 30 }}');
+            const cutoff = new Date(Date.now() - days * 86400 * 1000);
+
+            const workflows = await github.paginate(
+              github.rest.actions.listRepoWorkflows,
+              { owner: context.repo.owner, repo: context.repo.repo }
+            );
+
+            let deleted = 0;
+            for (const wf of workflows) {
+              const runs = await github.paginate(
+                github.rest.actions.listWorkflowRuns,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  workflow_id: wf.id,
+                  per_page: 100,
+                }
+              );
+              for (const run of runs) {
+                if (new Date(run.created_at) < cutoff) {
+                  await github.rest.actions.deleteWorkflowRun({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    run_id: run.id,
+                  });
+                  deleted++;
+                }
+              }
+            }
+            core.info(`Deleted ${deleted} workflow run(s) older than ${days} days.`);
