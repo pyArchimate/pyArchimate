@@ -1,3 +1,11 @@
+## v1.11.3 (2026-07-18)
+
+### Fix
+
+- resolve 17 SonarCloud issues (S5779, S3415, S5778)
+- **deps**: add missing docs transitive deps to requirements.txt
+- **deps**: re-enable requirements-sync pre-push hook
+
 ## v1.11.2 (2026-06-30)
 
 ### Fix
