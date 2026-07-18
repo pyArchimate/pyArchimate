@@ -841,17 +841,18 @@ def validate_symbols() -> tuple[int, int]:
     invalid = 0
 
     for element_type, symbol in ARCHIMATE_SYMBOLS.items():
-        try:
-            assert symbol.svg_path and len(symbol.svg_path) > 0
-            assert symbol.viewBox.startswith(("0 0", "-"))
-            assert len(symbol.bounding_box) == 4
-            assert (
-                symbol.default_color.startswith("#")
-                and len(symbol.default_color) == 7
+        if (
+            symbol.svg_path
+            and len(symbol.svg_path) > 0
+            and symbol.viewBox.startswith(("0 0", "-"))
+            and len(symbol.bounding_box) == 4
+            and (
+                (symbol.default_color.startswith("#") and len(symbol.default_color) == 7)
                 or symbol.default_color == "none"
             )
+        ):
             valid += 1
-        except AssertionError:
+        else:
             print(f"Invalid symbol: {element_type}")
             invalid += 1
 

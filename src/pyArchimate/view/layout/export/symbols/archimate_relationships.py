@@ -195,13 +195,15 @@ class RelationshipStyleService:
         invalid = 0
 
         for rel_type, style in self.styles.items():
-            try:
-                assert style.stroke_color.startswith("#") and len(style.stroke_color) == 7
-                assert style.stroke_width > 0
-                assert style.marker_end is not None
-                assert style.arrow_type in ("filled", "hollow", "double", "diamond", "circle")
+            if (
+                style.stroke_color.startswith("#")
+                and len(style.stroke_color) == 7
+                and style.stroke_width > 0
+                and style.marker_end is not None
+                and style.arrow_type in ("filled", "hollow", "double", "diamond", "circle")
+            ):
                 valid += 1
-            except AssertionError:
+            else:
                 print(f"Invalid style: {rel_type}")
                 invalid += 1
 

@@ -118,7 +118,7 @@ class TestNoNodePositionChange:
         view = make_view(nodes, [conn])
         auto_route(view)
         for n in nodes:
-            assert (n.x, n.y) == original[n.uuid], f"Node {n.uuid} position changed by auto_route"
+            assert original[n.uuid] == (n.x, n.y), f"Node {n.uuid} position changed by auto_route"
 
 
 # ---------------------------------------------------------------------------
@@ -394,7 +394,7 @@ class TestAllowNodeMoveFalse:
         assert result.success is True
         assert result.node_moves == [], "node_moves must be empty when allow_node_move=False"
         for n in [src, tgt, blocker]:
-            assert (n.x, n.y) == before[n.uuid], f"Node {n.uuid} position changed unexpectedly"
+            assert before[n.uuid] == (n.x, n.y), f"Node {n.uuid} position changed unexpectedly"
 
     def test_default_routing_config_has_allow_node_move_false(self) -> None:
         """P2-T27: RoutingConfig.allow_node_move defaults to False (SC-010 preserved)."""

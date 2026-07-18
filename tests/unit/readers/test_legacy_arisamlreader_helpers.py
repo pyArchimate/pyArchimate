@@ -365,8 +365,9 @@ def test_parse_labels_in_view_raises_on_wrong_view_type():
 
     model = _make_model()
     model.labels_dict = {}
+    elem = etree.Element("G")
     with pytest.raises(ArchimateConceptTypeError):
-        parse_labels_in_view(etree.Element("G"), "not-view", model, 1.0, 1.0)  # type: ignore[arg-type]
+        parse_labels_in_view(elem, "not-view", model, 1.0, 1.0)  # type: ignore[arg-type]
 
 
 def test_parse_labels_in_view_adds_label_node():

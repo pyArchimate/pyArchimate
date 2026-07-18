@@ -442,8 +442,9 @@ def test_relationship_init_invalid_parent_raises():
     class FakeParent:
         pass
 
+    fake_parent = FakeParent()
     with pytest.raises(ValueError, match="class Model instance"):
-        Relationship(parent=FakeParent())
+        Relationship(parent=fake_parent)
 
 
 # ---------------------------------------------------------------------------

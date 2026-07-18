@@ -55,13 +55,10 @@ class TestSingleImageRoundTrip:
         # Verify it's valid base64 (can be decoded)
         import base64
 
-        try:
-            decoded = base64.b64decode(img_data)
-            assert len(decoded) > 0  # Should decode to something
-            # This is actually a 1x1 PNG, verify minimal PNG structure
-            assert decoded[:8] == b"\x89PNG\r\n\x1a\n"  # PNG magic number
-        except Exception as e:
-            raise AssertionError(f"Invalid base64 image data: {e}") from e
+        decoded = base64.b64decode(img_data)
+        assert len(decoded) > 0  # Should decode to something
+        # This is actually a 1x1 PNG, verify minimal PNG structure
+        assert decoded[:8] == b"\x89PNG\r\n\x1a\n"  # PNG magic number
 
     def test_view_documentation_with_image(self):
         """Test that view documentation is preserved alongside image."""
@@ -142,13 +139,10 @@ class TestMultipleImagesRoundTrip:
         import base64
 
         for i, img_data in enumerate(images):
-            try:
-                decoded = base64.b64decode(img_data)
-                assert len(decoded) > 0
-                # Both are PNG files
-                assert decoded[:8] == b"\x89PNG\r\n\x1a\n", f"Image {i} is not a valid PNG"
-            except Exception as e:
-                raise AssertionError(f"Image {i} has invalid base64 data: {e}") from e
+            decoded = base64.b64decode(img_data)
+            assert len(decoded) > 0
+            # Both are PNG files
+            assert decoded[:8] == b"\x89PNG\r\n\x1a\n", f"Image {i} is not a valid PNG"
 
     def test_view_documentation_with_multiple_images(self):
         """Test that view documentation is preserved with multiple images."""

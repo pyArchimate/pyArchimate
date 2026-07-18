@@ -83,7 +83,7 @@ class TestRoutingDoesNotTouchNodePositions:
         auto_route(view)
 
         for n in nodes:
-            assert (n.x, n.y) == original_positions[n.uuid], f"auto_route changed position of node {n.uuid}"
+            assert original_positions[n.uuid] == (n.x, n.y), f"auto_route changed position of node {n.uuid}"
 
 
 class TestIdempotentLayout:
