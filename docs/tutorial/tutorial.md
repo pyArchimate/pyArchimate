@@ -1,6 +1,6 @@
 # pyArchimate Tutorial
 
-Written for pyArchimate 1.11.0 (Python 3.10+)
+Written for pyArchimate 1.11.2 (Python 3.10+)
 
 This tutorial covers the core operations of pyArchimate: creating, loading,
 inspecting, modifying, and saving ArchiMate models.
