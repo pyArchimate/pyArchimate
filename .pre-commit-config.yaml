@@ -49,14 +49,12 @@ repos:
         pass_filenames: false
         stages: [pre-push]
 
-      # NOTE: requirements-sync disabled due to Homebrew idna blocking poetry-plugin-export
-      # Run manually during releases: poetry export --without-hashes --with docs -o requirements.txt
-      # - id: requirements-sync
-      #   name: sync requirements.txt
-      #   entry: poetry export --without-hashes --with docs --format=requirements.txt --output requirements.txt
-      #   language: system
-      #   pass_filenames: false
-      #   stages: [pre-push]
+      - id: requirements-sync
+        name: sync requirements.txt
+        entry: poetry export --without-hashes --with docs --format=requirements.txt --output requirements.txt
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
 
       - id: behave
         name: BDD acceptance tests
