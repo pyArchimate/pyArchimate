@@ -6,17 +6,14 @@ import os
 import tempfile
 from types import SimpleNamespace
 from typing import cast
-from xml.etree import ElementTree as ET
 
 import pytest
 
 from src.pyArchimate import ArchiType
-from src.pyArchimate.enums import ArchiType as AT
 from src.pyArchimate.model import Model
 from src.pyArchimate.view import View
 from src.pyArchimate.view.layout.export.svg_export import SVGExportService
 from src.pyArchimate.view.layout.export.symbols.archimate_relationships import RelationshipStyleService
-
 
 # ---------------------------------------------------------------------------
 # Shared helpers
