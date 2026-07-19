@@ -1,3 +1,23 @@
+## v1.12.0 (2026-07-19)
+
+### Feat
+
+- **view,svg,writer**: annotation connectors, note rendering, safer Connection properties
+- **model,view,rel**: connection auto-resolve, view.adjust, metamodel validation, Profile passthrough
+- **svg**: profile styles, stereotype labels, and SVG fidelity fixes (#117)
+
+### Fix
+
+- **test**: use context manager for file read in test_file_write
+- **ci**: add codecov config with 70% patch target; mark dead routing code no cover
+- **model**: correct inverted condition and misindented _ok=False in connection checks
+
+### Refactor
+
+- **view**: re-extract _auto_resolve_endpoints to fix S3776 complexity
+- **view**: extract _auto_resolve_endpoints to reduce add_connection complexity
+- extract helpers to reduce cognitive complexity below S3776 limit
+
 ## v1.11.3 (2026-07-18)
 
 ### Fix
