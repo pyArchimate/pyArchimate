@@ -1834,7 +1834,7 @@ class SVGExportService:
         rel_type = str(rel_type)
         # Strip "ArchiType." enum prefix if present (e.g. "ArchiType.Influence")
         if rel_type.startswith("ArchiType."):
-            rel_type = rel_type[len("ArchiType."):]
+            rel_type = rel_type[len("ArchiType.") :]
         if rel_type.endswith("Relationship"):
             return rel_type[: -len("Relationship")]
         return rel_type

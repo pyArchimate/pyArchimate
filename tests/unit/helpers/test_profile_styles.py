@@ -151,9 +151,11 @@ def test_apply_profile_styles_grandchild_node_styled(model_with_view):
 
 def test_apply_profile_styles_importable_from_helpers():
     from src.pyArchimate.helpers import apply_profile_styles as fn
+
     assert callable(fn)
 
 
 def test_apply_profile_styles_importable_from_pyarchimate():
     from src.pyArchimate import apply_profile_styles as fn
+
     assert callable(fn)
