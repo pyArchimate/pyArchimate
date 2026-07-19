@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import tempfile
+import xml.etree.ElementTree as ET
 from types import SimpleNamespace
 from typing import cast
 
@@ -441,6 +442,43 @@ class TestComputeEndpointSpreads:
         # to_svg must complete without error and produce SVG
         svg_str = svc.to_svg(v)
         assert "<svg" in svg_str
+
+
+# ---------------------------------------------------------------------------
+# _render_note + Label branch in _render_node_into
+# ---------------------------------------------------------------------------
+
+
+class TestRenderNote:
+    def test_label_node_renders_folded_corner_paths(self, svc):
+        m = Model("T")
+        v = cast(View, m.add(ArchiType.View, "V"))
+        v.add(ref=None, node_type="Label", label="See also:", x=10, y=10, w=120, h=40)
+        svg_str = svc.to_svg(v)
+        assert "<path" in svg_str
+        assert "See also:" in svg_str
+
+    def test_label_node_fill_color_override(self, svc):
+        m = Model("T")
+        v = cast(View, m.add(ArchiType.View, "V"))
+        n = v.add(ref=None, node_type="Label", label="Note", x=10, y=10, w=120, h=40)
+        n.fill_color = "#FF0000"
+        svg_str = svc.to_svg(v)
+        assert "#FF0000" in svg_str
+
+    def test_render_note_directly_produces_two_paths_and_text(self, svc):
+        g = ET.Element("g")
+        node = SimpleNamespace(fill_color=None, label="Test note")
+        svc._render_note(g, 0.0, 0.0, 120.0, 40.0, node)
+        children = list(g)
+        assert [c.tag for c in children].count("path") == 2
+        assert any(c.tag == "text" for c in children)
+
+    def test_render_note_empty_label_no_text_element(self, svc):
+        g = ET.Element("g")
+        node = SimpleNamespace(fill_color=None, label="")
+        svc._render_note(g, 0.0, 0.0, 120.0, 40.0, node)
+        assert not any(c.tag == "text" for c in g)
 
 
 # ---------------------------------------------------------------------------

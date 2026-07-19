@@ -1525,7 +1525,6 @@ def test_model_add_with_profile_passthrough():
     """Model.add() accepts a Profile instance as concept_type (lines 314-315)."""
     m = Model("profile-passthrough")
     profile = m.add_profile("WebService", concept="ApplicationComponent")
-    # Pass the Profile object directly; add() should extract type and uuid
     elem = m.add(profile, "My Web Service")
     assert elem is not None
     assert elem.type == "ApplicationComponent"
