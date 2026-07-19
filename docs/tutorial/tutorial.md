@@ -1,6 +1,6 @@
 # pyArchimate Tutorial
 
-Written for pyArchimate 1.11.2 (Python 3.10+)
+Written for pyArchimate 1.11.3+ (Python 3.10+)
 
 This tutorial covers the core operations of pyArchimate: creating, loading,
 inspecting, modifying, and saving ArchiMate models.
@@ -138,7 +138,9 @@ rel = model.add_relationship(ArchiType.Serving, source=app, target=svc)
 view = model.add(ArchiType.View, "Application Layer")
 node_app = view.add(app, x=0, y=0, w=120, h=55)
 node_svc = view.add(svc, x=200, y=0, w=120, h=55)
-conn = view.add_connection(rel, source=node_app, target=node_svc)
+
+# Source and target are auto-resolved from nodes already in the view
+conn = view.add_connection(rel)
 
 print(f"Number of nodes in view: {len(view.nodes)}")  # 2
 print(f"Number of connections in view: {len(view.conns)}")  # 1
@@ -146,7 +148,8 @@ print(f"Number of connections in view: {len(view.conns)}")  # 1
 
 **Best practice:** Keep each view focused on a single concern or audience.
 Elements live once in the model layer; add the same element to multiple views
-rather than creating duplicates.
+rather than creating duplicates. When adding a connection, `source` and `target`
+are automatically resolved from the nodes already in the view if omitted.
 
 ---
 
@@ -203,9 +206,10 @@ print(f"Number of outbound Serving relationships: {len(outbound)}")  # 1
 ## 8. Relationship Type Validation
 
 `check_valid_relationship()` tests whether a relationship type is permitted
-between two element types under the ArchiMate rules. `get_default_rel_type()`
-returns the most appropriate relationship type for a given source/target pair.
-`model.check_invalid_conn()` audits every connection in the model at once.
+between two element types under the ArchiMate rules and returns a boolean.
+`get_default_rel_type()` returns the most appropriate relationship type for a
+given source/target pair. `model.check_invalid_conn()` audits every connection
+in the model, and `model.check_invalid_relationships()` audits all relationships.
 
 ```python
 from pyArchimate import (
@@ -218,11 +222,12 @@ from pyArchimate import (
 default = get_default_rel_type("ApplicationComponent", "ApplicationService")
 print(f"The default relationship between 'ApplicationComponent' and 'ApplicationService' is: '{default}'")  # Realization
 
-# Validate a specific combination (returns silently if valid)
-check_valid_relationship(
+# Validate a specific combination (returns bool, or raises if raise_flg=True)
+is_valid = check_valid_relationship(
     "Serving", "ApplicationComponent", "ApplicationService")
+print(f"Is valid: {is_valid}")  # True
 
-# Invalid combination raises (or logs) an error
+# Invalid combination returns False, or raises an error if raise_flg=True
 try:
     check_valid_relationship(
         "Composition", "ApplicationService", "BusinessActor", raise_flg=True
@@ -238,10 +243,14 @@ rel = model.add_relationship(ArchiType.Serving, source=app, target=svc)
 view = model.add(ArchiType.View, "App Layer")
 node_app = view.add(app, x=0, y=0, w=120, h=55)
 node_svc = view.add(svc, x=200, y=0, w=120, h=55)
-view.add_connection(rel, source=node_app, target=node_svc)
+view.add_connection(rel)
 
 invalid_conns = model.check_invalid_conn()
 print(f"Number of invalid connections: {len(invalid_conns)}")  # 0
+
+# Validate all relationships in the model
+invalid_rels = model.check_invalid_relationships()
+print(f"Number of invalid relationships: {len(invalid_rels)}")  # 0
 ```
 
 ---
@@ -459,9 +468,73 @@ print(f"Parent expanded to fit children? {node_cluster.w > 120}")  # True
 
 ---
 
+## 16. Adjusting Node Position and Size
+
+After adding a node to a view, use `view.adjust()` to move and/or resize it
+without calling `view.add()` again. Pass only the fields you want to change;
+omitted ones are left as-is. The node reference can be the Node itself, or the
+Element (or element uuid) it represents.
+
+```python
+from pyArchimate import Model, ArchiType
+
+model = Model("adjust demo")
+app = model.add(ArchiType.ApplicationComponent, "Order Service")
+
+view = model.add(ArchiType.View, "Service View")
+node_app = view.add(app, x=0, y=0, w=120, h=55)
+
+# Move the node
+view.adjust(node_app, x=100, y=50)
+print(f"Node moved to ({node_app.x}, {node_app.y})")  # (100, 50)
+
+# Resize the node
+view.adjust(app, w=180, h=80)  # Reference by element instead of node
+print(f"Node resized to {node_app.w}x{node_app.h}")  # 180x80
+
+# Change only what you need; other fields are untouched
+view.adjust(node_app, x=200)  # y, w, h remain unchanged
+print(f"Node now at ({node_app.x}, {node_app.y})")  # (200, 50)
+```
+
+---
+
+## 17. Annotation Connectors (Notes and Labels)
+
+Draw annotation-only connector lines from a label or note to other nodes using
+`view.connect_note()`. Unlike regular connections, these have no backing
+Relationship — they are purely visual annotations. Create label nodes using
+`view.add()` with `node_type="Label"`.
+
+```python
+from pyArchimate import Model, ArchiType
+
+model = Model("annotation demo")
+app = model.add(ArchiType.ApplicationComponent, "Critical Service")
+svc = model.add(ArchiType.ApplicationService, "Process Payment")
+
+rel = model.add_relationship(ArchiType.Serving, source=app, target=svc)
+
+view = model.add(ArchiType.View, "Service View")
+node_app = view.add(app, x=0, y=0, w=120, h=55)
+node_svc = view.add(svc, x=200, y=0, w=120, h=55)
+view.add_connection(rel)  # Regular relationship
+
+# Add a label node
+label_node = view.add(None, x=50, y=80, w=200, h=40, 
+                      node_type="Label", label="This service is critical to operations")
+
+# Connect the label to elements it annotates (no relationship required)
+note_conn = view.connect_note(label_node, node_app)
+print(f"Annotation connector type: {note_conn.type}")  # None (annotation-only)
+print(f"Annotation connector concept: {note_conn.concept}")  # None
+```
+
+---
+
 ## Advanced
 
-## 16. Connection Routing (Bendpoints)
+## 18. Connection Routing (Bendpoints)
 
 Connections between nodes follow a straight line by default. Add `Point`
 bendpoints to route connections around obstacles. The `l_shape()` and
@@ -479,7 +552,7 @@ rel = model.add_relationship(ArchiType.Association, source=app, target=db)
 view     = model.add(ArchiType.View, "Routing Demo")
 node_app = view.add(app, x=0,   y=0,   w=120, h=55)
 node_db  = view.add(db,  x=300, y=200, w=120, h=55)
-conn     = view.add_connection(rel, source=node_app, target=node_db)
+conn     = view.add_connection(rel)
 
 # Route as an L-shape (one bendpoint)
 conn.l_shape()
@@ -497,7 +570,7 @@ print(f"First bendpoint x-coordinate: {conn.get_bendpoint(0).x}")  # 150
 
 ---
 
-## 17. Distributing Connections
+## 19. Distributing Connections
 
 When a node has many connections their endpoints can overlap. Call
 `node.distribute_connections()` to spread them evenly along each edge of
@@ -521,9 +594,9 @@ node_hub = view.add(hub,  x=160, y=100, w=120, h=55)
 ns1      = view.add(svc1, x=0,   y=250, w=120, h=55)
 ns2      = view.add(svc2, x=160, y=250, w=120, h=55)
 ns3      = view.add(svc3, x=320, y=250, w=120, h=55)
-view.add_connection(rel1, source=node_hub, target=ns1)
-view.add_connection(rel2, source=node_hub, target=ns2)
-view.add_connection(rel3, source=node_hub, target=ns3)
+view.add_connection(rel1)
+view.add_connection(rel2)
+view.add_connection(rel3)
 
 # Spread connection endpoints evenly along the hub node's edges
 node_hub.distribute_connections()
@@ -532,7 +605,7 @@ print(f"Number of outgoing connections from hub: {len(node_hub.out_conns())}")  
 
 ---
 
-## 18. Embedding Properties in Descriptions
+## 20. Embedding Properties in Descriptions
 
 Some external tools (such as ARIS) do not support ArchiMate concept properties.
 `model.embed_props()` serialises all properties into each element's `desc`
@@ -559,7 +632,7 @@ print(f"Owner property after expand: {app.prop('owner')}")  # supply-chain-team
 
 ---
 
-## 19. Logging
+## 21. Logging
 
 pyArchimate logs diagnostics via Python's standard `logging` module. Use the
 helpers to redirect output or adjust verbosity without configuring the logging
@@ -578,7 +651,7 @@ log_to_stderr()
 
 ---
 
-## 20. Auto-Layout
+## 22. Auto-Layout
 
 `auto_layout()` automatically positions all nodes in a view using a
 force-directed algorithm. Pass all nodes at the same coordinates and let
@@ -605,9 +678,9 @@ node_hub = view.add(hub,  x=0, y=0, w=120, h=55)
 ns1      = view.add(svc1, x=0, y=0, w=120, h=55)
 ns2      = view.add(svc2, x=0, y=0, w=120, h=55)
 ns3      = view.add(svc3, x=0, y=0, w=120, h=55)
-view.add_connection(rel1, source=node_hub, target=ns1)
-view.add_connection(rel2, source=node_hub, target=ns2)
-view.add_connection(rel3, source=node_hub, target=ns3)
+view.add_connection(rel1)
+view.add_connection(rel2)
+view.add_connection(rel3)
 
 # Automatically position nodes
 layout_result = auto_layout(view)
@@ -624,7 +697,7 @@ print(f"Hub node x after layout: {node_hub.x}")  # non-zero after layout
 
 ---
 
-## 21. SVG Export
+## 23. SVG Export
 
 `view.to_svg()` returns an SVG string for a single view. `model.write()` with
 a `.svg` path writes the first view to an SVG file. SVG output includes
@@ -641,7 +714,7 @@ rel = model.add_relationship(ArchiType.Serving, source=app, target=svc)
 view = model.add(ArchiType.View, "App Layer")
 node_app = view.add(app, x=0,   y=0, w=120, h=55)
 node_svc = view.add(svc, x=200, y=0, w=120, h=55)
-view.add_connection(rel, source=node_app, target=node_svc)
+view.add_connection(rel)
 
 # Get SVG as a string
 svg_string = view.to_svg()
@@ -653,7 +726,7 @@ model.write("app_layer.svg")
 
 ---
 
-## 22. Duplicating Views
+## 24. Duplicating Views
 
 `view.duplicate()` creates an independent copy of a view — same nodes,
 connections, and styling — and registers it in the model. Pass an optional
@@ -670,7 +743,7 @@ rel = model.add_relationship(ArchiType.Serving, source=app, target=svc)
 view = model.add(ArchiType.View, "App Layer")
 node_app = view.add(app, x=0,   y=0, w=120, h=55)
 node_svc = view.add(svc, x=200, y=0, w=120, h=55)
-view.add_connection(rel, source=node_app, target=node_svc)
+view.add_connection(rel)
 
 # Duplicate with auto-generated name
 copy = view.duplicate()

@@ -27,6 +27,10 @@ This document consolidates technical specifications, patterns, utilities, and pr
 
 ## Patterns and Practices
 
+- **Model and View Building Patterns**:
+  - `Model.add()` accepts Profile instances as `concept_type`, automatically extracting `ArchiType` and uuid without restatement, enabling more fluent model construction.
+  - `View.adjust()` moves and/or resizes nodes by accepting the node itself, its element, or its element UUID as the reference argument, reducing caller boilerplate for incremental diagram updates.
+  - `Model.check_invalid_relationships()` re-validates every relationship in the model against the ArchiMate metamodel and returns offending UUIDs, exposed via `pyArchimate.helpers.properties` and the top-level public API for pre-export validation.
 - **Testing**:
   - Write tests for all new functionality.
   - Stub functions to facilitate testing before production code is fully implemented.
@@ -145,6 +149,20 @@ The following patterns ensure data fidelity when reading, modifying, and writing
   - `business_interaction_simple.archimate` - Basic element with no metadata
   - `influence_relationship_with_strength.archimate` - Relationship with strength metadata
   - `documented_relationship_unicode.archimate` - Relationship with Unicode documentation
+
+### Connection and Annotation Connector Patterns
+
+- **Connection Property Null-Safety**: Connection properties (`concept`, `type`, `name`) return `None` for annotation-only connectors (e.g., note-to-element lines) instead of raising `KeyError` on missing reference. Guard metamodel endpoint checks with `has_valid_ref` to avoid `AttributeError` when processing synthetic connectors.
+- **Annotation Connectors**: `View.connect_note()` creates purely visual connectors from Label/Note nodes to other nodes without requiring a backing `Relationship`. These connectors render in SVG with null-safe property access and omit the `archimateRelationship` attribute during XML export, matching Archi's behavior.
+- **Auto-Resolve Endpoints**: `View.add_connection()` auto-resolves source/target nodes from a relationship's own source/target concepts when those node arguments are omitted, reducing boilerplate when adding connections to views.
+- **Node Reference Resolution**: `View._resolve_view_node()` is a shared helper for resolving a node from a Node object, an Element, or a UUID — used by both `View.adjust()` and `View.connect_note()` to normalize caller input.
+
+### SVG Export Configuration
+
+- **Stereotype Label Rendering**: `SVGExportService.show_stereotypes` flag (default `False`) enables rendering of `«ProfileName»` labels above element names in smaller italic font, following ArchiMate specialization notation. Exposed via `View.to_svg(show_stereotypes=True)`.
+- **Note/Label Rendering**: Label nodes render as folded-corner sticky notes using two `<path>` elements (body and dog-ear) with left-aligned text, replacing previous rectangular fallback rendering.
+- **Profile Style Application**: `apply_profile_styles(view, mapping)` applies profile-specific fill/line/font colors across all view nodes recursively. Mapping values can be a plain hex string (fill only) or a dict with `fill_color`, `line_color`, and `font_color` keys.
+- **Enum Handling**: `_get_short_type_name()` strips ArchiType enum prefix before applying suffix trimming so relationship labels render correctly regardless of whether `conn.type` returns an enum or string.
 
 ### P3 Implementation Patterns
 

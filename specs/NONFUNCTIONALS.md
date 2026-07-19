@@ -10,8 +10,9 @@ This document captures the quality attributes and system properties that must be
 
 ## Reliability & Correctness
 
-- Round-trip fidelity is a hard requirement: export → re-import must reproduce the original model identically (same UUIDs, properties, relationships, bendpoints).
-- `check_invalid_conn()` and `check_invalid_nodes()` must pass clean before every write.
+- Round-trip fidelity is a hard requirement: export → re-import must reproduce the original model identically (same UUIDs, properties, relationships, bendpoints, annotation connectors).
+- Annotation connectors (visual notes and labels) must round-trip correctly: export omits `archimateRelationship` attribute for non-backed connectors; re-import recovers Label nodes with correct positioning and styling.
+- `check_invalid_conn()`, `check_invalid_nodes()`, and `check_invalid_relationships()` must pass clean before every write.
 - All custom exceptions (`ArchimateConceptTypeError`, `ArchimateRelationshipError`) must propagate with a descriptive message; never swallow silently.
 
 ## Performance
@@ -23,6 +24,13 @@ This document captures the quality attributes and system properties that must be
 
 - Use `pyArchimate.logger` (stdlib `logging`) for all diagnostic output; WARNING and above indicate actionable problems.
 - Never call `logging.basicConfig()` inside library code — callers own the logging configuration.
+
+## SVG and Visual Output
+
+- SVG export must render all ArchiMate element types with correct symbols and positioning, including Label nodes as folded-corner sticky notes.
+- Stereotype labels (`show_stereotypes=True`) must render above element names in smaller italic font without obscuring the element symbol.
+- Profile styles (`apply_profile_styles`) must be applied consistently across all nodes in a view hierarchy, including nested and composite nodes.
+- Annotation connectors must render correctly in SVG without throwing exceptions, even when they lack backing relationships.
 
 ## Maintainability & Testing
 

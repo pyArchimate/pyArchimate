@@ -48,6 +48,7 @@ class Model {
   + expand_props(clean_doc)
   + check_invalid_conn() : list
   + check_invalid_nodes() : list
+  + check_invalid_relationships() : list
   + check_connection(c) : bool
   + default_theme(theme)
   + prop(key, value) : any
@@ -285,6 +286,7 @@ class SVGExportService {
   # _render_node(svg, node) : None
   # _render_node_into(parent, node) : ET.Element
   # _render_junction(g, x, y, w, h, element_type, node) : None
+  # _render_note(g, x, y, w, h, node) : None
   # _render_grouping(g, x, y, w, h, node) : None
   # _render_element_body(g, x, y, w, h, color, symbol_def) : None
   # _render_element_icon(g, x, y, w, h, symbol_def) : None

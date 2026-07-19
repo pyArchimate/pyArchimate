@@ -72,6 +72,11 @@ Visual instance of an element within a view.
 
 Visual representation of a relationship between nodes.
 
+### Profile (Stereotype / Specialization)
+
+An ArchiMate specialization or stereotype that extends a base element or relationship type.
+Allows domain-specific customization of standard ArchiMate types with custom names and styling.
+
 ---
 
 ## Key Features & Functionality
@@ -189,6 +194,27 @@ Visual representation of a relationship between nodes.
 - Cycle detection prevents invalid hierarchies; max depth configurable via `MAX_DEPTH`
 - Hierarchy is preserved across XML export/import round-trips
 
+### Profile Support (Stereotype / Specialization)
+
+- `Profile(name, concept, uuid=None, model=None)` — define an ArchiMate specialization (e.g. "Custom Service")
+- `profile.name` — profile display name
+- `profile.concept` — ArchiMate base type (e.g. `"ApplicationService"`)
+- `profile.uuid` — unique identifier
+- `profile.delete()` — remove profile and clear all element/relationship references
+- `model.add(profile)` — create element with profile by passing Profile instance directly as `concept_type`; extracts UUID and ArchiType automatically
+- Element/Relationship `profile_id` — UUID of assigned profile (or `None` if unassigned)
+- Element/Relationship `profile_name` — human-readable profile name (or `None`)
+- `apply_profile_styles(view, mapping)` — recursively apply fill/line/font colours to nodes based on element profile; mapping keys are profile names, values are hex strings or dicts with `fill_color`, `line_color`, `font_color` keys
+
+### Annotation Connectors (Visual Notes & Labels)
+
+- `view.add(node_type="Label", ...)` — create a visual label/note node (no backing element)
+- `view.connect_note(note, target, uuid=None)` — draw annotation-only connector from label to another node without requiring a backing Relationship; `note` and `target` may be Node, Element, or UUID
+- `Connection.concept` — returns `None` for annotation-only connectors (e.g. note-to-element lines); returns Relationship otherwise
+- `Connection.type` — returns `None` for annotation-only connectors; returns relationship type string otherwise
+- `Connection.name` — returns `None` for annotation-only connectors; returns relationship name otherwise
+- SVG export renders Label nodes as folded-corner sticky notes (yellow background with dog-ear corner) with left-aligned text
+
 ### Junction Type Semantics
 
 - `element.set_junction_type(type_str)` — set junction semantics: `'and'`, `'or'`, or `'xor'`
@@ -232,13 +258,15 @@ Visual representation of a relationship between nodes.
 
 ### SVG Export
 
-- `view.to_svg(filepath=None)` — render a view to a self-contained SVG string; optionally write to file
+- `view.to_svg(filepath=None, show_stereotypes=False)` — render a view to a self-contained SVG string; optionally write to file
+- `show_stereotypes` (bool, default False) — if True, render each element's profile name as a «stereotype» label (in smaller italic font) above the element name
 - Renders full ArchiMate-compliant element symbols with layer-specific icons (Business, Application, Technology, Motivation, Strategy, Physical, Implementation layers)
 - Applies ArchiMate colour palette by element layer; respects per-node `fill_color` overrides
 - Relationship-specific line styles and arrowhead markers: filled/hollow triangles, diamonds (Composition/Aggregation), open arrows (Access), dashed lines (Influence, Realization)
 - Preserves stored bendpoints from the model; connection endpoints clipped orthogonally at element boundaries
 - Renders relationship type labels on connections; Influence relationships include strength annotation
 - Supports special element types: Or/And Junctions (circle), Grouping (dashed L-border with tab label), Group (solid grey)
+- Renders Label nodes as folded-corner sticky notes (yellow background with dog-ear corner) instead of generic boxes; text appears left-aligned
 - Containment relationships (Composition/Aggregation where target is a visual child) suppressed as redundant with container boundaries
 - No external tools required; suitable for CI pipelines and automated reporting
 
@@ -311,8 +339,9 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | Method / Property | Description |
 |---|---|
 | `Model(name)` | Create a new empty model |
-| `add(concept_type, name)` | Add element or view; returns created object |
+| `add(concept_type, name)` | Add element or view; `concept_type` may be string or Profile instance (which auto-extracts type & UUID); returns created object |
 | `add_relationship(rel_type, source, target)` | Add typed relationship between two elements |
+| `check_invalid_relationships()` | Re-validate all relationships against ArchiMate metamodel; returns list of relationship UUIDs that fail validation |
 | `read(file_path)` | Load model from file (auto-detects format) |
 | `write(file_path, writer)` | Persist model; `writer` selects output format |
 | `merge(file_path)` | Merge a second model file in; deduplicates by UUID |
@@ -376,6 +405,16 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `set_junction_type(type_str)` | Junction semantics: `'and'`, `'or'`, `'xor'`, or `None` |
 | `get_junction_type()` | Current junction type or `None` |
 
+### Profile (API)
+
+| Method / Property | Description |
+|---|---|
+| `Profile(name, concept, uuid=None, model=None)` | Create a new profile (stereotype/specialization); `concept` is ArchiMate type string (e.g. `"ApplicationService"`); `name` is display name |
+| `name` | Profile display name (read/write) |
+| `concept` | ArchiMate base type as string (read-only) |
+| `uuid` | Unique identifier (read-only) |
+| `delete()` | Remove profile and clear all element/relationship references |
+
 ### Relationship (API)
 
 | Method / Property | Description |
@@ -396,15 +435,17 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 
 | Method / Property | Description |
 |---|---|
-| `add(elem, x, y, w, h)` | Add a node for an element at given coordinates |
-| `add_connection(rel, source, target)` | Add a connection for a relationship between nodes |
+| `add(elem, x, y, w, h)` | Add a node for an element at given coordinates; `node_type` can be `"Element"`, `"Label"` (annotation/note), or `"Container"` |
+| `add_connection(rel, source, target)` | Add a connection for a relationship between nodes; source/target auto-resolved from relationship if omitted |
+| `adjust(ref, x, y, w, h)` | Move and/or resize a Node already in this view; `ref` may be Node, Element, or element UUID; only fields passed (non-None) are changed |
+| `connect_note(note, target, uuid)` | Draw annotation-only connector line from a label/note to another node without requiring a backing Relationship; `note` and `target` may be Node, Element, or element UUID |
 | `get_or_create_node(elem, elem_type, ...)` | Return existing node or create one if requested |
 | `get_or_create_connection(rel, source, target, ...)` | Return existing connection or create one if requested |
 | `set_primary_viewpoint(viewpoint_id)` | Set canonical ArchiMate 3.x viewpoint slug for this view |
 | `primary_viewpoint` | Current primary viewpoint slug or `None` |
 | `duplicate(name)` | Deep-copy this view into the same model; `name` defaults to `"<original> (copy)"` if omitted; returns new `View` |
 | `delete()` | Remove this view and all its nodes and connections |
-| `to_svg(filepath)` | Export view to SVG string; optionally write to file if `filepath` given |
+| `to_svg(filepath, show_stereotypes)` | Export view to SVG string; optionally write to file if `filepath` given; `show_stereotypes=True` renders profile names as «stereotype» labels |
 | `prop(key, value)` | Get or set a view-level property |
 | `remove_prop(key)` | Delete a property by key |
 | `remove_folder()` | Remove this view's folder assignment |
@@ -440,6 +481,9 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `remove_all_bendpoints()` | Clear all waypoints |
 | `get_all_bendpoints()` | Return list of all waypoints |
 | `get_bendpoint(index)` | Return waypoint at index |
+| `concept` | Referenced Relationship object, or `None` for annotation-only connector (e.g. note-to-element line) |
+| `type` | ArchiMate relationship type string, or `None` for annotation-only connector |
+| `name` | Relationship name, or `None` for annotation-only connector |
 | `line_color` | Connection colour as `#RRGGBB` |
 | `source` | Source node |
 | `target` | Target node |
@@ -448,12 +492,20 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 
 | Function | Description |
 |---|---|
-| `check_valid_relationship(rel_type, src_type, tgt_type, raise_flg)` | Validate rel type against ArchiMate rules |
+| `check_valid_relationship(rel_type, src_type, tgt_type, raise_flg)` | Validate rel type against ArchiMate rules; returns False on invalid input instead of raising KeyError |
 | `get_default_rel_type(source_type, target_type)` | Return preferred valid relationship type |
 | `parse_bool(value)` | Parse XML boolean string per W3C xsd:boolean (`"true"`, `"1"` → `True`; everything else → `False`) |
 | `log_set_level(level)` | Set logging verbosity (standard `logging` levels) |
 | `log_to_file(path)` | Redirect log output to a file |
 | `log_to_stderr()` | Redirect log output to stderr |
+
+### Diagram Helper Functions (`pyArchimate.helpers`)
+
+| Function | Description |
+|---|---|
+| `apply_profile_styles(view, mapping)` | Recursively apply fill/line/font colours to all nodes (including nested) based on element profile name; `mapping` keys are profile names, values are hex colour strings or dicts with `fill_color`, `line_color`, `font_color` keys |
+| `get_or_create_node(owner, ...)` | Delegate node creation to Model/View helper methods |
+| `get_or_create_connection(owner, ...)` | Delegate connection creation to View helper methods |
 
 ### Layout Functions (`pyArchimate.view.layout`)
 

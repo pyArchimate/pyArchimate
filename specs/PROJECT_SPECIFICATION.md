@@ -9,7 +9,7 @@ This document captures the buyer/super-user value that pyArchimate provides: kee
 ## Feature Inventory
 
 - **Model CRUD and serialization**  
-  Public `pyArchimate.Model` allows teams to build Archimate concepts (`Element`, `Relationship`, `View`, `Node`, `Connection`, `Profile`) programmatically, expose metadata through `.prop()`, and persist/load the entire model via `Model.write()`/`Model.read()` with multiple writer/reader adapters.
+  Public `pyArchimate.Model` allows teams to build Archimate concepts (`Element`, `Relationship`, `View`, `Node`, `Connection`, `Profile`) programmatically, expose metadata through `.prop()`, and persist/load the entire model via `Model.write()`/`Model.read()` with multiple writer/reader adapters. `Model.add()` accepts Profile instances as `concept_type`, automatically extracting ArchiType and uuid so callers don't need to restate them (v1.11.3+).
 
 - **Reader drivers**  
   Ship adapters for Archi Tool XML, Open Group Archimate OEF, and ARIS AML so consumers can ingest existing artifact repositories and fuse that data into scripts or tests.
@@ -18,10 +18,13 @@ This document captures the buyer/super-user value that pyArchimate provides: kee
   Provide writers for Archi Tool XML, Archimate OEF, and CSV exports so modeling pipelines can round-trip, transform, or feed downstream tooling without manual XML fiddling.
 
 - **View/diagram helpers**  
-  Classes such as `View`, `Node`, and `Connection` mirror ArchiMate diagram concepts, supporting node positioning, labeling, composite views, and automatic connection creation. Helpers like `get_or_create_node` and `get_or_create_connection` simplify incremental diagram building. `auto_layout(view, LayoutConfig)` places nodes on a configurable grid with ArchiMate layer ordering (Business → Application → Technology); `auto_route(view, RoutingConfig)` computes orthogonal connection paths with node clearance and parallel-segment separation; `View.duplicate()` clones a view with all nodes and connections. Released in v1.10.0.
+  Classes such as `View`, `Node`, and `Connection` mirror ArchiMate diagram concepts, supporting node positioning, labeling, composite views, and automatic connection creation. Helpers like `get_or_create_node` and `get_or_create_connection` simplify incremental diagram building. `auto_layout(view, LayoutConfig)` places nodes on a configurable grid with ArchiMate layer ordering (Business → Application → Technology); `auto_route(view, RoutingConfig)` computes orthogonal connection paths with node clearance and parallel-segment separation; `View.duplicate()` clones a view with all nodes and connections. `View.adjust()` moves and/or resizes nodes already in a view (v1.11.3+). `View.connect_note()` creates purely visual annotation connectors from Label/Note nodes to other nodes without backing relationships (v1.11.3+). Released in v1.10.0; extended through v1.11.3.
 
 - **Property embedding and validation utilities**  
-  `Model.embed_props`/`expand_props` allow Archimate properties to be serialized into descriptions for downstream tools that lack property support, while validation helpers (`check_invalid_conn`, `check_invalid_nodes`) catch orphans before export.
+  `Model.embed_props`/`expand_props` allow Archimate properties to be serialized into descriptions for downstream tools that lack property support, while validation helpers (`check_invalid_conn`, `check_invalid_nodes`, `check_invalid_relationships`) catch orphans and invalid metamodel relationships before export (v1.11.3+).
+
+- **SVG export enhancements**  
+  SVG diagrams now render Label nodes as folded-corner sticky notes, support configurable stereotype label rendering above element names (controlled via `View.to_svg(show_stereotypes=True)`), and handle annotation connectors (visual connectors with no backing Relationship) with null-safe property access. `apply_profile_styles` helper maps ArchiMate profiles to fill/line/font colors and applies them across all view nodes recursively (v1.11.3+).
 
 - **Logging helpers**  
   `pyArchimate.logger` exposes centralized logging configuration for scripts/tests. Example scripts (e.g., `tests/legacy_examples/Archi2Aris.py`) demonstrate conversion flows.
