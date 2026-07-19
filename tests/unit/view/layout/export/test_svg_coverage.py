@@ -87,8 +87,7 @@ def svc():
 class TestNestedNodeRendering:
     def test_nested_node_rendered_into_parent_group(self, svc):
         child = make_node("child", x=10, y=10, w=60, h=30, element_type="BusinessActor", name="Child")
-        parent = make_node("parent", x=0, y=0, w=200, h=100, element_type="BusinessActor", name="Parent",
-                           nodes=[child])
+        parent = make_node("parent", x=0, y=0, w=200, h=100, element_type="BusinessActor", name="Parent", nodes=[child])
         parent.nodes_dict = {"child": child}
         view = make_view(nodes=[parent, child])
         svg_str = svc.to_svg(view)
@@ -182,6 +181,7 @@ class TestBodyTypes:
 
     def test_scale_path_called_for_path_body(self, svc):
         from src.pyArchimate.view.layout.export.symbols.archimate_symbols import ARCHIMATE_SYMBOLS
+
         sym = ARCHIMATE_SYMBOLS.get("Constraint")
         assert sym is not None and sym.body_type == "path"
         result = svc._scale_path(sym.svg_path, 10, 10, 120, 55)
@@ -453,6 +453,7 @@ class TestGetShortTypeName:
         # Simulate conn.type returning an object with .value
         class FakeEnum:
             value = "ServingRelationship"
+
         result = svc._get_short_type_name(FakeEnum())
         assert result == "Serving"
 
