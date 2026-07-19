@@ -1259,6 +1259,29 @@ class View:
         ref_uuid = ref if isinstance(ref, str) else getattr(ref, "uuid", None)
         return self.model.rels_dict.get(ref_uuid) if ref_uuid else None
 
+    def _auto_resolve_endpoints(self, ref: object, source: object, target: object) -> tuple[object, object]:
+        """Resolve source/target nodes from the relationship when either is omitted."""
+        rel = self._resolve_relationship(ref)
+        if rel is None:
+            return source, target
+        if source is None:
+            source = self._find_node_for_element(rel.source.uuid)
+            if source is None:
+                raise ArchimateConceptTypeError(
+                    f"Could not auto-resolve source node for relationship {ref}: "
+                    f"element '{rel.source.name}' has not been added to this view. "
+                    "Add it via view.add() first, or pass source= explicitly."
+                )
+        if target is None:
+            target = self._find_node_for_element(rel.target.uuid)
+            if target is None:
+                raise ArchimateConceptTypeError(
+                    f"Could not auto-resolve target node for relationship {ref}: "
+                    f"element '{rel.target.name}' has not been added to this view. "
+                    "Add it via view.add() first, or pass target= explicitly."
+                )
+        return source, target
+
     def add_connection(
         self, ref: object = None, source: object = None, target: object = None, uuid: str | None = None
     ) -> Connection:
@@ -1270,24 +1293,7 @@ class View:
         already implies.
         """
         if source is None or target is None:
-            rel = self._resolve_relationship(ref)
-            if rel is not None:
-                if source is None:
-                    source = self._find_node_for_element(rel.source.uuid)
-                    if source is None:
-                        raise ArchimateConceptTypeError(
-                            f"Could not auto-resolve source node for relationship {ref}: "
-                            f"element '{rel.source.name}' has not been added to this view. "
-                            "Add it via view.add() first, or pass source= explicitly."
-                        )
-                if target is None:
-                    target = self._find_node_for_element(rel.target.uuid)
-                    if target is None:
-                        raise ArchimateConceptTypeError(
-                            f"Could not auto-resolve target node for relationship {ref}: "
-                            f"element '{rel.target.name}' has not been added to this view. "
-                            "Add it via view.add() first, or pass target= explicitly."
-                        )
+            source, target = self._auto_resolve_endpoints(ref, source, target)
         c = Connection(ref, source, target, uuid, self)
         self.conns_dict[c.uuid] = c
         self.model.conns_dict[c.uuid] = c
