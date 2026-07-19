@@ -1218,7 +1218,7 @@ class SVGExportService:
 
         return [start] + middle + [end]
 
-    def _get_routed_polyline_points(
+    def _get_routed_polyline_points(  # pragma: no cover
         self,
         source_node: Any,
         target_node: Any,

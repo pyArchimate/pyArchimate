@@ -1231,9 +1231,7 @@ class View:
             elem_uuid = Node._resolve_ref(ref)
             found = self._find_node_for_element(elem_uuid) if elem_uuid else None
             if found is None:
-                raise ArchimateConceptTypeError(
-                    f"No node found in this view for '{ref}'. Add it via view.add() first."
-                )
+                raise ArchimateConceptTypeError(f"No node found in this view for '{ref}'. Add it via view.add() first.")
             node = found
         if x is not None:
             node.x = x
