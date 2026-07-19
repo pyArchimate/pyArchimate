@@ -1014,21 +1014,26 @@ class Model:
 
     def _check_connection_refs(self, c: Any) -> bool:
         _ok = True
-        if c._ref not in self.rels_dict:
+        has_valid_ref = c._ref in self.rels_dict
+        if not has_valid_ref:
             log.error(f"Orphan connection {c.uuid} to unknown relationship {c.ref}")
             _ok = False
         if c._source not in self.nodes_dict and c._source not in self.conns_dict:
             log.error(f"Connection {c.uuid} has orphan source node {c._source}")
             _ok = False
-        if c.concept._source not in self.elems_dict and c.concept._source not in self.rels_dict:
-            log.error(f"Connection {c.uuid} has orphan source node concept {c.concept._source}")
-            _ok = False
         if c._target not in self.nodes_dict and c._target not in self.conns_dict:
             log.error(f"Connection {c.uuid} has orphan target node {c._target}")
             _ok = False
-        if c.concept._target not in self.elems_dict and c.concept._target not in self.rels_dict:
-            log.error(f"Connection {c.uuid} has orphan target node concept {c.concept._target}")
-            _ok = False
+        # c.concept dereferences c._ref, so only check its endpoints when the
+        # relationship ref itself is valid (e.g. a note connector's synthetic
+        # ref is never in rels_dict, and has no concept to check).
+        if has_valid_ref:
+            if c.concept._source not in self.elems_dict and c.concept._source not in self.rels_dict:
+                log.error(f"Connection {c.uuid} has orphan source node concept {c.concept._source}")
+                _ok = False
+            if c.concept._target not in self.elems_dict and c.concept._target not in self.rels_dict:
+                log.error(f"Connection {c.uuid} has orphan target node concept {c.concept._target}")
+                _ok = False
         return _ok
 
     def _check_connection_endpoints(self, c: Any) -> bool:

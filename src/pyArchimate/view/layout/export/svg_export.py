@@ -554,6 +554,29 @@ class SVGExportService:
             },
         )
 
+    def _render_note(self, g: ET.Element, x: float, y: float, w: float, h: float, node: Any) -> None:
+        """Render a Label/Note node as a folded-corner box (Archi's 'sticky note' convention).
+
+        Notes have no ArchiMate type/profile, so they render as a plain light-yellow
+        box with a dog-eared top-right corner and left-aligned text, rather than
+        falling through to a generic element symbol.
+        """
+        corner = min(14.0, w * 0.2, h * 0.4)
+        fill = getattr(node, "fill_color", None) or "#FFFFC0"
+        body = (
+            f"M {x:.1f} {y:.1f} "
+            f"L {x + w - corner:.1f} {y:.1f} "
+            f"L {x + w:.1f} {y + corner:.1f} "
+            f"L {x + w:.1f} {y + h:.1f} "
+            f"L {x:.1f} {y + h:.1f} Z"
+        )
+        fold = f"M {x + w - corner:.1f} {y:.1f} L {x + w - corner:.1f} {y + corner:.1f} L {x + w:.1f} {y + corner:.1f}"
+        ET.SubElement(g, "path", {"d": body, "fill": fill, "stroke": "black", "stroke-width": "1"})
+        ET.SubElement(g, "path", {"d": fold, "fill": "none", "stroke": "black", "stroke-width": "1"})
+        text = getattr(node, "label", "") or ""
+        if text:
+            self._render_wrapped_text(g, text, x + 6, y + 14, w - 12, is_centered=False)
+
     def _render_grouping(self, g: ET.Element, x: float, y: float, w: float, h: float, node: Any) -> None:
         """Render Grouping as dashed L-shaped border with label in top-left tab."""
         _raw = getattr(node, "name", None)
@@ -683,6 +706,10 @@ class SVGExportService:
         element_id = getattr(node, "uuid", None)
 
         g = ET.SubElement(parent, "g", {"class": "node"})
+
+        if getattr(node, "cat", None) == "Label":
+            self._render_note(g, x, y, w, h, node)
+            return g
 
         if element_type in ("OrJunction", "AndJunction", "Junction"):
             self._render_junction(g, x, y, w, h, element_type, node)

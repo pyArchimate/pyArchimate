@@ -190,18 +190,22 @@ def _write_connection(child: _Element, conn: object, xsi: et.QName) -> None:  # 
     if conn_source is None or conn_target is None:
         log.debug(f"Skipping connection {getattr(conn, 'uuid', '?')}: missing source or target node")
         return
-    c = et.SubElement(
-        child,
-        "sourceConnection",
-        {
-            str(xsi): "archimate:Connection",
-            "id": getattr(conn, "uuid", ""),
-            "lineWidth": "1",
-            "source": conn_source.uuid,
-            "target": conn_target.uuid,
-            "archimateRelationship": getattr(conn, "ref", ""),
-        },
-    )
+    attrs = {
+        str(xsi): "archimate:Connection",
+        "id": getattr(conn, "uuid", ""),
+        "lineWidth": "1",
+        "source": conn_source.uuid,
+        "target": conn_target.uuid,
+    }
+    # Annotation-only connectors (e.g. a note pointing at the elements it
+    # describes) have a ref that doesn't resolve to a real Relationship; Archi
+    # itself omits archimateRelationship entirely for these, so match that
+    # rather than embedding a dangling reference Archi would reject on import.
+    model = getattr(conn, "model", None)
+    ref = getattr(conn, "ref", "")
+    if model is not None and ref in getattr(model, "rels_dict", {}):
+        attrs["archimateRelationship"] = ref
+    c = et.SubElement(child, "sourceConnection", attrs)
     show_label = getattr(conn, "show_label", True)
     et.SubElement(c, "feature", name="nameVisible", value="true" if show_label else "false")
     line_width = getattr(conn, "line_width", None)
