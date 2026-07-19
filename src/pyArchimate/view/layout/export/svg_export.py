@@ -725,13 +725,17 @@ class SVGExportService:
             else:
                 self._render_wrapped_text(g, element_name, x + w / 2, y + h / 2, w - 8, is_centered=True)
 
-        if self.show_stereotypes:
-            concept = getattr(node, "concept", None)
-            profile = concept.profile_name if concept is not None else None
-            if profile:
-                self._render_stereotype(g, profile, x, y, w)
+        self._maybe_render_stereotype(g, node, x, y, w)
 
         return g
+
+    def _maybe_render_stereotype(self, parent: ET.Element, node: Any, x: float, y: float, w: float) -> None:
+        if not self.show_stereotypes:
+            return
+        concept = getattr(node, "concept", None)
+        profile = concept.profile_name if concept is not None else None
+        if profile:
+            self._render_stereotype(parent, profile, x, y, w)
 
     def _render_stereotype(self, parent: ET.Element, profile: str, x: float, y: float, w: float) -> None:
         """Render a stereotype label «profile» above the element name."""

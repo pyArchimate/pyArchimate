@@ -25,6 +25,15 @@ def _iter_nodes(node_owner: View | Node) -> Generator[Node, None, None]:
         yield from _iter_nodes(node)
 
 
+def _apply_style_dict(node: Node, style: dict[str, str]) -> None:
+    if "fill_color" in style:
+        node.fill_color = style["fill_color"]
+    if "line_color" in style:
+        node.line_color = style["line_color"]
+    if "font_color" in style:
+        node.font_color = style["font_color"]
+
+
 def apply_profile_styles(view: View, mapping: dict[str, str | dict[str, str]]) -> None:
     """Apply fill colours to view nodes based on their element's profile name.
 
@@ -41,12 +50,7 @@ def apply_profile_styles(view: View, mapping: dict[str, str | dict[str, str]]) -
         if isinstance(value, str):
             node.fill_color = value
         else:
-            if "fill_color" in value:
-                node.fill_color = value["fill_color"]
-            if "line_color" in value:
-                node.line_color = value["line_color"]
-            if "font_color" in value:
-                node.font_color = value["font_color"]
+            _apply_style_dict(node, value)
 
 
 __all__ = ["get_or_create_node", "get_or_create_connection", "apply_profile_styles"]
