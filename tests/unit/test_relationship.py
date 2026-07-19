@@ -229,15 +229,13 @@ def test_relationship_delete_removes_from_model(model_with_rel):
 
 
 def test_check_valid_relationship_invalid_source_logs():
-    # raise_flg=False logs the invalid source error, then crashes on ARCHI_CATEGORY lookup
-    with pytest.raises(KeyError):
-        check_valid_relationship(ArchiType.Serving, "NotAType", "ApplicationService", raise_flg=False)
+    # raise_flg=False logs the invalid source error and returns False (no crash)
+    assert check_valid_relationship(ArchiType.Serving, "NotAType", "ApplicationService", raise_flg=False) is False
 
 
 def test_check_valid_relationship_invalid_target_logs():
-    # raise_flg=False logs the invalid target error, then crashes on ARCHI_CATEGORY lookup
-    with pytest.raises(KeyError):
-        check_valid_relationship(ArchiType.Serving, "ApplicationComponent", "NotAType", raise_flg=False)
+    # raise_flg=False logs the invalid target error and returns False (no crash)
+    assert check_valid_relationship(ArchiType.Serving, "ApplicationComponent", "NotAType", raise_flg=False) is False
 
 
 def test_check_valid_relationship_source_is_relationship_normalised():
@@ -246,9 +244,11 @@ def test_check_valid_relationship_source_is_relationship_normalised():
 
 
 def test_check_valid_relationship_junction_rel_type_normalised():
-    # AndJunction logs invalid rel-type error (not a Relationship), then crashes on RELATIONSHIP_KEYS lookup
-    with pytest.raises(KeyError):
+    # AndJunction logs an invalid rel-type error (not a Relationship) and returns False (no crash)
+    assert (
         check_valid_relationship("AndJunction", "ApplicationComponent", "ApplicationComponent", raise_flg=False)
+        is False
+    )
 
 
 def test_check_valid_relationship_junction_source_type_normalised():

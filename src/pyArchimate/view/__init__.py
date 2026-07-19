@@ -1210,10 +1210,86 @@ class View:
         self.model.nodes_dict[n.uuid] = n
         return n
 
+    def adjust(
+        self,
+        ref: object,
+        x: int | None = None,
+        y: int | None = None,
+        w: int | None = None,
+        h: int | None = None,
+    ) -> Node:
+        """Move and/or resize a Node already present in this view.
+
+        ``ref`` may be the Node itself, or the Element (or element uuid) it
+        represents — in the latter case the matching Node already added to this
+        view is looked up automatically, mirroring how ``add()`` resolves refs.
+        Only the fields passed are changed; omitted ones (``None``) are left as-is.
+        """
+        if isinstance(ref, Node):
+            node = ref
+        else:
+            elem_uuid = Node._resolve_ref(ref)
+            found = self._find_node_for_element(elem_uuid) if elem_uuid else None
+            if found is None:
+                raise ArchimateConceptTypeError(
+                    f"No node found in this view for '{ref}'. Add it via view.add() first."
+                )
+            node = found
+        if x is not None:
+            node.x = x
+        if y is not None:
+            node.y = y
+        if w is not None:
+            node.w = w
+        if h is not None:
+            node.h = h
+        return node
+
+    def _find_node_for_element(self, elem_uuid: str) -> "Node | None":
+        """Recursively search this view's nodes for one whose element ref matches."""
+        stack = list(self.nodes_dict.values())
+        while stack:
+            n = stack.pop()
+            if n.ref == elem_uuid:
+                return n
+            stack.extend(n.nodes_dict.values())
+        return None
+
+    def _resolve_relationship(self, ref: object) -> "Any | None":
+        if hasattr(ref, "source") and hasattr(ref, "target"):
+            return ref
+        ref_uuid = ref if isinstance(ref, str) else getattr(ref, "uuid", None)
+        return self.model.rels_dict.get(ref_uuid) if ref_uuid else None
+
     def add_connection(
         self, ref: object = None, source: object = None, target: object = None, uuid: str | None = None
     ) -> Connection:
-        """Add and return a Connection between two Nodes."""
+        """Add and return a Connection between two Nodes.
+
+        If ``source``/``target`` are omitted, they are auto-resolved from the nodes
+        already present in this view whose element matches the relationship's
+        source/target concept, removing the need to restate endpoints that ``ref``
+        already implies.
+        """
+        if source is None or target is None:
+            rel = self._resolve_relationship(ref)
+            if rel is not None:
+                if source is None:
+                    source = self._find_node_for_element(rel.source.uuid)
+                    if source is None:
+                        raise ArchimateConceptTypeError(
+                            f"Could not auto-resolve source node for relationship {ref}: "
+                            f"element '{rel.source.name}' has not been added to this view. "
+                            "Add it via view.add() first, or pass source= explicitly."
+                        )
+                if target is None:
+                    target = self._find_node_for_element(rel.target.uuid)
+                    if target is None:
+                        raise ArchimateConceptTypeError(
+                            f"Could not auto-resolve target node for relationship {ref}: "
+                            f"element '{rel.target.name}' has not been added to this view. "
+                            "Add it via view.add() first, or pass target= explicitly."
+                        )
         c = Connection(ref, source, target, uuid, self)
         self.conns_dict[c.uuid] = c
         self.model.conns_dict[c.uuid] = c

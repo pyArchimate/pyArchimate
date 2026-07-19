@@ -294,8 +294,10 @@ class Model:
         """
         Method to add a new Element in this model
 
-        :param concept_type:    Archimate Element type
-        :type concept_type: str
+        :param concept_type:    Archimate Element type, or a Profile instance whose
+                                 own concept type and uuid are used, removing the need
+                                 to restate them separately via `profile=`
+        :type concept_type: str|Profile
         :param name:            Element's name
         :type name: str
         :param uuid:            Element's Identifier
@@ -308,6 +310,10 @@ class Model:
         :return:                Element or View class object
         :rtype: Element|View
         """
+        if isinstance(concept_type, Profile):
+            profile = concept_type.uuid
+            concept_type = getattr(ArchiType, concept_type.concept)
+
         if concept_type == ArchiType.View:
             v = View(name, uuid, desc, folder, parent=self)
             self.views_dict[v.uuid] = v
@@ -984,6 +990,26 @@ class Model:
         for conn_id, c in self.conns_dict.items():
             if not self.check_connection(c):
                 invalids.append(conn_id)
+        return invalids
+
+    def check_invalid_relationships(self):
+        """
+        Check all relationships in this model against the ArchiMate metamodel
+        (i.e. whether each relationship's type is actually allowed between its
+        source and target concept types). Unlike the type/endpoint check performed
+        once at relationship-creation time, this re-validates every relationship
+        currently in the model and returns the offending ones instead of only
+        logging them.
+
+        :return: list of relationship identifiers that fail metamodel validation
+        :rtype: list(str)
+        """
+        from .relationship import check_valid_relationship  # noqa: PLC0415  # circular: model↔relationship init cycle
+
+        invalids = []
+        for rel_id, r in self.rels_dict.items():
+            if not check_valid_relationship(r.type, r.source.type, r.target.type):
+                invalids.append(rel_id)
         return invalids
 
     def _check_connection_refs(self, c: Any) -> bool:
