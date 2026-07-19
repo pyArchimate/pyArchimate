@@ -982,7 +982,7 @@ class Model:
         invalids = []
 
         for conn_id, c in self.conns_dict.items():
-            if self.check_connection(c):
+            if not self.check_connection(c):
                 invalids.append(conn_id)
         return invalids
 
@@ -1019,14 +1019,14 @@ class Model:
                     f"Connection {c.uuid} has a reference to its source Element which is not "
                     "the reference of the relationship source Element"
                 )
-            _ok = False
+                _ok = False
         if c.target is not None and not isinstance(c.target, View):
             if c.target._ref != c.concept._target:
                 log.error(
                     f"Connection {c.uuid} has a reference to its target Element which is not "
                     "the reference of the relationship target Element"
                 )
-            _ok = False
+                _ok = False
         return _ok
 
     def check_connection(self, c: Any) -> bool:
