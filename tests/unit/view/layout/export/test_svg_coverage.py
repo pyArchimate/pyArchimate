@@ -111,7 +111,8 @@ class TestToSvgFileWrite:
             path = f.name
         try:
             svc.to_svg(v, filepath=path)
-            content = open(path).read()
+            with open(path, encoding="utf-8") as fp:
+                content = fp.read()
             assert content.startswith('<?xml version="1.0"')
             assert "<svg" in content
         finally:
