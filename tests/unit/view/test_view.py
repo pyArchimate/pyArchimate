@@ -1660,3 +1660,242 @@ def test_connection_target_returns_none_for_orphan():
     assert c_on_c is not None
     c_on_c._target = "nonexistent-uuid"
     assert c_on_c.target is None
+
+
+# ---------------------------------------------------------------------------
+# Connection.concept / type / name — None for annotation-only connectors
+# ---------------------------------------------------------------------------
+
+
+def test_connection_concept_returns_none_for_orphan_ref():
+    """Connection.concept returns None when _ref is not in rels_dict."""
+    m = Model("cpt-none")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    na = v.add(ref=a.uuid, x=0, y=0)
+    nb = v.add(ref=b.uuid, x=200, y=0)
+    conn = Connection("synthetic-ref", na, nb, None, v)
+    assert conn.concept is None
+
+
+def test_connection_type_returns_none_for_orphan_ref():
+    m = Model("type-none")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    na = v.add(ref=a.uuid, x=0, y=0)
+    nb = v.add(ref=b.uuid, x=200, y=0)
+    conn = Connection("synthetic-ref", na, nb, None, v)
+    assert conn.type is None
+
+
+def test_connection_name_returns_none_for_orphan_ref():
+    m = Model("name-none")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    na = v.add(ref=a.uuid, x=0, y=0)
+    nb = v.add(ref=b.uuid, x=200, y=0)
+    conn = Connection("synthetic-ref", na, nb, None, v)
+    assert conn.name is None
+
+
+# ---------------------------------------------------------------------------
+# View._resolve_view_node — lines 1251-1257
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_view_node_by_node_directly():
+    m = Model("rvn-node")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    n = v.add(ref=a.uuid, x=0, y=0)
+    assert v._resolve_view_node(n) is n
+
+
+def test_resolve_view_node_by_element():
+    m = Model("rvn-elem")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    n = v.add(ref=a.uuid, x=0, y=0)
+    assert v._resolve_view_node(a) is n
+
+
+def test_resolve_view_node_by_uuid():
+    m = Model("rvn-uuid")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    n = v.add(ref=a.uuid, x=0, y=0)
+    assert v._resolve_view_node(a.uuid) is n
+
+
+def test_resolve_view_node_not_found_raises():
+    from src.pyArchimate.exceptions import ArchimateConceptTypeError
+
+    m = Model("rvn-missing")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    with pytest.raises(ArchimateConceptTypeError):
+        v._resolve_view_node(a.uuid)  # never added to view
+
+
+# ---------------------------------------------------------------------------
+# View.adjust — uses _resolve_view_node
+# ---------------------------------------------------------------------------
+
+
+def test_view_adjust_by_node_directly():
+    m = Model("adj-node")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    n = v.add(ref=a.uuid, x=10, y=10, w=120, h=55)
+    result = v.adjust(n, x=50, y=60, w=200, h=100)
+    assert result is n
+    assert n.x == 50 and n.y == 60 and n.w == 200 and n.h == 100
+
+
+def test_view_adjust_by_element():
+    m = Model("adj-elem")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    n = v.add(ref=a.uuid, x=10, y=10, w=120, h=55)
+    result = v.adjust(a, x=99)
+    assert result is n
+    assert n.x == 99
+
+
+def test_view_adjust_partial_only_changes_specified_fields():
+    m = Model("adj-partial")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    n = v.add(ref=a.uuid, x=10, y=20, w=120, h=55)
+    v.adjust(n, w=200)
+    assert n.x == 10 and n.y == 20 and n.w == 200 and n.h == 55
+
+
+# ---------------------------------------------------------------------------
+# View._find_node_for_element — lines 1259-1267
+# ---------------------------------------------------------------------------
+
+
+def test_find_node_for_element_found():
+    m = Model("fnfe-found")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    n = v.add(ref=a.uuid, x=0, y=0)
+    assert v._find_node_for_element(a.uuid) is n
+
+
+def test_find_node_for_element_not_found():
+    m = Model("fnfe-miss")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    assert v._find_node_for_element("nonexistent") is None
+
+
+def test_find_node_for_element_nested():
+    m = Model("fnfe-nested")
+    a = m.add(ArchiType.ApplicationComponent, "Parent")
+    b = m.add(ArchiType.ApplicationComponent, "Child")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    parent_n = v.add(ref=a.uuid, x=0, y=0, w=300, h=200)
+    child_n = parent_n.add(ref=b.uuid, x=10, y=10)
+    assert v._find_node_for_element(b.uuid) is child_n
+
+
+# ---------------------------------------------------------------------------
+# View._resolve_relationship — lines 1269-1273
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_relationship_with_object():
+    m = Model("rr-obj")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    rel = m.add_relationship(ArchiType.Serving, source=a, target=b)
+    v = cast(View, m.add(ArchiType.View, "V"))
+    assert v._resolve_relationship(rel) is rel
+
+
+def test_resolve_relationship_with_uuid():
+    m = Model("rr-uuid")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    rel = m.add_relationship(ArchiType.Serving, source=a, target=b)
+    v = cast(View, m.add(ArchiType.View, "V"))
+    assert v._resolve_relationship(rel.uuid) is rel
+
+
+def test_resolve_relationship_none_returns_none():
+    m = Model("rr-none")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    assert v._resolve_relationship(None) is None
+
+
+# ---------------------------------------------------------------------------
+# View.add_connection auto-resolve — lines 1285-1303
+# ---------------------------------------------------------------------------
+
+
+def test_add_connection_auto_resolves_both_endpoints():
+    m = Model("ac-auto")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    rel = m.add_relationship(ArchiType.Serving, source=a, target=b)
+    v = cast(View, m.add(ArchiType.View, "V"))
+    v.add(ref=a.uuid, x=0, y=0)
+    v.add(ref=b.uuid, x=200, y=0)
+    conn = v.add_connection(rel)
+    assert conn is not None and conn.uuid in v.conns_dict
+
+
+def test_add_connection_auto_resolve_source_missing_raises():
+    from src.pyArchimate.exceptions import ArchimateConceptTypeError
+
+    m = Model("ac-src-miss")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    rel = m.add_relationship(ArchiType.Serving, source=a, target=b)
+    v = cast(View, m.add(ArchiType.View, "V"))
+    with pytest.raises(ArchimateConceptTypeError, match="source node"):
+        v.add_connection(rel)
+
+
+def test_add_connection_auto_resolve_target_missing_raises():
+    from src.pyArchimate.exceptions import ArchimateConceptTypeError
+
+    m = Model("ac-tgt-miss")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationService, "B")
+    rel = m.add_relationship(ArchiType.Serving, source=a, target=b)
+    v = cast(View, m.add(ArchiType.View, "V"))
+    v.add(ref=a.uuid, x=0, y=0)  # source present, target absent
+    with pytest.raises(ArchimateConceptTypeError, match="target node"):
+        v.add_connection(rel)
+
+
+# ---------------------------------------------------------------------------
+# View.connect_note — lines 1309-1320
+# ---------------------------------------------------------------------------
+
+
+def test_connect_note_creates_annotation_connector():
+    m = Model("cn-basic")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    note_node = v.add(ref=None, node_type="Label", label="See also:", x=0, y=200, w=120, h=40)
+    elem_node = v.add(ref=a.uuid, x=0, y=0)
+    conn = v.connect_note(note_node, elem_node)
+    assert conn is not None
+    assert conn.uuid in v.conns_dict
+    assert conn.concept is None  # no backing relationship
+
+
+def test_connect_note_by_element_ref():
+    m = Model("cn-elem")
+    b = m.add(ArchiType.ApplicationService, "B")
+    v = cast(View, m.add(ArchiType.View, "V"))
+    note_node = v.add(ref=None, node_type="Label", label="Note", x=0, y=200, w=120, h=40)
+    v.add(ref=b.uuid, x=0, y=0)
+    conn = v.connect_note(note_node, b)  # target via element object
+    assert conn.uuid in v.conns_dict

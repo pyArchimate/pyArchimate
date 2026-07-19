@@ -359,6 +359,29 @@ def test_check_invalid_nodes_with_views():
     assert isinstance(result, list)
 
 
+def test_check_invalid_relationships_empty_model():
+    assert Model("x").check_invalid_relationships() == []
+
+
+def test_check_invalid_relationships_all_valid():
+    m = Model("x")
+    a = m.add(ArchiType.Requirement, "A")
+    b = m.add(ArchiType.Requirement, "B")
+    m.add_relationship(ArchiType.Influence, source=a, target=b)
+    assert m.check_invalid_relationships() == []
+
+
+def test_check_invalid_relationships_detects_corrupted_relationship():
+    m = Model("x")
+    a = m.add(ArchiType.Requirement, "A")
+    b = m.add(ArchiType.Requirement, "B")
+    rel = m.add_relationship(ArchiType.Influence, source=a, target=b)
+    # Requirement->Requirement Realization is not allowed by the metamodel;
+    # corrupt the type directly to bypass the constructor-time check.
+    rel._type = "Realization"
+    assert m.check_invalid_relationships() == [rel.uuid]
+
+
 # ---------------------------------------------------------------------------
 # Model.default_theme
 # ---------------------------------------------------------------------------
@@ -1491,3 +1514,18 @@ def test_find_by_hierarchy_path_complex_nesting():
     result = m.find_by_hierarchy_path("/Level1/Level2/Level3/Level4")
     assert len(result) == 1
     assert l4 in result
+
+
+# ---------------------------------------------------------------------------
+# Model.add — Profile passthrough (lines 314-315)
+# ---------------------------------------------------------------------------
+
+
+def test_model_add_with_profile_passthrough():
+    """Model.add() accepts a Profile instance as concept_type (lines 314-315)."""
+    m = Model("profile-passthrough")
+    profile = m.add_profile("WebService", concept="ApplicationComponent")
+    elem = m.add(profile, "My Web Service")
+    assert elem is not None
+    assert elem.type == "ApplicationComponent"
+    assert elem.profile_id == profile.uuid

@@ -21,4 +21,15 @@ def check_invalid_nodes(model):
     return model.check_invalid_nodes()
 
 
-__all__ = ["embed_props", "expand_props", "check_invalid_conn", "check_invalid_nodes"]
+def check_invalid_relationships(model):
+    """Delegate metamodel relationship checks to the model implementation."""
+    return model.check_invalid_relationships()
+
+
+__all__ = [
+    "embed_props",
+    "expand_props",
+    "check_invalid_conn",
+    "check_invalid_nodes",
+    "check_invalid_relationships",
+]

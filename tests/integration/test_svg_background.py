@@ -248,13 +248,15 @@ def test_nested_elements_render_hierarchy():
 
     # Containers keep their own symbol shape (no dashed-rect override since that
     # was removed so containers display their actual ArchiMate symbol).
-    # All 4 nodes should render with at least one rect each (fallback plain rect
-    # for unknown 'Label' node type).
-    all_rects = root_elem.findall(".//{http://www.w3.org/2000/svg}rect")
-    assert len(all_rects) >= 4, f"Should render at least 4 rectangles (one per node), got {len(all_rects)}"
+    # 'Label' nodes render as a folded-corner note (two <path> elements: body +
+    # fold), not a <rect>, so each of the 4 nodes should contribute shape(s).
+    all_shapes = root_elem.findall(".//{http://www.w3.org/2000/svg}rect") + root_elem.findall(
+        ".//{http://www.w3.org/2000/svg}path"
+    )
+    assert len(all_shapes) >= 4, f"Should render at least 4 shapes (one or more per node), got {len(all_shapes)}"
 
     # Verify structure: nested nodes render successfully
-    print(f"✓ Nested hierarchy rendered: {len(all_groups)} nodes in SVG, {len(all_rects)} rect elements")
+    print(f"✓ Nested hierarchy rendered: {len(all_groups)} nodes in SVG, {len(all_shapes)} shape elements")
 
 
 if __name__ == "__main__":

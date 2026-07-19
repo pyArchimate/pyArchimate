@@ -28,9 +28,9 @@ class SVGExportService:
     ENDPOINT_SPREAD_STEP = 12.0  # pixels between parallel connection anchors
     EDGE_CORNER_MARGIN = 12.0  # keep endpoint spread away from corners
 
-    def __init__(self) -> None:
+    def __init__(self, show_stereotypes: bool = False) -> None:
         """Initialize SVG export service."""
-        pass
+        self.show_stereotypes = show_stereotypes
 
     def _sort_nodes_by_hierarchy(self, view: Any) -> list[Any]:
         """Sort nodes so that containing elements render before contained elements.
@@ -554,6 +554,29 @@ class SVGExportService:
             },
         )
 
+    def _render_note(self, g: ET.Element, x: float, y: float, w: float, h: float, node: Any) -> None:
+        """Render a Label/Note node as a folded-corner box (Archi's 'sticky note' convention).
+
+        Notes have no ArchiMate type/profile, so they render as a plain light-yellow
+        box with a dog-eared top-right corner and left-aligned text, rather than
+        falling through to a generic element symbol.
+        """
+        corner = min(14.0, w * 0.2, h * 0.4)
+        fill = getattr(node, "fill_color", None) or "#FFFFC0"
+        body = (
+            f"M {x:.1f} {y:.1f} "
+            f"L {x + w - corner:.1f} {y:.1f} "
+            f"L {x + w:.1f} {y + corner:.1f} "
+            f"L {x + w:.1f} {y + h:.1f} "
+            f"L {x:.1f} {y + h:.1f} Z"
+        )
+        fold = f"M {x + w - corner:.1f} {y:.1f} L {x + w - corner:.1f} {y + corner:.1f} L {x + w:.1f} {y + corner:.1f}"
+        ET.SubElement(g, "path", {"d": body, "fill": fill, "stroke": "black", "stroke-width": "1"})
+        ET.SubElement(g, "path", {"d": fold, "fill": "none", "stroke": "black", "stroke-width": "1"})
+        text = getattr(node, "label", "") or ""
+        if text:
+            self._render_wrapped_text(g, text, x + 6, y + 14, w - 12, is_centered=False)
+
     def _render_grouping(self, g: ET.Element, x: float, y: float, w: float, h: float, node: Any) -> None:
         """Render Grouping as dashed L-shaped border with label in top-left tab."""
         _raw = getattr(node, "name", None)
@@ -684,6 +707,10 @@ class SVGExportService:
 
         g = ET.SubElement(parent, "g", {"class": "node"})
 
+        if getattr(node, "cat", None) == "Label":
+            self._render_note(g, x, y, w, h, node)
+            return g
+
         if element_type in ("OrJunction", "AndJunction", "Junction"):
             self._render_junction(g, x, y, w, h, element_type, node)
             return g
@@ -725,7 +752,32 @@ class SVGExportService:
             else:
                 self._render_wrapped_text(g, element_name, x + w / 2, y + h / 2, w - 8, is_centered=True)
 
+        self._maybe_render_stereotype(g, node, x, y, w)
+
         return g
+
+    def _maybe_render_stereotype(self, parent: ET.Element, node: Any, x: float, y: float, w: float) -> None:
+        if not self.show_stereotypes:
+            return
+        concept = getattr(node, "concept", None)
+        profile = concept.profile_name if concept is not None else None
+        if profile:
+            self._render_stereotype(parent, profile, x, y, w)
+
+    def _render_stereotype(self, parent: ET.Element, profile: str, x: float, y: float, w: float) -> None:
+        """Render a stereotype label «profile» above the element name."""
+        ET.SubElement(
+            parent,
+            "text",
+            {
+                "x": str(x + w / 2),
+                "y": str(y + 12),
+                "text-anchor": "middle",
+                "font-size": "9",
+                "font-style": "italic",
+                "class": "stereotype",
+            },
+        ).text = f"«{profile}»"
 
     def _render_topleft_text(self, parent: ET.Element, node: Any, x: float, y: float, w: float) -> None:
         """Render text label at top-left for Grouping/Group elements.
@@ -1193,7 +1245,7 @@ class SVGExportService:
 
         return [start] + middle + [end]
 
-    def _get_routed_polyline_points(
+    def _get_routed_polyline_points(  # pragma: no cover
         self,
         source_node: Any,
         target_node: Any,
@@ -1807,6 +1859,13 @@ class SVGExportService:
         Returns:
             Short type name
         """
+        # conn.type returns an ArchiType enum; extract its value string
+        if hasattr(rel_type, "value"):
+            rel_type = rel_type.value
+        rel_type = str(rel_type)
+        # Strip "ArchiType." enum prefix if present (e.g. "ArchiType.Influence")
+        if rel_type.startswith("ArchiType."):
+            rel_type = rel_type[len("ArchiType.") :]
         if rel_type.endswith("Relationship"):
             return rel_type[: -len("Relationship")]
         return rel_type

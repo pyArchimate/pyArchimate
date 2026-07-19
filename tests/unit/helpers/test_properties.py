@@ -1,6 +1,7 @@
 from src.pyArchimate.helpers.properties import (
     check_invalid_conn,
     check_invalid_nodes,
+    check_invalid_relationships,
     embed_props,
     expand_props,
 )
@@ -18,6 +19,9 @@ class DummyModel:
 
     def check_invalid_nodes(self):
         return ["node"]
+
+    def check_invalid_relationships(self):
+        return ["rel"]
 
 
 def test_embed_props_delegates_to_model():
@@ -38,3 +42,8 @@ def test_check_invalid_conn_delegates_to_model():
 def test_check_invalid_nodes_delegates_to_model():
     model = DummyModel()
     assert check_invalid_nodes(model) == ["node"]
+
+
+def test_check_invalid_relationships_delegates_to_model():
+    model = DummyModel()
+    assert check_invalid_relationships(model) == ["rel"]

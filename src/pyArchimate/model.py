@@ -294,8 +294,10 @@ class Model:
         """
         Method to add a new Element in this model
 
-        :param concept_type:    Archimate Element type
-        :type concept_type: str
+        :param concept_type:    Archimate Element type, or a Profile instance whose
+                                 own concept type and uuid are used, removing the need
+                                 to restate them separately via `profile=`
+        :type concept_type: str|Profile
         :param name:            Element's name
         :type name: str
         :param uuid:            Element's Identifier
@@ -308,6 +310,10 @@ class Model:
         :return:                Element or View class object
         :rtype: Element|View
         """
+        if isinstance(concept_type, Profile):
+            profile = concept_type.uuid
+            concept_type = getattr(ArchiType, concept_type.concept)
+
         if concept_type == ArchiType.View:
             v = View(name, uuid, desc, folder, parent=self)
             self.views_dict[v.uuid] = v
@@ -982,27 +988,52 @@ class Model:
         invalids = []
 
         for conn_id, c in self.conns_dict.items():
-            if self.check_connection(c):
+            if not self.check_connection(c):
                 invalids.append(conn_id)
+        return invalids
+
+    def check_invalid_relationships(self):
+        """
+        Check all relationships in this model against the ArchiMate metamodel
+        (i.e. whether each relationship's type is actually allowed between its
+        source and target concept types). Unlike the type/endpoint check performed
+        once at relationship-creation time, this re-validates every relationship
+        currently in the model and returns the offending ones instead of only
+        logging them.
+
+        :return: list of relationship identifiers that fail metamodel validation
+        :rtype: list(str)
+        """
+        from .relationship import check_valid_relationship  # noqa: PLC0415  # circular: model↔relationship init cycle
+
+        invalids = []
+        for rel_id, r in self.rels_dict.items():
+            if not check_valid_relationship(r.type, r.source.type, r.target.type):
+                invalids.append(rel_id)
         return invalids
 
     def _check_connection_refs(self, c: Any) -> bool:
         _ok = True
-        if c._ref not in self.rels_dict:
+        has_valid_ref = c._ref in self.rels_dict
+        if not has_valid_ref:
             log.error(f"Orphan connection {c.uuid} to unknown relationship {c.ref}")
             _ok = False
         if c._source not in self.nodes_dict and c._source not in self.conns_dict:
             log.error(f"Connection {c.uuid} has orphan source node {c._source}")
             _ok = False
-        if c.concept._source not in self.elems_dict and c.concept._source not in self.rels_dict:
-            log.error(f"Connection {c.uuid} has orphan source node concept {c.concept._source}")
-            _ok = False
         if c._target not in self.nodes_dict and c._target not in self.conns_dict:
             log.error(f"Connection {c.uuid} has orphan target node {c._target}")
             _ok = False
-        if c.concept._target not in self.elems_dict and c.concept._target not in self.rels_dict:
-            log.error(f"Connection {c.uuid} has orphan target node concept {c.concept._target}")
-            _ok = False
+        # c.concept dereferences c._ref, so only check its endpoints when the
+        # relationship ref itself is valid (e.g. a note connector's synthetic
+        # ref is never in rels_dict, and has no concept to check).
+        if has_valid_ref:
+            if c.concept._source not in self.elems_dict and c.concept._source not in self.rels_dict:
+                log.error(f"Connection {c.uuid} has orphan source node concept {c.concept._source}")
+                _ok = False
+            if c.concept._target not in self.elems_dict and c.concept._target not in self.rels_dict:
+                log.error(f"Connection {c.uuid} has orphan target node concept {c.concept._target}")
+                _ok = False
         return _ok
 
     def _check_connection_endpoints(self, c: Any) -> bool:
@@ -1019,14 +1050,14 @@ class Model:
                     f"Connection {c.uuid} has a reference to its source Element which is not "
                     "the reference of the relationship source Element"
                 )
-            _ok = False
+                _ok = False
         if c.target is not None and not isinstance(c.target, View):
             if c.target._ref != c.concept._target:
                 log.error(
                     f"Connection {c.uuid} has a reference to its target Element which is not "
                     "the reference of the relationship target Element"
                 )
-            _ok = False
+                _ok = False
         return _ok
 
     def check_connection(self, c: Any) -> bool:

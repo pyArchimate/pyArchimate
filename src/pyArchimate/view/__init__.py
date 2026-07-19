@@ -963,18 +963,23 @@ class Connection:
 
     @property
     def concept(self):
-        """Referenced Relationship object."""
-        return self.model.rels_dict[self._ref]
+        """Referenced Relationship object, or None for an annotation-only connector
+
+        (e.g. a note-to-element line) whose ref doesn't resolve to a real Relationship.
+        """
+        return self.model.rels_dict.get(self._ref)
 
     @property
-    def type(self) -> str:
-        """ArchiMate relationship type."""
-        return cast(str, self.model.rels_dict[self._ref].type)
+    def type(self) -> str | None:
+        """ArchiMate relationship type, or None for an annotation-only connector."""
+        rel = self.model.rels_dict.get(self._ref)
+        return cast("str | None", rel.type) if rel is not None else None
 
     @property
     def name(self) -> str | None:
-        """Relationship name."""
-        return cast(str | None, self.model.rels_dict[self._ref].name)
+        """Relationship name, or None for an annotation-only connector."""
+        rel = self.model.rels_dict.get(self._ref)
+        return cast("str | None", rel.name) if rel is not None else None
 
     @property
     def source(self) -> Node | None:
@@ -1210,14 +1215,115 @@ class View:
         self.model.nodes_dict[n.uuid] = n
         return n
 
+    def adjust(
+        self,
+        ref: object,
+        x: int | None = None,
+        y: int | None = None,
+        w: int | None = None,
+        h: int | None = None,
+    ) -> Node:
+        """Move and/or resize a Node already present in this view.
+
+        ``ref`` may be the Node itself, or the Element (or element uuid) it
+        represents — in the latter case the matching Node already added to this
+        view is looked up automatically, mirroring how ``add()`` resolves refs.
+        Only the fields passed are changed; omitted ones (``None``) are left as-is.
+        """
+        node = self._resolve_view_node(ref)
+        if x is not None:
+            node.x = x
+        if y is not None:
+            node.y = y
+        if w is not None:
+            node.w = w
+        if h is not None:
+            node.h = h
+        return node
+
+    def _resolve_view_node(self, ref: object) -> "Node":
+        """Resolve ref to a Node already in this view.
+
+        ``ref`` may be the Node itself, or the Element (or element uuid) it
+        represents — in the latter case the matching Node already added to this
+        view is looked up automatically, mirroring how ``add()`` resolves refs.
+        """
+        if isinstance(ref, Node):
+            return ref
+        elem_uuid = Node._resolve_ref(ref)
+        found = self._find_node_for_element(elem_uuid) if elem_uuid else None
+        if found is None:
+            raise ArchimateConceptTypeError(f"No node found in this view for '{ref}'. Add it via view.add() first.")
+        return found
+
+    def _find_node_for_element(self, elem_uuid: str) -> "Node | None":
+        """Recursively search this view's nodes for one whose element ref matches."""
+        stack = list(self.nodes_dict.values())
+        while stack:
+            n = stack.pop()
+            if n.ref == elem_uuid:
+                return n
+            stack.extend(n.nodes_dict.values())
+        return None
+
+    def _resolve_relationship(self, ref: object) -> "Any | None":
+        if hasattr(ref, "source") and hasattr(ref, "target"):
+            return ref
+        ref_uuid = ref if isinstance(ref, str) else getattr(ref, "uuid", None)
+        return self.model.rels_dict.get(ref_uuid) if ref_uuid else None
+
+    def _auto_resolve_endpoints(self, ref: object, source: object, target: object) -> tuple[object, object]:
+        """Resolve source/target nodes from the relationship when either is omitted."""
+        rel = self._resolve_relationship(ref)
+        if rel is None:
+            return source, target
+        if source is None:
+            source = self._find_node_for_element(rel.source.uuid)
+            if source is None:
+                raise ArchimateConceptTypeError(
+                    f"Could not auto-resolve source node for relationship {ref}: "
+                    f"element '{rel.source.name}' has not been added to this view. "
+                    "Add it via view.add() first, or pass source= explicitly."
+                )
+        if target is None:
+            target = self._find_node_for_element(rel.target.uuid)
+            if target is None:
+                raise ArchimateConceptTypeError(
+                    f"Could not auto-resolve target node for relationship {ref}: "
+                    f"element '{rel.target.name}' has not been added to this view. "
+                    "Add it via view.add() first, or pass target= explicitly."
+                )
+        return source, target
+
     def add_connection(
         self, ref: object = None, source: object = None, target: object = None, uuid: str | None = None
     ) -> Connection:
-        """Add and return a Connection between two Nodes."""
+        """Add and return a Connection between two Nodes.
+
+        If ``source``/``target`` are omitted, they are auto-resolved from the nodes
+        already present in this view whose element matches the relationship's
+        source/target concept, removing the need to restate endpoints that ``ref``
+        already implies.
+        """
+        if source is None or target is None:
+            source, target = self._auto_resolve_endpoints(ref, source, target)
         c = Connection(ref, source, target, uuid, self)
         self.conns_dict[c.uuid] = c
         self.model.conns_dict[c.uuid] = c
         return c
+
+    def connect_note(self, note: object, target: object, uuid: str | None = None) -> Connection:
+        """Draw an annotation-only connector line from a note to another node.
+
+        Unlike add_connection(), no backing Relationship is required or created —
+        this is for purely visual lines, such as a Label/Note node (see
+        ``add(node_type="Label", ...)``) pointing at the elements it annotates.
+        ``note`` and ``target`` may each be the Node itself, or the Element (or
+        element uuid) it represents — resolved the same way ``adjust()`` does.
+        """
+        note_node = self._resolve_view_node(note)
+        target_node = self._resolve_view_node(target)
+        return self.add_connection(set_id(), source=note_node, target=target_node, uuid=uuid)
 
     @property
     def uuid(self) -> str:
@@ -1377,20 +1483,22 @@ class View:
             return self.add_connection(r, source, target)
         return None
 
-    def to_svg(self, filepath: str | None = None) -> str:
+    def to_svg(self, filepath: str | None = None, show_stereotypes: bool = False) -> str:
         """Export view to SVG string and optionally write to file.
 
         Args:
             filepath: Optional path to write SVG file to. If provided, SVG is
                      written to this file path. If None, only the SVG string
                      is returned.
+            show_stereotypes: If True, render each element's profile name as a
+                     «stereotype» label above the element name.
 
         Returns:
             SVG string (valid XML with <svg> root element)
         """
         from .layout.export import SVGExportService
 
-        service = SVGExportService()
+        service = SVGExportService(show_stereotypes=show_stereotypes)
         return service.to_svg(self, filepath)
 
 

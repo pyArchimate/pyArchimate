@@ -62,13 +62,18 @@ def check_valid_relationship(rel_type, source_type, target_type, raise_flg=False
     :param target_type:     target concept type
     :type target_type: str
     :param raise_flg: Throw an exception instead of logging an error
+    :return:            True if the relationship type/endpoint combination is valid
+    :rtype: bool
     """
     if not hasattr(ArchiType, rel_type) or ARCHI_CATEGORY[rel_type] != "Relationship":
         _report(ArchimateConceptTypeError(f"Invalid Archimate Relationship Concept type '{rel_type}'"), raise_flg)
+        return False
     if not hasattr(ArchiType, source_type):
         _report(ArchimateConceptTypeError(f"Invalid Archimate Source Concept type '{source_type}'"), raise_flg)
+        return False
     if not hasattr(ArchiType, target_type):
         _report(ArchimateConceptTypeError(f"Invalid Archimate Target Concept type '{target_type}'"), raise_flg)
+        return False
 
     if ARCHI_CATEGORY[source_type] == "Relationship":
         source_type = "Relationship"
@@ -88,6 +93,8 @@ def check_valid_relationship(rel_type, source_type, target_type, raise_flg=False
             ),
             raise_flg,
         )
+        return False
+    return True
 
 
 def _resolve_and_validate_ref(ref: Any, elems_dict: dict[str, Any], rels_dict: dict[str, Any], arg_name: str) -> str:
