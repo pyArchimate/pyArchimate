@@ -1514,3 +1514,19 @@ def test_find_by_hierarchy_path_complex_nesting():
     result = m.find_by_hierarchy_path("/Level1/Level2/Level3/Level4")
     assert len(result) == 1
     assert l4 in result
+
+
+# ---------------------------------------------------------------------------
+# Model.add — Profile passthrough (lines 314-315)
+# ---------------------------------------------------------------------------
+
+
+def test_model_add_with_profile_passthrough():
+    """Model.add() accepts a Profile instance as concept_type (lines 314-315)."""
+    m = Model("profile-passthrough")
+    profile = m.add_profile("WebService", concept="ApplicationComponent")
+    # Pass the Profile object directly; add() should extract type and uuid
+    elem = m.add(profile, "My Web Service")
+    assert elem is not None
+    assert elem.type == "ApplicationComponent"
+    assert elem.profile_id == profile.uuid
