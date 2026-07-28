@@ -1,3 +1,9 @@
+## v1.12.2 (2026-07-28)
+
+### Fix
+
+- **tests**: use monkeypatch.syspath_prepend instead of manual sys.path mutation
+
 ## v1.12.1 (2026-07-28)
 
 ## v1.12.0 (2026-07-19)
