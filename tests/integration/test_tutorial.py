@@ -6,7 +6,6 @@ so they do not share state.
 """
 
 import re
-import sys
 from pathlib import Path
 
 import pytest
@@ -28,13 +27,9 @@ def _tutorial_blocks() -> list[tuple[int, str]]:
 def test_tutorial_code_block(index: int, block: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Each Python block in docs/tutorial.md must execute without raising."""
     monkeypatch.chdir(tmp_path)
+    monkeypatch.syspath_prepend(str(_REPO_ROOT / "src"))
     namespace: dict = {
         "__builtins__": __builtins__,
         "tmp_path": tmp_path,
     }
-    sys.path.insert(0, str(_REPO_ROOT / "src"))
-    try:
-        exec(compile(block, f"tutorial_block_{index}", "exec"), namespace)  # noqa: S102
-    finally:
-        if str(_REPO_ROOT / "src") in sys.path:
-            sys.path.remove(str(_REPO_ROOT / "src"))
+    exec(compile(block, f"tutorial_block_{index}", "exec"), namespace)  # noqa: S102
