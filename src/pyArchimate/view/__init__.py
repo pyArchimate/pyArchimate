@@ -903,7 +903,6 @@ class Connection:
             raise ArchimateConceptTypeError("Connection class parent should be a class View instance!")
         self.parent: View = parent
         self.view = self.parent
-        self._uuid = set_id(uuid)
         self.model: Model = self.parent.parent
 
         self._ref = self._resolve_conn_ref(ref)
