@@ -1,3 +1,10 @@
+## v1.12.3 (2026-08-12)
+
+### Fix
+
+- **tests**: resolve SonarCloud test-quality findings
+- **devcontainer**: pin caveman/session-handoff/spec-kit installs to latest release
+
 ## v1.12.2 (2026-07-28)
 
 ### Fix
