@@ -68,6 +68,19 @@ def _fetch_issues() -> dict:
 def main() -> int:
     try:
         data = _fetch_issues()
+    except urllib.error.HTTPError as exc:
+        body = ""
+        try:
+            raw = exc.read()
+            if raw:
+                body = raw.decode(errors="replace").strip()
+        except Exception:
+            body = ""
+        message = f"ERROR: SonarCloud API returned HTTP {exc.code} ({exc.reason})"
+        if body:
+            message = f"{message}: {body}"
+        print(message, file=sys.stderr)
+        return 2
     except urllib.error.URLError as exc:
         print(f"ERROR: Could not reach SonarCloud API: {exc}", file=sys.stderr)
         return 2
