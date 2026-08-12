@@ -388,7 +388,7 @@ class Relationship:
             ValueError: If the profile name is invalid or cannot be processed.
         """
 
-        n = [x.name for x in self.model.profiles if x.name == profile_name]
+        n = [x.uuid for x in self.model.profiles if x.name == profile_name]
         if len(n) == 1:
             self._profile = n[0]
         else:
