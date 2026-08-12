@@ -62,7 +62,11 @@ def _fetch_issues() -> dict:
     except ImportError:  # noqa: S110
         pass
     with urllib.request.urlopen(req, timeout=30, context=ssl_context) as resp:  # noqa: S310
-        return json.loads(resp.read().decode())
+        body = resp.read().decode()
+        try:
+            return json.loads(body)
+        except json.JSONDecodeError as exc:
+            raise urllib.error.URLError(f"Invalid JSON response from SonarCloud API: {exc}") from exc
 
 
 def main() -> int:
