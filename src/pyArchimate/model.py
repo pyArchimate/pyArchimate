@@ -79,7 +79,7 @@ def _embed_object(o: Any, remove_props: bool) -> None:
             o.prop("Identifier", o.name)
     elif o.props != {}:
         desc = "" if o.desc is None else _strip_props_block(o.desc)
-        desc += desc.strip(" \n") + "\n\nproperties = " + json.dumps(o.props, indent=2) + "\n"
+        desc = desc.strip(" \n") + "\n\nproperties = " + json.dumps(o.props, indent=2) + "\n"
         o.desc = desc
         if remove_props:
             for x in o.props.copy():
