@@ -30,7 +30,7 @@ def test_relationship_exported_from_package():
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
+@pytest.fixture
 def model_with_rel():
     m = Model("rel-test")
     src = m.add(ArchiType.ApplicationComponent, "App")
@@ -96,7 +96,8 @@ def test_get_default_rel_type_invalid_target_raises():
 
 def test_relationship_uuid(model_with_rel):
     _, _, _, rel = model_with_rel
-    assert isinstance(rel.uuid, str) and len(rel.uuid) > 0
+    assert isinstance(rel.uuid, str)
+    assert len(rel.uuid) > 0
 
 
 def test_relationship_source_and_target(model_with_rel):

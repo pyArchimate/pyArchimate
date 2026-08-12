@@ -11,7 +11,7 @@ from src.pyArchimate.view import View
 from src.pyArchimate.view.layout.export import SVGExportService
 
 
-@pytest.fixture()
+@pytest.fixture
 def view_with_profiled_node():
     m = Model("Test")
     v = cast(View, m.add(ArchiType.View, "V"))
@@ -21,7 +21,7 @@ def view_with_profiled_node():
     return v, node
 
 
-@pytest.fixture()
+@pytest.fixture
 def view_with_unprofiled_node():
     m = Model("Test")
     v = cast(View, m.add(ArchiType.View, "V"))

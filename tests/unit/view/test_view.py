@@ -159,7 +159,7 @@ def test_profile_delete_clears_references():
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
+@pytest.fixture
 def simple_view():
     """A model with two elements and a view containing two connected nodes."""
     m = Model("view-test")
@@ -568,7 +568,8 @@ def test_node_fill_color_none_uses_default(simple_view):
     _, _, _, _, _, na, *_ = simple_view
     na.fill_color = None
     # Should set a default color string
-    assert na.fill_color is not None and na.fill_color.startswith("#")
+    assert na.fill_color is not None
+    assert na.fill_color.startswith("#")
 
 
 # ---------------------------------------------------------------------------
@@ -576,7 +577,7 @@ def test_node_fill_color_none_uses_default(simple_view):
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
+@pytest.fixture
 def view_with_nested_node():
     """A view containing a parent node with one embedded child."""
     m = Model("nested-test")
@@ -977,7 +978,8 @@ def test_node_resize_default():
     parent_n.add(ref=b.uuid, x=10, y=10)
     parent_n.add(ref=c.uuid, x=150, y=10)
     parent_n.resize(max_in_row=2)
-    assert parent_n.w > 0 and parent_n.h > 0
+    assert parent_n.w > 0
+    assert parent_n.h > 0
 
 
 def test_node_resize_desc_sort():
@@ -1055,7 +1057,7 @@ def test_node_resize_with_recurse():
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
+@pytest.fixture
 def two_spaced_nodes():
     """Two nodes far apart to exercise get_obj_pos orientations."""
     m = Model("obj-pos-test")
@@ -1234,7 +1236,7 @@ def test_view_invalid_parent_raises():
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
+@pytest.fixture
 def vertical_view():
     """A view with source/target nodes far apart vertically (enables l/s shape)."""
     m = Model("vertical-test")
@@ -1540,7 +1542,7 @@ def test_classify_outer_quadrant_top():
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
+@pytest.fixture
 def sample_model():
     return Model("sample-view")
 
@@ -1752,7 +1754,10 @@ def test_view_adjust_by_node_directly():
     n = v.add(ref=a.uuid, x=10, y=10, w=120, h=55)
     result = v.adjust(n, x=50, y=60, w=200, h=100)
     assert result is n
-    assert n.x == 50 and n.y == 60 and n.w == 200 and n.h == 100
+    assert n.x == 50
+    assert n.y == 60
+    assert n.w == 200
+    assert n.h == 100
 
 
 def test_view_adjust_by_element():
@@ -1771,7 +1776,10 @@ def test_view_adjust_partial_only_changes_specified_fields():
     v = cast(View, m.add(ArchiType.View, "V"))
     n = v.add(ref=a.uuid, x=10, y=20, w=120, h=55)
     v.adjust(n, w=200)
-    assert n.x == 10 and n.y == 20 and n.w == 200 and n.h == 55
+    assert n.x == 10
+    assert n.y == 20
+    assert n.w == 200
+    assert n.h == 55
 
 
 # ---------------------------------------------------------------------------
@@ -1846,7 +1854,8 @@ def test_add_connection_auto_resolves_both_endpoints():
     v.add(ref=a.uuid, x=0, y=0)
     v.add(ref=b.uuid, x=200, y=0)
     conn = v.add_connection(rel)
-    assert conn is not None and conn.uuid in v.conns_dict
+    assert conn is not None
+    assert conn.uuid in v.conns_dict
 
 
 def test_add_connection_auto_resolve_source_missing_raises():

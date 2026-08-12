@@ -24,7 +24,7 @@ def test_element_exported_from_package():
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
+@pytest.fixture
 def model_with_elem():
     m = Model("elem-test")
     e = m.add(ArchiType.ApplicationComponent, "App", desc="desc")
@@ -235,7 +235,7 @@ def test_element_merge_without_props(model_with_elem):
     assert other.uuid not in m.elems_dict
 
 
-@pytest.fixture()
+@pytest.fixture
 def sample_model():
     return Model("sample")
 

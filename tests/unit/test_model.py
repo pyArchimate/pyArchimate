@@ -12,7 +12,7 @@ from tests._helpers import model_with_views
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
+@pytest.fixture
 def simple_model():
     """A model with two elements and one relationship."""
     m = Model("test")
@@ -160,7 +160,8 @@ def test_find_elements_by_name_and_type(simple_model):
 def test_find_elements_no_criteria(simple_model):
     m, src, dst, *_ = simple_model
     result = m.find_elements()
-    assert src in result and dst in result
+    assert src in result
+    assert dst in result
 
 
 # ---------------------------------------------------------------------------
@@ -320,7 +321,8 @@ def test_get_or_create_view_found(simple_model):
 def test_get_or_create_view_not_found_create(simple_model):
     m, *_ = simple_model
     v = m.get_or_create_view("NewView", create_view=True)
-    assert v is not None and v.name == "NewView"
+    assert v is not None
+    assert v.name == "NewView"
 
 
 def test_get_or_create_view_not_found_no_create(simple_model):
@@ -412,7 +414,8 @@ def test_model_embed_props_element():
     a = m.add(ArchiType.ApplicationComponent, "App")
     a.prop("owner", "team")
     m.embed_props()
-    assert a.desc is not None and "properties" in a.desc
+    assert a.desc is not None
+    assert "properties" in a.desc
 
 
 def test_model_embed_props_view():
@@ -420,14 +423,16 @@ def test_model_embed_props_view():
     v = cast(View, m.add(ArchiType.View, "V"))
     v.prop("color", "blue")
     m.embed_props()
-    assert v.desc is not None and "properties" in v.desc
+    assert v.desc is not None
+    assert "properties" in v.desc
 
 
 def test_model_embed_props_model_level():
     m = Model("ep-model")
     m.prop("env", "prod")
     m.embed_props()
-    assert m.desc is not None and "properties" in m.desc
+    assert m.desc is not None
+    assert "properties" in m.desc
 
 
 def test_model_embed_props_relationship():

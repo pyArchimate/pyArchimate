@@ -15,7 +15,7 @@ COLOURS = {
 }
 
 
-@pytest.fixture()
+@pytest.fixture
 def model_with_view():
     m = Model("Test")
     v = cast(View, m.add(ArchiType.View, "V"))

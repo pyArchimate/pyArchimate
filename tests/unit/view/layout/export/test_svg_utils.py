@@ -200,7 +200,8 @@ class TestGetNodeBounds:
     def test_known_symbol_returns_scaled_bounds(self, svc):
         node = make_node(element_type="BusinessActor", x=0.0, y=0.0, w=120.0, h=55.0)
         x1, y1, x2, y2 = svc._get_node_bounds(node)
-        assert x2 > x1 and y2 > y1
+        assert x2 > x1
+        assert y2 > y1
 
     def test_larger_node_produces_larger_bounds(self, svc):
         small = make_node("s", element_type="BusinessActor", x=0.0, y=0.0, w=60.0, h=30.0)
@@ -217,7 +218,8 @@ class TestBuildCompleteNodesDict:
     def test_flat_view_includes_all_root_nodes(self, svc):
         n1, n2 = make_node("n1"), make_node("n2")
         result = svc._build_complete_nodes_dict(make_view(nodes=[n1, n2]))
-        assert "n1" in result and "n2" in result
+        assert "n1" in result
+        assert "n2" in result
 
     def test_nested_child_included(self, svc):
         child = make_node("c")

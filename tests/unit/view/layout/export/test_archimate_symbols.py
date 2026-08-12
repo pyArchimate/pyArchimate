@@ -150,7 +150,8 @@ class TestSymbolDefinitions:
             # Width and height should be positive
             width = float(parts[2])
             height = float(parts[3])
-            assert width > 0 and height > 0
+            assert width > 0
+            assert height > 0
 
     def test_symbol_bounding_box_coordinates(self):
         """Verify symbol bounding boxes have valid coordinates."""
@@ -303,7 +304,8 @@ class TestColorPalette:
                 # Color can be hex code starting with # or special value "none" for transparent
                 if color == "none":
                     continue
-                assert color.startswith("#") and len(color) == 7
+                assert color.startswith("#")
+                assert len(color) == 7
 
 
 class TestColorLayering:

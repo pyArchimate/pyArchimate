@@ -185,9 +185,11 @@ class TestBodyTypes:
         from src.pyArchimate.view.layout.export.symbols.archimate_symbols import ARCHIMATE_SYMBOLS
 
         sym = ARCHIMATE_SYMBOLS.get("Constraint")
-        assert sym is not None and sym.body_type == "path"
+        assert sym is not None
+        assert sym.body_type == "path"
         result = svc._scale_path(sym.svg_path, 10, 10, 120, 55)
-        assert isinstance(result, str) and len(result) > 0
+        assert isinstance(result, str)
+        assert len(result) > 0
 
 
 # ---------------------------------------------------------------------------
@@ -358,7 +360,8 @@ class TestOrthogonalClip:
         # The segment centre→waypoint is entirely inside the rectangle, so the
         # fallback returns the waypoint itself (no edge hit within t∈(0,1)).
         pt = SVGExportService._orthogonal_clip(bounds, (60.0, 40.0))
-        assert isinstance(pt, tuple) and len(pt) == 2
+        assert isinstance(pt, tuple)
+        assert len(pt) == 2
 
 
 # ---------------------------------------------------------------------------
