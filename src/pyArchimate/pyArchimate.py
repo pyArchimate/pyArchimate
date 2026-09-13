@@ -14,6 +14,10 @@ from .constants import (
     DEFAULT_THEME as default_theme,  # noqa: F401,N811  # lowercase alias is the stable public API name
 )
 from .constants import RGBA as RGBA
+from .derivation import DerivedRelationship as DerivedRelationship
+from .derivation import DuplicateFinding as DuplicateFinding
+from .derivation import derive_between as derive_between
+from .derivation import find_duplicate_relationships as find_duplicate_relationships
 from .element import Element as Element
 from .element import set_id as set_id
 from .enums import AccessType as AccessType
