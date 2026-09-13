@@ -79,7 +79,12 @@ class RelationshipChain:
     @property
     def intermediate(self) -> "Element":
         """The shared element B between leg1's target and leg2's source."""
-        return self.leg1.target
+        intermediate = self.leg1.target
+        # Invariant guaranteed by find_chains(): leg1._target is only ever
+        # used to build a chain after being confirmed present in
+        # model.elems_dict, so this always resolves to a real Element.
+        assert intermediate is not None, "chain invariant violated: leg1 has no resolvable target"
+        return intermediate
 
 
 def find_chains(model: "Model") -> list[RelationshipChain]:
@@ -181,10 +186,15 @@ def derive_between(model: "Model", source: Any, target: Any) -> list[DerivedRela
         derived_type = derive_pair_type(chain.leg1.type, chain.leg2.type)
         if derived_type is None:
             continue
+        chain_source, chain_target = chain.leg1.source, chain.leg2.target
+        # Invariant guaranteed by find_chains(): both endpoints were
+        # confirmed present in model.elems_dict before the chain was built.
+        assert chain_source is not None, "chain invariant violated: leg1 has no resolvable source"
+        assert chain_target is not None, "chain invariant violated: leg2 has no resolvable target"
         results.append(
             DerivedRelationship(
-                source=chain.leg1.source,
-                target=chain.leg2.target,
+                source=chain_source,
+                target=chain_target,
                 type=derived_type,
                 chain=chain,
             )
