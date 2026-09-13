@@ -154,10 +154,25 @@ Allows domain-specific customization of standard ArchiMate types with custom nam
 - `get_default_rel_type(source_type, target_type)` — return preferred valid relationship type
 - `model.check_invalid_conn()` — return list of broken connection IDs in the model
 
-**Scope**: validation checks that each *explicit* relationship already present in the model is
-legal per the ArchiMate 3.2 relationship matrix (conformance). It does **not** perform
-*derivation-rule inference* — synthesising valid implied relationships across intermediate
-elements per the spec's derivation rules. Layer that inference on top if your workflow needs it.
+**Scope**: the checks above validate that each *explicit* relationship already present in the
+model is legal per the ArchiMate 3.2 relationship matrix (conformance). See **Derivation** below
+for the separate, read-only capability that reasons about relationships *implied* across
+intermediate elements.
+
+### Derivation
+
+Read-only computation of the ArchiMate 3.2 §3.5 weakest-link derivation rule across two-step
+relationship chains (Composition, Aggregation, Assignment, Realization, Serving, Triggering,
+Flow — Access, Influence, Specialization, and Association are intentionally excluded and left to
+a human reviewer). Nothing here writes to the model, an element, a relationship, or a view.
+
+- `model.check_derivable_duplicates()` — scan the model for explicit relationships that duplicate
+  what a two-step chain already implies; returns a list of `DuplicateFinding`, each citing the
+  chain(s) that imply it
+- `model.derive_relationship(source, target)` — compute the relationship(s) implied between two
+  elements by any qualifying chain, without persisting the result; returns a list of
+  `DerivedRelationship`, each rendering as `«derived» A -Type-> B` via `str()` so it can never be
+  mistaken for a modeled relationship
 
 ### Idempotent Operations
 
@@ -347,6 +362,8 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `add(concept_type, name)` | Add element or view; `concept_type` may be string or Profile instance (which auto-extracts type & UUID); returns created object |
 | `add_relationship(rel_type, source, target)` | Add typed relationship between two elements |
 | `check_invalid_relationships()` | Re-validate all relationships against ArchiMate metamodel; returns list of relationship UUIDs that fail validation |
+| `check_derivable_duplicates()` | Read-only scan for explicit relationships that duplicate a two-step chain-implied relationship (ArchiMate weakest-link rule); returns list of `DuplicateFinding` |
+| `derive_relationship(source, target)` | Read-only query for the relationship(s) implied between two elements by a qualifying chain, without persisting; returns list of `DerivedRelationship` |
 | `read(file_path)` | Load model from file (auto-detects format) |
 | `write(file_path, writer)` | Persist model; `writer` selects output format |
 | `merge(file_path)` | Merge a second model file in; deduplicates by UUID |
@@ -503,6 +520,18 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `log_set_level(level)` | Set logging verbosity (standard `logging` levels) |
 | `log_to_file(path)` | Redirect log output to a file |
 | `log_to_stderr()` | Redirect log output to stderr |
+
+### Derivation (`pyArchimate.derivation`)
+
+Also importable from the top-level `pyArchimate` package.
+
+| Name | Description |
+|---|---|
+| `DerivedRelationship` | Transient result of `model.derive_relationship(...)`; `source`, `target`, `type`, `chain`, `is_derived=True`; never registered in any model dict |
+| `DuplicateFinding` | Result of `model.check_derivable_duplicates()`; pairs an existing `relationship` with the `implying_chains` that duplicate it |
+| `RelationshipChain` | Two existing relationships (`leg1`, `leg2`) sharing a common intermediate element |
+| `derive_between(model, source, target)` | Module-level function backing `model.derive_relationship(...)` |
+| `find_duplicate_relationships(model)` | Module-level function backing `model.check_derivable_duplicates()` |
 
 ### Diagram Helper Functions (`pyArchimate.helpers`)
 
