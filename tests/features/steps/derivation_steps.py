@@ -317,11 +317,14 @@ def step_two_chains_different_types(context):
     b1 = _add_element(context, "ApplicationEvent", "B1")
     b2 = _add_element(context, "ApplicationEvent", "B2")
     c = _add_element(context, "BusinessEvent", "C")
-    # Chain 1: structural subgroup -> implies "Realization".
+    # Chain 1: two structural legs (DR2, weakest-link) -> implies "Realization".
     context.chain1_leg1 = _add_rel(context, "Assignment", a, b1)
     context.chain1_leg2 = _add_rel(context, "Realization", b1, c)
-    # Chain 2: also structural, but weaker link -> implies "Serving".
-    context.chain2_leg1 = _add_rel(context, "Serving", a, b2)
+    # Chain 2: structural then Serving (DR3) -> implies "Serving". Serving is
+    # a *dependency* relationship (ArchiMate 3.2 Spec Section 5.2), not a
+    # structural one, so it cannot appear as a leg in a DR2 chain the way an
+    # earlier draft of this step assumed.
+    context.chain2_leg1 = _add_rel(context, "Assignment", a, b2)
     context.chain2_leg2 = _add_rel(context, "Serving", b2, c)
     context.query_source, context.query_target = a, c
 

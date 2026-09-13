@@ -161,10 +161,15 @@ intermediate elements.
 
 ### Derivation
 
-Read-only computation of the ArchiMate 3.2 §3.5 weakest-link derivation rule across two-step
-relationship chains (Composition, Aggregation, Assignment, Realization, Serving, Triggering,
-Flow — Access, Influence, Specialization, and Association are intentionally excluded and left to
-a human reviewer). Nothing here writes to the model, an element, a relationship, or a view.
+Read-only computation of the ArchiMate 3.2 Appendix B.2 "certain" derivation rules (DR2, DR3,
+DR5, DR7, DR8) across two-step, in-line relationship chains involving Composition, Aggregation,
+Assignment, Realization (structural), Serving (dependency), and Triggering/Flow (dynamic) — Access,
+Influence, Specialization, and Association are intentionally excluded and left to a human reviewer.
+Note this is not a single uniform "weakest link" across all seven types: two structural legs derive
+the weaker of the two (DR2), but Serving and the dynamic relationships combine via separate,
+asymmetric rules (e.g. Triggering-then-structural derives Triggering per DR7, while
+Flow-then-structural has no defined derivation at all). Nothing here writes to the model, an
+element, a relationship, or a view.
 
 - `model.check_derivable_duplicates()` — scan the model for explicit relationships that duplicate
   what a two-step chain already implies; returns a list of `DuplicateFinding`, each citing the

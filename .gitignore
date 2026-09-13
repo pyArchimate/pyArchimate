@@ -27,3 +27,4 @@ Thumbs.db
 .specify/integration.json
 .env
 temp/
+/reference/

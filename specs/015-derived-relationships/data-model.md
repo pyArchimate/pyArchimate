@@ -51,7 +51,8 @@ The result of the scan capability: pairs an existing explicit relationship with 
 
 Two lookup structures in `derivation.py`:
 
-- `_STRUCTURAL_STRENGTH_ORDER: tuple[str, ...]` — `("Composition", "Aggregation", "Assignment", "Realization", "Serving")`, strongest to weakest. The derived type for any two structural legs is simply the weaker (higher-index) of the two — a total order with no undefined cells (Decision 1 in research.md).
-- `_DYNAMIC_TYPES: frozenset[str]` — `{"Triggering", "Flow"}`.
+- `_STRUCTURAL_STRENGTH_ORDER: tuple[str, ...]` — `("Composition", "Aggregation", "Assignment", "Realization")`, strongest to weakest (ArchiMate 3.2 Spec Appendix B.2.2, p.128; verified against a primary copy). Two structural legs (DR2) derive the weaker of the two.
+- `_DEPENDENCY_TYPES_IN_SCOPE: frozenset[str]` — `{"Serving"}`. `Serving` is a *dependency* relationship (§5.2), not structural — an earlier, secondary-source-only version of this table incorrectly treated it as the weakest structural type; corrected during primary-source verification (Decision 1 in research.md).
+- `_DYNAMIC_TYPES: frozenset[str]` — `{"Triggering", "Flow"}`. Combination among these is *not* a symmetric total order: only `Triggering`+`Triggering` (DR8) is a defined "certain" derivation.
 
 No new fields are added to the existing `Relationship`, `Element`, or `Model` classes — this feature reads existing state only.
