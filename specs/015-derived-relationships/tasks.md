@@ -104,11 +104,46 @@
 **Purpose**: Wire the new capability into the public API and confirm the whole feature meets its constitution and success-criteria gates.
 
 - [X] T019 [P] Re-export `DuplicateFinding`, `DerivedRelationship`, `find_duplicate_relationships`, and `derive_between` from `src/pyArchimate/pyArchimate.py`, following the existing facade re-export convention (alongside `check_invalid_relationships`, etc.)
-- [ ] T020 [P] Add Sphinx-style docstrings to every public name in `src/pyArchimate/derivation.py` and to the two new `Model` methods in `src/pyArchimate/model.py`, matching the existing docstring style in that file
-- [ ] T021 Run `poetry run pytest tests/unit/test_derivation.py tests/integration/test_derivation_roundtrip.py --cov=src/pyArchimate/derivation -v` and confirm 100% coverage on `src/pyArchimate/derivation.py` per constitution Principle II
-- [ ] T022 Run `poetry run ruff check src/pyArchimate/derivation.py src/pyArchimate/model.py src/pyArchimate/pyArchimate.py` and `poetry run pyright src/pyArchimate/derivation.py` (or the project's configured type checker), fixing any findings
-- [ ] T023 Run the full existing test suite (`poetry run pytest`) to confirm no regressions in `check_invalid_relationships`, readers, writers, or view rendering
-- [ ] T024 Review `specs/015-derived-relationships/checklists/requirements.md` and note any deviations discovered during implementation, for traceability
+- [X] T020 [P] Add Sphinx-style docstrings to every public name in `src/pyArchimate/derivation.py` and to the two new `Model` methods in `src/pyArchimate/model.py`, matching the existing docstring style in that file — confirmed already complete by the docs-uplift pass; also added a `__repr__` override to `DerivedRelationship` (previously only `__str__` carried the `«derived»` marker, which understated the FR-007/SC-003 guarantee — fixed rather than weakening the docs)
+- [X] T021 Run `poetry run pytest tests/unit/test_derivation.py tests/integration/test_derivation_roundtrip.py --cov=src/pyArchimate/derivation -v` and confirm 100% coverage on `src/pyArchimate/derivation.py` per constitution Principle II — 57 tests passed, 100% coverage (96/96 lines) confirmed
+- [X] T022 Run `poetry run ruff check src/pyArchimate/derivation.py src/pyArchimate/model.py src/pyArchimate/pyArchimate.py` and `poetry run pyright src/pyArchimate/derivation.py` (or the project's configured type checker), fixing any findings — both clean; the quality-uplift pass found and fixed two real `Optional[Element]` narrowing gaps pyright caught (see commit 17f1040)
+- [X] T023 Run the full existing test suite (`poetry run pytest`) to confirm no regressions in `check_invalid_relationships`, readers, writers, or view rendering — 1689 passed, 1 skipped, 4 xfailed (pre-existing), 95% overall coverage, no regressions
+- [X] T024 Review `specs/015-derived-relationships/checklists/requirements.md` and note any deviations discovered during implementation, for traceability — see the Requirements Traceability Matrix and Known Deviations sections below
+
+---
+
+## Requirements Traceability Matrix
+
+*Added post-implementation per `specs/TECHNICAL.md`'s mandatory traceability component; backfilled from a spec-alignment review rather than at task-generation time — see Known Deviations below.*
+
+| Requirement | Type | Task IDs | User Story | Success Criteria |
+|---|---|---|---|---|
+| FR-001 (identify 2-step chains) | Functional | T005, T006 | Foundational | — |
+| FR-002 (scan reports exact-match duplicates) | Functional | T007, T008 | US1 | SC-001 |
+| FR-003 (cite the implying chain) | Functional | T007, T008 | US1 | SC-001 |
+| FR-004 (scan is read-only) | Functional | T008, T009, T010 | US1 | SC-002 |
+| FR-005 (query implied relationship on demand) | Functional | T012, T013 | US2 | — |
+| FR-006 (query never persists) | Functional | T013, T014, T015 | US2 | SC-002 |
+| FR-007 (derived results marked) | Functional | T013, T017, T018 | US3 | SC-003 |
+| FR-008 (restrict to 7 supported types) | Functional | T003, T004, T005, T006 | Foundational | SC-004 |
+| FR-009 (no A→B→A self-cycle) | Functional | T005, T006 | Foundational | — |
+| FR-010 (multiple chains reported independently) | Functional | T012, T013 | US2 | — |
+| FR-011 (exclude dangling refs) | Functional | T005, T006 | Foundational | — |
+| SC-001 (100% duplicate detection, 0 false positives) | Success Criterion | T007, T010 | US1 | — |
+| SC-002 (no persistence, verified) | Success Criterion | T010, T015 | US1, US2 | — |
+| SC-003 (marking always distinguishes) | Success Criterion | T017, T018 | US3 | — |
+| SC-004 (decline for out-of-scope types) | Success Criterion | T003, T007, T012 | Foundational, US1, US2 | — |
+
+Coverage: 11/11 functional requirements traced to code and tests; 4/4 success criteria traced to automated tests (none verified by prose/manual claim alone). No orphaned tasks and no requirement without a task.
+
+## Known Deviations (T024)
+
+Recorded here per constitution Governance ("deviations must be justified in the plan.md complexity tracking section") and `specs/TECHNICAL.md`'s traceability requirement, discovered during a post-implementation spec-alignment review:
+
+1. **Constitution Principle VII — open item, not fully closed.** `research.md` Decision 1 and `plan.md`'s Constitution Check both now state (corrected from an earlier, inaccurate "transcribed directly from the spec" claim in `plan.md`) that the derivation-rule table's structural strength ordering was cross-checked against two independent secondary sources during planning, not against a primary copy of the ArchiMate 3.2 specification (the Open Group's pages require authentication and were unfetchable in this environment). The table is internally consistent and unit-tested, but a reviewer with access to a licensed spec copy should confirm it before this feature is relied on for anything safety- or compliance-critical. This is the one open item blocking an unconditional Principle VII PASS.
+2. **`__repr__` gap, fixed rather than left as a doc mismatch.** `DerivedRelationship` originally only overrode `__str__` with the `«derived»` marker; `repr()` used the dataclass default and carried no marker, which understated the FR-007/SC-003 guarantee. Fixed by adding a `__repr__` override (see `src/pyArchimate/derivation.py`) rather than weakening the documented guarantee.
+3. **Requirements Traceability Matrix was missing from initial `tasks.md`.** `specs/TECHNICAL.md` mandates this table; it was omitted during `/speckit-tasks` and backfilled above once the gap was found.
+4. **quickstart.md Scenario 3 referenced a nonexistent fixture** (`tests/fixtures/sample.archimate` instead of the real `tests/fixtures/valid_model.archimate`, which the actual integration test correctly uses). Corrected in quickstart.md.
 
 ---
 
