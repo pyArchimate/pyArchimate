@@ -118,7 +118,7 @@ def _add_valid_chain(model):
 
 
 def test_find_chains_discovers_valid_two_step_chain():
-    model, a, b, c, leg1, leg2 = _add_valid_chain(Model())
+    model, _, b, _, leg1, leg2 = _add_valid_chain(Model())
     chains = find_chains(model)
     assert len(chains) == 1
     assert chains[0].leg1 is leg1
@@ -163,7 +163,7 @@ def test_find_chains_excludes_dangling_reference():
 
 
 def test_find_duplicate_relationships_flags_matching_explicit_relationship():
-    model, a, b, c, leg1, leg2 = _add_valid_chain(Model())
+    model, a, _, c, leg1, leg2 = _add_valid_chain(Model())
     duplicate = model.add_relationship("Realization", a, c)
 
     findings = find_duplicate_relationships(model)
@@ -181,7 +181,7 @@ def test_find_duplicate_relationships_no_explicit_relationship_no_finding():
 
 
 def test_find_duplicate_relationships_mismatched_type_not_flagged():
-    model, a, b, c, *_ = _add_valid_chain(Model())
+    model, a, _, c, *_ = _add_valid_chain(Model())
     model.add_relationship("Serving", a, c)  # does not match the implied "Realization"
     assert find_duplicate_relationships(model) == []
 
@@ -226,7 +226,7 @@ def test_find_duplicate_relationships_groups_multiple_implying_chains():
 
 
 def test_derive_between_returns_result_for_qualifying_chain():
-    model, a, b, c, leg1, leg2 = _add_valid_chain(Model())
+    model, a, _, c, _, _ = _add_valid_chain(Model())
     results = derive_between(model, a, c)
     assert len(results) == 1
     assert results[0].type == "Realization"
@@ -243,7 +243,7 @@ def test_derive_between_no_qualifying_chain_returns_empty():
 
 
 def test_derive_between_ignores_existing_explicit_relationship():
-    model, a, b, c, *_ = _add_valid_chain(Model())
+    model, a, _, c, *_ = _add_valid_chain(Model())
     model.add_relationship("Realization", a, c)
     results = derive_between(model, a, c)
     assert len(results) == 1
@@ -294,13 +294,13 @@ def test_derive_between_structural_then_dynamic_derives_dynamic_type():
 
 
 def test_derive_between_unrelated_chain_elsewhere_does_not_match():
-    model, a, b, c, leg1, leg2 = _add_valid_chain(Model())
+    model, a, _, _, _, _ = _add_valid_chain(Model())
     other = model.add("BusinessEvent", name="Other")
     assert derive_between(model, a, other) == []
 
 
 def test_derive_between_raises_for_unresolvable_element():
-    model, a, b, c, *_ = _add_valid_chain(Model())
+    model, a, _, c, *_ = _add_valid_chain(Model())
     with pytest.raises(ValueError):
         derive_between(model, "id-does-not-exist", c)
     with pytest.raises(ValueError):
@@ -311,18 +311,18 @@ def test_derive_between_raises_for_unresolvable_element():
 
 
 def test_derived_relationship_str_always_marked():
-    model, a, b, c, leg1, leg2 = _add_valid_chain(Model())
+    model, a, _, c, _, _ = _add_valid_chain(Model())
     results = derive_between(model, a, c)
     assert "«derived»" in str(results[0])
 
 
 def test_derived_relationship_repr_always_marked():
-    model, a, b, c, leg1, leg2 = _add_valid_chain(Model())
+    model, a, _, c, _, _ = _add_valid_chain(Model())
     results = derive_between(model, a, c)
     assert "«derived»" in repr(results[0])
 
 
 def test_explicit_relationship_str_never_marked():
-    model, a, b, c, leg1, leg2 = _add_valid_chain(Model())
+    _, _, _, _, leg1, leg2 = _add_valid_chain(Model())
     assert "«derived»" not in str(leg1)
     assert "«derived»" not in str(leg2)
