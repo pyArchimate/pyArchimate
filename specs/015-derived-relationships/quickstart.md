@@ -61,9 +61,9 @@ import shutil
 
 from pyArchimate import Model
 
-shutil.copy("tests/fixtures/sample.archimate", "/tmp/before.archimate")
+shutil.copy("tests/fixtures/valid_model.archimate", "/tmp/before.archimate")
 model = Model()
-model.read("tests/fixtures/sample.archimate")
+model.read("tests/fixtures/valid_model.archimate")
 
 model.check_derivable_duplicates()
 some_elem_a, some_elem_b = list(model.elems_dict.values())[:2]

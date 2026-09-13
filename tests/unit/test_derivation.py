@@ -236,6 +236,12 @@ def test_derived_relationship_str_always_marked():
     assert "«derived»" in str(results[0])
 
 
+def test_derived_relationship_repr_always_marked():
+    model, a, b, c, leg1, leg2 = _add_valid_chain(Model())
+    results = derive_between(model, a, c)
+    assert "«derived»" in repr(results[0])
+
+
 def test_explicit_relationship_str_never_marked():
     model, a, b, c, leg1, leg2 = _add_valid_chain(Model())
     assert "«derived»" not in str(leg1)

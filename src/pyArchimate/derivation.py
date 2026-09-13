@@ -156,6 +156,13 @@ class DerivedRelationship:
         tgt = getattr(self.target, "name", None) or self.target
         return f"«derived» {src} -{self.type}-> {tgt}"
 
+    def __repr__(self) -> str:
+        # Overridden (rather than left as the dataclass default) so the
+        # "always marked as derived" guarantee (FR-007/SC-003) holds for
+        # repr() output too, e.g. when a caller inspects a list of results
+        # in a REPL or includes one in a larger structure's repr.
+        return f"<{self.__class__.__name__} {self}>"
+
 
 def derive_between(model: "Model", source: Any, target: Any) -> list[DerivedRelationship]:
     """
