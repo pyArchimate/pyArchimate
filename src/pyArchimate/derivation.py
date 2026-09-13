@@ -2,15 +2,51 @@
 
 Provides a read-only scan for explicit relationships that duplicate what a
 two-step relationship chain already implies, and an on-demand query for the
-relationship implied between two elements, per the ArchiMate weakest-link
-derivation rule. Nothing here ever writes to a Model, a Relationship, or a
-view: every result is a transient dataclass.
+relationship implied between two elements, per the ArchiMate derivation
+rules (DR2, DR3, DR5, DR7, DR8) in ArchiMate 3.2 Specification, Appendix B
+("Relationships (Normative)"), Section B.2 ("Derivation Rules for Valid
+Relationships"), verified against a primary copy of the specification.
+Nothing here ever writes to a Model, a Relationship, or a view: every
+result is a transient dataclass.
 
-Scope is restricted to the seven relationship types the rule's semantics are
-unambiguous for: Composition, Aggregation, Assignment, Realization, Serving
-(the "structural" subgroup) and Triggering, Flow (the "dynamic" subgroup).
-Access, Influence, Specialization, and Association are intentionally left to
-a human reviewer (see spec.md and research.md Decision 1).
+Scope is restricted to the "certain" (valid, not merely potential)
+derivation rules for the seven relationship types the issue named:
+Composition, Aggregation, Assignment, Realization (the four *structural*
+relationships, ArchiMate §5.1), Serving (one of the four *dependency*
+relationships, §5.2 - Access/Influence/Association are excluded from this
+feature's scope), and Triggering/Flow (the two *dynamic* relationships,
+§5.3). Specialization (§5.4, "other") is excluded per the issue. Only
+"in-line" two-step chains are considered (leg1's target is leg2's source,
+i.e. a -> b -> c in the same direction) since that is the only chain shape
+this feature discovers (see find_chains) - the specification's "opposing"
+rules (DR4, DR6, where the second leg points *into* the intermediate
+element instead of out of it) do not apply to this chain shape and are out
+of scope.
+
+The rules implemented (leg1: a->b, leg2: b->c, both forward):
+
+- DR2 (both legs structural): derive the weaker of the two, using the
+  strength order Composition (strongest) > Aggregation > Assignment >
+  Realization (weakest) given on ArchiMate 3.2 Spec p.128.
+- DR3 (structural then Serving): derive Serving. (p.129)
+- DR5 (structural then a dynamic relationship): derive that dynamic type
+  (Triggering or Flow). (p.130)
+- DR7 (Triggering then structural): derive Triggering. (p.130) Note this is
+  *not* symmetric with Flow: the specification defines no equivalent
+  "Flow then structural, in line" valid derivation (Flow only combines
+  with structural relationships via the "opposing" DR6, which is out of
+  scope here), so Flow-then-structural correctly yields no derivation.
+- DR8 (Triggering then Triggering): derive Triggering, transitively.
+  (p.131) Note this is *not* generalized to any other dynamic-dynamic
+  pairing: the specification defines no "certain" rule for Flow+Flow,
+  Flow+Triggering, or Triggering+Flow, so those correctly yield no
+  derivation (they would only be reachable, if at all, via the lower-
+  certainty "potential" derivation rules in Section B.3, which this
+  feature does not implement).
+
+Every other combination of the seven supported types yields no derivation,
+by design, matching what Appendix B actually specifies rather than
+generalizing beyond it.
 """
 
 from dataclasses import dataclass
@@ -21,44 +57,61 @@ if TYPE_CHECKING:
     from .model import Model
     from .relationship import Relationship
 
-# Strongest to weakest. The derived type from two structural legs in sequence
-# is always the weaker (higher-index) of the two - a total order, no undefined
-# cells. See research.md Decision 1 for the sources this was cross-checked
-# against.
+# Strongest to weakest (ArchiMate 3.2 Spec, Appendix B.2.2, p.128). Only the
+# four structural relationships participate in this ordering - Serving is a
+# *dependency* relationship (§5.2), not structural, despite earlier drafts of
+# this module treating it as the "weakest structural" type.
 _STRUCTURAL_STRENGTH_ORDER: tuple[str, ...] = (
     "Composition",
     "Aggregation",
     "Assignment",
     "Realization",
-    "Serving",
 )
 _STRUCTURAL_INDEX: dict[str, int] = {name: i for i, name in enumerate(_STRUCTURAL_STRENGTH_ORDER)}
 
+# The one dependency relationship (of Serving/Access/Influence/Association)
+# this feature is in scope for, per the issue's explicit scope statement.
+_DEPENDENCY_TYPES_IN_SCOPE: frozenset[str] = frozenset({"Serving"})
+
 _DYNAMIC_TYPES: frozenset[str] = frozenset({"Triggering", "Flow"})
 
-SUPPORTED_RELATIONSHIP_TYPES: frozenset[str] = frozenset(_STRUCTURAL_STRENGTH_ORDER) | _DYNAMIC_TYPES
+SUPPORTED_RELATIONSHIP_TYPES: frozenset[str] = (
+    frozenset(_STRUCTURAL_STRENGTH_ORDER) | _DEPENDENCY_TYPES_IN_SCOPE | _DYNAMIC_TYPES
+)
 
 
 def derive_pair_type(leg1_type: str, leg2_type: str) -> str | None:
     """
     Compute the relationship type implied by two relationships in sequence.
 
+    Implements exactly DR2, DR3, DR5, DR7, and DR8 from ArchiMate 3.2
+    Specification Appendix B.2 (see module docstring for page references and
+    the deliberate asymmetries this preserves). Any pair not covered by one
+    of those rules yields None - this function does not generalize beyond
+    what the specification states as a "certain" (valid) derivation.
+
     :param leg1_type: type of the first leg (A to intermediate)
     :type leg1_type: str
     :param leg2_type: type of the second leg (intermediate to C)
     :type leg2_type: str
     :return: the derived relationship type, or None if this pair does not
-             yield a defined derivation (either leg is outside the supported
-             subset, or the legs come from different subgroups)
+             yield a defined derivation
     :rtype: str | None
     """
-    if leg1_type in _STRUCTURAL_INDEX and leg2_type in _STRUCTURAL_INDEX:
+    leg1_structural = leg1_type in _STRUCTURAL_INDEX
+    leg2_structural = leg2_type in _STRUCTURAL_INDEX
+
+    if leg1_structural and leg2_structural:  # DR2
         weaker_index = max(_STRUCTURAL_INDEX[leg1_type], _STRUCTURAL_INDEX[leg2_type])
         return _STRUCTURAL_STRENGTH_ORDER[weaker_index]
-    if leg1_type in _DYNAMIC_TYPES and leg2_type in _DYNAMIC_TYPES:
-        if leg1_type == "Triggering" and leg2_type == "Triggering":
-            return "Triggering"
-        return "Flow"
+    if leg1_structural and leg2_type in _DEPENDENCY_TYPES_IN_SCOPE:  # DR3
+        return leg2_type
+    if leg1_structural and leg2_type in _DYNAMIC_TYPES:  # DR5
+        return leg2_type
+    if leg1_type == "Triggering" and leg2_structural:  # DR7
+        return "Triggering"
+    if leg1_type == "Triggering" and leg2_type == "Triggering":  # DR8
+        return "Triggering"
     return None
 
 

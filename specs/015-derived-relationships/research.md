@@ -2,13 +2,33 @@
 
 ## Decision 1 — Derivation-rule table scope and structure
 
-**Decision**: Split the seven supported relationship types into two subgroups and define derivation only within each subgroup, never across them:
+**Status**: Verified against a primary copy of the ArchiMate 3.2 Specification (The Open Group, 2012-2022) on 2026-09-13, superseding the secondary-source-only version of this decision recorded during initial planning. The open item this section previously flagged (see `plan.md`'s Constitution Check for Principle VII and `tasks.md`'s "Known Deviations") is now **closed**. Two real errors in the original secondary-source-derived table were found and corrected as part of this verification (see "What changed" below) — this was not merely a matter of confirming an already-correct guess.
 
-- **Structural subgroup**: `Composition`, `Aggregation`, `Assignment`, `Realization`, `Serving`. Combine two structural relationships in sequence (A→B, B→C) via the ArchiMate "weakest link" total order — `Composition` (strongest) > `Aggregation` > `Assignment` > `Realization` > `Serving` (weakest) — the derived type between A and C is always the weaker of the two legs. This total order (and the general weakest-link principle: "if you can create a chain of these relations in the same direction, you may deduce that between both ends of the chain, the weakest relation of the chain holds") was cross-checked against two independent secondary sources during planning (search results summarizing the ArchiMate 3.0–3.2 relationships chapter and the well-known community reference "The ArchiMate 3.0 Relations Table", ea.rna.nl, 2017), both of which confirm Serving as weaker than Realization in a chain. The primary Open Group specification pages require an authenticated session and could not be fetched directly in this environment; the implementation task (T004) MUST re-verify the exact ordering against the team's licensed copy of the ArchiMate 3.2 specification (§3.5) before merging, and the unit tests (T003) exist precisely so that ordering is pinned down and reviewable rather than silently assumed.
-- **Dynamic subgroup**: `Triggering`, `Flow`. Two legs both `Triggering` derive `Triggering`; any other combination (`Triggering`+`Flow`, `Flow`+`Triggering`, `Flow`+`Flow`) derives `Flow`. (Also subject to the same T004 re-verification note above.)
-- **Cross-subgroup chains** (one leg structural, one leg dynamic, e.g. `Assignment` then `Triggering`): the ArchiMate specification does not define a single total order spanning both categories. Rather than guess, such chains are treated as **not qualifying** for derivation (FR-001's "yields a defined implied relationship type" is false for these), consistent with the spec's own conservative stance on Access/Influence/Specialization/Association.
+**Decision**: The relevant ArchiMate 3.2 relationship categories (Specification §5.1-§5.4) are:
 
-**Rationale**: The issue explicitly asked for only "the unambiguous subset" and to leave ambiguous cases "to a human." Guessing a cross-subgroup result risks presenting a misleading derived relationship as authoritative, which directly conflicts with Principle VII (System Integrity & Accuracy). Within each subgroup the rule is a straightforward total order (no undefined cells) — earlier drafts of this document speculated about spec-defined "undefined" cells within the structural total order itself; no such cells were found during research, so the table is a plain `min()`-by-strength lookup, not a sparse table with holes.
+- **Structural** (§5.1): `Composition`, `Aggregation`, `Assignment`, `Realization` — exactly four types. **`Serving` is not a structural relationship.**
+- **Dependency** (§5.2): `Serving`, `Access`, `Influence`, `Association`. Of these, only `Serving` is in this feature's scope (the other three are excluded per the issue).
+- **Dynamic** (§5.3): `Triggering`, `Flow`.
+- **Other** (§5.4): `Specialization` (excluded per the issue).
+
+Appendix B ("Relationships (Normative)"), Section B.2 ("Derivation Rules for Valid Relationships") defines the "certain" (as opposed to merely "potential", see B.3) derivation rules as DR1 through DR8. This feature implements the rules that apply to a simple two-step "in-line" forward chain (leg1: a→b, leg2: b→c, same direction) among the seven in-scope types:
+
+- **DR2** (p.128): both legs structural → derive the weaker of the two, using the strength order `Composition` (strongest) > `Aggregation` > `Assignment` > `Realization` (weakest).
+- **DR3** (p.129): structural then `Serving` → derive `Serving`.
+- **DR5** (p.130): structural then a dynamic relationship (`Triggering` or `Flow`) → derive that same dynamic type.
+- **DR7** (p.130): `Triggering` then structural → derive `Triggering`.
+- **DR8** (p.131): `Triggering` then `Triggering` → derive `Triggering` (transitivity).
+
+Every other combination of the seven in-scope types (e.g. `Serving` as the first leg, `Flow`-then-structural, `Flow`+`Flow`, `Triggering`+`Flow`, `Serving`+`Serving`, `Serving` combined with a dynamic relationship in either order) has **no** "certain" derivation rule in Appendix B.2 and correctly yields no result. The specification's "opposing" rules (DR4, DR6 — where the second leg points *into* the intermediate element rather than out of it) do not apply, since this feature's chain discovery (`find_chains`) only produces the "in-line" forward shape.
+
+**What changed from the pre-verification (secondary-source) version of this decision**:
+1. `Serving` was incorrectly modeled as "the weakest structural relationship" (a fifth entry in the structural strength order). It is a *dependency* relationship with entirely different combination rules (DR3), not part of the structural total order at all.
+2. Dynamic-dynamic combination was incorrectly generalized as "`Triggering`+`Triggering` → `Triggering`, else → `Flow`" for any pairing of `Triggering`/`Flow`. Only `Triggering`+`Triggering` (DR8) is a defined "certain" rule; `Flow`+`Flow`, `Flow`+`Triggering`, and `Triggering`+`Flow` have none.
+3. Previously-unmodeled cross-category rules were discovered and added: structural-then-`Serving` (DR3), structural-then-dynamic (DR5), and `Triggering`-then-structural (DR7). The pre-verification version treated *all* cross-subgroup chains as non-qualifying, which was too conservative in exactly these three cases.
+
+**Rationale**: The issue explicitly asked for only "the unambiguous subset" and to leave ambiguous cases "to a human." Implementing precisely DR2/DR3/DR5/DR7/DR8 — no more, no less — keeps every claim this feature makes traceable to a specific, cited rule in the normative appendix, satisfying Principle VII (System Integrity & Accuracy) without either guessing at undefined combinations or being needlessly more conservative than the specification itself.
+
+**Source**: ArchiMate® 3.2 Specification, The Open Group, © 2012-2022, Appendix B ("Relationships (Normative)"), Sections B.1-B.2 (pp.127-131), and Section 5 ("Relationships and Relationship Connectors"), Sections 5.1-5.4 (pp.23-35) for the category definitions.
 
 **Alternatives considered**:
 - *Full cross-category total order* (as some ArchiMate tutorials informally present): rejected — no single authoritative total order across all relationship categories exists in the spec; inventing one would produce results the spec doesn't actually support.

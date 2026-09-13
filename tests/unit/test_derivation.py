@@ -12,36 +12,96 @@ from src.pyArchimate.derivation import (
     find_duplicate_relationships,
 )
 
-STRUCTURAL_ORDER = ["Composition", "Aggregation", "Assignment", "Realization", "Serving"]
+STRUCTURAL_ORDER = ["Composition", "Aggregation", "Assignment", "Realization"]
 DYNAMIC_TYPES = ["Triggering", "Flow"]
 OUT_OF_SCOPE_TYPES = ["Access", "Influence", "Specialization", "Association"]
 
 
 # --- T003: derive_pair_type rule-table coverage -----------------------------
+#
+# Verified against a primary copy of the ArchiMate 3.2 Specification,
+# Appendix B.2 ("Derivation Rules for Valid Relationships"), DR2/DR3/DR5/
+# DR7/DR8, rather than the secondary web sources research.md originally
+# relied on. Two corrections from the original (unverified) implementation:
+# Serving is a *dependency* relationship, not the "weakest structural" type,
+# and dynamic-dynamic derivation is NOT a generic "Triggering-wins" rule -
+# only Triggering+Triggering (DR8) is defined; Flow+Flow, Flow+Triggering,
+# and Triggering+Flow have no "certain" derivation.
 
 
 @pytest.mark.parametrize("leg1_type,leg2_type", list(itertools.product(STRUCTURAL_ORDER, repeat=2)))
-def test_derive_pair_type_structural_weakest_link(leg1_type, leg2_type):
+def test_derive_pair_type_dr2_both_structural_weakest_link(leg1_type, leg2_type):
+    """DR2 (p.128): two structural legs derive the weaker of the two."""
     expected_index = max(STRUCTURAL_ORDER.index(leg1_type), STRUCTURAL_ORDER.index(leg2_type))
     expected = STRUCTURAL_ORDER[expected_index]
     assert derive_pair_type(leg1_type, leg2_type) == expected
 
 
-@pytest.mark.parametrize("leg1_type,leg2_type", list(itertools.product(DYNAMIC_TYPES, repeat=2)))
-def test_derive_pair_type_dynamic(leg1_type, leg2_type):
-    expected = "Triggering" if leg1_type == leg2_type == "Triggering" else "Flow"
-    assert derive_pair_type(leg1_type, leg2_type) == expected
+@pytest.mark.parametrize("structural_type", STRUCTURAL_ORDER)
+def test_derive_pair_type_dr3_structural_then_serving(structural_type):
+    """DR3 (p.129): structural then Serving derives Serving."""
+    assert derive_pair_type(structural_type, "Serving") == "Serving"
+
+
+@pytest.mark.parametrize("structural_type", STRUCTURAL_ORDER)
+def test_derive_pair_type_serving_then_structural_yields_none(structural_type):
+    """No DR covers Serving-then-structural (forward, in-line) - only the
+    reverse order (DR3) and the "opposing" DR4 (out of scope here) exist."""
+    assert derive_pair_type("Serving", structural_type) is None
+
+
+@pytest.mark.parametrize("structural_type", STRUCTURAL_ORDER)
+@pytest.mark.parametrize("dynamic_type", DYNAMIC_TYPES)
+def test_derive_pair_type_dr5_structural_then_dynamic(structural_type, dynamic_type):
+    """DR5 (p.130): structural then a dynamic relationship (Triggering or
+    Flow) derives that same dynamic type."""
+    assert derive_pair_type(structural_type, dynamic_type) == dynamic_type
+
+
+@pytest.mark.parametrize("structural_type", STRUCTURAL_ORDER)
+def test_derive_pair_type_dr7_triggering_then_structural(structural_type):
+    """DR7 (p.130): Triggering then structural derives Triggering."""
+    assert derive_pair_type("Triggering", structural_type) == "Triggering"
+
+
+@pytest.mark.parametrize("structural_type", STRUCTURAL_ORDER)
+def test_derive_pair_type_flow_then_structural_yields_none(structural_type):
+    """Flow has no DR7-equivalent: Flow-then-structural (forward, in-line)
+    is not a defined "certain" derivation - only the "opposing" DR6 covers
+    Flow combined with a structural relationship, which is out of scope for
+    this feature's chain shape."""
+    assert derive_pair_type("Flow", structural_type) is None
+
+
+def test_derive_pair_type_dr8_triggering_then_triggering():
+    """DR8 (p.131): Triggering is transitive."""
+    assert derive_pair_type("Triggering", "Triggering") == "Triggering"
+
+
+@pytest.mark.parametrize(
+    "leg1_type,leg2_type",
+    [
+        ("Flow", "Flow"),
+        ("Flow", "Triggering"),
+        ("Triggering", "Flow"),
+        ("Serving", "Serving"),
+        ("Serving", "Triggering"),
+        ("Serving", "Flow"),
+        ("Triggering", "Serving"),
+        ("Flow", "Serving"),
+    ],
+)
+def test_derive_pair_type_other_dynamic_and_dependency_combinations_yield_none(leg1_type, leg2_type):
+    """None of these pairings has a "certain" (valid) derivation rule in
+    ArchiMate 3.2 Appendix B.2 - they would only be reachable, if at all,
+    via the lower-certainty "potential" rules in B.3, which are out of scope."""
+    assert derive_pair_type(leg1_type, leg2_type) is None
 
 
 @pytest.mark.parametrize("out_of_scope_type", OUT_OF_SCOPE_TYPES)
 def test_derive_pair_type_out_of_scope_leg_yields_none(out_of_scope_type):
     assert derive_pair_type("Assignment", out_of_scope_type) is None
     assert derive_pair_type(out_of_scope_type, "Assignment") is None
-
-
-def test_derive_pair_type_cross_subgroup_yields_none():
-    assert derive_pair_type("Assignment", "Triggering") is None
-    assert derive_pair_type("Flow", "Realization") is None
 
 
 # --- T005: find_chains coverage --------------------------------------------
@@ -126,13 +186,16 @@ def test_find_duplicate_relationships_mismatched_type_not_flagged():
     assert find_duplicate_relationships(model) == []
 
 
-def test_find_duplicate_relationships_cross_subgroup_chain_not_flagged():
+def test_find_duplicate_relationships_undefined_pair_chain_not_flagged():
+    """Flow-then-structural (forward) has no defined derivation (see
+    test_derive_pair_type_flow_then_structural_yields_none), so such a chain
+    never qualifies as implying anything to flag as a duplicate."""
     model = Model()
     a = model.add("ApplicationCollaboration", name="A")
-    b = model.add("ApplicationEvent", name="B")
-    c = model.add("ApplicationCollaboration", name="C")
-    model.add_relationship("Assignment", a, b)
-    model.add_relationship("Triggering", b, c)
+    b = model.add("ApplicationCollaboration", name="B")
+    c = model.add("ApplicationEvent", name="C")
+    model.add_relationship("Flow", a, b)
+    model.add_relationship("Assignment", b, c)
     assert find_duplicate_relationships(model) == []
 
 
@@ -203,14 +266,31 @@ def test_derive_between_multiple_chains_reported_independently():
     assert all(r.type == "Realization" for r in results)
 
 
-def test_derive_between_cross_subgroup_chain_yields_no_result():
+def test_derive_between_undefined_pair_chain_yields_no_result():
+    """Flow-then-structural (forward) has no defined derivation."""
+    model = Model()
+    a = model.add("ApplicationCollaboration", name="A")
+    b = model.add("ApplicationCollaboration", name="B")
+    c = model.add("ApplicationEvent", name="C")
+    model.add_relationship("Flow", a, b)
+    model.add_relationship("Assignment", b, c)
+    assert derive_between(model, a, c) == []
+
+
+def test_derive_between_structural_then_dynamic_derives_dynamic_type():
+    """DR5: structural then Triggering (forward, in-line) does derive
+    Triggering - this is the corrected behavior after verifying against the
+    primary ArchiMate 3.2 specification; the two elements were previously,
+    incorrectly, assumed to have no relationship implied between them."""
     model = Model()
     a = model.add("ApplicationCollaboration", name="A")
     b = model.add("ApplicationEvent", name="B")
     c = model.add("ApplicationCollaboration", name="C")
     model.add_relationship("Assignment", a, b)
     model.add_relationship("Triggering", b, c)
-    assert derive_between(model, a, c) == []
+    results = derive_between(model, a, c)
+    assert len(results) == 1
+    assert results[0].type == "Triggering"
 
 
 def test_derive_between_unrelated_chain_elsewhere_does_not_match():
