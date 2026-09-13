@@ -51,8 +51,7 @@ The result of the scan capability: pairs an existing explicit relationship with 
 
 Two lookup structures in `derivation.py`:
 
-- `_STRUCTURAL_STRENGTH_ORDER: tuple[str, ...]` — `("Composition", "Aggregation", "Assignment", "Realization", "Serving")`, strongest to weakest.
-- `_STRUCTURAL_UNDEFINED_PAIRS: frozenset[tuple[str, str]]` — the specific ordered `(leg1_type, leg2_type)` pairs the ArchiMate 3.2 spec marks as producing no derived relationship, transcribed during implementation directly from the spec's derivation table (Decision 1 in research.md) and covered one-for-one by unit tests.
+- `_STRUCTURAL_STRENGTH_ORDER: tuple[str, ...]` — `("Composition", "Aggregation", "Assignment", "Realization", "Serving")`, strongest to weakest. The derived type for any two structural legs is simply the weaker (higher-index) of the two — a total order with no undefined cells (Decision 1 in research.md).
 - `_DYNAMIC_TYPES: frozenset[str]` — `{"Triggering", "Flow"}`.
 
 No new fields are added to the existing `Relationship`, `Element`, or `Model` classes — this feature reads existing state only.

@@ -1012,6 +1012,40 @@ class Model:
                 invalids.append(rel_id)
         return invalids
 
+    def check_derivable_duplicates(self):
+        """
+        Scan this model for explicit relationships that duplicate what a
+        two-step relationship chain already implies (ArchiMate weakest-link
+        derivation rule, restricted to Composition, Aggregation, Assignment,
+        Realization, Serving, Triggering, Flow). Read-only: never modifies
+        the model.
+
+        :return: one DuplicateFinding per explicit relationship found to be
+                 a duplicate, each citing the chain(s) that imply it
+        :rtype: list(DuplicateFinding)
+        """
+        from .derivation import find_duplicate_relationships  # noqa: PLC0415  # circular: model↔derivation init cycle
+
+        return find_duplicate_relationships(self)
+
+    def derive_relationship(self, source, target):
+        """
+        Compute the relationship(s) implied between two elements by any
+        qualifying two-step chain, without persisting the result.
+
+        :param source: source Element or its uuid
+        :type source: Element|str
+        :param target: target Element or its uuid
+        :type target: Element|str
+        :return: zero or more DerivedRelationship results (independent
+                 results when multiple qualifying chains exist)
+        :rtype: list(DerivedRelationship)
+        :raises ValueError: if source or target does not resolve to an element in the model
+        """
+        from .derivation import derive_between  # noqa: PLC0415  # circular: model↔derivation init cycle
+
+        return derive_between(self, source, target)
+
     def _check_connection_refs(self, c: Any) -> bool:
         _ok = True
         has_valid_ref = c._ref in self.rels_dict
