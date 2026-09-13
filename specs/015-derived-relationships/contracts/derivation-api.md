@@ -9,8 +9,9 @@ def check_derivable_duplicates(self) -> list["DuplicateFinding"]:
     """
     Scan this model for explicit relationships that duplicate what a
     two-step relationship chain already implies per the ArchiMate 3.2
-    §3.5 derivation rule (restricted to Composition, Aggregation,
-    Assignment, Realization, Serving, Triggering, Flow).
+    Specification's derivation rules (Appendix B, Section B.2; restricted
+    to Composition, Aggregation, Assignment, Realization, Serving,
+    Triggering, Flow).
 
     Read-only: never modifies the model.
 

@@ -367,7 +367,7 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `add(concept_type, name)` | Add element or view; `concept_type` may be string or Profile instance (which auto-extracts type & UUID); returns created object |
 | `add_relationship(rel_type, source, target)` | Add typed relationship between two elements |
 | `check_invalid_relationships()` | Re-validate all relationships against ArchiMate metamodel; returns list of relationship UUIDs that fail validation |
-| `check_derivable_duplicates()` | Read-only scan for explicit relationships that duplicate a two-step chain-implied relationship (ArchiMate weakest-link rule); returns list of `DuplicateFinding` |
+| `check_derivable_duplicates()` | Read-only scan for explicit relationships that duplicate a two-step chain-implied relationship (ArchiMate 3.2 Appendix B.2 derivation rules; see "Derivation" above); returns list of `DuplicateFinding` |
 | `derive_relationship(source, target)` | Read-only query for the relationship(s) implied between two elements by a qualifying chain, without persisting; returns list of `DerivedRelationship` |
 | `read(file_path)` | Load model from file (auto-detects format) |
 | `write(file_path, writer)` | Persist model; `writer` selects output format |

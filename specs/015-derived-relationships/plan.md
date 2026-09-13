@@ -7,7 +7,7 @@
 
 ## Summary
 
-Add a read-only "derivation" capability to the pyArchimate library: (1) a model-level scan that reports explicit relationships duplicating what a two-step relationship chain already implies per the ArchiMate 3.2 §3.5 derivation rule, and (2) an on-demand query that computes the implied relationship between two elements from such a chain without persisting it. Both are implemented as a new `derivation` module holding the derivation-rule table and chain-walking logic, exposed through the existing `Model` class (mirroring the existing `check_invalid_relationships` pattern) and the public `pyArchimate` API facade. No new dependencies, no changes to file formats, no writes to model or view files.
+Add a read-only "derivation" capability to the pyArchimate library: (1) a model-level scan that reports explicit relationships duplicating what a two-step relationship chain already implies per the ArchiMate 3.2 Specification's derivation rules (Appendix B, Section B.2), and (2) an on-demand query that computes the implied relationship between two elements from such a chain without persisting it. Both are implemented as a new `derivation` module holding the derivation-rule table and chain-walking logic, exposed through the existing `Model` class (mirroring the existing `check_invalid_relationships` pattern) and the public `pyArchimate` API facade. No new dependencies, no changes to file formats, no writes to model or view files.
 
 ## Technical Context
 
