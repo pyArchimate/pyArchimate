@@ -122,6 +122,10 @@ target-version = "py312"
 select = [
     "E", "F", "W", "B", "C", "I", "S110", "A", "N", "ARG",
     "UP",
+    "RUF059",  # unused-unpacked-variable — F841 doesn't flag unused tuple-unpacking
+               # targets, but pyright's push-stage reportUnusedVariable does; catching
+               # it here at commit-stage (fast, ruff-only) avoids the gap surfacing
+               # only at push time.
     # TODO(009-quality-uplift): Enable PT rule set — 163 violations exceed cap;
     # primarily PT009 (unittest assertions) in legacy tests
     # "PT",
