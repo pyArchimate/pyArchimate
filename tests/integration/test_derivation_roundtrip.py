@@ -32,7 +32,7 @@ def _snapshot(model):
 
 
 def test_check_derivable_duplicates_does_not_modify_model():
-    model, a, b, c, leg1, leg2 = _build_chain_model()
+    model, a, _, c, _, _ = _build_chain_model()
     model.add_relationship("Realization", a, c)  # a duplicate to be found
 
     before = _snapshot(model)
@@ -47,7 +47,7 @@ def test_check_derivable_duplicates_does_not_modify_model():
 
 
 def test_derive_relationship_does_not_modify_model():
-    model, a, b, c, leg1, leg2 = _build_chain_model()
+    model, a, _, c, _, _ = _build_chain_model()
 
     before = _snapshot(model)
     results = model.derive_relationship(a, c)
