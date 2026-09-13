@@ -1015,10 +1015,12 @@ class Model:
     def check_derivable_duplicates(self):
         """
         Scan this model for explicit relationships that duplicate what a
-        two-step relationship chain already implies (ArchiMate weakest-link
-        derivation rule, restricted to Composition, Aggregation, Assignment,
-        Realization, Serving, Triggering, Flow). Read-only: never modifies
-        the model.
+        two-step relationship chain already implies, per the ArchiMate 3.2
+        Specification's derivation rules (Appendix B.2), restricted to
+        Composition, Aggregation, Assignment, Realization, Serving,
+        Triggering, and Flow. This is not a single uniform "weakest-link"
+        rule across all seven types - see pyArchimate.derivation for the
+        exact rule-by-rule mapping. Read-only: never modifies the model.
 
         :return: one DuplicateFinding per explicit relationship found to be
                  a duplicate, each citing the chain(s) that imply it
