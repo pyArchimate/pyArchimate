@@ -154,6 +154,11 @@ Allows domain-specific customization of standard ArchiMate types with custom nam
 - `get_default_rel_type(source_type, target_type)` — return preferred valid relationship type
 - `model.check_invalid_conn()` — return list of broken connection IDs in the model
 
+**Scope**: validation checks that each *explicit* relationship already present in the model is
+legal per the ArchiMate 3.2 relationship matrix (conformance). It does **not** perform
+*derivation-rule inference* — synthesising valid implied relationships across intermediate
+elements per the spec's derivation rules. Layer that inference on top if your workflow needs it.
+
 ### Idempotent Operations
 
 - `get_or_create_element(elem_type, name, create_elem=False)` — safe for re-entrant scripts

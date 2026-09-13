@@ -77,6 +77,17 @@ Common relationship types include:
 
 For a complete list and validation rules, see :py:func:`pyArchimate.check_valid_relationship`.
 
+.. note::
+
+   **Validation scope**: :py:func:`pyArchimate.check_valid_relationship` and
+   :py:meth:`~pyArchimate.Model.check_invalid_relationships` check that each **explicit**
+   relationship in the model is legal per the ArchiMate 3.2 relationship matrix (i.e.
+   conformance). They do **not** perform **derivation-rule inference** — synthesising
+   valid implied relationships across intermediate elements per the specification's
+   derivation rules (e.g. deriving a relationship between A and C from A→B and B→C).
+   If your pipeline needs derived relationships, that inference must be layered on top
+   of pyArchimate's conformance checks.
+
 Views and Diagrams
 ~~~~~~~~~~~~~~~~~~
 
