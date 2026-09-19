@@ -140,6 +140,36 @@ class RelationshipChain:
         return intermediate
 
 
+def _qualifies_for_chaining(rel: "Relationship", model: "Model") -> bool:
+    """
+    True when a relationship's type and endpoints are eligible to form a chain leg.
+
+    Factored out of :func:`find_chains` so both the index-building and the
+    outer-leg scan share one FR-008/FR-011 check instead of repeating it.
+
+    :param rel: the relationship to test
+    :type rel: Relationship
+    :param model: the model the relationship belongs to
+    :type model: Model
+    :return: whether the relationship may participate as either leg
+    :rtype: bool
+    """
+    if rel.type not in SUPPORTED_RELATIONSHIP_TYPES:
+        return False
+    if rel._source not in model.elems_dict:
+        return False
+    return rel._target in model.elems_dict
+
+
+def _index_qualifying_by_source(relationships: list["Relationship"], model: "Model") -> dict[str, list["Relationship"]]:
+    """Group relationships eligible for chaining by their source element uuid."""
+    by_source: dict[str, list[Relationship]] = {}
+    for rel in relationships:
+        if _qualifies_for_chaining(rel, model):
+            by_source.setdefault(rel._source, []).append(rel)
+    return by_source
+
+
 def find_chains(model: "Model") -> list[RelationshipChain]:
     """
     Discover every qualifying two-step relationship chain in a model.
@@ -155,21 +185,12 @@ def find_chains(model: "Model") -> list[RelationshipChain]:
     :return: every qualifying chain found
     :rtype: list[RelationshipChain]
     """
-    chains: list[RelationshipChain] = []
     relationships = list(model.rels_dict.values())
+    by_source = _index_qualifying_by_source(relationships, model)
 
-    by_source: dict[str, list[Relationship]] = {}
-    for rel in relationships:
-        if rel.type not in SUPPORTED_RELATIONSHIP_TYPES:
-            continue
-        if rel._source not in model.elems_dict or rel._target not in model.elems_dict:
-            continue
-        by_source.setdefault(rel._source, []).append(rel)
-
+    chains: list[RelationshipChain] = []
     for leg1 in relationships:
-        if leg1.type not in SUPPORTED_RELATIONSHIP_TYPES:
-            continue
-        if leg1._source not in model.elems_dict or leg1._target not in model.elems_dict:
+        if not _qualifies_for_chaining(leg1, model):
             continue
         for leg2 in by_source.get(leg1._target, []):
             if leg2._target == leg1._source:
