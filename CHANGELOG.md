@@ -1,3 +1,18 @@
+## v1.13.0 (2026-09-19)
+
+### Feat
+
+- implement derived relationships (issue #140, tasks T001-T019)
+
+### Fix
+
+- **devcontainer**: install poetry-plugin-export alongside Poetry
+- **devcontainer**: refresh apt cache before installing plantuml
+- resolve pyright reportUnusedVariable in derivation tests
+- correct derivation rule table against primary ArchiMate 3.2 spec
+- close spec-alignment gaps for derived relationships (issue #140)
+- close pyright type-safety gaps in derivation.py
+
 ## v1.12.4 (2026-09-13)
 
 ## v1.12.3 (2026-08-12)
