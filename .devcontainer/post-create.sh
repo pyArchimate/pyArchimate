@@ -26,7 +26,7 @@ run_command() {
 # can't be resolved.
 github_latest_release_tag() {
     local repo="$1"   # e.g. github/spec-kit
-    curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" \
+    curl -fsSL --proto-redir "=https" "https://api.github.com/repos/${repo}/releases/latest" \
         | grep -m1 '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/'
 }
 
@@ -119,7 +119,7 @@ install_skill_from_release() {
     local tmp
     tmp=$(mktemp -d)
     local extracted_root=""
-    if curl -fsSL "https://github.com/${repo}/archive/refs/tags/${tag}.tar.gz" -o "${tmp}/skill.tar.gz" \
+    if curl -fsSL --proto-redir "=https" "https://github.com/${repo}/archive/refs/tags/${tag}.tar.gz" -o "${tmp}/skill.tar.gz" \
         && tar -xzf "${tmp}/skill.tar.gz" -C "${tmp}"; then
         extracted_root=$(find "${tmp}" -mindepth 1 -maxdepth 1 -type d | head -1)
     fi
