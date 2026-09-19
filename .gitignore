@@ -1,4 +1,5 @@
 /venv/
+/.worktrees/
 # /docs/build/
 **/*.bak
 .vscode/
