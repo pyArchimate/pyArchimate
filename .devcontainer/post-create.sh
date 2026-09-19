@@ -38,6 +38,9 @@ echo "✅ Done"
 # Installing Poetry (Python package manager)
 echo -e "\n🐍 Installing Poetry - Python Package Manager..."
 run_command "pip install poetry"
+# Poetry 2.x dropped `export` as a built-in command; the pre-push hook's
+# requirements.txt sync (see .pre-commit-config.yaml) needs this plugin.
+run_command "pip install poetry-plugin-export"
 echo "✅ Done"
 
 # Installing CLI-based AI Agents
