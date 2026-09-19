@@ -70,6 +70,7 @@ echo "✅ Done"
 
 # Installing PlantUML
 echo -e "\n🌱 Installing PlantUML..."
+run_command "sudo apt-get update"
 run_command "sudo apt-get install -y plantuml"
 run_command "sudo curl -L https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar -o /usr/share/plantuml/plantuml.jar"
 echo "✅ Done"
