@@ -528,15 +528,13 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 
 ### Derivation (`pyArchimate.derivation`)
 
-Also importable from the top-level `pyArchimate` package.
-
 | Name | Description |
 |---|---|
-| `DerivedRelationship` | Transient result of `model.derive_relationship(...)`; `source`, `target`, `type`, `chain`, `is_derived=True`; never registered in any model dict |
-| `DuplicateFinding` | Result of `model.check_derivable_duplicates()`; pairs an existing `relationship` with the `implying_chains` that duplicate it |
-| `RelationshipChain` | Two existing relationships (`leg1`, `leg2`) sharing a common intermediate element |
-| `derive_between(model, source, target)` | Module-level function backing `model.derive_relationship(...)` |
-| `find_duplicate_relationships(model)` | Module-level function backing `model.check_derivable_duplicates()` |
+| `DerivedRelationship` | Transient result of `model.derive_relationship(...)`; `source`, `target`, `type`, `chain`, `is_derived=True`; never registered in any model dict. Also importable from the top-level `pyArchimate` package. |
+| `DuplicateFinding` | Result of `model.check_derivable_duplicates()`; pairs an existing `relationship` with the `implying_chains` that duplicate it. Also importable from the top-level `pyArchimate` package. |
+| `RelationshipChain` | Two existing relationships (`leg1`, `leg2`) sharing a common intermediate element. Only available via `pyArchimate.derivation` — not re-exported at the top level. |
+| `derive_between(model, source, target)` | Module-level function backing `model.derive_relationship(...)`. Also importable from the top-level `pyArchimate` package. |
+| `find_duplicate_relationships(model)` | Module-level function backing `model.check_derivable_duplicates()`. Also importable from the top-level `pyArchimate` package. |
 
 ### Diagram Helper Functions (`pyArchimate.helpers`)
 

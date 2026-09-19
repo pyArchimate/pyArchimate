@@ -26,6 +26,9 @@ This document captures the buyer/super-user value that pyArchimate provides: kee
 - **SVG export enhancements**  
   SVG diagrams now render Label nodes as folded-corner sticky notes, support configurable stereotype label rendering above element names (controlled via `View.to_svg(show_stereotypes=True)`), and handle annotation connectors (visual connectors with no backing Relationship) with null-safe property access. `apply_profile_styles` helper maps ArchiMate profiles to fill/line/font colors and applies them across all view nodes recursively (v1.11.3+).
 
+- **Derived relationship detection**  
+  `Model.check_derivable_duplicates()` scans the model for explicit relationships that duplicate what a two-step relationship chain already implies under the ArchiMate 3.2 derivation rules (Appendix B.2), restricted to Composition, Aggregation, Assignment, Realization, Serving, Triggering, and Flow; `Model.derive_relationship(source, target)` computes the relationship(s) a qualifying chain implies between two elements without persisting the result. Both are read-only and never modify the model. Exposed via the top-level `pyArchimate` public API (`derive_between`, `find_duplicate_relationships`, `DerivedRelationship`, `DuplicateFinding`) alongside the existing `check_invalid_*` validation helpers.
+
 - **Logging helpers**  
   `pyArchimate.logger` exposes centralized logging configuration for scripts/tests. Example scripts (e.g., `tests/legacy_examples/Archi2Aris.py`) demonstrate conversion flows.
 

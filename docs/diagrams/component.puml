@@ -3,6 +3,7 @@ title pyArchimate Component Diagram
 
 package "pyArchimate" {
   component "Model Module" as ModelMod
+  component "Relationship Derivation" as Derivation
   component "View Module" as ViewMod
   component "View Layout Engine" as LayoutEngine
   component "Reader Registry" as ReaderRegistry
@@ -16,6 +17,7 @@ component "Exchange Formats (XML, CSV)" as Exports
 component "lxml, oyaml, stdlib" as Dependencies
 
 CLI --> ModelMod : uses API to build models
+ModelMod --> Derivation : delegates derivation queries (read-only, no persistence)
 ModelMod --> ViewMod : owns views and nodes
 ViewMod --> LayoutEngine : delegates SVG export and auto-layout
 ModelMod --> ReaderRegistry : loads format adapters

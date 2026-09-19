@@ -49,6 +49,8 @@ class Model {
   + check_invalid_conn() : list
   + check_invalid_nodes() : list
   + check_invalid_relationships() : list
+  + check_derivable_duplicates() : list[DuplicateFinding]
+  + derive_relationship(source, target) : list[DerivedRelationship]
   + check_connection(c) : bool
   + default_theme(theme)
   + prop(key, value) : any
@@ -272,6 +274,35 @@ Element "0..*" o-- "0..*" Profile : specialized by
 Relationship "0..*" o-- "0..*" Profile : specialized by
 
 Connection "0..*" -- "*" Point : defines path
+
+class RelationshipChain {
+  leg1: Relationship
+  leg2: Relationship
+  --
+  {readonly} intermediate: Element
+}
+
+class DerivedRelationship <<frozen>> {
+  source: Element
+  target: Element
+  type: str
+  chain: RelationshipChain
+  is_derived: bool = True
+}
+
+class DuplicateFinding <<frozen>> {
+  relationship: Relationship
+  implying_chains: list[RelationshipChain]
+}
+
+RelationshipChain --> Relationship : leg1, leg2
+DerivedRelationship --> RelationshipChain : produced by
+DerivedRelationship --> Element : source, target
+DuplicateFinding --> Relationship : flags
+DuplicateFinding --> RelationshipChain : implying_chains
+
+Model ..> DerivedRelationship : derive_relationship() returns
+Model ..> DuplicateFinding : check_derivable_duplicates() returns
 
 class SVGExportService {
   + to_svg(view, filepath) : str

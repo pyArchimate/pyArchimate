@@ -31,6 +31,7 @@ This document consolidates technical specifications, patterns, utilities, and pr
   - `Model.add()` accepts Profile instances as `concept_type`, automatically extracting `ArchiType` and uuid without restatement, enabling more fluent model construction.
   - `View.adjust()` moves and/or resizes nodes by accepting the node itself, its element, or its element UUID as the reference argument, reducing caller boilerplate for incremental diagram updates.
   - `Model.check_invalid_relationships()` re-validates every relationship in the model against the ArchiMate metamodel and returns offending UUIDs, exposed via `pyArchimate.helpers.properties` and the top-level public API for pre-export validation.
+  - `Model.check_derivable_duplicates()` and `Model.derive_relationship(source, target)` (backed by `src/pyArchimate/derivation.py`) apply the ArchiMate 3.2 derivation rules (Appendix B.2) to find explicit relationships that duplicate an implied two-step chain, or to compute what a chain implies between two elements. Both are read-only advisory helpers — unlike `check_invalid_*`, they are not a pre-export gate. The rule table is rule-specific and asymmetric (e.g., Triggering-then-structural derives Triggering, but Flow-then-structural derives nothing); do not treat it as a single uniform "weakest-link" ordering across all seven in-scope types.
 - **Testing**:
   - Write tests for all new functionality.
   - Stub functions to facilitate testing before production code is fully implemented.

@@ -10,6 +10,14 @@ package "pyArchimate" {
     class Model
   }
 
+  class "derivation.py" as DerivationMod {
+    {public API}
+    derive_pair_type(leg1_type, leg2_type) : str|None
+    find_chains(model) : list[RelationshipChain]
+    derive_between(model, source, target) : list[DerivedRelationship]
+    find_duplicate_relationships(model) : list[DuplicateFinding]
+  }
+
   package "view" as ViewMod {
     class "__init__.py" as ViewInit {
       class View
@@ -153,6 +161,7 @@ Facade --> ModelMod : exports
 Facade --> ViewInit : exports
 Facade --> ElementMod : exports
 Facade --> RelationshipMod : exports
+Facade --> DerivationMod : exports
 Facade --> Enums : exports
 Facade --> Exceptions : exports
 Facade --> Constants : exports
@@ -166,6 +175,9 @@ ModelMod --> ViewpointRegistry : uses
 
 readers ..> ModelMod : populates
 writers ..> ModelMod : serializes
+
+ModelMod --> DerivationMod : delegates derivation queries
+DerivationMod ..> ModelMod : references (TYPE_CHECKING only)
 
 ArchiReader --> ArchiReaderHelpers : uses
 ArchimateReader --> ArchiReaderHelpers : uses

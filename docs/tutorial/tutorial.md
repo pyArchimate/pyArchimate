@@ -255,7 +255,40 @@ print(f"Number of invalid relationships: {len(invalid_rels)}")  # 0
 
 ---
 
-## 9. Element and Relationship Properties
+## 9. Derived Relationship Detection
+
+Per the ArchiMate 3.2 Specification's derivation rules (Appendix B.2), a
+two-step relationship chain between structural, dependency, and dynamic
+relationship types (Composition, Aggregation, Assignment, Realization,
+Serving, Triggering, Flow) can imply a direct relationship between its
+endpoints. `model.derive_relationship(source, target)` computes what a
+qualifying chain implies without persisting anything; `model.check_derivable_duplicates()`
+scans the whole model for explicit relationships that already duplicate
+what a chain implies. Both are read-only.
+
+```python
+from pyArchimate import Model, ArchiType
+
+model = Model("derivation demo")
+hub = model.add(ArchiType.ApplicationComponent, "Order Hub")
+mid = model.add(ArchiType.ApplicationComponent, "Payment Module")
+leaf = model.add(ArchiType.ApplicationComponent, "Ledger Entry")
+model.add_relationship(ArchiType.Composition, source=hub, target=mid)
+model.add_relationship(ArchiType.Aggregation, source=mid, target=leaf)
+
+# DR2: two structural legs derive the weaker of the two (Aggregation)
+derived = model.derive_relationship(hub, leaf)
+print(f"Derived type: {derived[0].type}")  # Aggregation
+
+# An explicit relationship duplicating the derived chain is flagged
+model.add_relationship(ArchiType.Aggregation, source=hub, target=leaf)
+duplicates = model.check_derivable_duplicates()
+print(f"Number of duplicate relationships found: {len(duplicates)}")  # 1
+```
+
+---
+
+## 10. Element and Relationship Properties
 
 Arbitrary key/value metadata can be attached to any element, relationship, or
 view with `prop()`. `props` returns the full dictionary. `remove_prop()` deletes
@@ -290,7 +323,7 @@ print(f"SLA property: {rel.prop('sla')}")    # 99.9%
 
 ---
 
-## 10. Exporting to Different Formats
+## 11. Exporting to Different Formats
 
 `model.write()` accepts a `writer` argument from the `Writers` enum to select
 the output format. The default is `Writers.archimate` (Archi tool `.archimate`).
@@ -318,7 +351,7 @@ model.write("export_demo.csv", writer=Writers.csv)
 
 ## Intermediate
 
-## 11. Merging Models
+## 12. Merging Models
 
 `model.merge()` loads a second file into an existing model, combining elements
 and relationships. Elements with the same UUID are deduplicated; new ones are
@@ -344,7 +377,7 @@ print(f"Number of elements after merge: {len(base.elements)}")  # 2
 
 ---
 
-## 12. Filtering Elements, Relationships, and Views
+## 13. Filtering Elements, Relationships, and Views
 
 `filter_elements()`, `filter_relationships()`, and `filter_views()` accept a
 predicate function and return matching objects. Use these when `find_elements()`
@@ -379,7 +412,7 @@ print(f"Number of relationships from ApplicationComponent: {len(app_rels)}")  # 
 
 ---
 
-## 13. Idempotent Element and Relationship Creation
+## 14. Idempotent Element and Relationship Creation
 
 `model.get_or_create_element()` returns an existing element or creates one if
 `create_elem=True`. The equivalent `get_or_create_relationship()` does the same
@@ -408,7 +441,7 @@ print(f"Number of relationships: {len(model.relationships)}")  # 1
 
 ---
 
-## 14. Styling Nodes
+## 15. Styling Nodes
 
 Each `Node` exposes `fill_color` and `line_color` as hex strings (`#RRGGBB`).
 `model.default_theme()` applies the standard ArchiMate or ARIS color palette
@@ -438,7 +471,7 @@ print(f"Custom fill color: {node_svc.fill_color}")  # #cce5ff
 
 ---
 
-## 15. Nested Nodes (Containment)
+## 16. Nested Nodes (Containment)
 
 A node can contain other nodes, representing structural nesting in a view.
 Call `node.add()` on a parent node instead of `view.add()`. Use
@@ -468,7 +501,7 @@ print(f"Parent expanded to fit children? {node_cluster.w > 120}")  # True
 
 ---
 
-## 16. Adjusting Node Position and Size
+## 17. Adjusting Node Position and Size
 
 After adding a node to a view, use `view.adjust()` to move and/or resize it
 without calling `view.add()` again. Pass only the fields you want to change;
@@ -499,7 +532,7 @@ print(f"Node now at ({node_app.x}, {node_app.y})")  # (200, 50)
 
 ---
 
-## 17. Annotation Connectors (Notes and Labels)
+## 18. Annotation Connectors (Notes and Labels)
 
 Draw annotation-only connector lines from a label or note to other nodes using
 `view.connect_note()`. Unlike regular connections, these have no backing
@@ -534,7 +567,7 @@ print(f"Annotation connector concept: {note_conn.concept}")  # None
 
 ## Advanced
 
-## 18. Connection Routing (Bendpoints)
+## 19. Connection Routing (Bendpoints)
 
 Connections between nodes follow a straight line by default. Add `Point`
 bendpoints to route connections around obstacles. The `l_shape()` and
@@ -570,7 +603,7 @@ print(f"First bendpoint x-coordinate: {conn.get_bendpoint(0).x}")  # 150
 
 ---
 
-## 19. Distributing Connections
+## 20. Distributing Connections
 
 When a node has many connections their endpoints can overlap. Call
 `node.distribute_connections()` to spread them evenly along each edge of
@@ -605,7 +638,7 @@ print(f"Number of outgoing connections from hub: {len(node_hub.out_conns())}")  
 
 ---
 
-## 20. Embedding Properties in Descriptions
+## 21. Embedding Properties in Descriptions
 
 Some external tools (such as ARIS) do not support ArchiMate concept properties.
 `model.embed_props()` serialises all properties into each element's `desc`
@@ -632,7 +665,7 @@ print(f"Owner property after expand: {app.prop('owner')}")  # supply-chain-team
 
 ---
 
-## 21. Logging
+## 22. Logging
 
 pyArchimate logs diagnostics via Python's standard `logging` module. Use the
 helpers to redirect output or adjust verbosity without configuring the logging
@@ -651,7 +684,7 @@ log_to_stderr()
 
 ---
 
-## 22. Auto-Layout
+## 23. Auto-Layout
 
 `auto_layout()` automatically positions all nodes in a view using a
 force-directed algorithm. Pass all nodes at the same coordinates and let
@@ -697,7 +730,7 @@ print(f"Hub node x after layout: {node_hub.x}")  # non-zero after layout
 
 ---
 
-## 23. SVG Export
+## 24. SVG Export
 
 `view.to_svg()` returns an SVG string for a single view. `model.write()` with
 a `.svg` path writes the first view to an SVG file. SVG output includes
@@ -726,7 +759,7 @@ model.write("app_layer.svg")
 
 ---
 
-## 24. Duplicating Views
+## 25. Duplicating Views
 
 `view.duplicate()` creates an independent copy of a view — same nodes,
 connections, and styling — and registers it in the model. Pass an optional
