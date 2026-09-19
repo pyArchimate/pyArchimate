@@ -45,20 +45,24 @@ echo "✅ Done"
 
 # Installing CLI-based AI Agents
 
-echo -e "\n🤖 Installing Copilot CLI..."
-run_command "npm install -g @github/copilot@latest"
-echo "✅ Done"
+# echo -e "\n🤖 Installing Copilot CLI..."
+# run_command "npm install -g @github/copilot@latest"
+# echo "✅ Done"
 
-echo -e "\n🤖 Installing Codex CLI..."
-run_command "npm install -g @openai/codex@latest"
-echo "✅ Done"
+# echo -e "\n🤖 Installing Codex CLI..."
+# run_command "npm install -g @openai/codex@latest"
+# echo "✅ Done"
 
-echo -e "\n🤖 Installing Gemini CLI..."
-run_command "npm install -g @google/gemini-cli@latest"
-echo "✅ Done"
+# echo -e "\n🤖 Installing Gemini CLI..."
+# run_command "npm install -g @google/gemini-cli@latest"
+# echo "✅ Done"
 
 echo -e "\n🤖 Installing Claude CLI..."
 run_command "curl -fsSL https://claude.ai/install.sh | bash"
+echo "✅ Done"
+
+echo -e "\n🤖 Installing herdr..."
+run_command "curl -fsSL https://herdr.dev/install.sh | sh"
 echo "✅ Done"
 
 echo -e "\n🤖 Installing Specify CLI..."

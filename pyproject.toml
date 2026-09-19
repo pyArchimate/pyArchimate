@@ -56,8 +56,8 @@ lint = [
     "ruff>=0.16.0,<1.0.0",
     "pymarkdownlnt>=0.9.38",
     "lxml-stubs (>=0.5.1,<0.6.0)",
-    "setuptools (>=83.0.0,<84.0.0)",
-    "types-setuptools (>=82.0.0.20260408,<83.0.0.0)",
+    "setuptools (>=84.0.0,<85.0.0)",
+    "types-setuptools (>=84.0.0.20260812,<85.0.0.0)",
 ]
 
 docs = [

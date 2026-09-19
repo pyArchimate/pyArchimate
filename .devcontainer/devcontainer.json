@@ -2,6 +2,7 @@
     "name": "pyArchimateDevContainer",
     "image": "mcr.microsoft.com/devcontainers/python:3.12-trixie",
     "init": true,
+    "shutdownAction": "none",
     "remoteUser": "devcontainer",
     "updateRemoteUserUID": true,
     "runArgs": ["--network=host"],
