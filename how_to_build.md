@@ -72,7 +72,7 @@ exist — resolve them before proceeding.
 
 ```bash
 # Review and update PlantUML sources against current source code
-claude -p "Review each of the diagrams in @docs/diagrams/*.puml, compare against @src/pyArchimate, and update as required." --dangerously-skip-permissions
+claude -p "Review each of the diagrams in @docs/diagrams/*.puml, compare against @src/pyArchimate, and update as required."
 
 # Re-render to PNG/SVG
 bash scripts/render_diagrams.sh
@@ -81,19 +81,19 @@ bash scripts/render_diagrams.sh
 ### 4. Review AI.md for accuracy
 
 ```bash
-claude -p "Review @AI.md for accuracy since the last release tag version." --dangerously-skip-permissions
+claude -p "Review @AI.md for accuracy since the last release tag version."
 ```
 
 ### 4b. Review and update tutorial
 
 ```bash
-claude -p "Review @docs/tutorial/tutorial.md and @docs/tutorial/tutorial.ipynb against changes since the last release tag. Update any code examples, API references, or version references that are no longer accurate." --dangerously-skip-permissions
+claude -p "Review @docs/tutorial/tutorial.md and @docs/tutorial/tutorial.ipynb against changes since the last release tag. Update any code examples, API references, or version references that are no longer accurate."
 ```
 
 ### 5. Review spec documents for accuracy
 
 ```bash
-claude -p "Review @specs/PROJECT_CONSTITUTION.md @specs/PROJECT_SPECIFICATION.md @specs/TECHNICAL.md @specs/NONFUNCTIONALS.md against changes since the last release tag and recommend any updates needed." --dangerously-skip-permissions
+claude -p "Review @specs/PROJECT_CONSTITUTION.md @specs/PROJECT_SPECIFICATION.md @specs/TECHNICAL.md @specs/NONFUNCTIONALS.md against changes since the last release tag and recommend any updates needed."
 ```
 
 ### 6. Build Sphinx documentation
