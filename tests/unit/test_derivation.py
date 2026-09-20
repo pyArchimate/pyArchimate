@@ -159,6 +159,18 @@ def test_find_chains_excludes_dangling_reference():
     assert chains == []
 
 
+def test_find_chains_excludes_dangling_source_reference():
+    model = Model()
+    a = model.add("ApplicationCollaboration", name="A")
+    b = model.add("ApplicationEvent", name="B")
+    c = model.add("BusinessEvent", name="C")
+    model.add_relationship("Assignment", a, b)
+    model.add_relationship("Realization", b, c)
+    del model.elems_dict[a.uuid]  # simulate a dangling source reference
+    chains = find_chains(model)
+    assert chains == []
+
+
 # --- T007: find_duplicate_relationships (User Story 1) ---------------------
 
 
