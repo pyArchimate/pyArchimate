@@ -1,3 +1,10 @@
+## v1.13.1 (2026-09-20)
+
+### Fix
+
+- **devcontainer**: restrict curl redirects to https
+- reduce cognitive complexity of derivation.find_chains
+
 ## v1.13.0 (2026-09-19)
 
 ### Feat
