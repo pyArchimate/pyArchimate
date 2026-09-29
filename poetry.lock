@@ -765,14 +765,14 @@ test = ["pytest"]
 
 [[package]]
 name = "commitizen"
-version = "4.18.1"
+version = "4.19.0"
 description = "Python commitizen client tool"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["dev"]
 files = [
-    {file = "commitizen-4.18.1-py3-none-any.whl", hash = "sha256:16ed052ff775bf42cad85bc09075db110ca7ba84f49233fc642629a0da65862b"},
-    {file = "commitizen-4.18.1.tar.gz", hash = "sha256:27379caedd00553344e44cc8cef039598b6d3e65f9b598e31d355489c481563d"},
+    {file = "commitizen-4.19.0-py3-none-any.whl", hash = "sha256:ab17bc6578b6f12bb8ea827197bf899fdf0dd3c5874180023656c40e22f838c1"},
+    {file = "commitizen-4.19.0.tar.gz", hash = "sha256:9ed44eea06b5886462c30292a30c389330215e8fa79bcf932dbc4126b11009ef"},
 ]
 
 [package.dependencies]
@@ -4581,4 +4581,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "1ad03dcd6f5359ab3dbc21113c382eea93c96b3d358e687e57ad998d92f5b6b0"
+content-hash = "b891f7ff060a52c936d24ca50d71e717992c29047610f842e2a4494466530fe7"
