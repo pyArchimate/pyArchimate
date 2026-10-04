@@ -596,9 +596,8 @@ class Model:
             >>> assert content.startswith("<?xml")
         """
         try:
-            with zipfile.ZipFile(file_path, "r") as zf:
-                with zf.open("model.xml") as xml_file:
-                    return xml_file.read().decode("utf-8")
+            with zipfile.ZipFile(file_path, "r") as zf, zf.open("model.xml") as xml_file:
+                return xml_file.read().decode("utf-8")
         except KeyError as e:
             raise KeyError(f"Invalid .archimate file - model.xml not found in archive: {file_path}") from e
 
