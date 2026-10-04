@@ -1,3 +1,9 @@
+## v1.13.2 (2026-10-04)
+
+### Fix
+
+- combine nested with statements in Model._extract_xml_from_zip
+
 ## v1.13.1 (2026-09-20)
 
 ### Fix
