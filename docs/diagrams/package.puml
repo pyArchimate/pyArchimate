@@ -12,10 +12,10 @@ package "pyArchimate" {
 
   class "derivation.py" as DerivationMod {
     {public API}
-    derive_pair_type(leg1_type, leg2_type) : str|None
-    find_chains(model) : list[RelationshipChain]
-    derive_between(model, source, target) : list[DerivedRelationship]
-    find_duplicate_relationships(model) : list[DuplicateFinding]
+    derive_pair_type(leg1_type, leg2_type, include_dependency=False) : str|None
+    find_chains(model, include_dependency=False) : list[RelationshipChain]
+    derive_between(model, source, target, include_dependency=False) : list[DerivedRelationship]
+    find_duplicate_relationships(model, include_dependency=False) : list[DuplicateFinding]
   }
 
   package "view" as ViewMod {
