@@ -163,21 +163,29 @@ intermediate elements.
 
 Read-only computation of the ArchiMate 3.2 Appendix B.2 "certain" derivation rules (DR2, DR3,
 DR5, DR7, DR8) across two-step, in-line relationship chains involving Composition, Aggregation,
-Assignment, Realization (structural), Serving (dependency), and Triggering/Flow (dynamic) — Access,
-Influence, Specialization, and Association are intentionally excluded and left to a human reviewer.
-Note this is not a single uniform "weakest link" across all seven types: two structural legs derive
-the weaker of the two (DR2), but Serving and the dynamic relationships combine via separate,
-asymmetric rules (e.g. Triggering-then-structural derives Triggering per DR7, while
+Assignment, Realization (structural), Serving (dependency), and Triggering/Flow (dynamic). By
+default, Access, Influence, Specialization, and Association are excluded and left to a human
+reviewer. Note this is not a single uniform "weakest link" across all seven types: two structural
+legs derive the weaker of the two (DR2), but Serving and the dynamic relationships combine via
+separate, asymmetric rules (e.g. Triggering-then-structural derives Triggering per DR7, while
 Flow-then-structural has no defined derivation at all). Nothing here writes to the model, an
 element, a relationship, or a view.
 
-- `model.check_derivable_duplicates()` — scan the model for explicit relationships that duplicate
-  what a two-step chain already implies; returns a list of `DuplicateFinding`, each citing the
-  chain(s) that imply it
-- `model.derive_relationship(source, target)` — compute the relationship(s) implied between two
-  elements by any qualifying chain, without persisting the result; returns a list of
-  `DerivedRelationship`, each rendering as `«derived» A -Type-> B` via `str()` so it can never be
-  mistaken for a modeled relationship
+Passing `include_dependency=True` opts into one additional, best-effort rule from Appendix B.3
+("potential" derivation, a lower-certainty tier than B.2): Influence-then-structural derives
+Influence. Access and Association become eligible to participate in chains under this flag too,
+but deliberately yield no derivation of their own (Access has direction/type variants and neither
+Influence nor Association has a formal strength ordering, so no rule is invented for them).
+Specialization remains fully out of scope either way. Default behavior (flag omitted or `False`)
+is unchanged.
+
+- `model.check_derivable_duplicates(include_dependency=False)` — scan the model for explicit
+  relationships that duplicate what a two-step chain already implies; returns a list of
+  `DuplicateFinding`, each citing the chain(s) that imply it
+- `model.derive_relationship(source, target, include_dependency=False)` — compute the
+  relationship(s) implied between two elements by any qualifying chain, without persisting the
+  result; returns a list of `DerivedRelationship`, each rendering as `«derived» A -Type-> B` via
+  `str()` so it can never be mistaken for a modeled relationship
 
 ### Idempotent Operations
 
@@ -367,8 +375,8 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `add(concept_type, name)` | Add element or view; `concept_type` may be string or Profile instance (which auto-extracts type & UUID); returns created object |
 | `add_relationship(rel_type, source, target)` | Add typed relationship between two elements |
 | `check_invalid_relationships()` | Re-validate all relationships against ArchiMate metamodel; returns list of relationship UUIDs that fail validation |
-| `check_derivable_duplicates()` | Read-only scan for explicit relationships that duplicate a two-step chain-implied relationship (ArchiMate 3.2 Appendix B.2 derivation rules; see "Derivation" above); returns list of `DuplicateFinding` |
-| `derive_relationship(source, target)` | Read-only query for the relationship(s) implied between two elements by a qualifying chain, without persisting; returns list of `DerivedRelationship` |
+| `check_derivable_duplicates(include_dependency=False)` | Read-only scan for explicit relationships that duplicate a two-step chain-implied relationship (ArchiMate 3.2 Appendix B.2 derivation rules; see "Derivation" above); returns list of `DuplicateFinding` |
+| `derive_relationship(source, target, include_dependency=False)` | Read-only query for the relationship(s) implied between two elements by a qualifying chain, without persisting; returns list of `DerivedRelationship` |
 | `read(file_path)` | Load model from file (auto-detects format) |
 | `write(file_path, writer)` | Persist model; `writer` selects output format |
 | `merge(file_path)` | Merge a second model file in; deduplicates by UUID |
@@ -533,8 +541,8 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `DerivedRelationship` | Transient result of `model.derive_relationship(...)`; `source`, `target`, `type`, `chain`, `is_derived=True`; never registered in any model dict. Also importable from the top-level `pyArchimate` package. |
 | `DuplicateFinding` | Result of `model.check_derivable_duplicates()`; pairs an existing `relationship` with the `implying_chains` that duplicate it. Also importable from the top-level `pyArchimate` package. |
 | `RelationshipChain` | Two existing relationships (`leg1`, `leg2`) sharing a common intermediate element. Only available via `pyArchimate.derivation` — not re-exported at the top level. |
-| `derive_between(model, source, target)` | Module-level function backing `model.derive_relationship(...)`. Also importable from the top-level `pyArchimate` package. |
-| `find_duplicate_relationships(model)` | Module-level function backing `model.check_derivable_duplicates()`. Also importable from the top-level `pyArchimate` package. |
+| `derive_between(model, source, target, include_dependency=False)` | Module-level function backing `model.derive_relationship(...)`. Also importable from the top-level `pyArchimate` package. |
+| `find_duplicate_relationships(model, include_dependency=False)` | Module-level function backing `model.check_derivable_duplicates()`. Also importable from the top-level `pyArchimate` package. |
 
 ### Diagram Helper Functions (`pyArchimate.helpers`)
 
