@@ -49,8 +49,8 @@ class Model {
   + check_invalid_conn() : list
   + check_invalid_nodes() : list
   + check_invalid_relationships() : list
-  + check_derivable_duplicates() : list[DuplicateFinding]
-  + derive_relationship(source, target) : list[DerivedRelationship]
+  + check_derivable_duplicates(include_dependency=False) : list[DuplicateFinding]
+  + derive_relationship(source, target, include_dependency=False) : list[DerivedRelationship]
   + check_connection(c) : bool
   + default_theme(theme)
   + prop(key, value) : any
