@@ -286,6 +286,30 @@ duplicates = model.check_derivable_duplicates()
 print(f"Number of duplicate relationships found: {len(duplicates)}")  # 1
 ```
 
+By default, Access, Influence, and Association are excluded from this
+inference since the specification does not define them with the same
+certainty as the seven types above. Passing `include_dependency=True`
+opts into one additional, best-effort rule: an Influence leg followed by
+a structural leg derives Influence.
+
+```python
+from pyArchimate import Model, ArchiType
+
+model = Model("extended derivation demo")
+assessment = model.add(ArchiType.Assessment, "Market Risk Assessment")
+requirement = model.add(ArchiType.Requirement, "Diversify Suppliers")
+goal = model.add(ArchiType.Goal, "Resilient Supply Chain")
+model.add_relationship(ArchiType.Influence, source=assessment, target=requirement)
+model.add_relationship(ArchiType.Realization, source=requirement, target=goal)
+
+# Excluded by default - Influence is not one of the seven in-scope types
+print(model.derive_relationship(assessment, goal))  # []
+
+# Opt in to also consider Influence-then-structural chains
+derived = model.derive_relationship(assessment, goal, include_dependency=True)
+print(f"Derived type: {derived[0].type}")  # Influence
+```
+
 ---
 
 ## 10. Element and Relationship Properties
