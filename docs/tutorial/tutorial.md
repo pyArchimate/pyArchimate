@@ -210,6 +210,9 @@ between two element types under the ArchiMate rules and returns a boolean.
 `get_default_rel_type()` returns the most appropriate relationship type for a
 given source/target pair. `model.check_invalid_conn()` audits every connection
 in the model, and `model.check_invalid_relationships()` audits all relationships.
+`model.check_conflicting_composition_aggregation()` audits all relationships for
+a different kind of problem: a Composition and an Aggregation directly between
+the same element pair, which the ArchiMate spec treats as mutually exclusive.
 
 ```python
 from pyArchimate import (
@@ -251,6 +254,18 @@ print(f"Number of invalid connections: {len(invalid_conns)}")  # 0
 # Validate all relationships in the model
 invalid_rels = model.check_invalid_relationships()
 print(f"Number of invalid relationships: {len(invalid_rels)}")  # 0
+
+# Composition and Aggregation between the same pair are mutually exclusive:
+# a part may belong to at most one Composition (ArchiMate 3.x Specification).
+# check_conflicting_composition_aggregation() flags any pair that has both,
+# in either direction.
+whole = model.add(ArchiType.ApplicationComponent, "Billing Suite")
+part = model.add(ArchiType.ApplicationComponent, "Invoice Module")
+model.add_relationship(ArchiType.Composition, source=whole, target=part)
+model.add_relationship(ArchiType.Aggregation, source=whole, target=part)
+
+conflicts = model.check_conflicting_composition_aggregation()
+print(f"Number of conflicting composition/aggregation pairs: {len(conflicts)}")  # 1
 ```
 
 ---
