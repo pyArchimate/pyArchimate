@@ -49,6 +49,7 @@ class Model {
   + check_invalid_conn() : list
   + check_invalid_nodes() : list
   + check_invalid_relationships() : list
+  + check_conflicting_composition_aggregation() : list[tuple[str, str]]
   + check_derivable_duplicates(include_dependency=False) : list[DuplicateFinding]
   + derive_relationship(source, target, include_dependency=False) : list[DerivedRelationship]
   + check_connection(c) : bool
