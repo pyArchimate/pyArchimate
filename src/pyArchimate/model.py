@@ -1011,6 +1011,35 @@ class Model:
                 invalids.append(rel_id)
         return invalids
 
+    def check_conflicting_composition_aggregation(self):
+        """
+        Flag any element pair that has both a Composition and an Aggregation
+        relationship directly between them, in either direction. Per the
+        ArchiMate 3.x Specification, a part may belong to at most one
+        Composition, which contradicts Aggregation's non-exclusive grouping
+        semantics - having both between the same pair is a semantic
+        conflict the metamodel's type/endpoint checks do not catch.
+
+        :return: one (composition_id, aggregation_id) tuple per conflicting
+                 pair found
+        :rtype: list(tuple(str, str))
+        """
+        compositions: dict[frozenset[str], str] = {}
+        aggregations: dict[frozenset[str], str] = {}
+        for rel_id, r in self.rels_dict.items():
+            pair = frozenset((r.source.uuid, r.target.uuid))
+            if r.type == "Composition":
+                compositions[pair] = rel_id
+            elif r.type == "Aggregation":
+                aggregations[pair] = rel_id
+
+        conflicts = []
+        for pair, comp_id in compositions.items():
+            agg_id = aggregations.get(pair)
+            if agg_id is not None:
+                conflicts.append((comp_id, agg_id))
+        return conflicts
+
     def check_derivable_duplicates(self, include_dependency=False):
         """
         Scan this model for explicit relationships that duplicate what a

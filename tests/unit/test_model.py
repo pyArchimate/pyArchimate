@@ -385,6 +385,61 @@ def test_check_invalid_relationships_detects_corrupted_relationship():
 
 
 # ---------------------------------------------------------------------------
+# Model.check_conflicting_composition_aggregation
+# ---------------------------------------------------------------------------
+
+
+def test_check_conflicting_composition_aggregation_empty_model():
+    assert Model("x").check_conflicting_composition_aggregation() == []
+
+
+def test_check_conflicting_composition_aggregation_no_conflict():
+    m = Model("x")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationComponent, "B")
+    m.add_relationship(ArchiType.Composition, source=a, target=b)
+    assert m.check_conflicting_composition_aggregation() == []
+
+
+def test_check_conflicting_composition_aggregation_detects_same_direction():
+    m = Model("x")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationComponent, "B")
+    comp = m.add_relationship(ArchiType.Composition, source=a, target=b)
+    agg = m.add_relationship(ArchiType.Aggregation, source=a, target=b)
+    result = m.check_conflicting_composition_aggregation()
+    assert len(result) == 1
+    assert set(result[0]) == {comp.uuid, agg.uuid}
+
+
+def test_check_conflicting_composition_aggregation_detects_opposite_direction():
+    m = Model("x")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationComponent, "B")
+    comp = m.add_relationship(ArchiType.Composition, source=a, target=b)
+    agg = m.add_relationship(ArchiType.Aggregation, source=b, target=a)
+    result = m.check_conflicting_composition_aggregation()
+    assert len(result) == 1
+    assert set(result[0]) == {comp.uuid, agg.uuid}
+
+
+def test_check_conflicting_composition_aggregation_multiple_pairs():
+    m = Model("x")
+    a = m.add(ArchiType.ApplicationComponent, "A")
+    b = m.add(ArchiType.ApplicationComponent, "B")
+    c = m.add(ArchiType.ApplicationComponent, "C")
+    comp_ab = m.add_relationship(ArchiType.Composition, source=a, target=b)
+    agg_ab = m.add_relationship(ArchiType.Aggregation, source=a, target=b)
+    comp_ac = m.add_relationship(ArchiType.Composition, source=a, target=c)
+    agg_ac = m.add_relationship(ArchiType.Aggregation, source=c, target=a)
+    result = m.check_conflicting_composition_aggregation()
+    assert len(result) == 2
+    pairs = [set(p) for p in result]
+    assert {comp_ab.uuid, agg_ab.uuid} in pairs
+    assert {comp_ac.uuid, agg_ac.uuid} in pairs
+
+
+# ---------------------------------------------------------------------------
 # Model.default_theme
 # ---------------------------------------------------------------------------
 
