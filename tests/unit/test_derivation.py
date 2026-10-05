@@ -104,6 +104,95 @@ def test_derive_pair_type_out_of_scope_leg_yields_none(out_of_scope_type):
     assert derive_pair_type(out_of_scope_type, "Assignment") is None
 
 
+# --- Issue #146: opt-in include_dependency scope ----------------------------
+#
+# Extends chaining eligibility to Access, Influence, and Association when
+# include_dependency=True. Per ArchiMate 3.2 Appendix B.3 ("potential"
+# derivation, not the "certain" B.2 rules above), the only derivation this
+# opt-in scope actually produces is Influence-then-Realization -> Influence
+# (the case GitHub issue #146 named). Access and Association are made
+# eligible to participate in chains for completeness, but deliberately
+# produce no derivation of their own: Access has direction/type variants
+# with no documented "certain" derivation, and neither Influence nor
+# Association has a formal strength ordering to resolve a DR2-style
+# weakest-link rule, so no such rule is invented for them.
+
+
+@pytest.mark.parametrize("structural_type", STRUCTURAL_ORDER)
+def test_derive_pair_type_influence_then_structural_requires_opt_in(structural_type):
+    assert derive_pair_type("Influence", structural_type) is None
+    assert derive_pair_type("Influence", structural_type, include_dependency=False) is None
+
+
+def test_derive_pair_type_influence_then_realization_opt_in():
+    assert derive_pair_type("Influence", "Realization", include_dependency=True) == "Influence"
+
+
+@pytest.mark.parametrize("structural_type", ["Composition", "Aggregation", "Assignment"])
+def test_derive_pair_type_influence_then_other_structural_opt_in(structural_type):
+    """The issue named Influence-then-Realization specifically; this module
+    generalizes the opt-in rule to any structural second leg (DR7's
+    Triggering-then-structural is the closest precedent for that shape)."""
+    assert derive_pair_type("Influence", structural_type, include_dependency=True) == "Influence"
+
+
+@pytest.mark.parametrize("out_of_scope_type", ["Access", "Association"])
+def test_derive_pair_type_access_and_association_opt_in_yield_no_derivation(out_of_scope_type):
+    """Included in the opt-in chaining scope, but intentionally produce no
+    derived relationship of their own (see module docstring rationale)."""
+    for structural_type in STRUCTURAL_ORDER:
+        assert derive_pair_type(out_of_scope_type, structural_type, include_dependency=True) is None
+        assert derive_pair_type(structural_type, out_of_scope_type, include_dependency=True) is None
+
+
+def _add_influence_chain(model):
+    """A --Influence--> B --Realization--> C."""
+    a = model.add("Assessment", name="A")
+    b = model.add("Requirement", name="B")
+    c = model.add("Goal", name="C")
+    leg1 = model.add_relationship("Influence", a, b)
+    leg2 = model.add_relationship("Realization", b, c)
+    return model, a, b, c, leg1, leg2
+
+
+def test_find_chains_excludes_influence_leg_by_default():
+    model, *_ = _add_influence_chain(Model())
+    assert find_chains(model) == []
+
+
+def test_find_chains_includes_influence_leg_when_opted_in():
+    model, _, b, _, leg1, leg2 = _add_influence_chain(Model())
+    chains = find_chains(model, include_dependency=True)
+    assert len(chains) == 1
+    assert chains[0].leg1 is leg1
+    assert chains[0].leg2 is leg2
+    assert chains[0].intermediate is b
+
+
+def test_derive_between_influence_then_realization_requires_opt_in():
+    model, a, _, c, *_ = _add_influence_chain(Model())
+    assert derive_between(model, a, c) == []
+    assert derive_between(model, a, c, include_dependency=False) == []
+
+
+def test_derive_between_influence_then_realization_opted_in():
+    model, a, _, c, *_ = _add_influence_chain(Model())
+    results = derive_between(model, a, c, include_dependency=True)
+    assert len(results) == 1
+    assert results[0].type == "Influence"
+    assert results[0].source is a
+    assert results[0].target is c
+
+
+def test_derive_between_opt_in_does_not_affect_existing_certain_rules():
+    """Passing include_dependency=True must not change a DR2/DR3/DR5/DR7/DR8
+    result - the opt-in only adds eligibility, never removes or overrides it."""
+    model, a, _, c, _, _ = _add_valid_chain(Model())
+    results = derive_between(model, a, c, include_dependency=True)
+    assert len(results) == 1
+    assert results[0].type == "Realization"
+
+
 # --- T005: find_chains coverage --------------------------------------------
 
 

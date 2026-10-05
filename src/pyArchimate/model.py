@@ -1011,7 +1011,7 @@ class Model:
                 invalids.append(rel_id)
         return invalids
 
-    def check_derivable_duplicates(self):
+    def check_derivable_duplicates(self, include_dependency=False):
         """
         Scan this model for explicit relationships that duplicate what a
         two-step relationship chain already implies, per the ArchiMate 3.2
@@ -1021,15 +1021,18 @@ class Model:
         rule across all seven types - see pyArchimate.derivation for the
         exact rule-by-rule mapping. Read-only: never modifies the model.
 
+        :param include_dependency: opt into the issue #146 extended scope
+            (Access, Influence, Association; default: False)
+        :type include_dependency: bool
         :return: one DuplicateFinding per explicit relationship found to be
                  a duplicate, each citing the chain(s) that imply it
         :rtype: list(DuplicateFinding)
         """
         from .derivation import find_duplicate_relationships  # noqa: PLC0415  # circular: model↔derivation init cycle
 
-        return find_duplicate_relationships(self)
+        return find_duplicate_relationships(self, include_dependency)
 
-    def derive_relationship(self, source, target):
+    def derive_relationship(self, source, target, include_dependency=False):
         """
         Compute the relationship(s) implied between two elements by any
         qualifying two-step chain, without persisting the result.
@@ -1038,6 +1041,9 @@ class Model:
         :type source: Element|str
         :param target: target Element or its uuid
         :type target: Element|str
+        :param include_dependency: opt into the issue #146 extended scope
+            (Access, Influence, Association; default: False)
+        :type include_dependency: bool
         :return: zero or more DerivedRelationship results (independent
                  results when multiple qualifying chains exist)
         :rtype: list(DerivedRelationship)
@@ -1045,7 +1051,7 @@ class Model:
         """
         from .derivation import derive_between  # noqa: PLC0415  # circular: model↔derivation init cycle
 
-        return derive_between(self, source, target)
+        return derive_between(self, source, target, include_dependency)
 
     def _check_connection_refs(self, c: Any) -> bool:
         _ok = True

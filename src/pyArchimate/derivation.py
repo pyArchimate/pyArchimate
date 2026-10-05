@@ -47,6 +47,24 @@ The rules implemented (leg1: a->b, leg2: b->c, both forward):
 Every other combination of the seven supported types yields no derivation,
 by design, matching what Appendix B actually specifies rather than
 generalizing beyond it.
+
+Opt-in extended scope (GitHub issue #146): every chain-discovery and
+derivation entry point below also accepts ``include_dependency: bool =
+False``. When ``True``, Access, Influence, and Association become eligible
+to participate in chains (per ArchiMate 3.2 §5.2's remaining dependency
+relationships, all excluded by default above), and one additional,
+best-effort rule from Appendix B.3 ("potential" derivation, a lower
+certainty tier than the B.2 rules this module otherwise implements) is
+applied: Influence-then-structural, forward, in-line derives Influence -
+e.g. ``A -Influence-> B -Realization-> C`` implies ``A -Influence-> C``.
+This generalizes the issue's named Influence-then-Realization case to any
+structural second leg, on the same precedent as DR7 (Triggering-then-
+structural). Access and Association become chainable but deliberately
+yield no derivation of their own even when opted in: Access has
+direction/type variants with no documented "certain" or "potential" rule to
+generalize, and neither Influence nor Association has a formal strength
+ordering, so no DR2-style weakest-link rule is invented for them. Default
+behavior (flag unset/False) is completely unchanged from the above.
 """
 
 from dataclasses import dataclass
@@ -79,8 +97,14 @@ SUPPORTED_RELATIONSHIP_TYPES: frozenset[str] = (
     frozenset(_STRUCTURAL_STRENGTH_ORDER) | _DEPENDENCY_TYPES_IN_SCOPE | _DYNAMIC_TYPES
 )
 
+# Issue #146 opt-in scope: the remaining three dependency relationships
+# (§5.2), excluded from SUPPORTED_RELATIONSHIP_TYPES by default. Only
+# Influence actually produces a derivation (see module docstring); Access
+# and Association are included here purely for chaining eligibility.
+_EXTENDED_DEPENDENCY_TYPES: frozenset[str] = frozenset({"Access", "Influence", "Association"})
 
-def derive_pair_type(leg1_type: str, leg2_type: str) -> str | None:
+
+def derive_pair_type(leg1_type: str, leg2_type: str, include_dependency: bool = False) -> str | None:
     """
     Compute the relationship type implied by two relationships in sequence.
 
@@ -88,12 +112,18 @@ def derive_pair_type(leg1_type: str, leg2_type: str) -> str | None:
     Specification Appendix B.2 (see module docstring for page references and
     the deliberate asymmetries this preserves). Any pair not covered by one
     of those rules yields None - this function does not generalize beyond
-    what the specification states as a "certain" (valid) derivation.
+    what the specification states as a "certain" (valid) derivation, unless
+    ``include_dependency=True`` opts into the one additional best-effort
+    rule described in the module docstring (issue #146).
 
     :param leg1_type: type of the first leg (A to intermediate)
     :type leg1_type: str
     :param leg2_type: type of the second leg (intermediate to C)
     :type leg2_type: str
+    :param include_dependency: opt into the Influence-then-structural
+        best-effort rule (default: False, matching the strict Appendix B.2
+        scope)
+    :type include_dependency: bool
     :return: the derived relationship type, or None if this pair does not
              yield a defined derivation
     :rtype: str | None
@@ -112,6 +142,8 @@ def derive_pair_type(leg1_type: str, leg2_type: str) -> str | None:
         return "Triggering"
     if leg1_type == "Triggering" and leg2_type == "Triggering":  # DR8
         return "Triggering"
+    if include_dependency and leg1_type == "Influence" and leg2_structural:  # issue #146
+        return "Influence"
     return None
 
 
@@ -140,7 +172,7 @@ class RelationshipChain:
         return intermediate
 
 
-def _qualifies_for_chaining(rel: "Relationship", model: "Model") -> bool:
+def _qualifies_for_chaining(rel: "Relationship", model: "Model", include_dependency: bool = False) -> bool:
     """
     True when a relationship's type and endpoints are eligible to form a chain leg.
 
@@ -151,26 +183,34 @@ def _qualifies_for_chaining(rel: "Relationship", model: "Model") -> bool:
     :type rel: Relationship
     :param model: the model the relationship belongs to
     :type model: Model
+    :param include_dependency: also accept the issue #146 opt-in scope
+        (Access, Influence, Association)
+    :type include_dependency: bool
     :return: whether the relationship may participate as either leg
     :rtype: bool
     """
-    if rel.type not in SUPPORTED_RELATIONSHIP_TYPES:
+    supported = SUPPORTED_RELATIONSHIP_TYPES
+    if include_dependency:
+        supported = supported | _EXTENDED_DEPENDENCY_TYPES
+    if rel.type not in supported:
         return False
     if rel._source not in model.elems_dict:
         return False
     return rel._target in model.elems_dict
 
 
-def _index_qualifying_by_source(relationships: list["Relationship"], model: "Model") -> dict[str, list["Relationship"]]:
+def _index_qualifying_by_source(
+    relationships: list["Relationship"], model: "Model", include_dependency: bool = False
+) -> dict[str, list["Relationship"]]:
     """Group relationships eligible for chaining by their source element uuid."""
     by_source: dict[str, list[Relationship]] = {}
     for rel in relationships:
-        if _qualifies_for_chaining(rel, model):
+        if _qualifies_for_chaining(rel, model, include_dependency):
             by_source.setdefault(rel._source, []).append(rel)
     return by_source
 
 
-def find_chains(model: "Model") -> list[RelationshipChain]:
+def find_chains(model: "Model", include_dependency: bool = False) -> list[RelationshipChain]:
     """
     Discover every qualifying two-step relationship chain in a model.
 
@@ -182,15 +222,19 @@ def find_chains(model: "Model") -> list[RelationshipChain]:
 
     :param model: the model to scan
     :type model: Model
+    :param include_dependency: opt into the issue #146 extended scope
+        (Access, Influence, Association also eligible as chain legs;
+        default: False, matching the strict Appendix B.2 scope)
+    :type include_dependency: bool
     :return: every qualifying chain found
     :rtype: list[RelationshipChain]
     """
     relationships = list(model.rels_dict.values())
-    by_source = _index_qualifying_by_source(relationships, model)
+    by_source = _index_qualifying_by_source(relationships, model, include_dependency)
 
     chains: list[RelationshipChain] = []
     for leg1 in relationships:
-        if not _qualifies_for_chaining(leg1, model):
+        if not _qualifies_for_chaining(leg1, model, include_dependency):
             continue
         for leg2 in by_source.get(leg1._target, []):
             if leg2._target == leg1._source:
@@ -238,7 +282,9 @@ class DerivedRelationship:
         return f"<{self.__class__.__name__} {self}>"
 
 
-def derive_between(model: "Model", source: Any, target: Any) -> list[DerivedRelationship]:
+def derive_between(
+    model: "Model", source: Any, target: Any, include_dependency: bool = False
+) -> list[DerivedRelationship]:
     """
     Compute the relationship(s) implied between two elements, without persisting them.
 
@@ -248,6 +294,10 @@ def derive_between(model: "Model", source: Any, target: Any) -> list[DerivedRela
     :type source: Element | str
     :param target: target Element or its uuid
     :type target: Element | str
+    :param include_dependency: opt into the issue #146 extended scope
+        (Access, Influence, Association; default: False, matching the
+        strict Appendix B.2 scope)
+    :type include_dependency: bool
     :return: zero or more DerivedRelationship results, one per independently
              qualifying chain connecting source to target (FR-005, FR-010)
     :rtype: list[DerivedRelationship]
@@ -261,10 +311,10 @@ def derive_between(model: "Model", source: Any, target: Any) -> list[DerivedRela
         raise ValueError(f'Invalid target reference "{target_uuid}"')
 
     results: list[DerivedRelationship] = []
-    for chain in find_chains(model):
+    for chain in find_chains(model, include_dependency):
         if chain.leg1._source != source_uuid or chain.leg2._target != target_uuid:
             continue
-        derived_type = derive_pair_type(chain.leg1.type, chain.leg2.type)
+        derived_type = derive_pair_type(chain.leg1.type, chain.leg2.type, include_dependency)
         if derived_type is None:
             continue
         chain_source, chain_target = chain.leg1.source, chain.leg2.target
@@ -298,20 +348,24 @@ class DuplicateFinding:
     implying_chains: list[RelationshipChain]
 
 
-def find_duplicate_relationships(model: "Model") -> list[DuplicateFinding]:
+def find_duplicate_relationships(model: "Model", include_dependency: bool = False) -> list[DuplicateFinding]:
     """
     Scan a model for explicit relationships that duplicate an implied chain.
 
     :param model: the model to scan
     :type model: Model
+    :param include_dependency: opt into the issue #146 extended scope
+        (Access, Influence, Association; default: False, matching the
+        strict Appendix B.2 scope)
+    :type include_dependency: bool
     :return: one DuplicateFinding per explicit relationship found to be a
              duplicate, each citing every chain that independently implies it
     :rtype: list[DuplicateFinding]
     """
-    chains = find_chains(model)
+    chains = find_chains(model, include_dependency)
     implying_by_key: dict[tuple[str, str, str], list[RelationshipChain]] = {}
     for chain in chains:
-        derived_type = derive_pair_type(chain.leg1.type, chain.leg2.type)
+        derived_type = derive_pair_type(chain.leg1.type, chain.leg2.type, include_dependency)
         if derived_type is None:
             continue
         key = (chain.leg1._source, chain.leg2._target, derived_type)
