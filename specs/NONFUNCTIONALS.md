@@ -13,6 +13,7 @@ This document captures the quality attributes and system properties that must be
 - Round-trip fidelity is a hard requirement: export → re-import must reproduce the original model identically (same UUIDs, properties, relationships, bendpoints, annotation connectors).
 - Annotation connectors (visual notes and labels) must round-trip correctly: export omits `archimateRelationship` attribute for non-backed connectors; re-import recovers Label nodes with correct positioning and styling.
 - `check_invalid_conn()`, `check_invalid_nodes()`, and `check_invalid_relationships()` must pass clean before every write.
+- Advisory semantic checks — `check_derivable_duplicates()`/`derive_relationship()` (including the opt-in `include_dependency=True` scope, issue #146) and `check_conflicting_composition_aggregation()` (issue #149) — are read-only and must never mutate the model; unlike the `check_invalid_*` family, they are not a pre-export gate, so callers are responsible for acting on their reports.
 - All custom exceptions (`ArchimateConceptTypeError`, `ArchimateRelationshipError`) must propagate with a descriptive message; never swallow silently.
 
 ## Performance
