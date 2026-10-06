@@ -1,3 +1,13 @@
+## v1.14.0 (2026-10-06)
+
+### Feat
+
+- opt-in include_dependency scope for derivation (#146)
+
+### Fix
+
+- **model**: reject models with conflicting composition/aggregation
+
 ## v1.13.2 (2026-10-04)
 
 ### Fix
