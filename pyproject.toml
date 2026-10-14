@@ -49,7 +49,7 @@ testing = [  # runtime tooling required to exercise the test suite
 ]
 
 lint = [
-    "types-requests>=2.32.4.20250913,<3.0.0",
+    "types-requests>=2.33.0.20261006,<3.0.0",
     "types-pyyaml>=6.0.12.20260815,<7.0.0",
     "mypy>=2.0.0,<3.0.0",
     "pyright>=1.1.411,<2.0.0",
