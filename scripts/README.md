@@ -104,7 +104,7 @@ in sync with the library.
 
 **Prerequisites:**
 
-- Python 3.10+
+- Python 3.11+
 - `claude` CLI in `PATH` (install via `pip install claude-code`)
 - `ANTHROPIC_API_KEY` environment variable set
 
@@ -125,6 +125,6 @@ modified and an error is printed to stderr.
 
 Ensure you have the following installed:
 - [Poetry](https://python-poetry.org/) for dependency management.
-- Python 3.10+
+- Python 3.11+
 - `bash` shell.
 - `curl` (for diagram rendering).

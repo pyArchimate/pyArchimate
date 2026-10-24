@@ -7,7 +7,7 @@ including element types, relationship types, and UI-related enumerations.
 No external pyArchimate imports - this is a Layer 1 base module.
 """
 
-from enum import Enum
+from enum import Enum, StrEnum
 
 
 class Writers(Enum):
@@ -33,7 +33,7 @@ class Readers(Enum):
     archimate = 2
 
 
-class AccessType(str, Enum):
+class AccessType(StrEnum):
     """
     Enumeration of Access Relationship types
     """
@@ -44,7 +44,7 @@ class AccessType(str, Enum):
     ReadWrite = "ReadWrite"
 
 
-class TextPosition(str, Enum):
+class TextPosition(StrEnum):
     """
     Enumaration for Text vertical position
     """
@@ -54,7 +54,7 @@ class TextPosition(str, Enum):
     Bottom = "2"
 
 
-class TextAlignment(str, Enum):
+class TextAlignment(StrEnum):
     """
     Enumeration for text horizontal position
     """
@@ -64,7 +64,7 @@ class TextAlignment(str, Enum):
     Right = "2"
 
 
-class ArchiType(str, Enum):
+class ArchiType(StrEnum):
     """Enumeration of ArchiMate element and relationship types.
 
     Members cover all ArchiMate 3.x layers: Strategy, Motivation, Business,

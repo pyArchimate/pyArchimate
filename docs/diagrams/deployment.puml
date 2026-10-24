@@ -2,7 +2,7 @@
 title pyArchimate Deployment Diagram
 
 node DeveloperWorkstation {
-  node "Python 3.10+ runtime" as PythonRuntime
+  node "Python 3.11+ runtime" as PythonRuntime
   artifact "pyArchimate CLI" as CLI
   artifact "pyArchimate Core" as Library
 }
