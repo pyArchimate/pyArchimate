@@ -52,6 +52,7 @@ jobs:
       - name: Run behave
         env:
           PYTHONIOENCODING: "utf-8"
+          PYTHONPATH: src  # --no-root leaves pyArchimate uninstalled; pytest gets this via pythonpath
         run: poetry run behave
 
       - name: Upload test results
