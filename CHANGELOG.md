@@ -1,3 +1,13 @@
+## v2.0.0 (2026-10-24)
+
+### BREAKING CHANGE
+
+- Python 3.10 is no longer supported.
+
+### Fix
+
+- **ci**: put src on PYTHONPATH for behave
+
 ## v1.14.0 (2026-10-06)
 
 ### Feat
