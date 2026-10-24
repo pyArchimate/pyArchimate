@@ -5,18 +5,18 @@ Auto-generated from all feature plans. Last updated: 2026-05-15
 ## Active Technologies
 - Python 3.12 + Poetry, lxml, ruff, pyright, mypy, pytest, behave, pysonar (002-sonarqube-remediation)
 - N/A (library — file I/O only) (002-sonarqube-remediation)
-- Python 3.10+ (pyproject.toml `requires-python = ">=3.10,<4.0"`); ruff targets 3.12 + `subprocess` (stdlib) for `claude code` CLI invocation; `mistune` (Markdown AST parser) for structural validation; `lxml` (already in project); `pytest` for tutorial verification (003-ai-documentation)
+- Python 3.11+ (pyproject.toml `requires-python = ">=3.11,<3.15"`); ruff targets 3.12 + `subprocess` (stdlib) for `claude code` CLI invocation; `mistune` (Markdown AST parser) for structural validation; `lxml` (already in project); `pytest` for tutorial verification (003-ai-documentation)
 - File I/O only — no database. Outputs: `AI.md` (root), `docs/tutorial.md`, `scripts/README.md` (003-ai-documentation)
-- Python 3.10+ (per pyproject.toml) + `zipfile` (stdlib), `lxml` (existing), `pathlib` (stdlib) (007-fix-ouput-file-format-issues)
+- Python 3.11+ (per pyproject.toml) + `zipfile` (stdlib), `lxml` (existing), `pathlib` (stdlib) (007-fix-ouput-file-format-issues)
 - File I/O only (local filesystem) (007-fix-ouput-file-format-issues)
-- Python 3.10+ (per pyproject.toml `requires-python = ">=3.10,<4.0"`) + lxml (ArchiMate XML parsing), existing pyArchimate view model, poetry (package manager) (011-view-auto-layout)
+- Python 3.11+ (per pyproject.toml `requires-python = ">=3.11,<3.15"`) + lxml (ArchiMate XML parsing), existing pyArchimate view model, poetry (package manager) (011-view-auto-layout)
 - File I/O only (views are persisted as XML files within .archimate archives) (011-view-auto-layout)
 - Python 3.12 + lxml, xml.etree.ElementTree (stdlib), pyArchimate view model (012-enhance-svg-view)
 - File I/O only (SVG output, `.archimate`/`.xml` round-trip) (012-enhance-svg-view)
 - Python 3.12 + lxml (XML I/O), existing pyArchimate view model (`src/pyArchimate/`) (013-layout-routing-refactor)
 - File I/O only — `.archimate` archives (zip+XML) (013-layout-routing-refactor)
 
-- **Language & Package Manager**: Python 3.10+ with Poetry
+- **Language & Package Manager**: Python 3.11+ with Poetry
 - **XML Processing**: lxml (for .archimate and OpenGroup exchange format parsing)
 - **YAML**: oyaml (for configuration and metadata)
 - **Image Handling**: pillow (for diagram export)
