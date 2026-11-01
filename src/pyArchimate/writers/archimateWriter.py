@@ -238,7 +238,7 @@ def _write_node_style(n_elem: _Element, n: Node) -> None:
         rgb = RGBA()
         rgb.color = n.line_color
         lc.set("r", str(rgb.r))
-        lc.set("g", str(rgb.r))
+        lc.set("g", str(rgb.g))
         lc.set("b", str(rgb.b))
         lc.set("a", "100" if n.opacity is None else str(n.lc_opacity))
     if n.fill_color is not None:
