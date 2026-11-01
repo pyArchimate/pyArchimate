@@ -1,3 +1,9 @@
+## v2.0.2 (2026-11-01)
+
+### Fix
+
+- **ci**: key venv cache by resolved Python version
+
 ## v2.0.1 (2026-11-01)
 
 ### Fix
