@@ -1,3 +1,14 @@
+## v2.0.1 (2026-11-01)
+
+### Fix
+
+- **svg**: label the relationships with their names
+- **svg**: draw the background from the origin of the view box
+- **svg**: keep the line breaks of the texts
+- **archimateWriter**: write the property definitions of the view properties
+- **writers**: indent the written XML documents
+- **archimateWriter**: write the green component of the node line colours
+
 ## v2.0.0 (2026-10-24)
 
 ### BREAKING CHANGE
