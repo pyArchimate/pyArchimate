@@ -12,10 +12,26 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
+  # ── Gate: fail fast if poetry.lock is out of sync with pyproject.toml ─────
+  lock-sync:
+    name: Lock sync
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Verify poetry.lock is in sync with pyproject.toml
+        run: poetry check --lock
+
   # ── Gate: run comprehensive tests on all supported versions ────────────────
   #
   test:
     name: Test gate (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    needs: lock-sync
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read

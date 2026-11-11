@@ -14,8 +14,22 @@ on:
     branches: [master]
 
 jobs:
+  # ── Gate: fail fast if poetry.lock is out of sync with pyproject.toml ─────
+  lock-sync:
+    name: Lock sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Verify poetry.lock is in sync with pyproject.toml
+        run: poetry check --lock
+
   test:
     name: Test (Python 3.12)
+    needs: lock-sync
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -73,6 +87,7 @@ jobs:
 
   sonar:
     name: SonarCloud Analysis
+    needs: lock-sync
     runs-on: ubuntu-latest
     if: (github.event_name == 'pull_request' || github.ref == 'refs/heads/master') && github.actor != 'dependabot[bot]'
     steps:
