@@ -1,3 +1,17 @@
+## v2.1.0 (2026-11-14)
+
+### Feat
+
+- **scripts**: add script to delete GitHub Actions workflow runs
+
+### Fix
+
+- **tests**: parse SVG output with defusedxml, not xml.etree
+- **tests**: split composite assertion in test_background_covers_the_whole_view_box
+- **scripts**: honor the WORKFLOW_ID argument in delete_runs.sh
+- **devcontainer**: resolve latest release tags via redirect, not API
+- **ci**: sync poetry.lock with pyproject.toml
+
 ## v2.0.2 (2026-11-01)
 
 ### Fix
