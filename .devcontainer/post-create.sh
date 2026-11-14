@@ -32,10 +32,18 @@ run_command() {
 
 # Prints the tag_name of a GitHub repo's latest release, or nothing if it
 # can't be resolved.
+#
+# Resolves via the web redirect (github.com/.../releases/latest -> .../tag/<tag>)
+# rather than api.github.com: the API's unauthenticated rate limit is a shared
+# 60 requests/hour per IP, which this script alone can exhaust across its
+# several lookups (spec-kit, caveman, session-handoff) on a build host whose
+# egress IP is shared with other traffic, causing this to silently return
+# nothing. The redirect isn't subject to that same limit.
 github_latest_release_tag() {
     local repo="$1"   # e.g. github/spec-kit
-    curl -fsSL --proto "=https" --proto-redir "=https" "https://api.github.com/repos/${repo}/releases/latest" \
-        | grep -m1 '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/'
+    curl -fsSL --proto "=https" --proto-redir "=https" -o /dev/null -w '%{url_effective}' \
+        "https://github.com/${repo}/releases/latest" \
+        | sed -E 's#.*/tag/##'
 }
 
 # Installing UV (Python package manager)
