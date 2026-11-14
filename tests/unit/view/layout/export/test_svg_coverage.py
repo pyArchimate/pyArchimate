@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from typing import cast
 
 import pytest
+from defusedxml.ElementTree import fromstring as defused_fromstring
 
 from src.pyArchimate import ArchiType
 from src.pyArchimate.model import Model
@@ -519,7 +520,7 @@ def test_background_covers_the_whole_view_box():
     elem = model.add(ArchiType.BusinessActor, "Actor")
     view = cast(View, model.add(ArchiType.View, "View"))
     view.add(elem, 0, 0, 200, 100)
-    svg = ET.fromstring(SVGExportService().to_svg(view))
+    svg = defused_fromstring(SVGExportService().to_svg(view))
     min_x, min_y, width, height = (float(v) for v in svg.get("viewBox", "").split())
     background = svg.find("{http://www.w3.org/2000/svg}rect")  # NOSONAR — XML namespace URI, not a network request
     assert background is not None
