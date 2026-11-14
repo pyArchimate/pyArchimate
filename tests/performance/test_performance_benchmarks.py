@@ -279,3 +279,38 @@ class TestPerformanceBenchmarks:
 
         # Should be fast (tree traversal on reasonable size)
         assert avg_time < 0.001, f"find_by_hierarchy_path took {avg_time:.3f}s per call"
+
+    def test_derivation_n_hop_scan_performance_large_model(self):
+        """SC-004 (spec 016-derivation-n-hop): find_duplicate_relationships at
+        max_chain_length=2 vs. a longer opted-in value complete within the
+        same order of magnitude on a ~1,000-element model with a mix of
+        2-step and 3-6-hop qualifying chains."""
+        m = Model("perf-derivation-n-hop")
+        elements = [m.add(ArchiType.ApplicationComponent, f"Element {i}") for i in range(1000)]
+
+        # Independent 6-element chains (A-B-C-D-E-F), each leg a qualifying
+        # structural type, so every chain of length 2 through 6 within each
+        # group is discoverable by find_duplicate_relationships.
+        for group_start in range(0, 1000 - 6, 6):
+            group = elements[group_start : group_start + 6]
+            m.add_relationship("Composition", group[0], group[1])
+            m.add_relationship("Aggregation", group[1], group[2])
+            m.add_relationship("Assignment", group[2], group[3])
+            m.add_relationship("Realization", group[3], group[4])
+            m.add_relationship("Composition", group[4], group[5])
+
+        start = time.time()
+        m.check_derivable_duplicates(max_chain_length=2)
+        two_hop_elapsed = time.time() - start
+
+        start = time.time()
+        m.check_derivable_duplicates(max_chain_length=6, allow_exceeding_default_ceiling=True)
+        six_hop_elapsed = time.time() - start
+
+        # "Same order of magnitude" per research.md Decision 4: six-hop
+        # search must not blow up by more than a factor of 10 relative to
+        # the default two-hop search on this model size.
+        assert six_hop_elapsed < max(two_hop_elapsed * 10, 1.0), (
+            f"max_chain_length=6 scan ({six_hop_elapsed:.3f}s) grew more than an order of "
+            f"magnitude beyond max_chain_length=2 ({two_hop_elapsed:.3f}s)"
+        )

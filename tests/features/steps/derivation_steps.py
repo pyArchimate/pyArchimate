@@ -401,3 +401,87 @@ def step_report_includes_once(context):
 def step_cites_all_chains(context):
     chains = context.duplicate_finding.implying_chains
     assert len(chains) == 2, f"Expected the finding to cite both implying chains, got {len(chains)}"
+
+
+# ============================================================================
+# Spec 016 - N-hop derivation (GitHub issue #173)
+# ============================================================================
+
+
+@given(
+    "elements A, B, C, D where A relates to B, B relates to C, and C relates to D forming a supported three-step chain"
+)
+def step_three_step_chain(context):
+    a = _add_element(context, "ApplicationComponent", "A")
+    b = _add_element(context, "ApplicationComponent", "B")
+    c = _add_element(context, "ApplicationComponent", "C")
+    d = _add_element(context, "ApplicationComponent", "D")
+    context.chain_leg1 = _add_rel(context, "Composition", a, b)
+    context.chain_leg2 = _add_rel(context, "Aggregation", b, c)
+    context.chain_leg3 = _add_rel(context, "Realization", c, d)
+
+
+@given("an explicit relationship of the chain-implied type already exists directly between A and D")
+def step_explicit_duplicate_a_d(context):
+    a, d = context.elements["A"], context.elements["D"]
+    # The chain (Composition, Aggregation, Realization) folds to "Realization" between A and D.
+    context.duplicate_rel = _add_rel(context, "Realization", a, d, name="duplicate")
+
+
+@given("two elements connected only by a supported three-step chain")
+def step_two_elems_three_step_chain(context):
+    step_three_step_chain(context)
+    context.query_source, context.query_target = context.elements["A"], context.elements["D"]
+
+
+@when("the scan is run with max_chain_length {length:d}")
+def step_run_scan_with_max_chain_length(context, length):
+    context.findings = context.model.check_derivable_duplicates(max_chain_length=length)
+
+
+@when("the derived relationship is requested for that pair with max_chain_length {length:d}")
+def step_request_derivation_with_max_chain_length(context, length):
+    context.derivation_results = context.model.derive_relationship(
+        context.query_source, context.query_target, max_chain_length=length
+    )
+
+
+@when("the scan is run with a max_chain_length above the default ceiling and no override")
+def step_scan_above_ceiling_no_override(context):
+    from src.pyArchimate.derivation import DEFAULT_MAX_CHAIN_LENGTH_CEILING
+
+    context.raised_error = None
+    try:
+        context.model.check_derivable_duplicates(max_chain_length=DEFAULT_MAX_CHAIN_LENGTH_CEILING + 1)
+    except ValueError as exc:
+        context.raised_error = exc
+
+
+@when("the scan is run with a max_chain_length above the default ceiling and the override given")
+def step_scan_above_ceiling_with_override(context):
+    from src.pyArchimate.derivation import DEFAULT_MAX_CHAIN_LENGTH_CEILING
+
+    context.findings = context.model.check_derivable_duplicates(
+        max_chain_length=DEFAULT_MAX_CHAIN_LENGTH_CEILING + 1,
+        allow_exceeding_default_ceiling=True,
+    )
+
+
+@then("a ValueError is raised for exceeding the chain-length ceiling")
+def step_value_error_raised_for_ceiling(context):
+    assert isinstance(context.raised_error, ValueError), (
+        f"Expected a ValueError to have been raised, got {context.raised_error!r}"
+    )
+
+
+@then("the report cites the three relationships that make up the implying chain")
+def step_report_cites_three_leg_chain(context):
+    matching = [f for f in context.findings if f.relationship is context.duplicate_rel][0]
+    chain = matching.implying_chains[0]
+    assert chain.legs == [context.chain_leg1, context.chain_leg2, context.chain_leg3]
+
+
+@then("the result references the full three-leg chain")
+def step_result_references_three_leg_chain(context):
+    result = context.derivation_results[0]
+    assert result.chain.legs == [context.chain_leg1, context.chain_leg2, context.chain_leg3]

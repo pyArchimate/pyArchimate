@@ -19,6 +19,19 @@ def _build_chain_model():
     return model, a, b, c, leg1, leg2
 
 
+def _build_three_step_chain_model():
+    """Build A --Composition--> B --Aggregation--> C --Realization--> D."""
+    model = Model()
+    a = model.add("ApplicationComponent", name="A")
+    b = model.add("ApplicationComponent", name="B")
+    c = model.add("ApplicationComponent", name="C")
+    d = model.add("ApplicationComponent", name="D")
+    leg1 = model.add_relationship("Composition", a, b)
+    leg2 = model.add_relationship("Aggregation", b, c)
+    leg3 = model.add_relationship("Realization", c, d)
+    return model, a, b, c, d, leg1, leg2, leg3
+
+
 def _snapshot(model):
     return (
         dict(model.rels_dict),
@@ -54,6 +67,43 @@ def test_derive_relationship_does_not_modify_model():
     after = _snapshot(model)
 
     assert len(results) == 1
+    assert before == after
+
+
+# --- T012: quickstart.md Scenario 1, 3-hop duplicate scan (User Story 1) ---
+
+
+def test_check_derivable_duplicates_three_hop_chain_end_to_end():
+    model, a, _, _, d, leg1, leg2, leg3 = _build_three_step_chain_model()
+    duplicate = model.add_relationship("Realization", a, d)
+
+    before = _snapshot(model)
+    default_findings = model.check_derivable_duplicates()
+    three_hop_findings = model.check_derivable_duplicates(max_chain_length=3)
+    after = _snapshot(model)
+
+    assert default_findings == []
+    assert len(three_hop_findings) == 1
+    assert three_hop_findings[0].relationship is duplicate
+    assert any(chain.legs == [leg1, leg2, leg3] for chain in three_hop_findings[0].implying_chains)
+    assert before == after
+
+
+# --- T021: quickstart.md Scenario 2, 3-hop on-demand query (User Story 2) --
+
+
+def test_derive_relationship_three_hop_chain_end_to_end():
+    model, a, _, _, d, leg1, leg2, leg3 = _build_three_step_chain_model()
+
+    before = _snapshot(model)
+    default_results = model.derive_relationship(a, d)
+    three_hop_results = model.derive_relationship(a, d, max_chain_length=3)
+    after = _snapshot(model)
+
+    assert default_results == []
+    assert len(three_hop_results) == 1
+    assert three_hop_results[0].type == "Realization"
+    assert three_hop_results[0].chain.legs == [leg1, leg2, leg3]
     assert before == after
 
 

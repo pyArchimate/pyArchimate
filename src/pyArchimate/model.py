@@ -1040,31 +1040,48 @@ class Model:
                 conflicts.append((comp_id, agg_id))
         return conflicts
 
-    def check_derivable_duplicates(self, include_dependency=False):
+    def check_derivable_duplicates(
+        self, include_dependency=False, max_chain_length=2, *, allow_exceeding_default_ceiling=False
+    ):
         """
         Scan this model for explicit relationships that duplicate what a
-        two-step relationship chain already implies, per the ArchiMate 3.2
-        Specification's derivation rules (Appendix B.2), restricted to
-        Composition, Aggregation, Assignment, Realization, Serving,
-        Triggering, and Flow. This is not a single uniform "weakest-link"
-        rule across all seven types - see pyArchimate.derivation for the
-        exact rule-by-rule mapping. Read-only: never modifies the model.
+        relationship chain of any length (up to max_chain_length) already
+        implies, per the ArchiMate 3.2 Specification's derivation rules
+        (Appendix B.2), restricted to Composition, Aggregation, Assignment,
+        Realization, Serving, Triggering, and Flow, applied repeatedly
+        along the chain. This is not a single uniform "weakest-link" rule
+        across all seven types - see pyArchimate.derivation for the exact
+        rule-by-rule mapping. Read-only: never modifies the model.
 
         :param include_dependency: opt into the issue #146 extended scope
             (Access, Influence, Association; default: False)
         :type include_dependency: bool
+        :param max_chain_length: longest chain, in relationships, to
+            consider; default of 2 reproduces exactly the pre-spec-016
+            two-step-only behavior
+        :type max_chain_length: int
+        :param allow_exceeding_default_ceiling: required True to pass
+            max_chain_length above derivation.DEFAULT_MAX_CHAIN_LENGTH_CEILING
+        :type allow_exceeding_default_ceiling: bool
         :return: one DuplicateFinding per explicit relationship found to be
                  a duplicate, each citing the chain(s) that imply it
         :rtype: list(DuplicateFinding)
+        :raises ValueError: if max_chain_length exceeds the default ceiling
+            without the explicit override
         """
         from .derivation import find_duplicate_relationships  # noqa: PLC0415  # circular: model↔derivation init cycle
 
-        return find_duplicate_relationships(self, include_dependency)
+        return find_duplicate_relationships(
+            self, include_dependency, max_chain_length, allow_exceeding_default_ceiling=allow_exceeding_default_ceiling
+        )
 
-    def derive_relationship(self, source, target, include_dependency=False):
+    def derive_relationship(
+        self, source, target, include_dependency=False, max_chain_length=2, *, allow_exceeding_default_ceiling=False
+    ):
         """
         Compute the relationship(s) implied between two elements by any
-        qualifying two-step chain, without persisting the result.
+        qualifying chain of up to max_chain_length relationships, without
+        persisting the result.
 
         :param source: source Element or its uuid
         :type source: Element|str
@@ -1073,14 +1090,30 @@ class Model:
         :param include_dependency: opt into the issue #146 extended scope
             (Access, Influence, Association; default: False)
         :type include_dependency: bool
+        :param max_chain_length: longest chain, in relationships, to
+            consider; default of 2 reproduces exactly the pre-spec-016
+            two-step-only behavior
+        :type max_chain_length: int
+        :param allow_exceeding_default_ceiling: required True to pass
+            max_chain_length above derivation.DEFAULT_MAX_CHAIN_LENGTH_CEILING
+        :type allow_exceeding_default_ceiling: bool
         :return: zero or more DerivedRelationship results (independent
-                 results when multiple qualifying chains exist)
+                 results when multiple qualifying chains of any length exist)
         :rtype: list(DerivedRelationship)
-        :raises ValueError: if source or target does not resolve to an element in the model
+        :raises ValueError: if source or target does not resolve to an
+            element in the model, or max_chain_length exceeds the ceiling
+            without the override
         """
         from .derivation import derive_between  # noqa: PLC0415  # circular: model↔derivation init cycle
 
-        return derive_between(self, source, target, include_dependency)
+        return derive_between(
+            self,
+            source,
+            target,
+            include_dependency,
+            max_chain_length,
+            allow_exceeding_default_ceiling=allow_exceeding_default_ceiling,
+        )
 
     def _check_connection_refs(self, c: Any) -> bool:
         _ok = True

@@ -29,7 +29,7 @@ Single project (library), per plan.md: `src/pyArchimate/`, `tests/unit/`, `tests
 
 **Purpose**: Establish the regression baseline this feature's safety guarantee (User Story 3, SC-003) is measured against.
 
-- [ ] T001 Run `poetry run pytest tests/unit/test_derivation.py tests/integration/test_derivation_roundtrip.py -v` and `poetry run behave tests/features --tags=derivation` on the current `derivation.py` (pre-this-feature) and record the full pass/fail output as the SC-003 regression baseline (no file changes — this is the reference result later tasks compare against)
+- [X] T001 Run `poetry run pytest tests/unit/test_derivation.py tests/integration/test_derivation_roundtrip.py -v` and `poetry run behave tests/features/derived_relationships.feature` on the current `derivation.py` (pre-this-feature) and record the full pass/fail output as the SC-003 regression baseline (no file changes — this is the reference result later tasks compare against). Baseline: 93 pytest tests passed; 15 behave scenarios (72 steps) passed.
 
 **Checkpoint**: Baseline captured — safe to begin modifying `derivation.py`.
 
@@ -41,14 +41,14 @@ Single project (library), per plan.md: `src/pyArchimate/`, `tests/unit/`, `tests
 
 **⚠️ CRITICAL**: This phase changes the shared `RelationshipChain` and `find_chains()` that Phases 3–5 all build on.
 
-- [ ] T002 [P] Write failing unit tests in `tests/unit/test_derivation.py` for a generalized `RelationshipChain.legs: list[Relationship]` field (replacing the fixed `leg1`/`leg2` pair) and for `find_chains()` discovering qualifying 3-leg and 4-leg chains when called with `max_chain_length=3` / `max_chain_length=4` (FR-001; SC-001; data-model.md's `RelationshipChain` entity)
-- [ ] T003 [P] Write failing unit test in `tests/unit/test_derivation.py` asserting `find_chains(model)` called with no `max_chain_length` argument (default `2`) returns results identical in shape and content to the T001 baseline (FR-010, SC-003)
-- [ ] T004 [P] Write failing unit test in `tests/unit/test_derivation.py` for `find_chains(model, max_chain_length=3)` rejecting a 4-element path that revisits an intermediate element (A→B→C→B), generalizing the existing two-step A→B→A self-reference protection to a chain of any length (FR-004; Edge Cases bullet 1)
-- [ ] T005 [P] Write failing unit test in `tests/unit/test_derivation.py` confirming a relationship referencing an element absent from the model, placed at hop 3 of a 4-step chain, excludes that chain from `find_chains(model, max_chain_length=4)` — generalizing the existing two-step dangling-reference exclusion (FR-008; Edge Cases bullet 5)
-- [ ] T006 Add `DEFAULT_MAX_CHAIN_LENGTH_CEILING: int = 6` module-level constant to `src/pyArchimate/derivation.py`, plus a helper that raises `ValueError` when a caller's `max_chain_length` exceeds it and the keyword-only `allow_exceeding_default_ceiling` is not `True` — quoting contracts/derivation-api.md's constraint verbatim: "Values above DEFAULT_MAX_CHAIN_LENGTH_CEILING require allow_exceeding_default_ceiling=True" (FR-011)
-- [ ] T007 Generalize the `RelationshipChain` dataclass in `src/pyArchimate/derivation.py` from `leg1: Relationship` / `leg2: Relationship` fields to `legs: list[Relationship]`, with `intermediate` becoming a property returning the `len(legs) - 1` shared elements between consecutive legs (data-model.md). Preserve `leg1`/`leg2`-style access (e.g. via properties reading `legs[0]`/`legs[-1]`) so existing 2-leg callers relying on those names are unaffected (depends on T002)
-- [ ] T008 Rewrite `find_chains()` in `src/pyArchimate/derivation.py` to use the bounded-depth, fused-pruning path-extension algorithm from research.md Decision 1: extend each qualifying relationship one leg at a time via the existing `_index_qualifying_by_source` index (which already excludes dangling references, FR-008), call `derive_pair_type` at every extension step and abandon the path immediately when it returns `None` (FR-003), abandon the path immediately if the next element would already be present in a running visited-element set (FR-004, generalizing the existing `leg2._target == leg1._source` check), and stop extending once `len(legs) == max_chain_length` (FR-001). Accept new `max_chain_length: int = 2` and keyword-only `allow_exceeding_default_ceiling: bool = False` parameters, invoking the T006 ceiling check first (depends on T006, T007)
-- [ ] T009 Run T002, T003, T004, and T005 and confirm all now pass; re-run the T001 baseline commands and confirm zero behavioral differences at default settings (SC-003)
+- [X] T002 [P] Write failing unit tests in `tests/unit/test_derivation.py` for a generalized `RelationshipChain.legs: list[Relationship]` field (replacing the fixed `leg1`/`leg2` pair) and for `find_chains()` discovering qualifying 3-leg and 4-leg chains when called with `max_chain_length=3` / `max_chain_length=4` (FR-001; SC-001; data-model.md's `RelationshipChain` entity)
+- [X] T003 [P] Write failing unit test in `tests/unit/test_derivation.py` asserting `find_chains(model)` called with no `max_chain_length` argument (default `2`) returns results identical in shape and content to the T001 baseline (FR-010, SC-003)
+- [X] T004 [P] Write failing unit test in `tests/unit/test_derivation.py` for `find_chains(model, max_chain_length=3)` rejecting a 4-element path that revisits an intermediate element (A→B→C→B), generalizing the existing two-step A→B→A self-reference protection to a chain of any length (FR-004; Edge Cases bullet 1)
+- [X] T005 [P] Write failing unit test in `tests/unit/test_derivation.py` confirming a relationship referencing an element absent from the model, placed at hop 3 of a 4-step chain, excludes that chain from `find_chains(model, max_chain_length=4)` — generalizing the existing two-step dangling-reference exclusion (FR-008; Edge Cases bullet 5)
+- [X] T006 Add `DEFAULT_MAX_CHAIN_LENGTH_CEILING: int = 6` module-level constant to `src/pyArchimate/derivation.py`, plus a helper that raises `ValueError` when a caller's `max_chain_length` exceeds it and the keyword-only `allow_exceeding_default_ceiling` is not `True` — quoting contracts/derivation-api.md's constraint verbatim: "Values above DEFAULT_MAX_CHAIN_LENGTH_CEILING require allow_exceeding_default_ceiling=True" (FR-011)
+- [X] T007 Generalize the `RelationshipChain` dataclass in `src/pyArchimate/derivation.py` from `leg1: Relationship` / `leg2: Relationship` fields to `legs: list[Relationship]`, with `intermediate` becoming a property returning the `len(legs) - 1` shared elements between consecutive legs (data-model.md). Preserve `leg1`/`leg2`-style access (e.g. via properties reading `legs[0]`/`legs[-1]`) so existing 2-leg callers relying on those names are unaffected (depends on T002)
+- [X] T008 Rewrite `find_chains()` in `src/pyArchimate/derivation.py` to use the bounded-depth, fused-pruning path-extension algorithm from research.md Decision 1: extend each qualifying relationship one leg at a time via the existing `_index_qualifying_by_source` index (which already excludes dangling references, FR-008), call `derive_pair_type` at every extension step and abandon the path immediately when it returns `None` (FR-003), abandon the path immediately if the next element would already be present in a running visited-element set (FR-004, generalizing the existing `leg2._target == leg1._source` check), and stop extending once `len(legs) == max_chain_length` (FR-001). Accept new `max_chain_length: int = 2` and keyword-only `allow_exceeding_default_ceiling: bool = False` parameters, invoking the T006 ceiling check first (depends on T006, T007)
+- [X] T009 Run T002, T003, T004, and T005 and confirm all now pass; re-run the T001 baseline commands and confirm zero behavioral differences at default settings (SC-003)
 
 **Checkpoint**: Foundation ready — `find_chains()` and `RelationshipChain` now support chains of any length; all downstream user stories can proceed.
 
@@ -62,16 +62,16 @@ Single project (library), per plan.md: `src/pyArchimate/`, `tests/unit/`, `tests
 
 ### Tests for User Story 1
 
-- [ ] T010 [P] [US1] Write failing unit tests in `tests/unit/test_derivation.py` for `find_duplicate_relationships(model, max_chain_length=3)` flagging a duplicate implied by a 3-step chain, and `find_duplicate_relationships(model, max_chain_length=4)` flagging a duplicate implied by a 4-step chain (FR-005; Acceptance Scenarios 1 and 3; SC-001)
-- [ ] T011 [P] [US1] Write failing unit test in `tests/unit/test_derivation.py` for a 3-step chain where the second adjacent pair has no defined derivation rule: `find_duplicate_relationships(model, max_chain_length=3)` must report nothing for that chain, not a partial result based on the first two legs (Acceptance Scenario 4; FR-003, SC-002)
-- [ ] T012 [P] [US1] Write failing integration test in `tests/integration/test_derivation_roundtrip.py` for quickstart.md Scenario 1 end-to-end: default call reports nothing, `max_chain_length=3` call reports exactly one `DuplicateFinding` citing a 3-leg chain, and the model/view files remain byte-identical after the scan
+- [X] T010 [P] [US1] Write failing unit tests in `tests/unit/test_derivation.py` for `find_duplicate_relationships(model, max_chain_length=3)` flagging a duplicate implied by a 3-step chain, and `find_duplicate_relationships(model, max_chain_length=4)` flagging a duplicate implied by a 4-step chain (FR-005; Acceptance Scenarios 1 and 3; SC-001)
+- [X] T011 [P] [US1] Write failing unit test in `tests/unit/test_derivation.py` for a 3-step chain where the second adjacent pair has no defined derivation rule: `find_duplicate_relationships(model, max_chain_length=3)` must report nothing for that chain, not a partial result based on the first two legs (Acceptance Scenario 4; FR-003, SC-002)
+- [X] T012 [P] [US1] Write failing integration test in `tests/integration/test_derivation_roundtrip.py` for quickstart.md Scenario 1 end-to-end: default call reports nothing, `max_chain_length=3` call reports exactly one `DuplicateFinding` citing a 3-leg chain, and the model/view files remain byte-identical after the scan
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Thread `max_chain_length: int = 2` and keyword-only `allow_exceeding_default_ceiling: bool = False` through `find_duplicate_relationships()` in `src/pyArchimate/derivation.py`, passing them to `find_chains()` (FR-005; depends on T008)
-- [ ] T014 [US1] Add `max_chain_length: int = 2` and keyword-only `allow_exceeding_default_ceiling: bool = False` to `Model.check_derivable_duplicates()` in `src/pyArchimate/model.py` as a thin pass-through to `find_duplicate_relationships()`, mirroring the existing `include_dependency` wrapper pattern (depends on T013)
-- [ ] T015 [US1] Add BDD step definitions for User Story 1's longer-chain duplicate-scan acceptance scenarios in `tests/features/steps/derivation_steps.py`
-- [ ] T016 [US1] Run T010, T011, T012, and the new behave scenarios from T015; confirm all pass
+- [X] T013 [US1] Thread `max_chain_length: int = 2` and keyword-only `allow_exceeding_default_ceiling: bool = False` through `find_duplicate_relationships()` in `src/pyArchimate/derivation.py`, passing them to `find_chains()` (FR-005; depends on T008)
+- [X] T014 [US1] Add `max_chain_length: int = 2` and keyword-only `allow_exceeding_default_ceiling: bool = False` to `Model.check_derivable_duplicates()` in `src/pyArchimate/model.py` as a thin pass-through to `find_duplicate_relationships()`, mirroring the existing `include_dependency` wrapper pattern (depends on T013)
+- [X] T015 [US1] Add BDD step definitions for User Story 1's longer-chain duplicate-scan acceptance scenarios in `tests/features/steps/derivation_steps.py`
+- [X] T016 [US1] Run T010, T011, T012, and the new behave scenarios from T015; confirm all pass
 
 **Checkpoint**: User Story 1 is fully functional and independently testable — the duplicate scan now catches longer-chain duplicates when opted in.
 
@@ -85,18 +85,18 @@ Single project (library), per plan.md: `src/pyArchimate/`, `tests/unit/`, `tests
 
 ### Tests for User Story 2
 
-- [ ] T017 [P] [US2] Write failing unit test in `tests/unit/test_derivation.py` for `derive_between(model, a, d, max_chain_length=3)` returning the correctly folded type and citing the full 3-leg chain (FR-006; Acceptance Scenario 1)
-- [ ] T018 [P] [US2] Write failing unit test in `tests/unit/test_derivation.py` for a chain containing an adjacent pair with no defined rule yielding `derive_between(..., max_chain_length=3) == []` (Acceptance Scenario 2)
-- [ ] T019 [P] [US2] Write failing unit test in `tests/unit/test_derivation.py` for two elements connected by both a qualifying 2-step chain and a separate qualifying 3-step chain: `derive_between(model, a, d, max_chain_length=3)` returns both results independently, each citing its own chain, never merged or ranked (Acceptance Scenario 3; FR-007)
-- [ ] T020 [P] [US2] Write failing unit test in `tests/unit/test_derivation.py` for `derive_between(model, a, d, include_dependency=True, max_chain_length=3)` folding correctly across a 3+-hop chain that relies on Influence for one leg, exactly as it would for an all-default-scope chain (Acceptance Scenario 4; FR-009)
-- [ ] T021 [P] [US2] Write failing integration test in `tests/integration/test_derivation_roundtrip.py` for quickstart.md Scenario 2 end-to-end: default call returns `[]`, `max_chain_length=3` call returns one `DerivedRelationship` citing a 3-leg chain, and model/view files remain byte-identical after the query
+- [X] T017 [P] [US2] Write failing unit test in `tests/unit/test_derivation.py` for `derive_between(model, a, d, max_chain_length=3)` returning the correctly folded type and citing the full 3-leg chain (FR-006; Acceptance Scenario 1)
+- [X] T018 [P] [US2] Write failing unit test in `tests/unit/test_derivation.py` for a chain containing an adjacent pair with no defined rule yielding `derive_between(..., max_chain_length=3) == []` (Acceptance Scenario 2)
+- [X] T019 [P] [US2] Write failing unit test in `tests/unit/test_derivation.py` for two elements connected by both a qualifying 2-step chain and a separate qualifying 3-step chain: `derive_between(model, a, d, max_chain_length=3)` returns both results independently, each citing its own chain, never merged or ranked (Acceptance Scenario 3; FR-007)
+- [X] T020 [P] [US2] Write failing unit test in `tests/unit/test_derivation.py` for `derive_between(model, a, d, include_dependency=True, max_chain_length=3)` folding correctly across a 3+-hop chain that relies on Influence for one leg, exactly as it would for an all-default-scope chain (Acceptance Scenario 4; FR-009)
+- [X] T021 [P] [US2] Write failing integration test in `tests/integration/test_derivation_roundtrip.py` for quickstart.md Scenario 2 end-to-end: default call returns `[]`, `max_chain_length=3` call returns one `DerivedRelationship` citing a 3-leg chain, and model/view files remain byte-identical after the query
 
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] Thread `max_chain_length: int = 2` and keyword-only `allow_exceeding_default_ceiling: bool = False` through `derive_between()` in `src/pyArchimate/derivation.py`, passing them to `find_chains()` (FR-006; depends on T008)
-- [ ] T023 [US2] Add `max_chain_length: int = 2` and keyword-only `allow_exceeding_default_ceiling: bool = False` to `Model.derive_relationship()` in `src/pyArchimate/model.py` as a thin pass-through to `derive_between()` (depends on T022)
-- [ ] T024 [US2] Add BDD step definitions for User Story 2's longer-chain query acceptance scenarios in `tests/features/steps/derivation_steps.py`
-- [ ] T025 [US2] Run T017–T021 and the new behave scenarios from T024; confirm all pass
+- [X] T022 [US2] Thread `max_chain_length: int = 2` and keyword-only `allow_exceeding_default_ceiling: bool = False` through `derive_between()` in `src/pyArchimate/derivation.py`, passing them to `find_chains()` (FR-006; depends on T008)
+- [X] T023 [US2] Add `max_chain_length: int = 2` and keyword-only `allow_exceeding_default_ceiling: bool = False` to `Model.derive_relationship()` in `src/pyArchimate/model.py` as a thin pass-through to `derive_between()` (depends on T022)
+- [X] T024 [US2] Add BDD step definitions for User Story 2's longer-chain query acceptance scenarios in `tests/features/steps/derivation_steps.py`
+- [X] T025 [US2] Run T017–T021 and the new behave scenarios from T024; confirm all pass
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — scan and query now cover chains of any opted-in length.
 
@@ -110,14 +110,14 @@ Single project (library), per plan.md: `src/pyArchimate/`, `tests/unit/`, `tests
 
 ### Tests for User Story 3
 
-- [ ] T026 [P] [US3] Write failing regression test in `tests/unit/test_derivation.py` that re-runs representative cases from the T001 baseline through the generalized module with default settings only and asserts identical results (Acceptance Scenario 1; SC-003)
-- [ ] T027 [P] [US3] Write failing unit test in `tests/unit/test_derivation.py` for a model containing a qualifying longer-than-two-step chain: `Model.check_derivable_duplicates()` and `Model.derive_relationship(a, d)` called with default settings report nothing for that chain; the result only appears once `max_chain_length` is explicitly raised (Acceptance Scenario 2)
-- [ ] T028 [P] [US3] Write failing unit test in `tests/unit/test_derivation.py` for `max_chain_length=10` (above `DEFAULT_MAX_CHAIN_LENGTH_CEILING`) raising `ValueError` on `find_chains`/`derive_between`/`find_duplicate_relationships`, and succeeding when `allow_exceeding_default_ceiling=True` is also passed (FR-011; quickstart.md Scenario 5)
+- [X] T026 [P] [US3] Write failing regression test in `tests/unit/test_derivation.py` that re-runs representative cases from the T001 baseline through the generalized module with default settings only and asserts identical results (Acceptance Scenario 1; SC-003)
+- [X] T027 [P] [US3] Write failing unit test in `tests/unit/test_derivation.py` for a model containing a qualifying longer-than-two-step chain: `Model.check_derivable_duplicates()` and `Model.derive_relationship(a, d)` called with default settings report nothing for that chain; the result only appears once `max_chain_length` is explicitly raised (Acceptance Scenario 2)
+- [X] T028 [P] [US3] Write failing unit test in `tests/unit/test_derivation.py` for `max_chain_length=10` (above `DEFAULT_MAX_CHAIN_LENGTH_CEILING`) raising `ValueError` on `find_chains`/`derive_between`/`find_duplicate_relationships`, and succeeding when `allow_exceeding_default_ceiling=True` is also passed (FR-011; quickstart.md Scenario 5)
 
 ### Implementation for User Story 3
 
-- [ ] T029 [US3] Run T026, T027, T028; since User Story 3 is a safety/compatibility guarantee rather than new capability, no new production code is expected here — if any test fails, fix the regression in `src/pyArchimate/derivation.py` or `src/pyArchimate/model.py` introduced by Phases 2–4 before proceeding (depends on T016, T025)
-- [ ] T030 [US3] Add BDD step definitions for User Story 3's default-unchanged and explicit-opt-in acceptance scenarios in `tests/features/steps/derivation_steps.py`
+- [X] T029 [US3] Run T026, T027, T028; since User Story 3 is a safety/compatibility guarantee rather than new capability, no new production code is expected here — if any test fails, fix the regression in `src/pyArchimate/derivation.py` or `src/pyArchimate/model.py` introduced by Phases 2–4 before proceeding (depends on T016, T025)
+- [X] T030 [US3] Add BDD step definitions for User Story 3's default-unchanged and explicit-opt-in acceptance scenarios in `tests/features/steps/derivation_steps.py`
 
 **Checkpoint**: All three user stories are independently functional — US1 and US2's new capability is proven additive, never breaking existing callers.
 
@@ -127,13 +127,13 @@ Single project (library), per plan.md: `src/pyArchimate/`, `tests/unit/`, `tests
 
 **Purpose**: Close the two remaining functional requirements that are documentation-only and don't gate any single user story's independent testability, plus final validation.
 
-- [ ] T031 [P] Correct the module docstring in `src/pyArchimate/derivation.py` to state that the ArchiMate derivation rule is not inherently limited to two hops, and that the prior two-step-only behavior was this project's own deliberate scope decision rather than a reflection of the rule itself (FR-012; research.md Decision 5)
-- [ ] T032 [P] Correct `specs/015-derived-relationships/spec.md`'s User Story descriptions and Key Entities section wherever they frame the two-step chain as the full extent of what the derivation rule covers, per the same correction as T031 (FR-012; research.md Decision 5)
-- [ ] T033 Review the full `derivation.py` module docstring and all of `specs/015-derived-relationships/spec.md` for any remaining statement implying a two-hop ceiling beyond what T031/T032 corrected; confirm none remain (SC-005; depends on T031, T032)
-- [ ] T034 [P] Document how chain-discovery cost grows as chain length and model size/density increase, alongside the `DEFAULT_MAX_CHAIN_LENGTH_CEILING` constant in `src/pyArchimate/derivation.py`, in terms a caller can use to decide how far above the default to raise `max_chain_length` (FR-013)
-- [ ] T035 [P] Add an SC-004 benchmark to `tests/performance/test_performance_benchmarks.py`: build a ~1,000-element model (matching the existing `test_large_model_hierarchy_queries_performance` scale) with a mix of 2-step and 3–6-hop qualifying chains, and assert `find_duplicate_relationships(model, max_chain_length=2)` and `find_duplicate_relationships(model, max_chain_length=6)` both complete within the same order-of-magnitude wall-clock bound (research.md Decision 4)
-- [ ] T036 Run all five quickstart.md scenarios end-to-end exactly as written and confirm each matches its documented expected outcome
-- [ ] T037 Run the full project quality gates: `poetry run ruff check .`, `poetry run ruff format --check .`, `poetry run pyright`, `poetry run mypy`, `poetry run pytest`, `poetry run behave` — all must pass before this feature is considered Done (constitution Quality Gates)
+- [X] T031 [P] Correct the module docstring in `src/pyArchimate/derivation.py` to state that the ArchiMate derivation rule is not inherently limited to two hops, and that the prior two-step-only behavior was this project's own deliberate scope decision rather than a reflection of the rule itself (FR-012; research.md Decision 5)
+- [X] T032 [P] Correct `specs/015-derived-relationships/spec.md`'s User Story descriptions and Key Entities section wherever they frame the two-step chain as the full extent of what the derivation rule covers, per the same correction as T031 (FR-012; research.md Decision 5)
+- [X] T033 Review the full `derivation.py` module docstring and all of `specs/015-derived-relationships/spec.md` for any remaining statement implying a two-hop ceiling beyond what T031/T032 corrected; confirm none remain (SC-005; depends on T031, T032)
+- [X] T034 [P] Document how chain-discovery cost grows as chain length and model size/density increase, alongside the `DEFAULT_MAX_CHAIN_LENGTH_CEILING` constant in `src/pyArchimate/derivation.py`, in terms a caller can use to decide how far above the default to raise `max_chain_length` (FR-013)
+- [X] T035 [P] Add an SC-004 benchmark to `tests/performance/test_performance_benchmarks.py`: build a ~1,000-element model (matching the existing `test_large_model_hierarchy_queries_performance` scale) with a mix of 2-step and 3–6-hop qualifying chains, and assert `find_duplicate_relationships(model, max_chain_length=2)` and `find_duplicate_relationships(model, max_chain_length=6)` both complete within the same order-of-magnitude wall-clock bound (research.md Decision 4)
+- [X] T036 Run all five quickstart.md scenarios end-to-end exactly as written and confirm each matches its documented expected outcome
+- [X] T037 Run the full project quality gates: `poetry run ruff check .`, `poetry run ruff format --check .`, `poetry run pyright`, `poetry run mypy`, `poetry run pytest`, `poetry run behave` — all must pass before this feature is considered Done (constitution Quality Gates)
 
 ---
 
