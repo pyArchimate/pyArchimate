@@ -1,13 +1,25 @@
-"""Derived-relationship computation (spec 015-derived-relationships, GitHub issue #140).
+"""Derived-relationship computation (spec 015-derived-relationships, GitHub issue
+#140; generalized to chains of any length by spec 016-derivation-n-hop,
+GitHub issue #173).
 
 Provides a read-only scan for explicit relationships that duplicate what a
-two-step relationship chain already implies, and an on-demand query for the
+relationship chain already implies, and an on-demand query for the
 relationship implied between two elements, per the ArchiMate derivation
 rules (DR2, DR3, DR5, DR7, DR8) in ArchiMate 3.2 Specification, Appendix B
 ("Relationships (Normative)"), Section B.2 ("Derivation Rules for Valid
 Relationships"), verified against a primary copy of the specification.
 Nothing here ever writes to a Model, a Relationship, or a view: every
 result is a transient dataclass.
+
+A chain may be any length of two or more relationships: the ArchiMate
+derivation rule itself is not inherently limited to two hops - folding is
+defined pairwise and can be applied repeatedly along a path of any length
+(see :func:`_fold_chain_type`). This module's original two-step-only
+behavior (spec 015) was this project's own deliberate scope decision, not a
+reflection of a two-hop ceiling in the specification. ``max_chain_length``
+(default ``2``, see :func:`find_chains`) controls how far every entry point
+below searches; raising it opts into longer-chain discovery without
+changing a single default-settings call's result (SC-003).
 
 Scope is restricted to the "certain" (valid, not merely potential)
 derivation rules for the seven relationship types the issue named:
@@ -16,12 +28,12 @@ relationships, ArchiMate §5.1), Serving (one of the four *dependency*
 relationships, §5.2 - Access/Influence/Association are excluded from this
 feature's scope), and Triggering/Flow (the two *dynamic* relationships,
 §5.3). Specialization (§5.4, "other") is excluded per the issue. Only
-"in-line" two-step chains are considered (leg1's target is leg2's source,
-i.e. a -> b -> c in the same direction) since that is the only chain shape
-this feature discovers (see find_chains) - the specification's "opposing"
-rules (DR4, DR6, where the second leg points *into* the intermediate
-element instead of out of it) do not apply to this chain shape and are out
-of scope.
+"in-line" chains are considered (each leg's target is the next leg's
+source, i.e. a -> b -> c -> ... in the same direction) since that is the
+only chain shape this feature discovers (see find_chains) - the
+specification's "opposing" rules (DR4, DR6, where the second leg points
+*into* the intermediate element instead of out of it) do not apply to this
+chain shape and are out of scope.
 
 The rules implemented (leg1: a->b, leg2: b->c, both forward):
 
@@ -103,6 +115,52 @@ SUPPORTED_RELATIONSHIP_TYPES: frozenset[str] = (
 # and Association are included here purely for chaining eligibility.
 _EXTENDED_DEPENDENCY_TYPES: frozenset[str] = frozenset({"Access", "Influence", "Association"})
 
+# Spec 016-derivation-n-hop: the default longest chain (in relationships) a
+# caller may request via max_chain_length before explicitly overriding this
+# ceiling via allow_exceeding_default_ceiling=True.
+#
+# Cost-growth rationale (FR-013): find_chains() explores every qualifying
+# path with a worklist, extending one leg at a time and pruning the moment a
+# pair fails to fold (derive_pair_type returns None) or an element is
+# revisited. For a model where each qualifying element has, on average, b
+# outgoing qualifying relationships ("branching factor"), the worst-case
+# number of partial paths explored grows roughly as O(b^max_chain_length) -
+# each additional hop multiplies the search by another factor of b. In
+# practice derive_pair_type's None-pruning (FR-003) and the no-revisit rule
+# (FR-004) cut this down sharply well before the worst case, but the
+# worst-case growth is still exponential in max_chain_length, not linear.
+# DEFAULT_MAX_CHAIN_LENGTH_CEILING=6 was chosen as a value that comfortably
+# covers realistic chain lengths in practice while keeping that exponential
+# growth bounded by default; see tests/performance/test_performance_benchmarks.py
+# (SC-004) for a measured comparison at max_chain_length=2 vs. a longer
+# opted-in value on a ~1,000-element model. A caller raising
+# allow_exceeding_default_ceiling=True should expect scan time to grow
+# noticeably, not just proportionally, for each additional hop requested
+# beyond this ceiling, especially in densely-connected models.
+DEFAULT_MAX_CHAIN_LENGTH_CEILING: int = 6
+
+
+def _enforce_chain_length_ceiling(max_chain_length: int, allow_exceeding_default_ceiling: bool) -> None:
+    """
+    Raise if a caller's requested chain length exceeds the documented default
+    ceiling without an explicit opt-in (FR-011).
+
+    :param max_chain_length: the caller's requested longest chain, in relationships
+    :type max_chain_length: int
+    :param allow_exceeding_default_ceiling: explicit acknowledgement of the
+        performance tradeoff of exceeding DEFAULT_MAX_CHAIN_LENGTH_CEILING
+    :type allow_exceeding_default_ceiling: bool
+    :raises ValueError: if max_chain_length exceeds the ceiling and the
+        override was not given
+    """
+    if max_chain_length > DEFAULT_MAX_CHAIN_LENGTH_CEILING and not allow_exceeding_default_ceiling:
+        raise ValueError(
+            f"max_chain_length={max_chain_length} exceeds the default ceiling of "
+            f"{DEFAULT_MAX_CHAIN_LENGTH_CEILING}. Pass allow_exceeding_default_ceiling=True "
+            "to search longer chains, accepting the performance tradeoff documented "
+            "alongside DEFAULT_MAX_CHAIN_LENGTH_CEILING in this module."
+        )
+
 
 def derive_pair_type(leg1_type: str, leg2_type: str, include_dependency: bool = False) -> str | None:
     """
@@ -150,26 +208,58 @@ def derive_pair_type(leg1_type: str, leg2_type: str, include_dependency: bool = 
 @dataclass(frozen=True)
 class RelationshipChain:
     """
-    Two existing, explicit relationships sharing a common intermediate element.
+    Two or more existing, explicit relationships, each sharing an
+    intermediate element with the next ("N-Hop Relationship Path" in
+    spec 016-derivation-n-hop; generalizes the original exactly-two-leg
+    chain from spec 015).
 
-    :param leg1: the A-to-intermediate relationship
-    :type leg1: Relationship
-    :param leg2: the intermediate-to-C relationship
-    :type leg2: Relationship
+    :param legs: the ordered relationships making up the chain, from the
+        source-most leg to the target-most leg
+    :type legs: list[Relationship]
     """
 
-    leg1: "Relationship"
-    leg2: "Relationship"
+    legs: list["Relationship"]
+
+    def __post_init__(self) -> None:
+        if len(self.legs) < 2:
+            raise ValueError("RelationshipChain requires at least two legs")
 
     @property
-    def intermediate(self) -> "Element":
-        """The shared element B between leg1's target and leg2's source."""
-        intermediate = self.leg1.target
-        # Invariant guaranteed by find_chains(): leg1._target is only ever
-        # used to build a chain after being confirmed present in
-        # model.elems_dict, so this always resolves to a real Element.
-        assert intermediate is not None, "chain invariant violated: leg1 has no resolvable target"
-        return intermediate
+    def leg1(self) -> "Relationship":
+        """The first (source-most) leg - preserved for spec 015 callers."""
+        return self.legs[0]
+
+    @property
+    def leg2(self) -> "Relationship":
+        """The last (target-most) leg - preserved for spec 015 callers.
+
+        For a two-leg chain this is the same relationship spec 015 callers
+        already expect; for a longer chain it is the final leg, matching
+        the generalized leg1/leg2 "endpoints" convention.
+        """
+        return self.legs[-1]
+
+    @property
+    def intermediate(self) -> "Element | list[Element]":
+        """
+        The shared element(s) between consecutive legs.
+
+        Returns a single :class:`Element` when this chain has exactly two
+        legs (byte-for-byte compatible with every spec 015 caller that
+        reads ``chain.intermediate`` as a scalar), or a list of the
+        ``len(legs) - 1`` intermediate elements for a longer chain.
+        """
+        raw_intermediates = [leg.target for leg in self.legs[:-1]]
+        intermediates: list[Element] = []
+        for element in raw_intermediates:
+            # Invariant guaranteed by find_chains(): every leg's target is
+            # only ever used to build a chain after being confirmed present
+            # in model.elems_dict, so this always resolves to a real Element.
+            assert element is not None, "chain invariant violated: a leg has no resolvable target"
+            intermediates.append(element)
+        if len(intermediates) == 1:
+            return intermediates[0]
+        return intermediates
 
 
 def _qualifies_for_chaining(rel: "Relationship", model: "Model", include_dependency: bool = False) -> bool:
@@ -210,15 +300,53 @@ def _index_qualifying_by_source(
     return by_source
 
 
-def find_chains(model: "Model", include_dependency: bool = False) -> list[RelationshipChain]:
+def _fold_chain_type(legs: list["Relationship"], include_dependency: bool = False) -> str | None:
     """
-    Discover every qualifying two-step relationship chain in a model.
+    Compute the fully-folded relationship type implied by a chain of any
+    length, by applying :func:`derive_pair_type` repeatedly, left to right
+    (spec 016-derivation-n-hop FR-002): the result of legs 1+2 becomes the
+    running type combined with leg 3, and so on. Never invents a new
+    combination rule - this is purely repeated application of the existing,
+    unmodified two-leg table.
 
-    A chain qualifies when: both legs reference elements present in the
-    model (FR-011), the chain is not a self-referencing cycle (FR-009), and
-    both legs use a relationship type from the supported subset (FR-008).
-    Whether the pair of types actually yields a defined derived type is left
-    to the caller via :func:`derive_pair_type`.
+    :param legs: the chain's relationships, source-most to target-most
+    :type legs: list[Relationship]
+    :param include_dependency: opt into the issue #146 extended scope
+    :type include_dependency: bool
+    :return: the fully-folded type, or None the moment any adjacent pair
+             (original or already-folded) has no defined rule (FR-003)
+    :rtype: str | None
+    """
+    running_type: str = legs[0].type
+    for leg in legs[1:]:
+        folded = derive_pair_type(running_type, leg.type, include_dependency)
+        if folded is None:
+            return None
+        running_type = folded
+    return running_type
+
+
+def find_chains(
+    model: "Model",
+    include_dependency: bool = False,
+    max_chain_length: int = 2,
+    *,
+    allow_exceeding_default_ceiling: bool = False,
+) -> list[RelationshipChain]:
+    """
+    Discover every qualifying relationship chain in a model, up to
+    max_chain_length relationships long.
+
+    A chain qualifies when: every leg references elements present in the
+    model (FR-008), the chain does not revisit any element it has already
+    passed through, for chains of any length (FR-004), every leg uses a
+    relationship type from the supported subset (FR-008), and the chain
+    folds successfully end to end via repeated application of
+    :func:`derive_pair_type` (FR-002, FR-003) - a path is abandoned the
+    moment any adjacent pair (original or already-folded) has no defined
+    rule, rather than being discovered as an unfoldable "chain" a caller
+    would have to filter out themselves (research.md Decision 1, "fused
+    pruning").
 
     :param model: the model to scan
     :type model: Model
@@ -226,22 +354,72 @@ def find_chains(model: "Model", include_dependency: bool = False) -> list[Relati
         (Access, Influence, Association also eligible as chain legs;
         default: False, matching the strict Appendix B.2 scope)
     :type include_dependency: bool
-    :return: every qualifying chain found
+    :param max_chain_length: the longest chain, in relationships, to
+        discover; default of 2 reproduces exactly the pre-spec-016
+        two-step-only behavior (FR-010)
+    :type max_chain_length: int
+    :param allow_exceeding_default_ceiling: required True to pass
+        max_chain_length above DEFAULT_MAX_CHAIN_LENGTH_CEILING (FR-011)
+    :type allow_exceeding_default_ceiling: bool
+    :return: every qualifying, fully-foldable chain found, each two legs
+             or longer
     :rtype: list[RelationshipChain]
+    :raises ValueError: if max_chain_length exceeds the default ceiling
+        without the explicit override
     """
+    _enforce_chain_length_ceiling(max_chain_length, allow_exceeding_default_ceiling)
     relationships = list(model.rels_dict.values())
     by_source = _index_qualifying_by_source(relationships, model, include_dependency)
 
     chains: list[RelationshipChain] = []
-    for leg1 in relationships:
-        if not _qualifies_for_chaining(leg1, model, include_dependency):
+    # Worklist of in-progress partial paths: (legs so far, visited element
+    # uuids, running folded type). Explicit iterative worklist rather than
+    # recursion, since a caller may raise max_chain_length well past typical
+    # recursion-depth comfort (FR-011).
+    worklist: list[tuple[list[Relationship], set[str], str]] = _seed_chain_worklist(
+        relationships, model, include_dependency
+    )
+
+    while worklist:
+        legs, visited, running_type = worklist.pop()
+        if len(legs) >= 2:
+            chains.append(RelationshipChain(legs=list(legs)))
+        if len(legs) >= max_chain_length:
             continue
-        for leg2 in by_source.get(leg1._target, []):
-            if leg2._target == leg1._source:
-                continue  # FR-009: no self-referencing A->B->A cycles
-            chains.append(RelationshipChain(leg1, leg2))
+        worklist.extend(_extend_chain(legs, visited, running_type, by_source, include_dependency))
 
     return chains
+
+
+def _seed_chain_worklist(
+    relationships: list["Relationship"], model: "Model", include_dependency: bool
+) -> list[tuple[list["Relationship"], set[str], str]]:
+    """Build the initial one-leg worklist entries for :func:`find_chains`."""
+    worklist: list[tuple[list[Relationship], set[str], str]] = []
+    for leg1 in relationships:
+        if _qualifies_for_chaining(leg1, model, include_dependency):
+            worklist.append(([leg1], {leg1._source, leg1._target}, leg1.type))
+    return worklist
+
+
+def _extend_chain(
+    legs: list["Relationship"],
+    visited: set[str],
+    running_type: str,
+    by_source: dict[str, list["Relationship"]],
+    include_dependency: bool,
+) -> list[tuple[list["Relationship"], set[str], str]]:
+    """Compute the next-hop worklist entries reachable from a partial chain."""
+    extensions: list[tuple[list[Relationship], set[str], str]] = []
+    last_target = legs[-1]._target
+    for next_leg in by_source.get(last_target, []):
+        if next_leg._target in visited:
+            continue  # FR-004: no element revisited, for chains of any length
+        folded_type = derive_pair_type(running_type, next_leg.type, include_dependency)
+        if folded_type is None:
+            continue  # FR-003: abandon the path, no partial result
+        extensions.append((legs + [next_leg], visited | {next_leg._target}, folded_type))
+    return extensions
 
 
 @dataclass(frozen=True)
@@ -283,7 +461,13 @@ class DerivedRelationship:
 
 
 def derive_between(
-    model: "Model", source: Any, target: Any, include_dependency: bool = False
+    model: "Model",
+    source: Any,
+    target: Any,
+    include_dependency: bool = False,
+    max_chain_length: int = 2,
+    *,
+    allow_exceeding_default_ceiling: bool = False,
 ) -> list[DerivedRelationship]:
     """
     Compute the relationship(s) implied between two elements, without persisting them.
@@ -298,10 +482,17 @@ def derive_between(
         (Access, Influence, Association; default: False, matching the
         strict Appendix B.2 scope)
     :type include_dependency: bool
+    :param max_chain_length: longest chain, in relationships, to consider;
+        default of 2 reproduces exactly the pre-spec-016 behavior (FR-010)
+    :type max_chain_length: int
+    :param allow_exceeding_default_ceiling: required True to pass
+        max_chain_length above DEFAULT_MAX_CHAIN_LENGTH_CEILING (FR-011)
+    :type allow_exceeding_default_ceiling: bool
     :return: zero or more DerivedRelationship results, one per independently
              qualifying chain connecting source to target (FR-005, FR-010)
     :rtype: list[DerivedRelationship]
-    :raises ValueError: if source or target does not resolve to an element in the model
+    :raises ValueError: if source or target does not resolve to an element in
+        the model, or max_chain_length exceeds the ceiling without the override
     """
     source_uuid = source if isinstance(source, str) else getattr(source, "uuid", None)
     target_uuid = target if isinstance(target, str) else getattr(target, "uuid", None)
@@ -311,12 +502,20 @@ def derive_between(
         raise ValueError(f'Invalid target reference "{target_uuid}"')
 
     results: list[DerivedRelationship] = []
-    for chain in find_chains(model, include_dependency):
+    chains = find_chains(
+        model,
+        include_dependency,
+        max_chain_length,
+        allow_exceeding_default_ceiling=allow_exceeding_default_ceiling,
+    )
+    for chain in chains:
         if chain.leg1._source != source_uuid or chain.leg2._target != target_uuid:
             continue
-        derived_type = derive_pair_type(chain.leg1.type, chain.leg2.type, include_dependency)
-        if derived_type is None:
-            continue
+        derived_type = _fold_chain_type(chain.legs, include_dependency)
+        # Invariant guaranteed by find_chains(): every returned chain was
+        # already confirmed fully-foldable while being built (FR-003), so
+        # re-folding it here can never yield None.
+        assert derived_type is not None, "chain invariant violated: find_chains returned an unfoldable chain"
         chain_source, chain_target = chain.leg1.source, chain.leg2.target
         # Invariant guaranteed by find_chains(): both endpoints were
         # confirmed present in model.elems_dict before the chain was built.
@@ -348,7 +547,13 @@ class DuplicateFinding:
     implying_chains: list[RelationshipChain]
 
 
-def find_duplicate_relationships(model: "Model", include_dependency: bool = False) -> list[DuplicateFinding]:
+def find_duplicate_relationships(
+    model: "Model",
+    include_dependency: bool = False,
+    max_chain_length: int = 2,
+    *,
+    allow_exceeding_default_ceiling: bool = False,
+) -> list[DuplicateFinding]:
     """
     Scan a model for explicit relationships that duplicate an implied chain.
 
@@ -358,16 +563,30 @@ def find_duplicate_relationships(model: "Model", include_dependency: bool = Fals
         (Access, Influence, Association; default: False, matching the
         strict Appendix B.2 scope)
     :type include_dependency: bool
+    :param max_chain_length: longest chain, in relationships, to consider;
+        default of 2 reproduces exactly the pre-spec-016 behavior (FR-010)
+    :type max_chain_length: int
+    :param allow_exceeding_default_ceiling: required True to pass
+        max_chain_length above DEFAULT_MAX_CHAIN_LENGTH_CEILING (FR-011)
+    :type allow_exceeding_default_ceiling: bool
     :return: one DuplicateFinding per explicit relationship found to be a
              duplicate, each citing every chain that independently implies it
     :rtype: list[DuplicateFinding]
+    :raises ValueError: if max_chain_length exceeds the ceiling without the override
     """
-    chains = find_chains(model, include_dependency)
+    chains = find_chains(
+        model,
+        include_dependency,
+        max_chain_length,
+        allow_exceeding_default_ceiling=allow_exceeding_default_ceiling,
+    )
     implying_by_key: dict[tuple[str, str, str], list[RelationshipChain]] = {}
     for chain in chains:
-        derived_type = derive_pair_type(chain.leg1.type, chain.leg2.type, include_dependency)
-        if derived_type is None:
-            continue
+        derived_type = _fold_chain_type(chain.legs, include_dependency)
+        # Invariant guaranteed by find_chains(): every returned chain was
+        # already confirmed fully-foldable while being built (FR-003), so
+        # re-folding it here can never yield None.
+        assert derived_type is not None, "chain invariant violated: find_chains returned an unfoldable chain"
         key = (chain.leg1._source, chain.leg2._target, derived_type)
         implying_by_key.setdefault(key, []).append(chain)
 
