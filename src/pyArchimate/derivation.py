@@ -376,11 +376,9 @@ def find_chains(
     # uuids, running folded type). Explicit iterative worklist rather than
     # recursion, since a caller may raise max_chain_length well past typical
     # recursion-depth comfort (FR-011).
-    worklist: list[tuple[list[Relationship], set[str], str]] = []
-    for leg1 in relationships:
-        if not _qualifies_for_chaining(leg1, model, include_dependency):
-            continue
-        worklist.append(([leg1], {leg1._source, leg1._target}, leg1.type))
+    worklist: list[tuple[list[Relationship], set[str], str]] = _seed_chain_worklist(
+        relationships, model, include_dependency
+    )
 
     while worklist:
         legs, visited, running_type = worklist.pop()
@@ -388,16 +386,40 @@ def find_chains(
             chains.append(RelationshipChain(legs=list(legs)))
         if len(legs) >= max_chain_length:
             continue
-        last_target = legs[-1]._target
-        for next_leg in by_source.get(last_target, []):
-            if next_leg._target in visited:
-                continue  # FR-004: no element revisited, for chains of any length
-            folded_type = derive_pair_type(running_type, next_leg.type, include_dependency)
-            if folded_type is None:
-                continue  # FR-003: abandon the path, no partial result
-            worklist.append((legs + [next_leg], visited | {next_leg._target}, folded_type))
+        worklist.extend(_extend_chain(legs, visited, running_type, by_source, include_dependency))
 
     return chains
+
+
+def _seed_chain_worklist(
+    relationships: list["Relationship"], model: "Model", include_dependency: bool
+) -> list[tuple[list["Relationship"], set[str], str]]:
+    """Build the initial one-leg worklist entries for :func:`find_chains`."""
+    worklist: list[tuple[list[Relationship], set[str], str]] = []
+    for leg1 in relationships:
+        if _qualifies_for_chaining(leg1, model, include_dependency):
+            worklist.append(([leg1], {leg1._source, leg1._target}, leg1.type))
+    return worklist
+
+
+def _extend_chain(
+    legs: list["Relationship"],
+    visited: set[str],
+    running_type: str,
+    by_source: dict[str, list["Relationship"]],
+    include_dependency: bool,
+) -> list[tuple[list["Relationship"], set[str], str]]:
+    """Compute the next-hop worklist entries reachable from a partial chain."""
+    extensions: list[tuple[list[Relationship], set[str], str]] = []
+    last_target = legs[-1]._target
+    for next_leg in by_source.get(last_target, []):
+        if next_leg._target in visited:
+            continue  # FR-004: no element revisited, for chains of any length
+        folded_type = derive_pair_type(running_type, next_leg.type, include_dependency)
+        if folded_type is None:
+            continue  # FR-003: abandon the path, no partial result
+        extensions.append((legs + [next_leg], visited | {next_leg._target}, folded_type))
+    return extensions
 
 
 @dataclass(frozen=True)
