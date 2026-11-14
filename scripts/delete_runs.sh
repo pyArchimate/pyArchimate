@@ -53,6 +53,10 @@ delete_runs() {
   done
 }
 
-list | awk -F'[^0-9]+' '{ print $1 }' | while read -r workflow_id; do
-  delete_runs "$workflow_id"
-done
+if [[ -n "$WORKFLOW_ID" ]]; then
+  delete_runs "$WORKFLOW_ID"
+else
+  list | awk -F'[^0-9]+' '{ print $1 }' | while read -r workflow_id; do
+    delete_runs "$workflow_id"
+  done
+fi
