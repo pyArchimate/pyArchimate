@@ -523,6 +523,7 @@ def test_background_covers_the_whole_view_box():
     min_x, min_y, width, height = (float(v) for v in svg.get("viewBox", "").split())
     background = svg.find("{http://www.w3.org/2000/svg}rect")  # NOSONAR — XML namespace URI, not a network request
     assert background is not None
-    assert min_x < 0 and min_y < 0
+    assert min_x < 0
+    assert min_y < 0
     assert (float(background.get("x", "")), float(background.get("y", ""))) == (min_x, min_y)
     assert (float(background.get("width", "")), float(background.get("height", ""))) == (width, height)
