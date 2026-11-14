@@ -433,6 +433,31 @@ def _add_four_step_chain(model):
     return model, a, b, c, d, e, leg1, leg2, leg3, leg4
 
 
+def test_relationship_chain_rejects_fewer_than_two_legs():
+    """RelationshipChain.__post_init__ enforces its "at least two legs" invariant."""
+    model = Model()
+    a = model.add("ApplicationComponent", name="A")
+    b = model.add("ApplicationComponent", name="B")
+    leg1 = model.add_relationship("Composition", a, b)
+    with pytest.raises(ValueError, match="at least two legs"):
+        RelationshipChain(legs=[leg1])
+
+
+def test_fold_chain_type_short_circuits_on_undefined_pair():
+    """_fold_chain_type (FR-002/FR-003) folds left-to-right and returns None
+    the moment an adjacent pair - original or already-folded - has no
+    defined rule, rather than guessing or returning a partial result."""
+    from src.pyArchimate.derivation import _fold_chain_type
+
+    model = Model()
+    a = model.add("ApplicationComponent", name="A")
+    b = model.add("ApplicationComponent", name="B")
+    c = model.add("ApplicationComponent", name="C")
+    leg1 = model.add_relationship("Serving", a, b)  # dependency type
+    leg2 = model.add_relationship("Flow", b, c)  # dynamic type, undefined pair with Serving
+    assert _fold_chain_type([leg1, leg2]) is None
+
+
 def test_relationship_chain_legs_field_holds_full_sequence():
     """RelationshipChain.legs generalizes the old leg1/leg2 pair (data-model.md)."""
     model, _, b, c, _d, leg1, leg2, leg3 = _add_three_step_chain(Model())

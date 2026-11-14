@@ -512,8 +512,10 @@ def derive_between(
         if chain.leg1._source != source_uuid or chain.leg2._target != target_uuid:
             continue
         derived_type = _fold_chain_type(chain.legs, include_dependency)
-        if derived_type is None:
-            continue
+        # Invariant guaranteed by find_chains(): every returned chain was
+        # already confirmed fully-foldable while being built (FR-003), so
+        # re-folding it here can never yield None.
+        assert derived_type is not None, "chain invariant violated: find_chains returned an unfoldable chain"
         chain_source, chain_target = chain.leg1.source, chain.leg2.target
         # Invariant guaranteed by find_chains(): both endpoints were
         # confirmed present in model.elems_dict before the chain was built.
@@ -581,8 +583,10 @@ def find_duplicate_relationships(
     implying_by_key: dict[tuple[str, str, str], list[RelationshipChain]] = {}
     for chain in chains:
         derived_type = _fold_chain_type(chain.legs, include_dependency)
-        if derived_type is None:
-            continue
+        # Invariant guaranteed by find_chains(): every returned chain was
+        # already confirmed fully-foldable while being built (FR-003), so
+        # re-folding it here can never yield None.
+        assert derived_type is not None, "chain invariant violated: find_chains returned an unfoldable chain"
         key = (chain.leg1._source, chain.leg2._target, derived_type)
         implying_by_key.setdefault(key, []).append(chain)
 
