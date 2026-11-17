@@ -13,11 +13,18 @@ on:
   pull_request:
     branches: [master]
 
+concurrency:
+  # Cancel superseded runs for the same ref so outdated jobs stop squatting
+  # scarce macOS queue slots until completion.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ── Gate: fail fast if poetry.lock is out of sync with pyproject.toml ─────
   lock-sync:
     name: Lock sync
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
 
@@ -31,10 +38,17 @@ jobs:
     name: Test (Python 3.12)
     needs: lock-sync
     runs-on: ${{ matrix.os }}
+    # Default job timeout is 360 min; cap it so a wedged job fails fast
+    # instead of stalling for hours. Queue time is not included.
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # macos-15-intel (x64): the arm64 pools (macos-latest = macOS 26,
+        # macos-15) hit intermittent multi-minute queues and
+        # acquisition-failure cancellations in late 2026; Intel is a
+        # separate, uncontended fleet. Revisit when Intel runners retire.
+        os: [ubuntu-latest, windows-latest, macos-15-intel]
 
     steps:
       - uses: actions/checkout@v6
@@ -56,9 +70,11 @@ jobs:
           path: .venv
           # Key on the resolved Python version: runner-image patch bumps (e.g. 3.13.16 -> 3.13.17)
           # remove the old interpreter from hostedtoolcache, breaking a venv restored across the bump.
-          key: venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
+          # Key on arch as well: arm64/x64 venvs are not interchangeable, so
+          # a macOS fleet change must never restore the other CPU's venv.
+          key: venv-${{ runner.os }}-${{ runner.arch }}-py${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
           restore-keys: |
-            venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-
+            venv-${{ runner.os }}-${{ runner.arch }}-py${{ steps.setup-python.outputs.python-version }}-
 
       - name: Install dependencies
         run: poetry install --no-interaction --no-root  # NOSONAR S8541
@@ -89,6 +105,7 @@ jobs:
     name: SonarCloud Analysis
     needs: lock-sync
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: (github.event_name == 'pull_request' || github.ref == 'refs/heads/master') && github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v6

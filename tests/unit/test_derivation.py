@@ -6,6 +6,8 @@ import pytest
 
 from src.pyArchimate import Model
 from src.pyArchimate.derivation import (
+    DEFAULT_MAX_CHAIN_LENGTH_CEILING,
+    RelationshipChain,
     derive_between,
     derive_pair_type,
     find_chains,
@@ -406,6 +408,298 @@ def test_derive_between_raises_for_unresolvable_element():
         derive_between(model, "id-does-not-exist", c)
     with pytest.raises(ValueError):
         derive_between(model, a, "id-does-not-exist")
+
+
+# --- spec 016: N-hop chain generalization (Foundational) -------------------
+
+
+def _add_three_step_chain(model):
+    """A --Composition--> B --Aggregation--> C --Realization--> D."""
+    a = model.add("ApplicationComponent", name="A")
+    b = model.add("ApplicationComponent", name="B")
+    c = model.add("ApplicationComponent", name="C")
+    d = model.add("ApplicationComponent", name="D")
+    leg1 = model.add_relationship("Composition", a, b)
+    leg2 = model.add_relationship("Aggregation", b, c)
+    leg3 = model.add_relationship("Realization", c, d)
+    return model, a, b, c, d, leg1, leg2, leg3
+
+
+def _add_four_step_chain(model):
+    """A --Composition--> B --Aggregation--> C --Realization--> D --Serving--> E."""
+    model, a, b, c, d, leg1, leg2, leg3 = _add_three_step_chain(model)
+    e = model.add("ApplicationComponent", name="E")
+    leg4 = model.add_relationship("Serving", d, e)
+    return model, a, b, c, d, e, leg1, leg2, leg3, leg4
+
+
+def test_relationship_chain_rejects_fewer_than_two_legs():
+    """RelationshipChain.__post_init__ enforces its "at least two legs" invariant."""
+    model = Model()
+    a = model.add("ApplicationComponent", name="A")
+    b = model.add("ApplicationComponent", name="B")
+    leg1 = model.add_relationship("Composition", a, b)
+    with pytest.raises(ValueError, match="at least two legs"):
+        RelationshipChain(legs=[leg1])
+
+
+def test_fold_chain_type_short_circuits_on_undefined_pair():
+    """_fold_chain_type (FR-002/FR-003) folds left-to-right and returns None
+    the moment an adjacent pair - original or already-folded - has no
+    defined rule, rather than guessing or returning a partial result."""
+    from src.pyArchimate.derivation import _fold_chain_type
+
+    model = Model()
+    a = model.add("ApplicationComponent", name="A")
+    b = model.add("ApplicationComponent", name="B")
+    c = model.add("ApplicationComponent", name="C")
+    leg1 = model.add_relationship("Serving", a, b)  # dependency type
+    leg2 = model.add_relationship("Flow", b, c)  # dynamic type, undefined pair with Serving
+    assert _fold_chain_type([leg1, leg2]) is None
+
+
+def test_relationship_chain_legs_field_holds_full_sequence():
+    """RelationshipChain.legs generalizes the old leg1/leg2 pair (data-model.md)."""
+    model, _, b, c, _d, leg1, leg2, leg3 = _add_three_step_chain(Model())
+    chains = find_chains(model, max_chain_length=3)
+    three_leg = [chain for chain in chains if len(chain.legs) == 3]
+    assert len(three_leg) == 1
+    chain = three_leg[0]
+    assert chain.legs == [leg1, leg2, leg3]
+    # Backward-compatible leg1/leg2 access for any chain (FR-010).
+    assert chain.leg1 is leg1
+    assert chain.leg2 is leg3
+    assert chain.intermediate == [b, c]
+
+
+def test_find_chains_discovers_three_step_chain():
+    """find_chains discovers every qualifying chain up to max_chain_length,
+    including shorter sub-chains (contracts/derivation-api.md) - here the
+    3-leg A->B->C->D chain, alongside the 2-leg A->B->C and B->C->D chains."""
+    model, _, _, _, _, leg1, leg2, leg3 = _add_three_step_chain(Model())
+    chains = find_chains(model, max_chain_length=3)
+    three_leg = [chain for chain in chains if len(chain.legs) == 3]
+    assert len(three_leg) == 1
+    assert three_leg[0].legs == [leg1, leg2, leg3]
+
+
+def test_find_chains_discovers_four_step_chain():
+    model, *_, leg1, leg2, leg3, leg4 = _add_four_step_chain(Model())
+    chains = find_chains(model, max_chain_length=4)
+    matching = [c for c in chains if len(c.legs) == 4]
+    assert len(matching) == 1
+    assert matching[0].legs == [leg1, leg2, leg3, leg4]
+
+
+def test_find_chains_default_max_chain_length_matches_pre_feature_baseline():
+    """FR-010/SC-003: no max_chain_length argument -> identical to the
+    pre-this-feature two-step-only find_chains() behavior (both qualifying
+    2-leg chains in this 3-step model, A->B->C and B->C->D)."""
+    model, _a, b, _c, _, leg1, leg2, leg3 = _add_three_step_chain(Model())
+    chains = find_chains(model)  # default max_chain_length=2
+    assert {tuple(chain.legs) for chain in chains} == {(leg1, leg2), (leg2, leg3)}
+    found = next(chain for chain in chains if chain.legs == [leg1, leg2])
+    assert found.leg1 is leg1
+    assert found.leg2 is leg2
+    assert found.intermediate is b
+
+
+def test_find_chains_rejects_chain_revisiting_an_element():
+    """FR-004: generalizes the two-step A->B->A protection to any length -
+    here a 4-element path A->B->C->B revisits B three hops apart."""
+    model = Model()
+    a = model.add("ApplicationComponent", name="A")
+    b = model.add("ApplicationComponent", name="B")
+    c = model.add("ApplicationComponent", name="C")
+    model.add_relationship("Composition", a, b)
+    model.add_relationship("Aggregation", b, c)
+    model.add_relationship("Assignment", c, b)  # revisits B
+    chains = find_chains(model, max_chain_length=3)
+    assert all(len(chain.legs) < 3 for chain in chains), (
+        "No 3-leg chain should be discovered when it revisits an element (A->B->C->B)"
+    )
+
+
+def test_find_chains_excludes_dangling_reference_at_third_hop():
+    """FR-008: dangling-reference exclusion generalizes to any position in
+    a chain of any length - here the element is removed from hop 3 of 4."""
+    model, _a, _b, _c, d, leg1, leg2, leg3 = _add_three_step_chain(Model())
+    del model.elems_dict[d.uuid]  # simulate a dangling reference at leg3's target
+    chains = find_chains(model, max_chain_length=3)
+    assert all(leg3 not in chain.legs for chain in chains), (
+        "No chain may reference leg3, whose target is a dangling reference"
+    )
+    # The still-valid 2-leg prefix (A->B->C) must remain discoverable on its own.
+    assert find_chains(model, max_chain_length=2) == [RelationshipChain(legs=[leg1, leg2])]
+
+
+def test_max_chain_length_above_ceiling_requires_explicit_override():
+    """FR-011: a documented default ceiling, explicitly overridable."""
+    model, *_ = _add_three_step_chain(Model())
+    with pytest.raises(ValueError):
+        find_chains(model, max_chain_length=DEFAULT_MAX_CHAIN_LENGTH_CEILING + 1)
+    # Explicit override succeeds (even though no chain that long exists here).
+    find_chains(
+        model,
+        max_chain_length=DEFAULT_MAX_CHAIN_LENGTH_CEILING + 1,
+        allow_exceeding_default_ceiling=True,
+    )
+
+
+# --- T010/T011: find_duplicate_relationships N-hop coverage (User Story 1) --
+
+
+def test_find_duplicate_relationships_flags_three_step_chain_duplicate():
+    model, a, _, _, d, leg1, leg2, leg3 = _add_three_step_chain(Model())
+    duplicate = model.add_relationship("Realization", a, d)
+
+    assert find_duplicate_relationships(model) == []  # default max_chain_length=2: not seen
+
+    findings = find_duplicate_relationships(model, max_chain_length=3)
+    assert len(findings) == 1
+    assert findings[0].relationship is duplicate
+    assert any(chain.legs == [leg1, leg2, leg3] for chain in findings[0].implying_chains)
+
+
+def test_find_duplicate_relationships_flags_four_step_chain_duplicate():
+    model, a, *_, e, leg1, leg2, leg3, leg4 = _add_four_step_chain(Model())
+    duplicate = model.add_relationship("Serving", a, e)
+
+    findings = find_duplicate_relationships(model, max_chain_length=4)
+    matching = [f for f in findings if f.relationship is duplicate]
+    assert len(matching) == 1
+    assert any(chain.legs == [leg1, leg2, leg3, leg4] for chain in matching[0].implying_chains)
+
+
+def test_find_duplicate_relationships_three_step_undefined_pair_not_flagged():
+    """FR-003/SC-002: an undefined adjacent pair anywhere in the chain means
+    no duplicate is reported at all - never a partial result."""
+    model = Model()
+    a = model.add("ApplicationComponent", name="A")
+    b = model.add("ApplicationComponent", name="B")
+    c = model.add("ApplicationComponent", name="C")
+    d = model.add("ApplicationComponent", name="D")
+    model.add_relationship("Composition", a, b)
+    model.add_relationship("Flow", b, c)  # Flow+structural (DR6-shape) is undefined
+    model.add_relationship("Flow", c, d)
+    model.add_relationship("Flow", a, d)  # would-be duplicate, must not be flagged
+
+    findings = find_duplicate_relationships(model, max_chain_length=3)
+    assert findings == []
+
+
+# --- T017-T020: derive_between N-hop coverage (User Story 2) ---------------
+
+
+def test_derive_between_three_step_chain_folds_correctly():
+    model, a, _, _, d, leg1, leg2, leg3 = _add_three_step_chain(Model())
+
+    assert derive_between(model, a, d) == []  # default max_chain_length=2: unreachable
+
+    results = derive_between(model, a, d, max_chain_length=3)
+    assert len(results) == 1
+    assert results[0].type == "Realization"
+    assert results[0].chain.legs == [leg1, leg2, leg3]
+
+
+def test_derive_between_three_step_chain_undefined_pair_yields_empty():
+    model = Model()
+    a = model.add("ApplicationComponent", name="A")
+    b = model.add("ApplicationComponent", name="B")
+    c = model.add("ApplicationComponent", name="C")
+    d = model.add("ApplicationComponent", name="D")
+    model.add_relationship("Composition", a, b)
+    model.add_relationship("Flow", b, c)
+    model.add_relationship("Flow", c, d)
+
+    assert derive_between(model, a, d, max_chain_length=3) == []
+
+
+def test_derive_between_two_and_three_step_chains_independent():
+    """FR-007: when two elements are connected by both a qualifying 2-step
+    chain and a separate qualifying 3-step chain, both results are reported
+    independently, each citing its own chain."""
+    model = Model()
+    a = model.add("ApplicationComponent", name="A")
+    b = model.add("ApplicationComponent", name="B")
+    c = model.add("ApplicationComponent", name="C")
+    d = model.add("ApplicationComponent", name="D")
+    x = model.add("ApplicationComponent", name="X")
+    leg1 = model.add_relationship("Composition", a, b)
+    leg2 = model.add_relationship("Aggregation", b, c)
+    leg3 = model.add_relationship("Realization", c, d)
+    short_leg1 = model.add_relationship("Realization", a, x)
+    short_leg2 = model.add_relationship("Serving", x, d)
+
+    results = derive_between(model, a, d, max_chain_length=3)
+    assert len(results) == 2
+    chains_by_type = {result.type: result.chain.legs for result in results}
+    assert chains_by_type == {
+        "Realization": [leg1, leg2, leg3],
+        "Serving": [short_leg1, short_leg2],
+    }
+
+
+def test_derive_between_three_step_chain_with_influence_opt_in():
+    model = Model()
+    a = model.add("Assessment", name="A")
+    b = model.add("Requirement", name="B")
+    c = model.add("Goal", name="C")
+    d = model.add("ApplicationComponent", name="D")
+    leg1 = model.add_relationship("Influence", a, b)
+    leg2 = model.add_relationship("Realization", b, c)
+    leg3 = model.add_relationship("Composition", c, d)
+
+    assert derive_between(model, a, d, include_dependency=True) == []  # default max=2: unreachable
+
+    results = derive_between(model, a, d, include_dependency=True, max_chain_length=3)
+    assert len(results) == 1
+    assert results[0].type == "Influence"
+    assert results[0].chain.legs == [leg1, leg2, leg3]
+
+
+# --- T026-T028: default-unchanged / ceiling-override regression (User Story 3) --
+
+
+def test_default_settings_regression_matches_pre_feature_baseline():
+    """SC-003: representative T001-baseline cases through the generalized
+    module, default settings only, identical to pre-feature results."""
+    model, a, _b, c, leg1, leg2 = _add_valid_chain(Model())
+    assert find_chains(model) == [RelationshipChain(legs=[leg1, leg2])]
+    results = derive_between(model, a, c)
+    assert len(results) == 1
+    assert results[0].type == "Realization"
+    model.add_relationship("Realization", a, c)
+    findings = find_duplicate_relationships(model)
+    assert len(findings) == 1
+
+
+def test_default_settings_do_not_see_longer_chain_until_opted_in():
+    """A qualifying longer-than-two-step chain is invisible at default
+    settings and only appears once max_chain_length is explicitly raised."""
+    model, a, _, _, d, *_ = _add_three_step_chain(Model())
+    model.add_relationship("Realization", a, d)
+
+    assert model.check_derivable_duplicates() == []
+    assert model.derive_relationship(a, d) == []
+
+    assert len(model.check_derivable_duplicates(max_chain_length=3)) == 1
+    assert len(model.derive_relationship(a, d, max_chain_length=3)) == 1
+
+
+def test_max_chain_length_above_ceiling_requires_override_on_every_entry_point():
+    """FR-011: the ceiling and its override apply uniformly to find_chains,
+    derive_between, and find_duplicate_relationships."""
+    model, a, _, _, d, *_ = _add_three_step_chain(Model())
+    above_ceiling = DEFAULT_MAX_CHAIN_LENGTH_CEILING + 1
+
+    with pytest.raises(ValueError):
+        derive_between(model, a, d, max_chain_length=above_ceiling)
+    with pytest.raises(ValueError):
+        find_duplicate_relationships(model, max_chain_length=above_ceiling)
+
+    derive_between(model, a, d, max_chain_length=above_ceiling, allow_exceeding_default_ceiling=True)
+    find_duplicate_relationships(model, max_chain_length=above_ceiling, allow_exceeding_default_ceiling=True)
 
 
 # --- T017: derived-vs-explicit distinction (User Story 3) ------------------
