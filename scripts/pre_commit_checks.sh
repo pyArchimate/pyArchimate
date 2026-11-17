@@ -15,7 +15,6 @@ run_quiet() {
     }
 }
 
-run_quiet "poetry update"   poetry update
 run_quiet "poetry install"  poetry install
 run_quiet "poetry sync"     poetry sync
 run_quiet "pymarkdown lint" poetry run pymarkdownlnt fix *.md specs/*.md
