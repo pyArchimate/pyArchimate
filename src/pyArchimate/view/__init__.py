@@ -8,7 +8,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Optional, cast
 
 from ..constants import ARCHI_CATEGORY, DEFAULT_THEME
-from ..element import Element, set_id
+from ..element import Element, _normalize_color, set_id
 from ..enums import ArchiType
 from ..exceptions import ArchimateConceptTypeError
 from ..logger import log
@@ -199,6 +199,16 @@ class Profile:
         self._uuid = set_id(uuid)
         self.concept = concept
         self.model: Model = cast("Model", model)
+        self._fill_color: str | None = None
+
+    @property
+    def fill_color(self) -> str | None:
+        """Default fill color for elements carrying this stereotype, or None if unset."""
+        return self._fill_color
+
+    @fill_color.setter
+    def fill_color(self, color_str: str | None) -> None:
+        self._fill_color = _normalize_color(color_str)
 
     def delete(self):
         """Remove this profile and clear all references to it from elements and relationships."""
@@ -524,6 +534,26 @@ class Node:
             self._fill_color = default_color(self.type or "", self.model.theme)
         else:
             self._fill_color = color_str
+
+    def get_effective_fill_color(self) -> str | None:
+        """Resolve the color this node should render with (research.md Decision 1).
+
+        Precedence: this node's own explicit fill_color, then the underlying
+        element's explicit fill color, then the element's assigned stereotype's
+        color, then None (caller applies the theme default).
+        """
+        if self._fill_color is not None:
+            return self._fill_color
+        concept = self.concept
+        if concept is None:
+            return None
+        explicit = concept.get_fill_color()
+        if explicit is not None:
+            return explicit
+        profile = concept.get_profile()
+        if profile is not None and profile.fill_color is not None:
+            return profile.fill_color
+        return None
 
     # --- navigation ---
 

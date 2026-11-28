@@ -390,7 +390,10 @@ def _write_model_metadata(root: _Element, model: Model) -> None:
     for k, v in model.props.items():
         et.SubElement(root, "property", key=k, value=str(v))
     for p in model.profiles:
-        et.SubElement(root, "profile", name=p.name, id=p.uuid, conceptType=p.concept)
+        attrs = {"name": p.name, "id": p.uuid, "conceptType": p.concept}
+        if p.fill_color is not None:
+            attrs["fillColor"] = p.fill_color
+        et.SubElement(root, "profile", **attrs)
 
 
 def archi_writer(model: Model, file_path: str) -> str:

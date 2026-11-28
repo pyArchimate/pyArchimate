@@ -40,7 +40,7 @@ description: "Task list for Stereotype-Based Color Coding"
 
 **Purpose**: Confirm a clean baseline before any change.
 
-- [ ] T001 Run `poetry install`, then `poetry run pytest tests/unit tests/integration -q && poetry run behave tests/features` from the repository root, and confirm everything passes before making any change (establishes the pre-feature baseline for the regression check in T033).
+- [X] T001 Run `poetry install`, then `poetry run pytest tests/unit tests/integration -q && poetry run behave tests/features` from the repository root, and confirm everything passes before making any change (establishes the pre-feature baseline for the regression check in T033).
 
 ---
 
@@ -50,10 +50,10 @@ description: "Task list for Stereotype-Based Color Coding"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 [P] Stub a `fill_color` attribute on `Profile` in `src/pyArchimate/view/__init__.py`: getter returns `None`; setter is a placeholder that does not yet validate or store anything.
-- [ ] T003 [P] Stub an internal helper on `Element` in `src/pyArchimate/element.py` that is meant to return the assigned `Profile` object, currently always returning `None` (plan.md Project Structure note).
-- [ ] T004 Stub `Node.get_effective_fill_color()` in `src/pyArchimate/view/__init__.py`, returning `None` unconditionally. Depends on: T002, T003.
-- [ ] T005 Stub the fill-color lookups in `src/pyArchimate/view/layout/export/svg_export.py` (~lines 569, 727, 745) to call `node.get_effective_fill_color()`, which currently always falls back to `default_color(elem_type, theme)` since the stub returns `None`. Depends on: T004.
+- [X] T002 [P] Stub a `fill_color` attribute on `Profile` in `src/pyArchimate/view/__init__.py`: getter returns `None`; setter is a placeholder that does not yet validate or store anything.
+- [X] T003 [P] Stub an internal helper on `Element` in `src/pyArchimate/element.py` that is meant to return the assigned `Profile` object, currently always returning `None` (plan.md Project Structure note).
+- [X] T004 Stub `Node.get_effective_fill_color()` in `src/pyArchimate/view/__init__.py`, returning `None` unconditionally. Depends on: T002, T003.
+- [X] T005 Stub the fill-color lookups in `src/pyArchimate/view/layout/export/svg_export.py` (~lines 569, 727, 745) to call `node.get_effective_fill_color()`, which currently always falls back to `default_color(elem_type, theme)` since the stub returns `None`. Depends on: T004.
 
 **Checkpoint**: Real call sites exist everywhere the user stories need them. Each story can now write a failing test against the actual signature before implementing its behavior.
 
@@ -65,13 +65,13 @@ description: "Task list for Stereotype-Based Color Coding"
 
 **Independent Test**: Configure a color on a stereotype, assign it to several elements that have no color of their own, confirm all render in the configured color; clear the stereotype's color, confirm they revert to no fill color.
 
-- [ ] T006 [P] [US1] Write unit test: `Profile.fill_color` accepts a 6-digit hex code and a case-insensitive named color, normalizes both, rejects any other value with `ValueError`, and can be cleared back to `None`, in `tests/unit/test_profile_fill_color.py` (FR-001–FR-003). Confirm it FAILS against the T002 stub.
-- [ ] T007 [US1] Implement `Profile.fill_color`'s setter via the existing `_normalize_color()` helper from `src/pyArchimate/element.py` — the same function `Element.set_fill_color()` already uses (research.md Decision 4). Confirm T006 passes. Depends on: T002, T006.
-- [ ] T008 [P] [US1] Write unit test: `Node.get_effective_fill_color()` resolves to the assigned stereotype's color when unset elsewhere, applies to multiple elements sharing the stereotype, reflects a **changed** stereotype color (e.g. `"#E8453C"` → `"#F2A900"`) for all of them without touching the elements individually (FR-007), and reverts to `None` once the stereotype's color is cleared (US1 Acceptance Scenarios 1–3); also assert the full precedence order by covering the two remaining branches: `Node.fill_color`, when set, wins over both the element's own `get_fill_color()` and any stereotype color, and `Element.get_fill_color()`, when set and `Node.fill_color` is unset, wins over a stereotype color (FR-004) — in `tests/unit/test_effective_fill_color.py`. Confirm it FAILS against the T004 stub.
-- [ ] T009 [US1] Implement `Node.get_effective_fill_color()`'s full 4-step resolution from research.md Decision 1 (`Node.fill_color` → `Element.get_fill_color()` → assigned `Profile.fill_color` → `None`) — all four branches. Confirm T008 passes (T008 now covers all four branches). Depends on: T004, T007, T008.
-- [ ] T010 [US1] Replace the T005 stub wiring in `src/pyArchimate/view/layout/export/svg_export.py` so it uses the now-complete T009 logic. Depends on: T005, T009.
-- [ ] T011 [US1] Integration test: `view.to_svg()` renders elements carrying a colored stereotype (with no explicit color of their own) using that color in the output SVG, in `tests/integration/test_stereotype_color_svg.py` (FR-011, SC-002). Depends on: T010.
-- [ ] T012 [US1] BDD scenario "Define a default color per stereotype", mapped 1:1 to US1's acceptance scenarios, in `tests/features/stereotype_color.feature` plus its step definitions.
+- [X] T006 [P] [US1] Write unit test: `Profile.fill_color` accepts a 6-digit hex code and a case-insensitive named color, normalizes both, rejects any other value with `ValueError`, and can be cleared back to `None`, in `tests/unit/test_profile_fill_color.py` (FR-001–FR-003). Confirm it FAILS against the T002 stub.
+- [X] T007 [US1] Implement `Profile.fill_color`'s setter via the existing `_normalize_color()` helper from `src/pyArchimate/element.py` — the same function `Element.set_fill_color()` already uses (research.md Decision 4). Confirm T006 passes. Depends on: T002, T006.
+- [X] T008 [P] [US1] Write unit test: `Node.get_effective_fill_color()` resolves to the assigned stereotype's color when unset elsewhere, applies to multiple elements sharing the stereotype, reflects a **changed** stereotype color (e.g. `"#E8453C"` → `"#F2A900"`) for all of them without touching the elements individually (FR-007), and reverts to `None` once the stereotype's color is cleared (US1 Acceptance Scenarios 1–3); also assert the full precedence order by covering the two remaining branches: `Node.fill_color`, when set, wins over both the element's own `get_fill_color()` and any stereotype color, and `Element.get_fill_color()`, when set and `Node.fill_color` is unset, wins over a stereotype color (FR-004) — in `tests/unit/test_effective_fill_color.py`. Confirm it FAILS against the T004 stub.
+- [X] T009 [US1] Implement `Node.get_effective_fill_color()`'s full 4-step resolution from research.md Decision 1 (`Node.fill_color` → `Element.get_fill_color()` → assigned `Profile.fill_color` → `None`) — all four branches. Confirm T008 passes (T008 now covers all four branches). Depends on: T004, T007, T008.
+- [X] T010 [US1] Replace the T005 stub wiring in `src/pyArchimate/view/layout/export/svg_export.py` so it uses the now-complete T009 logic. Depends on: T005, T009.
+- [X] T011 [US1] Integration test: `view.to_svg()` renders elements carrying a colored stereotype (with no explicit color of their own) using that color in the output SVG, in `tests/integration/test_stereotype_color_svg.py` (FR-011, SC-002). Depends on: T010.
+- [X] T012 [US1] BDD scenario "Define a default color per stereotype", mapped 1:1 to US1's acceptance scenarios, in `tests/features/stereotype_color.feature` plus its step definitions.
 
 **Checkpoint**: User Story 1 is fully functional and independently testable — this is the MVP.
 
@@ -83,9 +83,9 @@ description: "Task list for Stereotype-Based Color Coding"
 
 **Independent Test**: Give an element its own explicit color while it carries a stereotype with a different configured color; confirm the element keeps its own color; clear the explicit color; confirm it falls back to the stereotype's color.
 
-- [ ] T013 [P] [US2] Write unit test: `Node.get_effective_fill_color()` returns the element's own explicit color (set via `Element.set_fill_color()`) even when its stereotype has a different configured color, and falls back to the stereotype's color once the explicit color is cleared, in `tests/unit/test_effective_fill_color.py` (US2 Acceptance Scenarios 1–2). This validates the explicit-override branches of T009's already-complete implementation.
-- [ ] T014 [P] [US2] Write unit test: reassigning an element with no explicit color from one colored stereotype to a different colored stereotype updates its resolved effective color to the newly assigned stereotype's color, in `tests/unit/test_effective_fill_color.py` (FR-008, US2 Acceptance Scenario 3).
-- [ ] T015 [US2] BDD scenario "Override a stereotyped element's color individually", mapped 1:1 to US2's acceptance scenarios, in `tests/features/stereotype_color.feature` plus its step definitions.
+- [X] T013 [P] [US2] Write unit test: `Node.get_effective_fill_color()` returns the element's own explicit color (set via `Element.set_fill_color()`) even when its stereotype has a different configured color, and falls back to the stereotype's color once the explicit color is cleared, in `tests/unit/test_effective_fill_color.py` (US2 Acceptance Scenarios 1–2). This validates the explicit-override branches of T009's already-complete implementation.
+- [X] T014 [P] [US2] Write unit test: reassigning an element with no explicit color from one colored stereotype to a different colored stereotype updates its resolved effective color to the newly assigned stereotype's color, in `tests/unit/test_effective_fill_color.py` (FR-008, US2 Acceptance Scenario 3).
+- [X] T015 [US2] BDD scenario "Override a stereotyped element's color individually", mapped 1:1 to US2's acceptance scenarios, in `tests/features/stereotype_color.feature` plus its step definitions.
 
 **Checkpoint**: User Stories 1 and 2 both work independently — override precedence is verified on top of the Foundational resolution chain.
 
@@ -97,15 +97,15 @@ description: "Task list for Stereotype-Based Color Coding"
 
 **Independent Test**: Configure stereotype colors, save to each supported format, reload, and confirm the colors and their effect on rendering are unchanged; load a model file created before this feature existed and confirm it loads without error with every stereotype's color unset.
 
-- [ ] T016 [P] [US3] Serialize `Profile.fill_color` as a new `fillColor` attribute on the existing `<profile name= id= conceptType=>` element in `src/pyArchimate/writers/archiWriter.py` (data-model.md Persistence mapping — Archi-native). Depends on: T007.
-- [ ] T017 [P] [US3] Deserialize the `fillColor` attribute back into `Profile.fill_color` when reading `<profile>` elements in `src/pyArchimate/readers/archiReader.py` (~lines 84–89), treating its absence as `None` (FR-014). Depends on: T007.
-- [ ] T018 [P] [US3] Register `profileId`, `profile`, and `profileColor` as new element-level property definitions, and write all three for each element with an assigned profile, in `src/pyArchimate/writers/archimateWriter.py`, following the existing `_write_elem_viewpoints`/`_write_elem_visual_style` pattern (research.md Decision 2). Depends on: T007.
-- [ ] T019 [US3] Deserialize the `profileId`/`profile`/`profileColor` element properties in `src/pyArchimate/readers/archimateReader.py`, reconstructing `Profile` objects keyed by `profileId` — **not** by name, per the 2026-11-28 clarification in spec.md, since two distinct stereotypes can share a name while specializing different concept types — inferring each profile's `concept` from the first referencing element's `ArchiType`. Depends on: T018.
-- [ ] T020 [P] [US3] Integration test: round-trip a model with configured stereotype colors through the Archi-native (`.archimate`) format and confirm every color is unchanged after reload, in `tests/integration/test_profile_color_roundtrip.py` (SC-003). Depends on: T016, T017.
-- [ ] T021 [P] [US3] Integration test: round-trip the same model through the Open Group Exchange XML format and confirm every color is unchanged after reload, in `tests/integration/test_profile_color_roundtrip.py` (SC-003). Depends on: T018, T019.
-- [ ] T022 [US3] Integration test: two distinct stereotypes that share the same name but specialize different concept types, each with its own configured color, round-trip through the Exchange XML format without either color being merged or lost, in `tests/integration/test_profile_color_roundtrip.py` (2026-11-28 clarification). Depends on: T018, T019.
-- [ ] T023 [US3] Integration test: an existing fixture file from `tests/integration` created before this feature existed (a) still loads without error via both readers, with every profile's `fill_color` reading `None`, and (b) produces byte-identical SVG output via `view.to_svg()` before and after this feature's changes (SC-005, FR-014). Depends on: T017, T019.
-- [ ] T024 [US3] BDD scenario "Stereotype colors survive save and reload", mapped 1:1 to US3's acceptance scenarios, in `tests/features/stereotype_color.feature` plus its step definitions.
+- [X] T016 [P] [US3] Serialize `Profile.fill_color` as a new `fillColor` attribute on the existing `<profile name= id= conceptType=>` element in `src/pyArchimate/writers/archiWriter.py` (data-model.md Persistence mapping — Archi-native). Depends on: T007.
+- [X] T017 [P] [US3] Deserialize the `fillColor` attribute back into `Profile.fill_color` when reading `<profile>` elements in `src/pyArchimate/readers/archiReader.py` (~lines 84–89), treating its absence as `None` (FR-014). Depends on: T007.
+- [X] T018 [P] [US3] Register `profileId`, `profile`, and `profileColor` as new element-level property definitions, and write all three for each element with an assigned profile, in `src/pyArchimate/writers/archimateWriter.py`, following the existing `_write_elem_viewpoints`/`_write_elem_visual_style` pattern (research.md Decision 2). Depends on: T007.
+- [X] T019 [US3] Deserialize the `profileId`/`profile`/`profileColor` element properties in `src/pyArchimate/readers/archimateReader.py`, reconstructing `Profile` objects keyed by `profileId` — **not** by name, per the 2026-11-28 clarification in spec.md, since two distinct stereotypes can share a name while specializing different concept types — inferring each profile's `concept` from the first referencing element's `ArchiType`. Depends on: T018.
+- [X] T020 [P] [US3] Integration test: round-trip a model with configured stereotype colors through the Archi-native (`.archimate`) format and confirm every color is unchanged after reload, in `tests/integration/test_profile_color_roundtrip.py` (SC-003). Depends on: T016, T017.
+- [X] T021 [P] [US3] Integration test: round-trip the same model through the Open Group Exchange XML format and confirm every color is unchanged after reload, in `tests/integration/test_profile_color_roundtrip.py` (SC-003). Depends on: T018, T019.
+- [X] T022 [US3] Integration test: two distinct stereotypes that share the same name but specialize different concept types, each with its own configured color, round-trip through the Exchange XML format without either color being merged or lost, in `tests/integration/test_profile_color_roundtrip.py` (2026-11-28 clarification). Depends on: T018, T019.
+- [X] T023 [US3] Integration test: an existing fixture file from `tests/integration` created before this feature existed (a) still loads without error via both readers, with every profile's `fill_color` reading `None`, and (b) produces byte-identical SVG output via `view.to_svg()` before and after this feature's changes (SC-005, FR-014). Depends on: T017, T019.
+- [X] T024 [US3] BDD scenario "Stereotype colors survive save and reload", mapped 1:1 to US3's acceptance scenarios, in `tests/features/stereotype_color.feature` plus its step definitions.
 
 **Checkpoint**: User Stories 1–3 all work independently — colors configure, override correctly, and persist through both formats, with pre-existing files unaffected.
 
@@ -117,10 +117,10 @@ description: "Task list for Stereotype-Based Color Coding"
 
 **Independent Test**: Export a view with no special display option set, containing one element with a custom (non-standard-named) stereotype and one element with no stereotype, and confirm only the custom-stereotyped element shows a label.
 
-- [ ] T025 [US4] Update `_maybe_render_stereotype`/`_render_stereotype` in `src/pyArchimate/view/layout/export/svg_export.py` (~lines 763–784) to render the `«stereotype»` label by default whenever the assigned profile's name, lowercased, differs from the element's `ArchiType` value, lowercased (FR-015–FR-017, research.md Decision 3), while leaving the existing `show_stereotypes=True` force-show-everything behavior unchanged (FR-018).
-- [ ] T026 [P] [US4] Unit test: the non-standard-stereotype comparison is case-insensitive and correctly classifies a stereotype as standard or non-standard against its concept's `ArchiType` value, in `tests/unit/test_stereotype_label.py`. Depends on: T025.
-- [ ] T027 [P] [US4] Integration test: `view.to_svg()` with default options renders a `«stereotype»` label for a non-standard stereotype, no label for a standard-named one, and no label for an element with no stereotype; confirm `show_stereotypes=True` still force-renders every assigned stereotype's label regardless, in `tests/integration/test_stereotype_label_svg.py` (SC-006). Depends on: T025.
-- [ ] T028 [US4] BDD scenario "Automatically label non-standard stereotypes", mapped 1:1 to US4's acceptance scenarios, in `tests/features/stereotype_color.feature` plus its step definitions.
+- [X] T025 [US4] Update `_maybe_render_stereotype`/`_render_stereotype` in `src/pyArchimate/view/layout/export/svg_export.py` (~lines 763–784) to render the `«stereotype»` label by default whenever the assigned profile's name, lowercased, differs from the element's `ArchiType` value, lowercased (FR-015–FR-017, research.md Decision 3), while leaving the existing `show_stereotypes=True` force-show-everything behavior unchanged (FR-018).
+- [X] T026 [P] [US4] Unit test: the non-standard-stereotype comparison is case-insensitive and correctly classifies a stereotype as standard or non-standard against its concept's `ArchiType` value, in `tests/unit/test_stereotype_label.py`. Depends on: T025.
+- [X] T027 [P] [US4] Integration test: `view.to_svg()` with default options renders a `«stereotype»` label for a non-standard stereotype, no label for a standard-named one, and no label for an element with no stereotype; confirm `show_stereotypes=True` still force-renders every assigned stereotype's label regardless, in `tests/integration/test_stereotype_label_svg.py` (SC-006). Depends on: T025.
+- [X] T028 [US4] BDD scenario "Automatically label non-standard stereotypes", mapped 1:1 to US4's acceptance scenarios, in `tests/features/stereotype_color.feature` plus its step definitions.
 
 **Checkpoint**: All four user stories are independently functional.
 
@@ -128,13 +128,13 @@ description: "Task list for Stereotype-Based Color Coding"
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T029 [P] Regression test: this feature's changes (T002–T025) do not alter Relationship rendering, styling, or persistence in any way — assert relationship-touching code paths in `archiWriter.py`/`archimateWriter.py`/`svg_export.py` produce unchanged output, in `tests/integration/test_relationships_unaffected.py` (FR-012).
-- [ ] T030 [P] Regression test: `Element.set_line_color()`/`set_line_width()`/transparency behavior and persistence are unchanged by this feature, in `tests/unit/test_visual_style_unaffected.py` (FR-013).
-- [ ] T031 [P] Run `poetry run ruff check .`, `poetry run pyright`, and `poetry run mypy src/pyArchimate` and fix any violations introduced by this feature's changes.
-- [ ] T032 [P] Execute every code block in `quickstart.md` (User Stories 1–4) end-to-end and confirm each assertion holds.
-- [ ] T033 Run the full regression suite — `poetry run pytest tests/unit tests/integration && poetry run behave tests/features` — and confirm zero regressions against the T001 baseline (Constitution VIII, Durability & Interoperability; SC-005).
-- [ ] T034 [P] Compatibility test: `apply_profile_styles(view, mapping)` (`src/pyArchimate/helpers/diagram.py`) still wins over an element's automatic stereotype color — since it sets `Node.fill_color` directly (tier 1 of research.md Decision 1) — confirming the two features compose correctly with no special-casing needed, in `tests/integration/test_apply_profile_styles_compat.py`.
-- [ ] T035 [P] Regression test: deleting a stereotype that elements still reference clears their stereotype assignment (existing deletion behavior) and therefore their stereotype-derived effective color, while leaving any explicit element-level color untouched, in `tests/integration/test_stereotype_deletion_edge_case.py` (spec.md Edge Cases).
+- [X] T029 [P] Regression test: this feature's changes (T002–T025) do not alter Relationship rendering, styling, or persistence in any way — assert relationship-touching code paths in `archiWriter.py`/`archimateWriter.py`/`svg_export.py` produce unchanged output, in `tests/integration/test_relationships_unaffected.py` (FR-012).
+- [X] T030 [P] Regression test: `Element.set_line_color()`/`set_line_width()`/transparency behavior and persistence are unchanged by this feature, in `tests/unit/test_visual_style_unaffected.py` (FR-013).
+- [X] T031 [P] Run `poetry run ruff check .`, `poetry run pyright`, and `poetry run mypy src/pyArchimate` and fix any violations introduced by this feature's changes.
+- [X] T032 [P] Execute every code block in `quickstart.md` (User Stories 1–4) end-to-end and confirm each assertion holds.
+- [X] T033 Run the full regression suite — `poetry run pytest tests/unit tests/integration && poetry run behave tests/features` — and confirm zero regressions against the T001 baseline (Constitution VIII, Durability & Interoperability; SC-005).
+- [X] T034 [P] Compatibility test: `apply_profile_styles(view, mapping)` (`src/pyArchimate/helpers/diagram.py`) still wins over an element's automatic stereotype color — since it sets `Node.fill_color` directly (tier 1 of research.md Decision 1) — confirming the two features compose correctly with no special-casing needed, in `tests/integration/test_apply_profile_styles_compat.py`.
+- [X] T035 [P] Regression test: deleting a stereotype that elements still reference clears their stereotype assignment (existing deletion behavior) and therefore their stereotype-derived effective color, while leaving any explicit element-level color untouched, in `tests/integration/test_stereotype_deletion_edge_case.py` (spec.md Edge Cases).
 
 ---
 

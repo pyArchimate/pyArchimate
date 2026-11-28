@@ -188,6 +188,44 @@ def _apply_junction_type_props(elem: Any, props_xml: Any, ns: str) -> None:
             _set_junction_type_from_prop(elem, p, ns)
 
 
+def _apply_profile_props(elem: Any, props_xml: Any, ns: str, pdef_merge_map: dict[str, str], model: Any) -> None:
+    """Reconstruct an element's assigned Profile from profileId/profile/profileColor properties.
+
+    research.md Decision 2: profiles are keyed by profileId (the stereotype's UUID),
+    not by name, so two distinct stereotypes sharing a name but specializing
+    different concept types are kept separate (2026-11-28 clarification in spec.md).
+    """
+    if props_xml is None:
+        return
+    values: dict[str, str] = {}
+    for p in props_xml.findall(ns + "property"):
+        prop_id = p.get("propertyDefinitionRef")
+        if prop_id not in pdef_merge_map:
+            continue
+        key = model.pdefs.get(pdef_merge_map[prop_id])
+        if key not in ("profileId", "profile", "profileColor"):
+            continue
+        val_xml = p.find(ns + "value")
+        if val_xml is not None and val_xml.text is not None:
+            values[key] = val_xml.text
+
+    profile_id = values.get("profileId")
+    if profile_id is None:
+        return
+
+    profile = next((pr for pr in model.profiles if pr.uuid == profile_id), None)
+    if profile is None:
+        profile = model.add_profile(name=values.get("profile") or profile_id, uuid=profile_id, concept=elem.type)
+    profile_color = values.get("profileColor")
+    if profile_color is not None:
+        profile.fill_color = profile_color
+    elem._profile = profile.uuid
+    # _read_props already promoted these into elem.props as generic properties
+    # (mirroring the influenceStrength pattern); remove them from there.
+    for key in ("profileId", "profile", "profileColor"):
+        elem.props.pop(key, None)
+
+
 def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
     elements_xml = root.find(ns + "elements")
     if elements_xml is None:
@@ -220,6 +258,7 @@ def _read_elements(model, root, ns, xsi, pdef_merge_map, merge_flg):
         props_xml = e.find(ns + "properties")
         _apply_viewpoint_props(elem, props_xml, ns, pdef_merge_map, model)
         _apply_junction_type_props(elem, props_xml, ns)
+        _apply_profile_props(elem, props_xml, ns, pdef_merge_map, model)
 
     return parent_map, visual_style_map
 

@@ -11,8 +11,10 @@ model = Model("ERM Demo")
 threat = model.add_profile(name="Threat", concept="Driver")
 threat.fill_color = "#E8453C"
 
-e1 = model.add(ArchiType.Driver, "Inadequate power supply", profile="Threat")
-e2 = model.add(ArchiType.Driver, "Unionized labor force", profile="Threat")
+e1 = model.add(ArchiType.Driver, "Inadequate power supply")
+e1.set_profile("Threat")
+e2 = model.add(ArchiType.Driver, "Unionized labor force")
+e2.set_profile("Threat")
 
 view = model.add(ArchiType.View, "Risk View")
 n1 = view.add(e1, x=0, y=0, w=120, h=55)
@@ -50,7 +52,7 @@ reloaded = Model("reloaded")
 reloaded.read("/tmp/erm-demo.archimate")
 assert reloaded.get_profile("Threat").fill_color == "#f2a900"
 
-model.write("/tmp/erm-demo.xml", writer=Writers.archi)      # OpenGroup Exchange XML format
+model.write("/tmp/erm-demo.xml", writer=Writers.archimate)  # OpenGroup Exchange XML format
 reloaded2 = Model("reloaded-xml")
 reloaded2.read("/tmp/erm-demo.xml")
 assert reloaded2.get_profile("Threat").fill_color == "#f2a900"
