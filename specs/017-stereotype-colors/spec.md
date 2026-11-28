@@ -90,7 +90,129 @@ A modeler configures stereotype colors, saves the model, closes it, and reopens 
 
 ## Diagrams
 
-### Stereotype / Element color model
+### Use cases overview
+
+```plantuml
+@startuml
+title Stereotype-Based Color Coding - Use Cases
+
+left to right direction
+
+actor Modeler
+
+rectangle "pyArchimate" {
+  usecase "Configure a default\ncolor for a stereotype" as UC1
+  usecase "Assign a stereotype\nto an element" as UC2
+  usecase "Set an explicit fill\ncolor on an element" as UC3
+  usecase "Clear an element's\nexplicit fill color" as UC4
+  usecase "View / export an element\nwith its effective fill color" as UC5
+  usecase "Save model to\n.archimate / Exchange XML" as UC6
+  usecase "Reload model from\n.archimate / Exchange XML" as UC7
+}
+
+Modeler --> UC1
+Modeler --> UC2
+Modeler --> UC3
+Modeler --> UC4
+Modeler --> UC5
+Modeler --> UC6
+Modeler --> UC7
+
+UC5 .> UC1 : <<include>>\n(resolves stereotype\ncolor as fallback)
+UC5 .> UC3 : <<include>>\n(explicit color\ntakes precedence)
+UC7 .> UC1 : <<extend>>\n(restores configured\nstereotype color)
+@enduml
+```
+
+### User Story 1 - Define a default color per stereotype
+
+```plantuml
+@startuml
+title User Story 1 - Define a Default Color per Stereotype
+
+actor Modeler
+participant "Stereotype «Threat»\n(Profile)" as Profile
+participant "Element A\n(stereotype = Threat,\nno explicit color)" as ElemA
+participant "Element B\n(stereotype = Threat,\nno explicit color)" as ElemB
+
+Modeler -> Profile : set fill_color = "#E8453C"
+Profile --> Modeler : color configured
+
+Modeler -> ElemA : request effective fill color
+ElemA -> Profile : no explicit color of its own;\nread stereotype fill_color
+Profile --> ElemA : "#E8453C"
+ElemA --> Modeler : renders "#E8453C"
+
+Modeler -> ElemB : request effective fill color
+ElemB -> Profile : no explicit color of its own;\nread stereotype fill_color
+Profile --> ElemB : "#E8453C"
+ElemB --> Modeler : renders "#E8453C"
+
+Modeler -> Profile : clear fill_color
+Profile --> Modeler : color unset
+
+Modeler -> ElemA : request effective fill color
+ElemA -> Profile : no explicit color;\nstereotype has no color
+Profile --> ElemA : none
+ElemA --> Modeler : renders with no fill color
+@enduml
+```
+
+### User Story 2 - Override a stereotyped element's color individually
+
+```plantuml
+@startuml
+title User Story 2 - Override a Stereotyped Element's Color Individually
+
+actor Modeler
+participant "Element\n(stereotype = Risk)" as Elem
+participant "Stereotype «Risk»\n(Profile)" as Profile
+
+note over Profile : fill_color = "#F2A900"
+
+Modeler -> Elem : set_fill_color("#8B0000")
+Elem --> Modeler : explicit color stored
+
+Modeler -> Elem : request effective fill color
+Elem -> Elem : explicit fill_color is set
+Elem --> Modeler : renders "#8B0000"\n(stereotype color ignored)
+
+Modeler -> Elem : clear explicit fill_color
+Elem --> Modeler : explicit color removed
+
+Modeler -> Elem : request effective fill color
+Elem -> Profile : no explicit color;\nread stereotype fill_color
+Profile --> Elem : "#F2A900"
+Elem --> Modeler : renders "#F2A900"\n(falls back to stereotype color)
+@enduml
+```
+
+### User Story 3 - Stereotype colors survive save and reload
+
+```plantuml
+@startuml
+title User Story 3 - Stereotype Color Round-Trip Through Supported File Formats
+
+actor Modeler
+participant "pyArchimate Model" as Model
+participant "Archi Writer /\nExchange XML Writer" as Writer
+participant "File (.archimate /\nOpen Group Exchange XML)" as File
+participant "Archi Reader /\nExchange XML Reader" as Reader
+
+Modeler -> Model : set Profile("Threat").fill_color = "#E8453C"
+Modeler -> Model : save()
+Model -> Writer : serialize stereotypes\n(including fill_color)
+Writer -> File : write Profile color\nalongside name/concept/uuid
+
+Modeler -> Model : load(File) [later session]
+Model -> Reader : deserialize stereotypes
+Reader -> File : read Profile color
+Reader -> Model : reconstruct Profile\nwith fill_color restored
+Model -> Modeler : elements using "Threat"\nrender in "#E8453C" again
+@enduml
+```
+
+### Supporting: Stereotype / Element color model
 
 ```plantuml
 @startuml
@@ -131,7 +253,7 @@ end note
 @enduml
 ```
 
-### Effective color resolution logic
+### Supporting: Effective color resolution logic
 
 ```plantuml
 @startuml
@@ -157,31 +279,6 @@ else (no)
     stop
   endif
 endif
-@enduml
-```
-
-### Stereotype color persistence round-trip
-
-```plantuml
-@startuml
-title Stereotype Color Round-Trip Through Supported File Formats
-
-actor Modeler
-participant "pyArchimate Model" as Model
-participant "Archi Writer /\nExchange XML Writer" as Writer
-participant "File (.archimate /\nOpen Group Exchange XML)" as File
-participant "Archi Reader /\nExchange XML Reader" as Reader
-
-Modeler -> Model : set Profile("Threat").fill_color = "#E8453C"
-Modeler -> Model : save()
-Model -> Writer : serialize stereotypes\n(including fill_color)
-Writer -> File : write Profile color\nalongside name/concept/uuid
-
-Modeler -> Model : load(File) [later session]
-Model -> Reader : deserialize stereotypes
-Reader -> File : read Profile color
-Reader -> Model : reconstruct Profile\nwith fill_color restored
-Model -> Modeler : elements using "Threat"\nrender in "#E8453C" again
 @enduml
 ```
 
