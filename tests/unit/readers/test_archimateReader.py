@@ -7,6 +7,7 @@ from src.pyArchimate import ArchiType
 from src.pyArchimate.pyArchimate import Model
 from src.pyArchimate.readers.archimateReader import (
     _apply_junction_type_props,
+    _apply_profile_props,
     _apply_viewpoint_props,
     _apply_visual_styles,
     _build_hierarchy_from_parents,
@@ -618,6 +619,28 @@ def test_apply_junction_type_props_invalid_type_warns():
 
 
 # ---------------------------------------------------------------------------
+# _apply_profile_props coverage — missing/empty <value> is a no-op (line 209)
+# ---------------------------------------------------------------------------
+
+
+def test_apply_profile_props_missing_value_element_is_noop():
+    """A property matched as profileId but with no <value> child must not
+    assign a profile — mirrors the viewpoint/junction-type permissive-parsing
+    convention elsewhere in this reader."""
+    ns = "{http://www.opengroup.org/xsd/archimate/3.0/}"
+    props_xml = etree.fromstring(
+        b"<properties xmlns='http://www.opengroup.org/xsd/archimate/3.0/'>"
+        b"  <property propertyDefinitionRef='pd-profile-id'/>"
+        b"</properties>"
+    )
+    model = Model("t")
+    model.pdefs["pd-profile-id"] = "profileId"
+    elem = model.add(ArchiType.ApplicationComponent, "App")
+    _apply_profile_props(elem, props_xml, ns, {"pd-profile-id": "pd-profile-id"}, model)
+    assert elem.get_profile() is None
+
+
+# ---------------------------------------------------------------------------
 # _add_node merge path (line 260) — merge with existing node UUID
 # ---------------------------------------------------------------------------
 
@@ -715,16 +738,16 @@ def test_visual_style_except_blocks_do_not_raise():
     m = Model("vs-except")
     elem = m.add(ArchiType.ApplicationComponent, "E")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid hex color"):
         elem.set_fill_color("#ZZZZZZ")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown color"):
         elem.set_line_color("not-a-color")
 
     with pytest.raises(TypeError):
         elem.set_line_width("wide")  # type: ignore[arg-type]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Transparency must be"):
         elem.set_transparency(2.0)
 
 

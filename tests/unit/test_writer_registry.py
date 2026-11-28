@@ -53,12 +53,12 @@ def test_resolve_writer_with_int_key():
 def test_resolve_writer_with_unknown_string_raises():
     from src.pyArchimate.writers import _resolve_writer
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown writer"):
         _resolve_writer("totally_unknown_writer")
 
 
 def test_resolve_writer_with_invalid_int_raises():
     from src.pyArchimate.writers import _resolve_writer
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown writer"):
         _resolve_writer(99999)  # not a valid Writers enum value — hits except ValueError branch

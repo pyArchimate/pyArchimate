@@ -230,6 +230,9 @@ is unchanged.
 ### Profile Support (Stereotype / Specialization)
 
 - `Profile(name, concept, uuid=None, model=None)` — define an ArchiMate specialization (e.g. "Custom Service")
+- `model.add_profile(name, concept, uuid=None)` — create a `Profile` and register it on this model in one call (equivalent to `Profile(..., model=model)`)
+- `model.get_profile(name)` — look up a registered profile by name; `None` if not found
+- `model.profiles` — list of all `Profile` instances registered on this model
 - `profile.name` — profile display name
 - `profile.concept` — ArchiMate base type (e.g. `"ApplicationService"`)
 - `profile.uuid` — unique identifier
@@ -238,6 +241,10 @@ is unchanged.
 - Element/Relationship `profile_id` — UUID of assigned profile (or `None` if unassigned)
 - Element/Relationship `profile_name` — human-readable profile name (or `None`)
 - `apply_profile_styles(view, mapping)` — recursively apply fill/line/font colours to nodes based on element profile; mapping keys are profile names, values are hex strings or dicts with `fill_color`, `line_color`, `font_color` keys
+- `profile.fill_color` — default fill color for elements carrying this stereotype (hex or named color, normalized to lower-case hex); `None` if unset
+- `element.get_profile()` / `element.set_profile(name)` / `element.reset_profile()` — object-based profile accessors alongside the legacy `profile_id`/`profile_name` string properties
+- `node.get_effective_fill_color()` — resolves a node's rendered fill color: the node's own explicit color, else the element's own explicit color, else the element's assigned profile's `fill_color`, else `None` (caller/theme default applies)
+- Stereotype `fill_color` round-trips through both `.archimate` and OpenGroup Exchange `.xml`; a profile with no color configured contributes nothing, so existing models render unchanged
 
 ### Annotation Connectors (Visual Notes & Labels)
 
@@ -388,6 +395,9 @@ Extract relationships and dependencies; build custom analytics or reports on arc
 | `filter_views(predicate)` | Filter views with a lambda predicate |
 | `get_or_create_element(elem_type, name, create_elem)` | Idempotent element lookup or creation |
 | `get_or_create_relationship(rel_type, name, src, tgt, create_rel)` | Idempotent relationship lookup or creation |
+| `add_profile(name, concept, uuid)` | Create and register a `Profile` on this model; returns the new `Profile` |
+| `get_profile(name)` | Look up a registered profile by name; `None` if not found |
+| `profiles` | List of all `Profile` instances registered on this model |
 | `add_child(parent_uuid, child_uuid)` | Create parent-child relationship between two elements |
 | `remove_child(parent_uuid, child_uuid)` | Orphan a child (keeps it in the model) |
 | `get_parent(elem_uuid)` | Parent element or `None` if root |

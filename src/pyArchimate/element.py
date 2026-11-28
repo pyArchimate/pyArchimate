@@ -11,6 +11,7 @@ from .viewpoint_registry import validate_viewpoint_slug
 
 if TYPE_CHECKING:
     from .model import Model
+    from .view import Profile
 
 
 def _is_valid_uuid(uuid_to_test, version=4):
@@ -309,6 +310,15 @@ class Element:
     def reset_profile(self) -> None:
         """Clear the profile assignment."""
         self._profile = None
+
+    def get_profile(self) -> "Profile | None":
+        """Return the assigned Profile object, or None if no profile is assigned."""
+        if self._profile is None:
+            return None
+        for p in self.model.profiles:
+            if p.uuid == self._profile:
+                return p
+        return None
 
     @property
     def props(self):

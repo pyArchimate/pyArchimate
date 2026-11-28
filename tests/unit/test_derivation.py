@@ -31,7 +31,7 @@ OUT_OF_SCOPE_TYPES = ["Access", "Influence", "Specialization", "Association"]
 # and Triggering+Flow have no "certain" derivation.
 
 
-@pytest.mark.parametrize("leg1_type,leg2_type", list(itertools.product(STRUCTURAL_ORDER, repeat=2)))
+@pytest.mark.parametrize(("leg1_type", "leg2_type"), list(itertools.product(STRUCTURAL_ORDER, repeat=2)))
 def test_derive_pair_type_dr2_both_structural_weakest_link(leg1_type, leg2_type):
     """DR2 (p.128): two structural legs derive the weaker of the two."""
     expected_index = max(STRUCTURAL_ORDER.index(leg1_type), STRUCTURAL_ORDER.index(leg2_type))
@@ -81,7 +81,7 @@ def test_derive_pair_type_dr8_triggering_then_triggering():
 
 
 @pytest.mark.parametrize(
-    "leg1_type,leg2_type",
+    ("leg1_type", "leg2_type"),
     [
         ("Flow", "Flow"),
         ("Flow", "Triggering"),
@@ -404,9 +404,9 @@ def test_derive_between_unrelated_chain_elsewhere_does_not_match():
 
 def test_derive_between_raises_for_unresolvable_element():
     model, a, _, c, *_ = _add_valid_chain(Model())
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid source reference"):
         derive_between(model, "id-does-not-exist", c)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid target reference"):
         derive_between(model, a, "id-does-not-exist")
 
 
@@ -536,7 +536,7 @@ def test_find_chains_excludes_dangling_reference_at_third_hop():
 def test_max_chain_length_above_ceiling_requires_explicit_override():
     """FR-011: a documented default ceiling, explicitly overridable."""
     model, *_ = _add_three_step_chain(Model())
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="exceeds the default ceiling"):
         find_chains(model, max_chain_length=DEFAULT_MAX_CHAIN_LENGTH_CEILING + 1)
     # Explicit override succeeds (even though no chain that long exists here).
     find_chains(
@@ -693,9 +693,9 @@ def test_max_chain_length_above_ceiling_requires_override_on_every_entry_point()
     model, a, _, _, d, *_ = _add_three_step_chain(Model())
     above_ceiling = DEFAULT_MAX_CHAIN_LENGTH_CEILING + 1
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="exceeds the default ceiling"):
         derive_between(model, a, d, max_chain_length=above_ceiling)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="exceeds the default ceiling"):
         find_duplicate_relationships(model, max_chain_length=above_ceiling)
 
     derive_between(model, a, d, max_chain_length=above_ceiling, allow_exceeding_default_ceiling=True)

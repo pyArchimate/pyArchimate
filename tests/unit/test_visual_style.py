@@ -115,7 +115,7 @@ class TestLineColorSetter:
         model = Model("TestModel")
         elem = model.add(ArchiType.BusinessProcess, "Elem")
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown color"):
             elem.set_line_color("notacolor")
 
     def test_set_line_color_none_clears(self):
@@ -274,7 +274,7 @@ class TestSetVisualStyleBulk:
         model = Model("TestModel")
         elem = model.add(ArchiType.BusinessProcess, "Elem")
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown color"):
             elem.set_visual_style(fill_color="notacolor")
 
 

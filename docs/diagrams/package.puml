@@ -136,6 +136,7 @@ package "pyArchimate" {
     class "diagram.py" as DiagramHelper {
       get_or_create_node()
       get_or_create_connection()
+      apply_profile_styles(view, mapping)
     }
     class "properties.py" as PropertiesHelper
     class "logging.py" as LoggingHelper

@@ -165,6 +165,42 @@ Bulk Style Operations
 
       elem.reset_visual_style()  # Clear all custom styles
 
+Stereotype / Profile Methods
+-----------------------------
+
+.. py:method:: set_profile(profile_name: str) -> None
+
+   Assign a stereotype (``Profile``) to this element by name. The profile must
+   already exist on the element's model (see ``Model.add_profile``) and must
+   specialize this element's concept type.
+
+   :param profile_name: Name of an existing ``Profile`` on this element's model
+   :raises ValueError: If no profile with that name exists for this element's concept type
+
+   **Example:**
+
+   .. code-block:: python
+
+      model.add_profile(name='Threat', concept=ArchiType.Driver)
+      elem = model.add(ArchiType.Driver, 'Data Breach')
+      elem.set_profile('Threat')
+
+.. py:method:: get_profile() -> Optional[Profile]
+
+   Return the ``Profile`` object currently assigned to this element, or
+   ``None`` if no stereotype is assigned.
+
+   :return: The assigned ``Profile``, or None
+
+.. py:method:: reset_profile() -> None
+
+   Clear this element's stereotype assignment.
+
+A profile carries its own :py:attr:`Profile.fill_color`, which an element
+with that stereotype inherits automatically when it has no explicit fill
+color of its own — see :doc:`../guides/visual-styling` for the full
+precedence chain and ``get_effective_fill_color()`` on view nodes.
+
 Junction Type Methods
 ---------------------
 

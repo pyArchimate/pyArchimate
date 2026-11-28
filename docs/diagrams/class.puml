@@ -148,8 +148,10 @@ class View {
   + remove_prop(key)
   + remove_folder()
   + delete()
-  + to_svg(filepath) : str
+  + to_svg(filepath, show_stereotypes=False) : str
   + duplicate(name) : View
+  + adjust(ref, x, y, w, h, ...) : None
+  + connect_note(note, target, uuid=None) : Connection
 }
 
 class Node {
@@ -306,6 +308,8 @@ Model ..> DerivedRelationship : derive_relationship() returns
 Model ..> DuplicateFinding : check_derivable_duplicates() returns
 
 class SVGExportService {
+  show_stereotypes: bool = False
+  --
   + to_svg(view, filepath) : str
   --
   # _sort_nodes_by_hierarchy(view) : list
@@ -324,6 +328,8 @@ class SVGExportService {
   # _render_element_icon(g, x, y, w, h, symbol_def) : None
   # _render_topleft_text(parent, node, x, y, w) : None
   # _render_wrapped_text(parent, text, text_x, text_y, max_width, is_centered) : None
+  # _maybe_render_stereotype(parent, node, x, y, w) : None
+  # _render_stereotype(parent, profile, x, y, w) : None
   # _render_relationship(svg, conn, nodes_dict, relationship_service) : None
   # _render_connection(svg, conn, nodes_dict) : None
   # _resolve_connection_nodes(conn, nodes_dict) : Optional[tuple]

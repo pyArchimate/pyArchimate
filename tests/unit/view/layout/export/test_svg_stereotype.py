@@ -64,11 +64,14 @@ def test_svg_export_service_show_stereotypes_defaults_false():
 # ---------------------------------------------------------------------------
 
 
-def test_no_stereotype_text_when_flag_false(view_with_profiled_node):
+def test_non_standard_stereotype_text_shown_by_default(view_with_profiled_node):
+    """FR-016/FR-017: a non-standard stereotype ("Threat" on ApplicationComponent)
+    is labeled by default, even with show_stereotypes left at its False default.
+    """
     v, _ = view_with_profiled_node
     svc = SVGExportService(show_stereotypes=False)
     svg = svc.to_svg(v)
-    assert not any("«" in t for t in _svg_texts(svg))
+    assert any("«Threat»" in t for t in _svg_texts(svg))
 
 
 # ---------------------------------------------------------------------------
@@ -136,7 +139,7 @@ def test_view_to_svg_show_stereotypes_true(view_with_profiled_node):
     assert any("«Threat»" in t for t in _svg_texts(svg))
 
 
-def test_view_to_svg_show_stereotypes_false_by_default(view_with_profiled_node):
+def test_view_to_svg_show_stereotypes_false_by_default_still_shows_non_standard(view_with_profiled_node):
     v, _ = view_with_profiled_node
     svg = v.to_svg()
-    assert not any("«" in t for t in _svg_texts(svg))
+    assert any("«Threat»" in t for t in _svg_texts(svg))

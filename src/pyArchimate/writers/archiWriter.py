@@ -145,7 +145,8 @@ def _write_relationship(folders: dict[str, _Element], rel: object, xsi: et.QName
     folder = _get_folder(folders, rel_folder)
     source = getattr(rel, "source", None)
     target = getattr(rel, "target", None)
-    assert source is not None and target is not None
+    assert source is not None
+    assert target is not None
     rel_type = getattr(rel, "type", "")
     r = et.SubElement(
         folder,
@@ -390,7 +391,10 @@ def _write_model_metadata(root: _Element, model: Model) -> None:
     for k, v in model.props.items():
         et.SubElement(root, "property", key=k, value=str(v))
     for p in model.profiles:
-        et.SubElement(root, "profile", name=p.name, id=p.uuid, conceptType=p.concept)
+        attrs = {"name": p.name, "id": p.uuid, "conceptType": p.concept}
+        if p.fill_color is not None:
+            attrs["fillColor"] = p.fill_color
+        et.SubElement(root, "profile", **attrs)
 
 
 def archi_writer(model: Model, file_path: str) -> str:

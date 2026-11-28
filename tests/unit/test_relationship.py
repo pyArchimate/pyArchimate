@@ -199,7 +199,7 @@ def test_relationship_type_setter_valid(model_with_rel):
 
 def test_relationship_type_setter_invalid_raises(model_with_rel):
     _, _, _, rel = model_with_rel
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid Archimate relationship type"):
         rel.type = "NotAType"
 
 

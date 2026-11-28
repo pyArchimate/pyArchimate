@@ -1,3 +1,22 @@
+## v2.2.0 (2026-11-28)
+
+### Feat
+
+- **ruff**: enable PT (pytest-style) rule set
+- **017-stereotype-colors**: add stereotype-based fill color coding
+- **derivation**: generalize derivation to N-hop chains (#173)
+
+### Fix
+
+- **tests**: satisfy ruff PT011/format on profile fill_color and auto_route tests
+- **svg**: anchor end-arrow markers by tip instead of retreating the polyline
+- **svg**: route connections orthogonally and wire up endpoint spreading
+- **scripts**: drop poetry update from pre-commit checks
+
+### Refactor
+
+- **derivation**: extract find_chains worklist helpers (SonarCloud S3776)
+
 ## v2.1.0 (2026-11-14)
 
 ### Feat
