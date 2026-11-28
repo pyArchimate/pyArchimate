@@ -7,6 +7,7 @@ from src.pyArchimate import ArchiType
 from src.pyArchimate.pyArchimate import Model
 from src.pyArchimate.readers.archimateReader import (
     _apply_junction_type_props,
+    _apply_profile_props,
     _apply_viewpoint_props,
     _apply_visual_styles,
     _build_hierarchy_from_parents,
@@ -615,6 +616,28 @@ def test_apply_junction_type_props_invalid_type_warns():
     junc = m.add(ArchiType.Junction, "J")
     # Should not raise — ValueError is caught internally
     _apply_junction_type_props(junc, props_xml, ns)
+
+
+# ---------------------------------------------------------------------------
+# _apply_profile_props coverage — missing/empty <value> is a no-op (line 209)
+# ---------------------------------------------------------------------------
+
+
+def test_apply_profile_props_missing_value_element_is_noop():
+    """A property matched as profileId but with no <value> child must not
+    assign a profile — mirrors the viewpoint/junction-type permissive-parsing
+    convention elsewhere in this reader."""
+    ns = "{http://www.opengroup.org/xsd/archimate/3.0/}"
+    props_xml = etree.fromstring(
+        b"<properties xmlns='http://www.opengroup.org/xsd/archimate/3.0/'>"
+        b"  <property propertyDefinitionRef='pd-profile-id'/>"
+        b"</properties>"
+    )
+    model = Model("t")
+    model.pdefs["pd-profile-id"] = "profileId"
+    elem = model.add(ArchiType.ApplicationComponent, "App")
+    _apply_profile_props(elem, props_xml, ns, {"pd-profile-id": "pd-profile-id"}, model)
+    assert elem.get_profile() is None
 
 
 # ---------------------------------------------------------------------------
