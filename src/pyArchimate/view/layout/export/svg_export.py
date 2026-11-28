@@ -31,6 +31,7 @@ class SVGExportService:
     def __init__(self, show_stereotypes: bool = False) -> None:
         """Initialize SVG export service."""
         self.show_stereotypes = show_stereotypes
+        self._endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]] = {}
 
     def _sort_nodes_by_hierarchy(self, view: Any) -> list[Any]:
         """Sort nodes so that containing elements render before contained elements.
@@ -185,6 +186,10 @@ class SVGExportService:
 
         # Build complete nodes dictionary including nested nodes (for connection rendering)
         complete_nodes_dict = self._build_complete_nodes_dict(view)
+
+        # Pre-compute per-connection endpoint offsets so repeated connections on a
+        # shared node edge spread out instead of all landing on the same point.
+        self._endpoint_spreads = self._compute_endpoint_spreads(view, complete_nodes_dict)
 
         # Render nodes on top, respecting containment hierarchy (parents before children)
         sorted_nodes = self._sort_nodes_by_hierarchy(view)
@@ -1117,7 +1122,8 @@ class SVGExportService:
         source_node, target_node = endpoints
 
         bendpoints = getattr(conn, "bendpoints", [])
-        points = self._get_clipped_polyline_points(source_node, target_node, bendpoints)
+        source_spread, target_spread = self._connection_spreads(conn)
+        points = self._get_clipped_polyline_points(source_node, target_node, bendpoints, source_spread, target_spread)
         if len(points) < 2:
             return
 
@@ -1181,7 +1187,8 @@ class SVGExportService:
             return
 
         bendpoints = getattr(conn, "bendpoints", [])
-        points = self._get_clipped_polyline_points(source_node, target_node, bendpoints)
+        source_spread, target_spread = self._connection_spreads(conn)
+        points = self._get_clipped_polyline_points(source_node, target_node, bendpoints, source_spread, target_spread)
 
         if len(points) < 2:
             return
@@ -1207,38 +1214,67 @@ class SVGExportService:
         if label_text and len(points) >= 2:
             self._render_connection_label(svg, points, label_text)
 
+    def _connection_spreads(self, conn: Any) -> tuple[tuple[float, float], tuple[float, float]]:
+        """Look up the pre-computed source/target endpoint offsets for a connection."""
+        source_uuid = str(getattr(conn, "_source", "") or "")
+        target_uuid = str(getattr(conn, "_target", "") or "")
+        source_spread = self._endpoint_spreads.get((source_uuid, "src", id(conn)), (0.0, 0.0))
+        target_spread = self._endpoint_spreads.get((target_uuid, "tgt", id(conn)), (0.0, 0.0))
+        return source_spread, target_spread
+
     def _get_clipped_polyline_points(
         self,
         source_node: Any,
         target_node: Any,
         bendpoints: list[Any],
+        source_spread: tuple[float, float] = (0.0, 0.0),
+        target_spread: tuple[float, float] = (0.0, 0.0),
     ) -> list[tuple[float, float]]:
         """Get polyline points clipped at node boundary edges.
 
-        No routing is performed. Bendpoints are used as-is from the model.
-        The source clip point is computed toward the first bendpoint (or target
-        centre when there are none); the target clip point toward the last.
+        When bendpoints are stored, they are used as-is from the model: the
+        source clip point is computed toward the first bendpoint, the target
+        clip point toward the last. When there are no stored bendpoints, the
+        connection is routed orthogonally between the preferred exit/entry
+        sides of the two nodes, optionally spread along a shared edge so that
+        repeated connections do not all land on the same point.
 
         Args:
             source_node: Source node
             target_node: Target node
             bendpoints: Stored intermediate waypoints (absolute view coordinates)
+            source_spread: Offset to apply along the source node's chosen edge
+            target_spread: Offset to apply along the target node's chosen edge
 
         Returns:
             List of (x, y) tuples: [source_clip, *bendpoints, target_clip]
         """
-        sx = float(getattr(source_node, "x", 0)) + float(getattr(source_node, "w", 120)) / 2
-        sy = float(getattr(source_node, "y", 0)) + float(getattr(source_node, "h", 55)) / 2
-        tx = float(getattr(target_node, "x", 0)) + float(getattr(target_node, "w", 120)) / 2
-        ty = float(getattr(target_node, "y", 0)) + float(getattr(target_node, "h", 55)) / 2
-
         source_bounds = self._get_node_bounds(source_node)
         target_bounds = self._get_node_bounds(target_node)
 
         if not bendpoints:
-            start = self._clip_point_to_boundary(source_bounds, (sx, sy), (tx, ty))
-            end = self._clip_point_to_boundary(target_bounds, (tx, ty), (sx, sy))
-            return [start, end]
+            sx = float(getattr(source_node, "x", 0)) + float(getattr(source_node, "w", 120)) / 2
+            sy = float(getattr(source_node, "y", 0)) + float(getattr(source_node, "h", 55)) / 2
+            tx = float(getattr(target_node, "x", 0)) + float(getattr(target_node, "w", 120)) / 2
+            ty = float(getattr(target_node, "y", 0)) + float(getattr(target_node, "h", 55)) / 2
+
+            # Pick the exit/entry side that matches the straight-line direction between
+            # the two nodes (not the geometric line/rectangle intersection, which can
+            # exit through an unexpected edge when a node's aspect ratio is skewed), then
+            # connect the two boundary anchors with an axis-aligned (orthogonal) path.
+            source_side = self._preferred_boundary_side(source_bounds, (tx, ty), exit_from=True)
+            target_side = self._preferred_boundary_side(target_bounds, (sx, sy), exit_from=True)
+            start = self._boundary_anchor(source_bounds, source_side, source_spread)
+            end = self._boundary_anchor(target_bounds, target_side, target_spread)
+
+            full_points = [start, self._boundary_stub(start, source_side), end]
+            target_orientation = "horizontal" if target_side in ("left", "right") else "vertical"
+            source_orientation = "horizontal" if source_side in ("top", "bottom") else "vertical"
+            return self._orthogonalize_polyline_points(
+                full_points,
+                target_orientation=target_orientation,
+                source_orientation=source_orientation,
+            )
 
         first_bp = (float(getattr(bendpoints[0], "x", 0)), float(getattr(bendpoints[0], "y", 0)))
         last_bp = (float(getattr(bendpoints[-1], "x", 0)), float(getattr(bendpoints[-1], "y", 0)))
@@ -1252,62 +1288,6 @@ class SVGExportService:
         middle = [(float(getattr(bp, "x", 0)), float(getattr(bp, "y", 0))) for bp in bendpoints]
 
         return [start] + middle + [end]
-
-    def _get_routed_polyline_points(  # pragma: no cover
-        self,
-        source_node: Any,
-        target_node: Any,
-        bendpoints: list[Any],
-        source_spread: tuple[float, float] = (0.0, 0.0),
-        target_spread: tuple[float, float] = (0.0, 0.0),
-    ) -> list[tuple[float, float]]:
-        """Get orthogonally-routed polyline points (reserved for auto-layout use).
-
-        This routing helper is intentionally NOT called by to_svg(); it is kept
-        here for future use by the layout engine.  to_svg() calls
-        _get_clipped_polyline_points() which preserves stored waypoints as-is.
-        """
-        sx = float(getattr(source_node, "x", 0)) + float(getattr(source_node, "w", 120)) / 2
-        sy = float(getattr(source_node, "y", 0)) + float(getattr(source_node, "h", 55)) / 2
-        tx = float(getattr(target_node, "x", 0)) + float(getattr(target_node, "w", 120)) / 2
-        ty = float(getattr(target_node, "y", 0)) + float(getattr(target_node, "h", 55)) / 2
-        sx += source_spread[0]
-        sy += source_spread[1]
-        tx += target_spread[0]
-        ty += target_spread[1]
-
-        source_bounds = self._get_node_bounds(source_node)
-        target_bounds = self._get_node_bounds(target_node)
-
-        if not bendpoints:
-            return [
-                self._clip_point_to_boundary(source_bounds, (sx, sy), (tx, ty)),
-                self._clip_point_to_boundary(target_bounds, (tx, ty), (sx, sy)),
-            ]
-
-        first_bendpoint = (bendpoints[0].x, bendpoints[0].y)
-        last_bendpoint = (bendpoints[-1].x, bendpoints[-1].y)
-        source_side = self._preferred_boundary_side(source_bounds, first_bendpoint, exit_from=True)
-        target_side = self._preferred_boundary_side(target_bounds, last_bendpoint, exit_from=True)
-        start_point = self._boundary_anchor(source_bounds, source_side, source_spread)
-        end_point = self._boundary_anchor(target_bounds, target_side, target_spread)
-
-        full_points = [start_point]
-        for bp in bendpoints:
-            full_points.append((float(getattr(bp, "x", 0)), float(getattr(bp, "y", 0))))
-        full_points.append(end_point)
-
-        if len(full_points) >= 2:
-            full_points.insert(1, self._boundary_stub(full_points[0], source_side))
-
-        target_orientation = "horizontal" if target_side in ("left", "right") else "vertical"
-        source_orientation = "horizontal" if source_side in ("top", "bottom") else "vertical"
-
-        return self._orthogonalize_polyline_points(
-            full_points,
-            target_orientation=target_orientation,
-            source_orientation=source_orientation,
-        )
 
     @staticmethod
     def _choose_corner(
@@ -1398,13 +1378,18 @@ class SVGExportService:
     ) -> tuple[float, float]:
         """Place an anchor on the requested edge, clamped away from corners."""
         x1, y1, x2, y2 = bounds
-        margin = self.EDGE_CORNER_MARGIN
         if side in ("left", "right"):
+            # Clamp the margin itself so it never exceeds half the edge span —
+            # otherwise, on a node shorter/narrower than 2*EDGE_CORNER_MARGIN,
+            # `y1 + margin` would exceed `y2 - margin` and max(...) would pick
+            # the lower bound, placing the anchor outside the node.
+            margin = min(self.EDGE_CORNER_MARGIN, (y2 - y1) / 2.0)
             axis_value = (y1 + y2) / 2.0 + spread[1]
             y = max(y1 + margin, min(y2 - margin, axis_value))
             x = x1 if side == "left" else x2
             return x, y
 
+        margin = min(self.EDGE_CORNER_MARGIN, (x2 - x1) / 2.0)
         axis_value = (x1 + x2) / 2.0 + spread[0]
         x = max(x1 + margin, min(x2 - margin, axis_value))
         y = y1 if side == "top" else y2
@@ -1626,6 +1611,7 @@ class SVGExportService:
     def _compute_endpoint_spreads(
         self,
         view: Any,
+        nodes_dict: dict[Any, Any] | None = None,
     ) -> dict[tuple[str, str, int], tuple[float, float]]:
         """Compute temporary source/target offsets for repeated connections.
 
@@ -1633,7 +1619,8 @@ class SVGExportService:
         kept local to SVG export so the model itself is not mutated.
         """
         endpoint_spreads: dict[tuple[str, str, int], tuple[float, float]] = {}
-        nodes_dict: dict[Any, Any] = self._build_complete_nodes_dict(view)
+        if nodes_dict is None:
+            nodes_dict = self._build_complete_nodes_dict(view)
         conns = getattr(view, "conns", [])
         for node_uuid, node in nodes_dict.items():
             self._spread_source_connections(node_uuid, node, conns, nodes_dict, endpoint_spreads)
