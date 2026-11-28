@@ -115,7 +115,7 @@ A modeler assigns a custom stereotype (e.g. "Threat" on a Driver element) and ex
 ### Key Entities
 
 - **Stereotype (Profile)**: An existing named specialization of a specific ArchiMate concept type (e.g. "Threat" specializing Driver). Gains one new attribute: an optional default fill color that applies to elements carrying this stereotype. Whether its name is "non-standard" (differs from its concept type's default label) also now determines whether its label is shown automatically.
-- **Element**: An existing ArchiMate model element that may carry zero or one stereotype and may have its own explicit fill color. Its effective (rendered) fill color is now resolved from its own explicit color first, falling back to its assigned stereotype's color, falling back to no color. Its `«stereotype»` label is now shown automatically by default when its stereotype is non-standard.
+- **Element**: An existing ArchiMate model element that may carry zero or one stereotype and may have its own explicit fill color. Its effective (rendered) fill color is now resolved from its own explicit color first, falling back to its assigned stereotype's color, falling back to no color. Its `«stereotype»` label is now shown automatically by default when its stereotype is non-standard. (Technically, this resolution happens per-view on the element's rendered instance — see data-model.md for the full technical model.)
 
 ## Diagrams
 

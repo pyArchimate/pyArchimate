@@ -37,7 +37,7 @@ Add an optional `fill_color` attribute to `Profile` (stereotype), so elements th
 | Principle | Applicability | Assessment |
 |-----------|----------------|------------|
 | I. Code Quality | Yes | New logic is a small, self-contained color/label resolution function per entity; no magic numbers; reuses existing `_normalize_color` validation rather than duplicating it. |
-| II. Testing Standards | Yes | Unit tests for `Profile.fill_color` validation and the resolution precedence (element > stereotype > none); integration round-trip tests for both file formats; behave scenarios mapped 1:1 to the spec's 4 user stories. |
+| II. Testing Standards | Yes | Unit tests for `Profile.fill_color` validation and the resolution precedence (`Node` > `Element` > stereotype > none, per research.md Decision 1); integration round-trip tests for both file formats; behave scenarios mapped 1:1 to the spec's 4 user stories. |
 | III. UX Consistency | Yes | Reuses the existing color value format (hex/named) and existing `set_fill_color`/`get_fill_color` getter/setter idiom; error messages for invalid stereotype colors reuse the existing `_normalize_color` `ValueError` message format. |
 | IV. Performance | Yes | Resolution is O(1) per element (direct attribute/dict lookups); no new I/O or loops over the full model per element. |
 | V. Security | N/A | No new user input surface beyond an existing validated color string API; no secrets, network, or filesystem paths involved. |
