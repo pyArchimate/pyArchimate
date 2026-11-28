@@ -150,6 +150,41 @@ Set a **default theme** for the entire model. This serves as the base style for 
    important_element.set_fill_color("#FF6B6B")  # Red to highlight importance
    important_element.set_line_width(3)
 
+Stereotype-Based Coloring
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A ``Profile`` (ArchiMate stereotype/specialization) can carry its own default
+``fill_color``, so every element assigned that stereotype picks up a consistent
+color without styling each one individually:
+
+.. code-block:: python
+
+   from pyArchimate import Model, ArchiType
+
+   model = Model(name="Risk Model")
+
+   threat = model.add_profile(name="Threat", concept=ArchiType.Driver)
+   threat.fill_color = "#E8453C"
+
+   driver = model.add(ArchiType.Driver, "Data Breach")
+   driver.set_profile("Threat")
+
+A node's effective fill color is resolved in this order:
+
+1. The node's own explicit ``fill_color`` (set directly on the view).
+2. The underlying element's own explicit ``fill_color``.
+3. The element's assigned stereotype's ``fill_color``, via ``get_effective_fill_color()``.
+4. ``None`` — the caller/theme default applies.
+
+.. code-block:: python
+
+   node.get_effective_fill_color()  # follows the precedence above
+
+A ``Profile`` with no ``fill_color`` configured contributes nothing to that
+chain — existing models and stereotypes keep rendering exactly as before.
+Stereotype colors round-trip through both the Archi-native (``.archimate``)
+and Open Group Exchange (``.xml``) formats.
+
 Round-Trip Preservation
 ~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -103,6 +103,29 @@ def _write_elem_visual_style(elem: _Element, e: Any, model: Model) -> None:
             pv.text = str(visual_style[key])
 
 
+def _write_elem_profile(elem: _Element, e: Any, model: Model) -> None:
+    """Write profileId/profile/profileColor properties for an element's assigned stereotype.
+
+    research.md Decision 2: persisted via the existing property/propertyDefinition
+    mechanism (schema-legal), keyed on reload by profileId (the stereotype's UUID),
+    not by name, per the 2026-11-28 clarification in spec.md.
+    """
+    profile = e.get_profile() if hasattr(e, "get_profile") else None
+    if profile is None:
+        return
+    pp = elem.find("properties")
+    if pp is None:
+        pp = et.SubElement(elem, "properties")
+    values: dict[str, str] = {"profileId": profile.uuid, "profile": profile.name}
+    if profile.fill_color is not None:
+        values["profileColor"] = profile.fill_color
+    for key, value in values.items():
+        prop_id = _get_prop_def_id(model, key)
+        p = et.SubElement(pp, "property", propertyDefinitionRef=prop_id)
+        pv = et.SubElement(p, "value")
+        pv.text = value
+
+
 def _write_elem_junction_type(elem: _Element, e: Any, model: Model) -> None:
     # Junction semantics are encoded in the element's xsi:type (OrJunction /
     # AndJunction) written by _write_elements, so a redundant junctionType
@@ -153,6 +176,7 @@ def _write_elements(root: _Element, model: Model, xsi: et.QName) -> None:
         _write_elem_visual_style(elem, e, model)
         _write_elem_junction_type(elem, e, model)
         _write_elem_viewpoints(elem, e, model)
+        _write_elem_profile(elem, e, model)
 
 
 def _write_rel_attrs(elem: _Element, e: Any, model: Model) -> None:

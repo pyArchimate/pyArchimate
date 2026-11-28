@@ -86,7 +86,10 @@ def archi_reader(model, root, merge_flg=False):
             concept_type = p.get("conceptType")
             if "Relationship" in concept_type:
                 concept_type = concept_type[: -len("Relationship")]
-            model.add_profile(p.get("name"), p.get("id"), concept_type)
+            profile = model.add_profile(p.get("name"), p.get("id"), concept_type)
+            fill_color = p.get("fillColor")
+            if fill_color is not None:
+                profile.fill_color = fill_color
 
     for f in root.findall("folder"):
         get_folders_elem(f, model, xsi, merge_flg)

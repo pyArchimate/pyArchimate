@@ -238,6 +238,10 @@ is unchanged.
 - Element/Relationship `profile_id` — UUID of assigned profile (or `None` if unassigned)
 - Element/Relationship `profile_name` — human-readable profile name (or `None`)
 - `apply_profile_styles(view, mapping)` — recursively apply fill/line/font colours to nodes based on element profile; mapping keys are profile names, values are hex strings or dicts with `fill_color`, `line_color`, `font_color` keys
+- `profile.fill_color` — default fill color for elements carrying this stereotype (hex or named color, normalized to lower-case hex); `None` if unset
+- `element.get_profile()` / `element.set_profile(name)` / `element.reset_profile()` — object-based profile accessors alongside the legacy `profile_id`/`profile_name` string properties
+- `node.get_effective_fill_color()` — resolves a node's rendered fill color: the node's own explicit color, else the element's own explicit color, else the element's assigned profile's `fill_color`, else `None` (caller/theme default applies)
+- Stereotype `fill_color` round-trips through both `.archimate` and OpenGroup Exchange `.xml`; a profile with no color configured contributes nothing, so existing models render unchanged
 
 ### Annotation Connectors (Visual Notes & Labels)
 

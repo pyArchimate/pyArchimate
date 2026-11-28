@@ -6,7 +6,7 @@ Archi desktop tool.
 """
 
 import math
-from typing import Any
+from typing import Any, cast
 from xml.etree import ElementTree as ET
 
 from .symbols.archimate_relationships import (
@@ -15,6 +15,19 @@ from .symbols.archimate_relationships import (
 )
 from .symbols.archimate_symbols import ARCHIMATE_SYMBOLS
 from .symbols.color_palette import get_element_color
+
+
+def _resolve_fill_color(node: Any) -> str | None:
+    """Resolve a node's fill color, preferring the full resolution chain when available.
+
+    Real ``Node`` instances expose ``get_effective_fill_color()`` (research.md
+    Decision 1). Test doubles that only set a plain ``fill_color`` attribute
+    (no such method) fall back to that attribute directly, unchanged.
+    """
+    getter = getattr(node, "get_effective_fill_color", None)
+    if callable(getter):
+        return cast("str | None", getter())
+    return cast("str | None", getattr(node, "fill_color", None))
 
 
 class SVGExportService:
@@ -566,7 +579,7 @@ class SVGExportService:
         falling through to a generic element symbol.
         """
         corner = min(14.0, w * 0.2, h * 0.4)
-        fill = getattr(node, "fill_color", None) or "#FFFFC0"
+        fill = _resolve_fill_color(node) or "#FFFFC0"
         body = (
             f"M {x:.1f} {y:.1f} "
             f"L {x + w - corner:.1f} {y:.1f} "
@@ -724,7 +737,7 @@ class SVGExportService:
             return g
 
         if element_type == "Group":
-            color = getattr(node, "fill_color", None) or "#d9d9d9"
+            color = _resolve_fill_color(node) or "#d9d9d9"
             ET.SubElement(
                 g,
                 "rect",
@@ -742,7 +755,7 @@ class SVGExportService:
             return g
 
         symbol_def = ARCHIMATE_SYMBOLS.get(element_type) or ARCHIMATE_SYMBOLS["BusinessActor"]
-        color = getattr(node, "fill_color", None) or get_element_color(element_type, element_id)
+        color = _resolve_fill_color(node) or get_element_color(element_type, element_id)
 
         self._render_element_body(g, x, y, w, h, color, symbol_def)
         self._render_element_icon(g, x, y, w, h, symbol_def)
@@ -761,12 +774,17 @@ class SVGExportService:
         return g
 
     def _maybe_render_stereotype(self, parent: ET.Element, node: Any, x: float, y: float, w: float) -> None:
-        if not self.show_stereotypes:
-            return
         concept = getattr(node, "concept", None)
         profile = concept.profile_name if concept is not None else None
-        if profile:
-            self._render_stereotype(parent, profile, x, y, w)
+        if not profile:
+            return
+        if not self.show_stereotypes:
+            # FR-015-FR-017 (research.md Decision 3): label by default only when
+            # the stereotype's name doesn't just restate the element's own type.
+            elem_type = getattr(concept, "type", None) or ""
+            if profile.lower() == elem_type.lower():
+                return
+        self._render_stereotype(parent, profile, x, y, w)
 
     def _render_stereotype(self, parent: ET.Element, profile: str, x: float, y: float, w: float) -> None:
         """Render a stereotype label «profile» above the element name."""
