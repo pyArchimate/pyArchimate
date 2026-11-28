@@ -186,80 +186,77 @@
 
 **Independent Test**: `ruff check` exits 0 with `"PT"` uncommented in `[tool.ruff.lint] select`.
 
+> **Re-triage note (2026-11-28)**: before executing, counts and file paths were re-verified against current `master` (branch had no commits of its own; master had advanced past the original triage). Drift found: `src/pyArchimate/view.py` is now `src/pyArchimate/view/__init__.py`; `tests/unit/test_view.py` is now `tests/unit/view/test_view.py`; PT018 in test_model.py/test_relationship.py/test_view.py no longer reproduced; and a new `tests/unit/test_derivation.py` (added by the N-hop derivation feature after this spec was written) carried 5× PT011 + 2× PT006 not covered by any task below. All of this was folded into the actual fix rather than tasks.md's stale per-file counts. Actual totals fixed: 102 PT009 (suppressed), 0 PT001 (already clean), 6 PT018, 35 PT011, 3 PT006.
+
 ### Batch 10a — Legacy test exclusion and auto-fix
 
-- [ ] T054 [US2] Add `per-file-ignores` entry to `[tool.ruff.lint]` in `pyproject.toml`: `"tests/legacy_integration/*.py" = ["PT009"]`; run `ruff check --select PT009` to confirm only legacy file triggers and is suppressed (102 violations removed)
-- [ ] T055 [US2] Run `ruff check --fix --select PT` to auto-fix PT001 (9× remove fixture parentheses); verify `pytest tests/` still passes
+- [X] T054 [US2] Add `per-file-ignores` entry to `[tool.ruff.lint]` in `pyproject.toml`: `"tests/legacy_integration/*.py" = ["PT009"]`; run `ruff check --select PT009` to confirm only legacy file triggers and is suppressed (102 violations removed)
+- [X] T055 [US2] Run `ruff check --fix --select PT` to auto-fix PT001 — 0 violations found at execution time (already clean); no action needed
 
 ### Batch 10b — PT018 composite assertion fixes
 
-- [ ] T056 [P] [US2] Fix 6× PT018 in `src/pyArchimate/view.py`, `src/pyArchimate/writers/archiWriter.py`, and `src/pyArchimate/writers/archimateWriter.py`: run `ruff check --select PT018 src/` to get current line numbers (they shift after T051 auto-fix), then split each `assert a and b` into two separate assert statements
-- [ ] T057 [P] [US2] Fix PT018 in `tests/unit/test_model.py` (5×), `tests/unit/test_view.py` (2×), `tests/unit/test_relationship.py` (1×), `tests/features/steps/business_interaction_steps.py` (1×), `tests/features/steps/p3_steps.py` (1×)
+- [X] T056 [P] [US2] Fix PT018 in `src/pyArchimate/view/__init__.py` (2×, path renamed from `view.py`), `src/pyArchimate/writers/archiWriter.py` (1×), `src/pyArchimate/writers/archimateWriter.py` (1×): split each `assert a and b` into two separate assert statements
+- [X] T057 [P] [US2] Fix PT018 in `tests/features/steps/business_interaction_steps.py` (1×, manual split — compound `and (... or ...)` with custom message), `tests/features/steps/p3_steps.py` (1×, auto-fixed). No PT018 remained in test_model.py/test_relationship.py/test_view.py at execution time — spec's original counts there were stale.
 
 ### Batch 10c — PT011 too-broad pytest.raises fixes
 
-- [ ] T058 [P] [US2] Fix 11× PT011 in `tests/unit/test_view.py`: add `match=` regex parameter to each `pytest.raises()` call; use `re.escape()` for literal strings or a pattern matching the expected message
-- [ ] T059 [P] [US2] Fix 9× PT011 in `tests/unit/test_model.py`: same approach as T058
-- [ ] T060 [P] [US2] Fix PT011 in `tests/unit/test_element.py` (6×), `tests/unit/test_visual_style.py` (2×), `tests/unit/test_writer_registry.py` (2×)
-- [ ] T061 [P] [US2] Fix PT011 in `tests/unit/readers/test_archimateReader.py` (3×), `tests/unit/test_relationship.py` (1×), `tests/performance/test_performance_benchmarks.py` (1×)
+- [X] T058 [P] [US2] Fixed 6× PT011 in `tests/unit/view/test_view.py` (path renamed from `test_view.py`; actual count 6, not the spec's claimed 11) — added `match=` tied to each call site's real exception message
+- [X] T059 [P] [US2] Fixed 9× PT011 in `tests/unit/test_model.py` — same approach
+- [X] T060 [P] [US2] Fixed PT011 in `tests/unit/test_element.py` (6×), `tests/unit/test_visual_style.py` (2×), `tests/unit/test_writer_registry.py` (2×)
+- [X] T061 [P] [US2] Fixed PT011 in `tests/unit/readers/test_archimateReader.py` (3×), `tests/unit/test_relationship.py` (1×), `tests/performance/test_performance_benchmarks.py` (1×)
+- [X] T061a [US2] (not in original plan — found during re-triage) Fixed 5× PT011 in `tests/unit/test_derivation.py`, a file added after this spec's violation counts were recorded
 
 ### Batch 10d — PT006 and enablement
 
-- [ ] T062 [US2] Fix 1× PT006 in `tests/integration/test_tutorial.py`: correct the parametrize names to use a tuple or comma-separated string
-- [ ] T063 [US2] Uncomment `"PT"` in `[tool.ruff.lint] select` and remove the `# TODO(009-quality-uplift)` PT comment block from `pyproject.toml`; run `ruff check` to confirm 0 violations; run `pytest tests/` to confirm suite green; commit: `feat(ruff): enable PT (pytest-style) rule set`
+- [X] T062 [US2] Fixed PT006: 1× in `tests/integration/test_tutorial.py` plus 2× in `tests/unit/test_derivation.py` (not in original plan, same drift as T061a) — all auto-fixed via `ruff check --fix --unsafe-fixes --select PT006`
+- [X] T063 [US2] Uncommented `"PT"` in `[tool.ruff.lint] select` and removed the `# TODO(009-quality-uplift)` PT comment block from `pyproject.toml`; `ruff check` confirms 0 violations; `pytest tests/` (1774 passed, 1 skipped, 4 xfailed) and `behave tests/features/` (14 features passed) both green; committed: `feat(ruff): enable PT (pytest-style) rule set`
 
-**Checkpoint**: `ruff check` passes with PT active; PT009 suppressed for legacy integration tests with justification.
-
----
-
-## Phase 11: US4 Extension — Mypy `disallow_untyped_defs`
-
-**Goal**: Add type annotations to all 162 unannotated functions in `src/`; remove `# TODO(009-quality-uplift)` for `disallow_untyped_defs`.
-
-**Independent Test**: `mypy src/` passes after setting `disallow_untyped_defs = true` in `pyproject.toml`.
-
-> **Note**: All T064–T071 tasks operate on different files and are parallelizable. However, `view.py` references `model.py` types and `element.py` references `model.py` types — annotate `model.py` first if type inference issues arise.
-
-- [ ] T064 [P] [US4] Add return-type and parameter-type annotations to all unannotated functions in `src/pyArchimate/view.py` (reassess current count with `mypy --config-file pyproject.toml src/pyArchimate/view.py --disallow-untyped-defs`; was 54, likely reduced): run after each method batch to confirm progress
-- [ ] T065 [P] [US4] Add type annotations to `src/pyArchimate/model.py` (34 violations): run `mypy --config-file pyproject.toml src/pyArchimate/model.py --disallow-untyped-defs` to verify
-- [ ] T066 [P] [US4] Add type annotations to `src/pyArchimate/relationship.py` (25 violations): run `mypy --config-file pyproject.toml src/pyArchimate/relationship.py --disallow-untyped-defs` to verify
-- [ ] T067 [P] [US4] Add type annotations to `src/pyArchimate/element.py` (14 violations): run `mypy --config-file pyproject.toml src/pyArchimate/element.py --disallow-untyped-defs` to verify
-- [ ] T068 [P] [US4] Add type annotations to `src/pyArchimate/readers/archimateReader.py` (12 violations): run `mypy --config-file pyproject.toml src/pyArchimate/readers/archimateReader.py --disallow-untyped-defs` to verify
-- [ ] T069 [P] [US4] Add type annotations to `src/pyArchimate/constants.py` (7 violations) and `src/pyArchimate/writers/__init__.py` (4 violations): run `mypy --config-file pyproject.toml` on both files to verify
-- [ ] T070 [P] [US4] Add type annotations to `src/pyArchimate/helpers/properties.py` (4 violations), `src/pyArchimate/logger.py` (3 violations), `src/pyArchimate/readers/archiReader.py` (3 violations): run `mypy --config-file pyproject.toml` on all three to verify
-- [ ] T071 [P] [US4] Add type annotations to remaining src files with violations (readers/arisAMLreader.py, readers/_arisamlreader_helpers.py, writers/archimateWriter.py, writers/archiWriter.py, viewpoint_registry.py — ~2 violations each): run `mypy src/ --disallow-untyped-defs` to confirm zero violations across all files
-- [ ] T072 [US4] Set `disallow_untyped_defs = true` in `pyproject.toml` and remove the `# TODO(009-quality-uplift)` comment; run `mypy src/` to confirm 0 errors; run `pytest tests/` to confirm suite green; commit: `fix(mypy): enable disallow_untyped_defs — add type annotations to all src functions`
-
-**Checkpoint**: `mypy src/` passes with `disallow_untyped_defs = true`; all 162 functions in src/ are annotated.
+**Checkpoint**: `ruff check` passes with PT active; PT009 suppressed for legacy integration tests with justification. ✅ Complete.
 
 ---
 
-## Phase 12: US4 Extension — Mypy `disallow_untyped_calls`
+## Phase 11: US4 Extension — Mypy `disallow_untyped_defs` — **CLOSED, WILL NOT DO (2026-11-28)**
 
-**Goal**: Confirm `disallow_untyped_calls` violations resolved by Phase 11; remove `# TODO(009-quality-uplift)` for this flag.
+> **Decision**: this phase is permanently closed, not deferred. Re-measured on 2026-11-28 at 136 violations (was 162 at original triage — the count drifts as the codebase grows, since new unannotated functions keep landing). Annotating ~136 functions in a library whose public boundary is already covered by the pyright strict checks from Phases 5–6 is disproportionate effort for marginal (IDE/refactor-safety only, not bug-catching) benefit. See `specs/009-quality-uplift/spec.md` → Remaining Work for the full rationale. `pyproject.toml`'s `disallow_untyped_defs = false` now carries a permanent justification comment, not a TODO. Do not reopen this phase from this spec; if this work is wanted later, scope it as a new feature with its own justification.
 
-**Independent Test**: `mypy src/` passes after setting `disallow_untyped_calls = true` in `pyproject.toml`.
+~~- [ ] T064 [P] [US4] Add return-type and parameter-type annotations to all unannotated functions in `src/pyArchimate/view.py`~~
+~~- [ ] T065 [P] [US4] Add type annotations to `src/pyArchimate/model.py`~~
+~~- [ ] T066 [P] [US4] Add type annotations to `src/pyArchimate/relationship.py`~~
+~~- [ ] T067 [P] [US4] Add type annotations to `src/pyArchimate/element.py`~~
+~~- [ ] T068 [P] [US4] Add type annotations to `src/pyArchimate/readers/archimateReader.py`~~
+~~- [ ] T069 [P] [US4] Add type annotations to `src/pyArchimate/constants.py` and `src/pyArchimate/writers/__init__.py`~~
+~~- [ ] T070 [P] [US4] Add type annotations to `helpers/properties.py`, `logger.py`, `readers/archiReader.py`~~
+~~- [ ] T071 [P] [US4] Add type annotations to remaining src files with violations~~
+~~- [ ] T072 [US4] Set `disallow_untyped_defs = true` in `pyproject.toml`~~
 
-- [ ] T073 [US4] After Phase 11, run `mypy src/ --disallow-untyped-calls --no-error-summary` and count remaining violations; all 89 prior violations called our own functions, so count should be 0, but verify before proceeding
-- [ ] T074 [US4] If residual violations remain (calls to third-party untyped functions): add `# type: ignore[no-untyped-call]  # third-party stub missing: <library>` at each remaining call site; re-run `mypy src/ --disallow-untyped-calls` to confirm 0 errors
-- [ ] T075 [US4] Set `disallow_untyped_calls = true` in `pyproject.toml` and remove the `# TODO(009-quality-uplift)` comment; run `mypy src/` to confirm 0 errors; commit: `fix(mypy): enable disallow_untyped_calls`
-
-**Checkpoint**: `mypy src/` passes with both `disallow_untyped_defs = true` and `disallow_untyped_calls = true`.
+**Checkpoint**: N/A — phase will not be executed.
 
 ---
 
-## Phase 13: Final Feature Completion
+## Phase 12: US4 Extension — Mypy `disallow_untyped_calls` — **CLOSED, WILL NOT DO (2026-11-28)**
 
-**Purpose**: Full cross-tool verification; confirm all TODO(009) markers removed.
+> **Decision**: closed alongside Phase 11, for the same reason (re-measured 2026-11-28 at 92 violations, was 89 at original triage). This phase was always contingent on Phase 11 being done first; since Phase 11 is closed, this one is too.
 
-- [ ] T076 Run `ruff check` — must pass with UP + PT + N + A + all existing rules active
-- [ ] T077 Run `pyright src/` — must pass; no regressions from Phase 11 type annotation changes
-- [ ] T078 Run `mypy src/` — must pass with `disallow_untyped_defs = true` and `disallow_untyped_calls = true`
-- [ ] T079 Run full test suite: `bash scripts/pre_push_checks.sh` — all unit, integration, and BDD tests must pass
-- [ ] T080 Confirm `grep -r "TODO(009-quality-uplift)" pyproject.toml` returns no output — all four TODO markers removed; also run `grep legacy_integration sonar-project.properties` to confirm FR-009 exclusion is unchanged
-- [ ] T081 Update `specs/009-quality-uplift/spec.md` Remaining Work table to mark all items complete; commit: `docs(009): mark all deferred items resolved — feature complete`
+~~- [ ] T073 [US4] After Phase 11, run `mypy src/ --disallow-untyped-calls` and count remaining violations~~
+~~- [ ] T074 [US4] Add `# type: ignore[no-untyped-call]` at remaining call sites if needed~~
+~~- [ ] T075 [US4] Set `disallow_untyped_calls = true` in `pyproject.toml`~~
 
-**Checkpoint**: Feature 009 complete. All four `# TODO(009-quality-uplift)` markers gone; ruff (UP+PT+N+A), pyright, mypy all green; full test suite passing.
+**Checkpoint**: N/A — phase will not be executed.
+
+---
+
+## Phase 13: Final Feature Completion — DONE (scoped to what was actually completed)
+
+**Purpose**: Full cross-tool verification against the work that was actually done (Phases 1–10); confirm the two completed TODO markers are gone and the two closed ones are now permanent rationale comments, not TODOs.
+
+- [X] T076 Run `ruff check` — passes with UP + PT + N + A + all existing rules active (0 violations)
+- [X] T077 Run `pyright src/` — passes, no regressions
+- [X] T078 N/A — `disallow_untyped_defs`/`disallow_untyped_calls` intentionally remain `false` (Phases 11–12 closed); `mypy src/` passes at its Phase 1–8 strictness level
+- [X] T079 Run full test suite: `pytest tests/` (1774 passed, 1 skipped, 4 xfailed) and `behave tests/features/` (14 features passed) — all pass
+- [X] T080 Confirm `grep -r "TODO(009-quality-uplift)" pyproject.toml` returns no output — the two mypy lines were rewritten as permanent rationale comments (not TODOs) rather than removed outright, since the decision is to leave the flags `false` indefinitely; `grep legacy_integration sonar-project.properties` unchanged (FR-009 exclusion intact)
+- [X] T081 Updated `specs/009-quality-uplift/spec.md` Remaining Work table: `UP`/`PT` marked done, `disallow_untyped_defs`/`disallow_untyped_calls` marked decided-against with rationale; feature closed
+
+**Checkpoint**: Feature 009 is closed. `UP` and `PT` are active and green; `disallow_untyped_defs`/`disallow_untyped_calls` are permanently and deliberately left disabled; full test suite passing. This spec will not be revisited.
 
 ---
 

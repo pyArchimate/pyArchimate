@@ -144,20 +144,26 @@ A developer reviewing `pyproject.toml` notices several lint/type-check ignores a
 - **SC-006**: Every suppression comment added as part of this work includes a justification (zero unexplained suppressions introduced).
 - **SC-007**: The full test suite (unit, integration, BDD) continues to pass at the conclusion of the feature.
 
-## Remaining Work (Deferred Items)
+## Remaining Work (Deferred Items) — CLOSED 2026-11-28
 
-The following items were scoped and probed during this feature but exceed the 20-violation cap policy or require deeper refactoring. They MUST be resolved before this feature is considered complete.
+> **Feature 009 is closed as of 2026-11-28 and will not be revisited.** Two of the four originally-deferred items were completed; the other two were deliberately decided against, not merely left undone. See the decision rationale below the table. Do not reopen this spec to pick up `disallow_untyped_defs`/`disallow_untyped_calls` — if that work is wanted later, it should be scoped as a new feature with its own cost/benefit case, since the one made here concluded it isn't worth it.
 
-> **Reassessed 2026-05-30**: Violation counts updated to reflect work merged since initial deferral.
+> **Reassessed 2026-05-30**, then **re-triaged and closed 2026-11-28**: the branch had sat untouched for ~6 months while `master` advanced (new `derivation.py`/N-hop-chain feature, a package-structure rename of `view.py` → `view/__init__.py`, dependency bumps dropping Python 3.10 support, new SonarCloud work). All counts below were re-verified against current `master` before acting, not taken on faith from the original 2026-05-30 figures.
 
-| Item | Location | Original | Current | Blocker |
+| Item | Location | Original | Final | Outcome |
 |------|----------|---------|---------|---------|
-| Enable ruff `UP` (pyupgrade) rule set | `pyproject.toml` | 124 | **4** (all UP042) | UP042 planned ignore (StrEnum requires Python 3.11+); no other violations remain — trivially closeable |
-| Enable ruff `PT` (pytest style) rule set | `pyproject.toml` | 163 | **63** real (165 total − 102 PT009 legacy per-file-ignore) | PT011 ×30, PT018 ×23, PT001 ×9 (auto-fix), PT006 ×1 — all mechanical |
-| Enable mypy `disallow_untyped_defs` | `pyproject.toml` | 162 | **121** | Requires adding return-type and parameter annotations to unannotated functions |
-| Enable mypy `disallow_untyped_calls` | `pyproject.toml` | 89 | **91** | Resolves automatically once `disallow_untyped_defs` annotations are added |
+| Enable ruff `UP` (pyupgrade) rule set | `pyproject.toml` | 124 | 0 | ✅ **Done** — completed prior to this closure (T050–T053), verified still active on re-triage |
+| Enable ruff `PT` (pytest style) rule set | `pyproject.toml` | 163 | 0 | ✅ **Done** — completed 2026-11-28 (T054–T063); re-triage found the spec's file/line counts were stale (module renames, plus 5× PT011 + 2× PT006 in a `test_derivation.py` that didn't exist when counts were recorded) and folded the real, current violations into the fix instead |
+| Enable mypy `disallow_untyped_defs` | `pyproject.toml` | 162 | 136 (re-measured 2026-11-28) | ❌ **Decided against** — see rationale below |
+| Enable mypy `disallow_untyped_calls` | `pyproject.toml` | 89 | 92 (re-measured 2026-11-28) | ❌ **Decided against** — see rationale below |
 
-**Acceptance**: Feature is complete only when all four `# TODO(009-quality-uplift)` markers are removed from `pyproject.toml` and the corresponding tools pass.
+### Why `disallow_untyped_defs`/`disallow_untyped_calls` were closed, not deferred
+
+The SonarCloud remediation, cyclomatic-complexity refactor, builtin-shadowing/naming fixes, and pyright strict checks (`reportAttributeAccessIssue`, `reportArgumentType`, `reportOptionalMemberAccess`) — all completed earlier in this feature — catch real bugs and API misuse at the library's boundaries. That was the high-value part of this feature and it's done.
+
+Full mypy strictness on top of that is different: it is ~230 combined violations (136 `disallow_untyped_defs` + 92 `disallow_untyped_calls`, re-measured 2026-11-28) of annotation-adding work on a library already type-checked where it matters, for marginal IDE/refactor-safety gain rather than bug-catching upside. The effort is disproportionate to the payoff, and the violation count drifts with every new module added (it already moved by ~15% across the ~6 months this branch was idle), so "finishing" it is a moving target that will need re-doing periodically for no compounding benefit. The decision, made explicitly rather than by neglect: leave these two flags at `false` permanently, with the justification comments in `pyproject.toml` updated to say so.
+
+**Acceptance (as closed)**: `UP` and `PT` TODO markers are removed from `pyproject.toml` and both rule sets are active and green. The `disallow_untyped_defs`/`disallow_untyped_calls` TODO markers are replaced with a permanent rationale comment (not a TODO) stating the flags are intentionally left `false`.
 
 ---
 
