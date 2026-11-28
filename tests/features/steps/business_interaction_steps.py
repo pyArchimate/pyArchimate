@@ -242,9 +242,10 @@ def step_valid_archimate_xml(context):
     )  # NOSONAR — lxml stubs omit Optional; getroot() returns None at runtime for empty docs
     # .archimate files use Archi tool namespace, OpenGroup files use OpenGroup namespace
     archi_ns = "http://www.archimatetool.com/archimate"
-    assert "archimate" in root.nsmap and (
-        root.nsmap.get("archimate") == archi_ns or root.nsmap.get("archimate") == _OPENGROUP_NS
-    ), "Should have ArchiMate namespace"
+    assert "archimate" in root.nsmap, "Should have ArchiMate namespace"
+    assert root.nsmap.get("archimate") == archi_ns or root.nsmap.get("archimate") == _OPENGROUP_NS, (
+        "Should have ArchiMate namespace"
+    )
 
 
 @then("the exported file is valid OpenGroup XML")

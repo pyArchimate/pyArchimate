@@ -33,7 +33,7 @@ class TestPerformanceBenchmarks:
         # Measure cycle detection on deep chain
         start = time.time()
         # Try adding a cycle (should fail)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Cycle detected"):
             m.add_child(elements[3].uuid, elements[0].uuid)
         elapsed = time.time() - start
 

@@ -23,7 +23,7 @@ def _tutorial_blocks() -> list[tuple[int, str]]:
     return list(enumerate(_extract_python_blocks(content), start=1))
 
 
-@pytest.mark.parametrize("index,block", _tutorial_blocks())
+@pytest.mark.parametrize(("index", "block"), _tutorial_blocks())
 def test_tutorial_code_block(index: int, block: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Each Python block in docs/tutorial.md must execute without raising."""
     monkeypatch.chdir(tmp_path)

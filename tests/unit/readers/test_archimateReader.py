@@ -715,16 +715,16 @@ def test_visual_style_except_blocks_do_not_raise():
     m = Model("vs-except")
     elem = m.add(ArchiType.ApplicationComponent, "E")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid hex color"):
         elem.set_fill_color("#ZZZZZZ")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown color"):
         elem.set_line_color("not-a-color")
 
     with pytest.raises(TypeError):
         elem.set_line_width("wide")  # type: ignore[arg-type]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Transparency must be"):
         elem.set_transparency(2.0)
 
 

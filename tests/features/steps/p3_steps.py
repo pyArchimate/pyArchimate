@@ -787,5 +787,6 @@ def step_check_still_child(context, element_name, parent_name):
     """Verify child relationship still exists after import."""
     parent = context.imported_model.elems_dict.get(context.elements[parent_name.strip("'\"")].uuid)
     child = context.imported_model.elems_dict.get(context.elements[element_name.strip("'\"")].uuid)
-    assert parent is not None and child is not None
+    assert parent is not None
+    assert child is not None
     assert context.imported_model.get_parent(child.uuid) == parent

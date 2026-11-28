@@ -47,7 +47,7 @@ def test_element_relationship_type_raises():
 
 
 def test_element_invalid_parent_raises():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="parent should be a class Model instance"):
         Element(elem_type=ArchiType.ApplicationComponent, name="x", parent=object())
 
 
@@ -64,7 +64,7 @@ def test_element_type_setter_valid(model_with_elem):
 
 def test_element_type_setter_invalid_raises(model_with_elem):
     _, e = model_with_elem
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid Archimate element type"):
         e.type = "NotAType"
 
 
@@ -224,7 +224,7 @@ def test_element_merge_same_type(model_with_elem):
 def test_element_merge_wrong_type_raises(model_with_elem):
     m, e = model_with_elem
     other = m.add(ArchiType.ApplicationService, "Svc")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="not the same type"):
         e.merge(other)
 
 
@@ -312,7 +312,7 @@ def test_multi_viewpoint_assignment(sample_model):
 
 def test_invalid_viewpoint_raises(sample_model):
     elem = sample_model.add(ArchiType.BusinessActor, "Test Actor")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown viewpoint slug"):
         elem.assign_viewpoint("not_a_real_viewpoint")
 
 
@@ -504,7 +504,7 @@ def test_visual_style_setters():
     assert e.get_line_width() == pytest.approx(5.0)
     with pytest.raises(TypeError):
         e.set_line_width("string")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Line width must be"):
         e.set_line_width(-1)
 
     # Transparency
@@ -514,7 +514,7 @@ def test_visual_style_setters():
     assert e.get_transparency() == pytest.approx(0.5)
     with pytest.raises(TypeError):
         e.set_transparency("string")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Transparency must be"):
         e.set_transparency(1.5)
 
     # Multi setter
