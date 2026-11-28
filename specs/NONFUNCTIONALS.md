@@ -32,6 +32,7 @@ This document captures the quality attributes and system properties that must be
 - Stereotype labels (`show_stereotypes=True`) must render above element names in smaller italic font without obscuring the element symbol.
 - Profile styles (`apply_profile_styles`) must be applied consistently across all nodes in a view hierarchy, including nested and composite nodes.
 - Annotation connectors must render correctly in SVG without throwing exceptions, even when they lack backing relationships.
+- Stereotype (`Profile`) `fill_color` must round-trip through both `.archimate` and Open Group Exchange XML, keyed by the profile's UUID so same-named stereotypes on different concept types never collide on reload; a profile with no color configured must contribute nothing, so existing models render unchanged.
 
 ## Maintainability & Testing
 
