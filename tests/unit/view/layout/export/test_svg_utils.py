@@ -548,10 +548,12 @@ class TestOffsetPointsForMarkers:
         result = svc._offset_points_for_markers(pts, {"marker-start": "url(#diamond)"})
         assert result[0][0] > 0.0
 
-    def test_end_marker_retreats_last_point(self, svc):
+    def test_end_marker_leaves_last_point_unchanged(self, svc):
+        # arrow-filled/arrow-hollow markers are refX=8 (tip-anchored), so the
+        # polyline's own endpoint already lands on the element edge.
         pts = [(0.0, 0.0), (100.0, 0.0)]
-        result = svc._offset_points_for_markers(pts, {"marker-end": "url(#arrowhead)"})
-        assert result[-1][0] < 100.0
+        result = svc._offset_points_for_markers(pts, {"marker-end": "url(#arrow-filled)"})
+        assert result[-1] == pts[-1]
 
     def test_segment_shorter_than_offset_not_moved(self, svc):
         # Length 3 < marker_offset 8 → no movement
