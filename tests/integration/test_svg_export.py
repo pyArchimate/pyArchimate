@@ -3,7 +3,6 @@
 import tempfile
 from pathlib import Path
 
-import pytest
 from defusedxml import ElementTree as ET
 
 from src.pyArchimate import ArchiType
@@ -315,7 +314,6 @@ def test_svg_export_spreads_source_connection_points_away_from_corners():
         assert source_y_min - 1 <= y <= source_y_max + 1
 
 
-@pytest.mark.xfail(reason="SVG connection routing needs investigation - endpoint spreading logic may need revision")
 def test_svg_export_spreads_target_connection_points_away_from_corners():
     """Repeated incoming connections should stay in the middle of the target edge."""
     model = Model("spread-target")

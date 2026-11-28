@@ -312,7 +312,9 @@ class SVGExportService:
 
         # Relationship markers
         # Filled arrow (for serving, access write, etc.)
-        # refX=0: tip (x=8) lands at the adjusted endpoint (element edge after offset).
+        # refX=8: tip (x=8) is the reference point, so it lands exactly at the
+        # polyline's own endpoint (the element edge); the base (x=0) trails
+        # backward along the incoming line, which is already outside the element.
         marker_filled = ET.SubElement(
             defs,
             "marker",
@@ -320,7 +322,7 @@ class SVGExportService:
                 "id": "arrow-filled",
                 "markerWidth": "8",
                 "markerHeight": "8",
-                "refX": "0",
+                "refX": "8",
                 "refY": "4",
                 "orient": "auto",
             },
@@ -335,8 +337,7 @@ class SVGExportService:
         )
 
         # Hollow arrow (for realization, etc.)
-        # refX=0 + white fill: base at adjusted endpoint, tip at element edge;
-        # white fill hides the line inside the arrowhead body.
+        # refX=8: tip at the element edge, base trailing outside it (see arrow-filled).
         marker_hollow = ET.SubElement(
             defs,
             "marker",
@@ -344,7 +345,7 @@ class SVGExportService:
                 "id": "arrow-hollow",
                 "markerWidth": "8",
                 "markerHeight": "8",
-                "refX": "0",
+                "refX": "8",
                 "refY": "4",
                 "orient": "auto",
             },
@@ -1008,14 +1009,15 @@ class SVGExportService:
 
         diamond start (refX=8): push P0 forward by marker_offset so line
         begins at diamond's far tip; element-side tip stays at element edge.
-        end arrow (refX=0): pull Pn backward so line stops at arrowhead base.
+        arrow-filled / arrow-hollow end markers are refX=8 (tip-anchored), so
+        the polyline's own endpoint already lands on the element edge — no
+        corresponding retreat is needed there.
         """
         marker_offset = 8  # canvas px — markerWidth × strokeWidth(1)
         pts = list(points)
         if len(pts) < 2:
             return pts
         mstart = polyline_attrs.get("marker-start", "")
-        mend = polyline_attrs.get("marker-end", "")
         if "diamond" in mstart:
             p0, p1 = pts[0], pts[1]
             dx, dy = p1[0] - p0[0], p1[1] - p0[1]
@@ -1023,13 +1025,6 @@ class SVGExportService:
             if d > marker_offset:
                 ux, uy = dx / d, dy / d
                 pts[0] = (p0[0] + ux * marker_offset, p0[1] + uy * marker_offset)
-        if mend:
-            pn1, pn = pts[-2], pts[-1]
-            dx, dy = pn[0] - pn1[0], pn[1] - pn1[1]
-            d = math.hypot(dx, dy)
-            if d > marker_offset:
-                ux, uy = dx / d, dy / d
-                pts[-1] = (pn[0] - ux * marker_offset, pn[1] - uy * marker_offset)
         return pts
 
     def _render_marker_shape(
