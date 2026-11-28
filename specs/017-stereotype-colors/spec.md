@@ -8,6 +8,12 @@
 
 **Input**: User description: "Stereotype-based color coding for ArchiMate elements. Allow a user to configure a specific fill color for a given stereotype (Profile), so that any element assigned that stereotype automatically renders with that fill color, unless the element has its own explicit fill color set. Elements only, fill color only, persisted on the Profile and round-tripped through the .archimate and Open Group Exchange XML formats. Inspired by The Open Group whitepaper 'How to Model Enterprise Risk Management and Security with the ArchiMate Language', which stereotypes Motivation elements (e.g. Threat, Risk, Vulnerability, Control Objective, Control Measure, Loss Event, Asset) and distinguishes them visually by color."
 
+## Clarifications
+
+### Session 2026-11-28
+
+- Q: When two distinct stereotypes happen to share the same name but specialize different concept types (e.g. one "Threat" stereotype on a Driver, a separate "Threat" stereotype on a Business Actor — allowed today since pyArchimate keys profiles by UUID, not name), how should the new Open Group Exchange XML persistence for stereotype colors tell them apart on reload? → A: Persist the stereotype's unique identifier (UUID) alongside its name, concept type, and color, exactly mirroring how the Archi-native format already keys `<profile>` elements by `id`. This fully disambiguates same-named stereotypes with no risk of silent color corruption on round-trip.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Define a default color per stereotype (Priority: P1)
@@ -81,6 +87,7 @@ A modeler assigns a custom stereotype (e.g. "Threat" on a Driver element) and ex
 - What happens when two different stereotypes that apply to the same concept type both have colors configured, and an element's stereotype assignment changes between them? The element's resolved color always reflects whichever single stereotype is currently assigned.
 - What happens when a stereotype is shared across many elements and its color is edited? All elements using that stereotype without their own explicit color must reflect the new color the next time color is resolved (read or exported), without needing to touch each element individually.
 - What happens when a stereotype's name differs from its concept's default label only by letter case (e.g. "driver" vs. "Driver")? The comparison that decides whether a stereotype is "non-standard" (and therefore auto-labeled) is case-insensitive, so this is treated as standard and no label is rendered by default.
+- What happens when two distinct stereotypes (different concept types) happen to share the exact same name, and both have colors configured? Each keeps its own distinct, independently-configured color; the system distinguishes them by their unique identifier, not by name alone, so saving and reloading via either supported file format never merges or loses either stereotype's color (see Clarifications).
 
 ## Requirements *(mandatory)*
 
@@ -95,7 +102,7 @@ A modeler assigns a custom stereotype (e.g. "Threat" on a Driver element) and ex
 - **FR-007**: Changing a stereotype's configured color MUST be reflected in the effective color of every element using that stereotype (without an explicit color of its own) the next time that element's color is read or the view is exported — without requiring any change to the elements themselves.
 - **FR-008**: Reassigning an element to a different stereotype MUST cause its effective color (when it has no explicit color) to be resolved from the newly assigned stereotype.
 - **FR-009**: A stereotype's configured color MUST be saved as part of the stereotype definition and MUST be restored correctly after saving to and reloading from the Archi-native (`.archimate`) file format.
-- **FR-010**: A stereotype's configured color MUST be saved as part of the stereotype definition and MUST be restored correctly after saving to and reloading from the Open Group Exchange XML file format.
+- **FR-010**: A stereotype's configured color MUST be saved as part of the stereotype definition and MUST be restored correctly after saving to and reloading from the Open Group Exchange XML file format. The stereotype's unique identifier MUST also be persisted in this format (alongside its name, concept type, and color) so that two distinct stereotypes sharing the same name but specializing different concept types are correctly distinguished on reload, and neither's color is lost or merged into the other's.
 - **FR-011**: Rendering an element in an exported view (e.g. SVG export) MUST use the element's effective fill color as resolved per FR-004–FR-006, not the element's stored explicit color alone.
 - **FR-012**: This feature applies only to Elements; Relationships are out of scope and are unaffected by stereotype color configuration.
 - **FR-013**: This feature covers fill color only; a stereotype's line color, line width, and transparency are out of scope and remain configurable only per individual element, as today.
@@ -273,41 +280,29 @@ endif
 
 ### Supporting: Stereotype / Element color model
 
+A full technical class diagram, object-instance examples, and the `Profile.fill_color` state diagram live in [data-model.md](./data-model.md) (the implementation-level artifact, including the per-view `Node` layer). At this specification's level, the concept is simpler:
+
 ```plantuml
 @startuml
-title Stereotype-Based Color Coding - Data Model
+title Stereotype-Based Color Coding - Concept Overview
 
-class Profile {
-  name : string
-  concept : string
-  uuid : string
-  fill_color : string <<optional>>
+class "Stereotype\n(Profile)" as Profile {
+  name
+  default fill color <<optional>>
 }
 
-class Element {
-  uuid : string
-  profile_id : string <<optional>>
-  fill_color : string <<optional, explicit>>
-  --
-  get_fill_color() : string
-  set_fill_color(color)
-  get_effective_fill_color() : string
+class "Element" as Element {
+  own explicit fill color <<optional>>
 }
 
-Element "0..*" --> "0..1" Profile : profile_id
-
-note right of Element::get_effective_fill_color
-  Resolution order:
-  1. Element.fill_color, if explicitly set
-  2. Profile.fill_color, if Element has a Profile
-     and that Profile has a color configured
-  3. No color (unset) otherwise
-end note
+Element "0..*" --> "0..1" Profile : may carry
 
 note bottom of Profile
-  fill_color is new in this feature.
-  Unset by default; existing models load
-  with every Profile.fill_color unset.
+  An element's own explicit color always
+  wins; otherwise it falls back to its
+  stereotype's color, if one is configured.
+  Full technical model (incl. the per-view
+  Node layer): see data-model.md.
 end note
 @enduml
 ```
@@ -316,25 +311,20 @@ end note
 
 ```plantuml
 @startuml
-title Resolving an Element's Effective Fill Color
+title Resolving an Element's Rendered Color (Conceptual)
 
 start
-:Request effective fill color\nfor an Element;
+:Element is rendered\nin a view;
 
-if (Element has an explicit\nfill_color set?) then (yes)
-  :Effective color =\nElement.fill_color;
+if (Element has its own\nexplicit fill color?) then (yes)
+  :Render with that\nexplicit color;
   stop
 else (no)
-  if (Element has an assigned\nstereotype (Profile)?) then (yes)
-    if (Profile.fill_color\nis configured?) then (yes)
-      :Effective color =\nProfile.fill_color;
-      stop
-    else (no)
-      :Effective color = none;
-      stop
-    endif
+  if (Element's stereotype\nhas a configured color?) then (yes)
+    :Render with the\nstereotype's color;
+    stop
   else (no)
-    :Effective color = none;
+    :Render with no\nfill color (default);
     stop
   endif
 endif
