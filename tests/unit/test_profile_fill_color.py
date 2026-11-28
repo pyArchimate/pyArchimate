@@ -28,7 +28,7 @@ def test_fill_color_accepts_named_color_case_insensitive(profile):
 
 
 def test_fill_color_rejects_invalid_value(profile):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown color"):
         profile.fill_color = "not-a-color"
 
 
@@ -40,7 +40,7 @@ def test_fill_color_can_be_cleared(profile):
 
 def test_fill_color_invalid_value_leaves_prior_state_unchanged(profile):
     profile.fill_color = "#E8453C"
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown color"):
         profile.fill_color = "not-a-color"
     assert profile.fill_color == "#e8453c"
 

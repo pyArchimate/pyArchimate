@@ -58,6 +58,26 @@ specs/                   # Feature specifications
 - 013-layout-routing-refactor: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 
 <!-- MANUAL ADDITIONS START -->
+
+## Repo Skills
+
+Skills under `.claude/skills/` auto-trigger from their own descriptions, but
+these project-specific pairings matter enough to call out explicitly:
+
+- **Any PlantUML diagram** (sequence/class/component/deployment/etc.,
+  including `docs/diagrams/*.puml`): use `diagram-plantuml`.
+- **Writing a commit message**: use `commit-message` to check it against
+  Conventional Commits + this repo's scopes/commitizen config before running
+  `git commit`.
+- **Before opening a PR**: run `pr-preflight` (refreshes docs/wiki/diagrams,
+  autofixes, confirms quality/security/commit gates, opens as draft, watches
+  CI).
+- **After a PR merges**: run `pr-wrapup` to close out the issue and clean up
+  the worktree/branches.
+- **Building or refreshing `wiki/`**: use `wiki-librarian`; it calls
+  `wiki-editor` automatically — don't invoke `wiki-editor` standalone unless
+  only polishing existing pages without a rebuild.
+
 <!-- MANUAL ADDITIONS END -->
 
 <!-- SPECKIT START -->
