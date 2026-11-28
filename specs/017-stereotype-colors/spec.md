@@ -56,6 +56,23 @@ A modeler configures stereotype colors, saves the model, closes it, and reopens 
 2. **Given** a model with one or more stereotypes that have configured colors, **When** the model is saved to the Open Group Exchange XML format and reloaded, **Then** each stereotype's configured color is unchanged and still applies to its elements.
 3. **Given** an existing model file created before this feature existed (no stereotype colors present), **When** it is opened, **Then** it loads without error and all stereotypes simply have no configured color, matching prior behavior.
 
+---
+
+### User Story 4 - Automatically label non-standard stereotypes (Priority: P4)
+
+A modeler assigns a custom stereotype (e.g. "Threat" on a Driver element) and expects the exported diagram to show that it is a Threat, not just a plain Driver, without having to remember to turn on a special display option every time a view is exported.
+
+**Why this priority**: This is lower priority than the color-coding behavior itself (the headline ask), but it closes a related gap: today, a stereotype label is either shown for everything or nothing, with no way to see custom stereotypes "for free." It is independent of the color feature and can be delivered on its own.
+
+**Independent Test**: Can be fully tested by exporting a view, with no special display option set, that contains one element with a custom (non-standard-named) stereotype and one element with no stereotype, and confirming only the custom-stereotyped element shows a label.
+
+**Acceptance Scenarios**:
+
+1. **Given** an element with no stereotype assigned, **When** the view is exported with default options, **Then** no stereotype label is rendered for that element (unchanged from current behavior).
+2. **Given** an element whose assigned stereotype's name differs from its concept type's default label (e.g. a stereotype named "Threat" assigned to a Driver element), **When** the view is exported with default options, **Then** a «Threat» label is rendered above that element's name, with no extra option required.
+3. **Given** an element whose assigned stereotype's name matches its concept type's default label (e.g. a stereotype literally named "Driver" assigned to a Driver element), **When** the view is exported with default options, **Then** no stereotype label is rendered, since it would be redundant with the element's shape.
+4. **Given** the existing explicit "always show stereotype labels" display option is enabled, **When** a view containing both standard-named and non-standard-named stereotypes is exported, **Then** every element that has any stereotype assigned renders its label, including ones whose stereotype name matches the concept's default label.
+
 ### Edge Cases
 
 - What happens when a stereotype's color is set to an invalid value (not a recognized 6-digit hex code or named color)? The system must reject it with a clear error, the same way it already does for per-element colors.
@@ -63,6 +80,7 @@ A modeler configures stereotype colors, saves the model, closes it, and reopens 
 - What happens when a stereotype is deleted while elements still reference it? Those elements lose the stereotype (existing deletion behavior already clears the reference) and therefore lose the stereotype-derived color; an explicit element color, if any, is unaffected.
 - What happens when two different stereotypes that apply to the same concept type both have colors configured, and an element's stereotype assignment changes between them? The element's resolved color always reflects whichever single stereotype is currently assigned.
 - What happens when a stereotype is shared across many elements and its color is edited? All elements using that stereotype without their own explicit color must reflect the new color the next time color is resolved (read or exported), without needing to touch each element individually.
+- What happens when a stereotype's name differs from its concept's default label only by letter case (e.g. "driver" vs. "Driver")? The comparison that decides whether a stereotype is "non-standard" (and therefore auto-labeled) is case-insensitive, so this is treated as standard and no label is rendered by default.
 
 ## Requirements *(mandatory)*
 
@@ -82,11 +100,15 @@ A modeler configures stereotype colors, saves the model, closes it, and reopens 
 - **FR-012**: This feature applies only to Elements; Relationships are out of scope and are unaffected by stereotype color configuration.
 - **FR-013**: This feature covers fill color only; a stereotype's line color, line width, and transparency are out of scope and remain configurable only per individual element, as today.
 - **FR-014**: Loading a model file created before this feature existed MUST succeed without error, with every stereotype's color treated as unset.
+- **FR-015**: System MUST be able to determine, for any element with an assigned stereotype, whether that stereotype's name is "non-standard" by comparing it (case-insensitively) to its concept type's default label.
+- **FR-016**: By default, and without requiring any explicit display option to be set, the system MUST render the existing `«stereotype»` label above an element's name whenever that element's assigned stereotype is non-standard per FR-015.
+- **FR-017**: By default, the system MUST NOT render a `«stereotype»` label for an element that has no stereotype assigned, or whose assigned stereotype's name matches its concept type's default label (i.e. is not non-standard per FR-015).
+- **FR-018**: The existing explicit "always show stereotype labels" display option, when enabled, MUST continue to render the `«stereotype»` label for every element with any assigned stereotype, overriding the default non-standard-only behavior in FR-016/FR-017.
 
 ### Key Entities
 
-- **Stereotype (Profile)**: An existing named specialization of a specific ArchiMate concept type (e.g. "Threat" specializing Driver). Gains one new attribute: an optional default fill color that applies to elements carrying this stereotype.
-- **Element**: An existing ArchiMate model element that may carry zero or one stereotype and may have its own explicit fill color. Its effective (rendered) fill color is now resolved from its own explicit color first, falling back to its assigned stereotype's color, falling back to no color.
+- **Stereotype (Profile)**: An existing named specialization of a specific ArchiMate concept type (e.g. "Threat" specializing Driver). Gains one new attribute: an optional default fill color that applies to elements carrying this stereotype. Whether its name is "non-standard" (differs from its concept type's default label) also now determines whether its label is shown automatically.
+- **Element**: An existing ArchiMate model element that may carry zero or one stereotype and may have its own explicit fill color. Its effective (rendered) fill color is now resolved from its own explicit color first, falling back to its assigned stereotype's color, falling back to no color. Its `«stereotype»` label is now shown automatically by default when its stereotype is non-standard.
 
 ## Diagrams
 
@@ -108,6 +130,7 @@ rectangle "pyArchimate" {
   usecase "View / export an element\nwith its effective fill color" as UC5
   usecase "Save model to\n.archimate / Exchange XML" as UC6
   usecase "Reload model from\n.archimate / Exchange XML" as UC7
+  usecase "View element with automatic\nstereotype label (if non-standard)" as UC8
 }
 
 Modeler --> UC1
@@ -117,10 +140,12 @@ Modeler --> UC4
 Modeler --> UC5
 Modeler --> UC6
 Modeler --> UC7
+Modeler --> UC8
 
 UC5 .> UC1 : <<include>>\n(resolves stereotype\ncolor as fallback)
 UC5 .> UC3 : <<include>>\n(explicit color\ntakes precedence)
 UC7 .> UC1 : <<extend>>\n(restores configured\nstereotype color)
+UC8 .> UC2 : <<include>>\n(checks stereotype name\nagainst concept default label)
 @enduml
 ```
 
@@ -212,6 +237,40 @@ Model -> Modeler : elements using "Threat"\nrender in "#E8453C" again
 @enduml
 ```
 
+### User Story 4 - Automatically label non-standard stereotypes
+
+```plantuml
+@startuml
+title User Story 4 - Automatically Label Non-Standard Stereotypes
+
+start
+:Export element to view\n(e.g. SVG);
+
+if (force-all-labels\noption enabled?) then (yes)
+  if (Element has a\nstereotype assigned?) then (yes)
+    :Render «stereotype name»\nabove element name;
+    stop
+  else (no)
+    :Render no stereotype label;
+    stop
+  endif
+else (no, default)
+  if (Element has a\nstereotype assigned?) then (yes)
+    if (Stereotype name matches\nconcept's default label\n(case-insensitive)?) then (yes)
+      :Render no stereotype label\n(redundant with shape);
+      stop
+    else (no)
+      :Render «stereotype name»\nabove element name\n(non-standard stereotype);
+      stop
+    endif
+  else (no)
+    :Render no stereotype label;
+    stop
+  endif
+endif
+@enduml
+```
+
 ### Supporting: Stereotype / Element color model
 
 ```plantuml
@@ -263,12 +322,12 @@ start
 :Request effective fill color\nfor an Element;
 
 if (Element has an explicit\nfill_color set?) then (yes)
-  :Effective color\n= Element.fill_color;
+  :Effective color =\nElement.fill_color;
   stop
 else (no)
   if (Element has an assigned\nstereotype (Profile)?) then (yes)
     if (Profile.fill_color\nis configured?) then (yes)
-      :Effective color\n= Profile.fill_color;
+      :Effective color =\nProfile.fill_color;
       stop
     else (no)
       :Effective color = none;
@@ -291,6 +350,7 @@ endif
 - **SC-003**: 100% of configured stereotype colors are preserved, unchanged, after a full save/reload round trip in both the Archi-native (`.archimate`) and Open Group Exchange XML formats.
 - **SC-004**: 0% of elements with an explicitly set fill color have that color silently replaced by a stereotype color, in any scenario covered by this feature.
 - **SC-005**: Existing model files created before this feature existed continue to load and render exactly as before, with no visual change, until a stereotype color is explicitly configured.
+- **SC-006**: 100% of elements with a non-standard stereotype show their `«stereotype»` label in an exported view by default, with no display option set, while elements with no stereotype or a standard-named stereotype show no label.
 
 ## Assumptions
 
@@ -299,3 +359,5 @@ endif
 - Only fill color is in scope; a stereotype's line color, line width, and transparency remain per-element settings only, unaffected by this feature.
 - The risk-and-security stereotype examples referenced in this specification (Threat, Risk, Vulnerability, Control Objective, Control Measure, Loss Event, Asset), drawn from The Open Group's ERM/Security whitepaper, are illustrative only — the feature itself must work generically for any user-defined stereotype name, not just these.
 - A model file saved before this feature existed has no stereotype colors recorded; loading it must not fail and must not invent default colors for existing stereotypes.
+- Each ArchiMate concept type has a known, well-defined default label (e.g. "Driver" for the Driver concept) that a stereotype's name can be compared against to decide whether it is "standard" or "non-standard"; this comparison is case-insensitive.
+- The existing explicit "always show stereotype labels" display option is retained for backward compatibility and as a way to force every stereotype label to show, including standard-named ones; it is not removed by this feature.
