@@ -77,6 +77,37 @@ def test_exchange_xml_roundtrip_keeps_same_named_profiles_distinct():
     assert reloaded_actor.fill_color == "#2e8b57"
 
 
+def test_exchange_xml_roundtrip_handles_shared_profile_with_no_color_configured():
+    """A stereotype with no configured color, shared by two elements (one of
+    which also carries another generic property), must round-trip through
+    Exchange XML without inventing a color and without creating duplicate
+    Profile objects for the second element referencing the same profileId."""
+    m1 = Model("roundtrip-exchange-shared")
+    profile = m1.add_profile(name="Risk", concept=ArchiType.Driver)
+
+    elem_a = m1.add(ArchiType.Driver, "D1")
+    elem_a.set_profile("Risk")
+    elem_a.prop("owner", "team-a")
+
+    elem_b = m1.add(ArchiType.Driver, "D2")
+    elem_b.set_profile("Risk")
+
+    with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as f:
+        path = f.name
+    m1.write(path)
+
+    m2 = Model("roundtrip-exchange-shared-reload")
+    m2.read(path)
+
+    reloaded_a = m2.elems_dict[elem_a.uuid].get_profile()
+    reloaded_b = m2.elems_dict[elem_b.uuid].get_profile()
+    assert reloaded_a is not None
+    assert reloaded_b is not None
+    assert reloaded_a.uuid == reloaded_b.uuid == profile.uuid
+    assert reloaded_a.fill_color is None
+    assert m2.elems_dict[elem_a.uuid].prop("owner") == "team-a"
+
+
 def test_pre_existing_fixture_still_loads_with_no_profile_color():
     """A fixture created before this feature existed must still load cleanly,
     with every profile's fill_color reading None (SC-005, FR-014).

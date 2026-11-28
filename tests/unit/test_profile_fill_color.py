@@ -43,3 +43,13 @@ def test_fill_color_invalid_value_leaves_prior_state_unchanged(profile):
     with pytest.raises(ValueError):
         profile.fill_color = "not-a-color"
     assert profile.fill_color == "#e8453c"
+
+
+def test_get_profile_returns_none_for_dangling_profile_reference():
+    """Element.get_profile() must not raise if _profile points to a uuid that
+    is no longer present in model.profiles (defensive guard; not reachable via
+    the public API, which always clears _profile before a profile disappears)."""
+    m = Model("Test")
+    elem = m.add(ArchiType.Driver, "D1")
+    elem._profile = "00000000-0000-4000-8000-000000000000"
+    assert elem.get_profile() is None
