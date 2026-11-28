@@ -508,6 +508,28 @@ node_svc.fill_color = "#cce5ff"
 print(f"Custom fill color: {node_svc.fill_color}")  # #cce5ff
 ```
 
+### Coloring by stereotype
+
+Give a `Profile` (stereotype) its own `fill_color` and every element assigned
+that stereotype picks it up automatically, without styling each node by hand.
+A node's own `fill_color`, then the element's own `fill_color`, still take
+precedence over the stereotype's color if either is set explicitly:
+
+```python
+from pyArchimate import Model, ArchiType
+
+model = Model("stereotype styling demo")
+app = model.add(ArchiType.ApplicationComponent, "Payment Service")
+view = model.add(ArchiType.View, "App Layer")
+node_app = view.add(app, x=0, y=0, w=140, h=60)
+
+threat = model.add_profile(name="Threat", concept=ArchiType.ApplicationComponent)
+threat.fill_color = "#E8453C"
+app.set_profile("Threat")
+
+print(node_app.get_effective_fill_color())  # "#e8453c" — inherited from the stereotype
+```
+
 ---
 
 ## 16. Nested Nodes (Containment)
