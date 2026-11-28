@@ -101,8 +101,8 @@ show_error_codes = true
 ignore_missing_imports = false
 allow_redefinition = false
 check_untyped_defs = true
-disallow_untyped_calls = false  # TODO(009-quality-uplift): Enable — 89 violations; deferred as stretch goal
-disallow_untyped_defs = false  # TODO(009-quality-uplift): Enable — 162 violations; deferred as stretch goal
+disallow_untyped_calls = false  # intentionally not enabled (009-quality-uplift, closed 2026-11-28): ~92 violations of annotation busywork on an already boundary-type-checked library; cost not justified by bug-catching upside — see spec.md Remaining Work
+disallow_untyped_defs = false  # intentionally not enabled (009-quality-uplift, closed 2026-11-28): ~136 violations of annotation busywork on an already boundary-type-checked library; cost not justified by bug-catching upside — see spec.md Remaining Work
 disallow_incomplete_defs = true
 disallow_untyped_decorators = true
 warn_unused_ignores = true
@@ -122,13 +122,11 @@ target-version = "py312"
 select = [
     "E", "F", "W", "B", "C", "I", "S110", "A", "N", "ARG",
     "UP",
+    "PT",
     "RUF059",  # unused-unpacked-variable — F841 doesn't flag unused tuple-unpacking
                # targets, but pyright's push-stage reportUnusedVariable does; catching
                # it here at commit-stage (fast, ruff-only) avoids the gap surfacing
                # only at push time.
-    # TODO(009-quality-uplift): Enable PT rule set — 163 violations exceed cap;
-    # primarily PT009 (unittest assertions) in legacy tests
-    # "PT",
 ]
 ignore = [
     "E501",  # line too long — handled by formatter
@@ -158,6 +156,7 @@ check-typed-exception = true
 "examples/**" = ["N813"]  # N813: `import pyArchimate as pa` is the documented user-facing alias
 "scripts/**" = ["N817"]  # N817: ET is the canonical ElementTree alias
 "*.ipynb" = ["E402", "I001"]  # E402/I001: out-of-order imports are normal in notebook cells
+"tests/legacy_integration/*.py" = ["PT009"]  # legacy unittest-style assertions kept verbatim; not worth rewriting a frozen legacy suite
 
 [tool.ruff.format]
 quote-style = "double"

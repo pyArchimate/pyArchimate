@@ -720,13 +720,13 @@ def test_get_views_by_viewpoint(simple_model):
 
 def test_get_elements_by_viewpoint_invalid_slug(simple_model):
     m, *_ = simple_model
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown viewpoint slug"):
         m.get_elements_by_viewpoint("not_a_slug")
 
 
 def test_get_views_by_viewpoint_invalid_slug(simple_model):
     m, *_ = simple_model
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown viewpoint slug"):
         m.get_views_by_viewpoint("not_a_slug")
 
 
@@ -995,7 +995,7 @@ def test_add_relationship_invalid_source():
     """add_relationship with invalid source should raise TypeError."""
     m = Model("rel-invalid")
     b = m.add(ArchiType.ApplicationService, "B")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid source reference"):
         m.add_relationship(ArchiType.Serving, source="invalid", target=b)
 
 
@@ -1003,7 +1003,7 @@ def test_add_relationship_invalid_target():
     """add_relationship with invalid target should raise TypeError."""
     m = Model("rel-invalid")
     a = m.add(ArchiType.ApplicationComponent, "A")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid target reference"):
         m.add_relationship(ArchiType.Serving, source=a, target="invalid")
 
 
@@ -1011,7 +1011,7 @@ def test_add_relationship_none_source():
     """add_relationship with None source should raise TypeError."""
     m = Model("rel-none")
     b = m.add(ArchiType.ApplicationService, "B")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="argument is not an instance"):
         m.add_relationship(ArchiType.Serving, source=None, target=b)
 
 
@@ -1019,7 +1019,7 @@ def test_add_relationship_none_target():
     """add_relationship with None target should raise TypeError."""
     m = Model("rel-none")
     a = m.add(ArchiType.ApplicationComponent, "A")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="argument is not an instance"):
         m.add_relationship(ArchiType.Serving, source=a, target=None)
 
 
@@ -1087,7 +1087,7 @@ def test_add_child_already_has_parent():
     parent2 = m.add(ArchiType.ApplicationComponent, "Parent2")
     child = m.add(ArchiType.ApplicationComponent, "Child")
     m.add_child(parent1.uuid, child.uuid)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="already has parent"):
         m.add_child(parent2.uuid, child.uuid)
 
 
@@ -1099,7 +1099,7 @@ def test_add_child_cycle_detection():
     c = m.add(ArchiType.ApplicationComponent, "C")
     m.add_child(a.uuid, b.uuid)
     m.add_child(b.uuid, c.uuid)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Cycle detected"):
         m.add_child(c.uuid, a.uuid)  # Would create cycle
 
 
@@ -1126,7 +1126,7 @@ def test_remove_child_not_actual_child():
     parent2 = m.add(ArchiType.ApplicationComponent, "Parent2")
     child = m.add(ArchiType.ApplicationComponent, "Child")
     m.add_child(parent1.uuid, child.uuid)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="is not a child of"):
         m.remove_child(parent2.uuid, child.uuid)
 
 

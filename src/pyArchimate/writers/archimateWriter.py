@@ -205,7 +205,8 @@ def _write_rel_attrs(elem: _Element, e: Any, model: Model) -> None:
 def _write_relationships(root: _Element, model: Model, xsi: et.QName) -> None:
     rels = et.SubElement(root, "relationships")
     for e in model.relationships:
-        assert e.source is not None and e.target is not None
+        assert e.source is not None
+        assert e.target is not None
         elem = et.SubElement(
             rels,
             "relationship",

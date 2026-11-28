@@ -121,12 +121,12 @@ def test_position_dist_computed():
 
 
 def test_profile_missing_name_raises():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Name of Profile must be present"):
         Profile(name=None, concept="ApplicationComponent")
 
 
 def test_profile_missing_concept_raises():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="concept of Profile must be specified"):
         Profile(name="P", concept=None)
 
 
@@ -138,7 +138,7 @@ def test_profile_invalid_concept_raises():
 
 
 def test_profile_view_concept_raises():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="cannot be a View for a Profile"):
         Profile(name="P", concept="View")
 
 
@@ -765,7 +765,7 @@ def test_profile_delete_clears_relationship_profile():
 
 def test_node_invalid_parent_raises():
     """Node requires a View/Node parent; plain string raises ValueError."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="parent should be a class View or Node instance"):
         Node(ref=None, parent="not_a_view")
 
 
@@ -786,7 +786,7 @@ def test_node_init_with_invalid_ref_type_raises():
     """Covers the else: raise branch (line 172) when ref is not str/Element/has-uuid."""
     m = Model("bad-ref-test")
     v = cast(View, m.add(ArchiType.View, "V"))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="not an instance of 'Element'"):
         v.add(ref=42, x=0, y=0)  # int has no .uuid attribute
 
 
@@ -1555,7 +1555,7 @@ def test_view_primary_viewpoint(sample_model):
 
 def test_view_primary_viewpoint_invalid(sample_model):
     view = cast(View, sample_model.add(ArchiType.View, "Test View"))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown viewpoint slug"):
         view.set_primary_viewpoint("not_valid")
 
 

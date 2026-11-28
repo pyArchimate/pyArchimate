@@ -145,7 +145,8 @@ def _write_relationship(folders: dict[str, _Element], rel: object, xsi: et.QName
     folder = _get_folder(folders, rel_folder)
     source = getattr(rel, "source", None)
     target = getattr(rel, "target", None)
-    assert source is not None and target is not None
+    assert source is not None
+    assert target is not None
     rel_type = getattr(rel, "type", "")
     r = et.SubElement(
         folder,

@@ -1099,7 +1099,8 @@ class Connection:
 
     def l_shape(self, direction=0, weight_x=0.5, weight_y=0.5):
         """Shape the connection as an L (one bendpoint)."""
-        assert self.source is not None and self.target is not None
+        assert self.source is not None
+        assert self.target is not None
         self.remove_all_bendpoints()
         s_cx, s_cy = self.source.cx, self.source.cy
         t_cx, t_cy = self.target.cx, self.target.cy
@@ -1110,7 +1111,8 @@ class Connection:
 
     def s_shape(self, direction=0, weight_x=0.5, weight_y=0.5, weight2=0.5):
         """Shape the connection as an S (two bendpoints)."""
-        assert self.source is not None and self.target is not None
+        assert self.source is not None
+        assert self.target is not None
         self.remove_all_bendpoints()
         s_xy = Point(self.source.cx, self.source.cy)
         t_xy = Point(self.target.cx, self.target.cy)
