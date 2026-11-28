@@ -234,7 +234,9 @@ class TestRoutingPerformance:
         result = auto_route(view)
         elapsed = time.time() - start
         assert result.success is True
-        assert elapsed < 15.0, f"auto_route took {elapsed:.2f}s (limit 15s incl. coverage; regression guard — see T044 comment)"
+        assert elapsed < 15.0, (
+            f"auto_route took {elapsed:.2f}s (limit 15s incl. coverage; regression guard — see T044 comment)"
+        )
 
 
 # ---------------------------------------------------------------------------
